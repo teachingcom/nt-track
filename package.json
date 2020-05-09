@@ -1,0 +1,32 @@
+{
+  "name": "nt-track",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "npx parcel watch ./src/index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "peerDependencies": {
+    "pixi-particles": "^4.2.0",
+    "pixi.js": "^5.2.3",
+    "popmotion": "^8.7.1"
+  },
+  "dependencies": {
+    "clone-deep": "^4.0.1",
+    "deep-defaults": "^1.0.5",
+    "deep-get-set": "^1.1.0",
+    "pixi-particles": "^4.2.0",
+    "pixi.js": "^5.2.3",
+    "popmotion": "^8.7.1",
+    "random-seed": "^0.3.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.9.0",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/plugin-transform-runtime": "^7.9.0",
+    "babel-preset-env": "^1.7.0",
+    "parcel-bundler": "^1.12.4"
+  }
+}

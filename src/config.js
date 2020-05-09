@@ -1,0 +1,2 @@
+export const MAXIMUM_TRACK_SCROLL_SPEED = 40;
+export const MAXIMUM_CAR_SHAKE = 1.8;
