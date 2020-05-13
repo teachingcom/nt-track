@@ -1,0 +1,1 @@
+- anti-aliasing isn't great - consider resizing spritesheets dynamically at resize events

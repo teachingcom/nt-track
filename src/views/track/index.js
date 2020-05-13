@@ -1,58 +1,60 @@
+import * as PIXI from 'pixi.js';
 import { BaseView } from '../base';
 import * as scaling from './scaling';
 import Player from './player';
 import Track from '../../components/track';
 import { merge } from '../../utils';
+import { toRGB } from '../../utils/color';
 
 export default class TrackView extends BaseView {
-
-	/** creates a new track */
-	constructor(options) {
-		super({ baseHeight: scaling.BASE_HEIGHT }, options);
-	}
 
 	// tracking each lane
 	players = [ ]
 
+	// global effect filter
+	filter = new PIXI.filters.ColorMatrixFilter()
+
+	// handle remaining setup
+	init(options) {
+		options = merge({ scale: { height: scaling.BASE_HEIGHT }}, options);
+		super.init(options);
+
+		// attach the effects filter
+		this.stage.filters = [ this.filter ];
+	}
+
 	/** adds a new car to the track */
-	addCar = async options => {
-		
+	addPlayer = async options => {
+		// create the player instance
 		const playerOptions = merge({ view: this }, options);
 		const player = await Player.create(playerOptions);
-		this.stage.addChild(player);
 		this.players.push(player);
 
+		// adapts the player to the track
+		// player.setTrack(this.track);
+		
+		// add to the view
+		this.stage.addChild(player);
 		this.stage.sortChildren();
-	
-		// const car = await Car.create(this, options);
-		// this.players[options.lane] = car;
-		
-		// const wrap = new AnimatorPIXI.ResponsiveContainer();
-		// wrap.addChild(car);
-		
-		// wrap.relativeX = 0.5;
-		// wrap.relativeY = 0.5;
-
-		// this.stage.addChild(wrap);
 	}
 
 	/** assigns the current track */
 	setTrack = async options => {
+		const { stage } = this;
 		const trackOptions = merge({ view: this }, options);
-		this.track = await Track.create(trackOptions);
-		this.stage.addChild(this.track);
+		const track = this.track = await Track.create(trackOptions);
+		stage.addChild(track);
 
 		// check for a foreground
-		if (this.track.foreground) {
+		if (track.foreground) {
 
 			// TODO: track layers in a file
-			this.track.foreground.zIndex = 100;
+			track.foreground.zIndex = 100;
 
 			// add to the view
-			this.stage.addChild(this.track.foreground);
-			this.stage.sortChildren();
+			stage.addChild(track.foreground);
+			stage.sortChildren();
 		}
-
 	}
 
 	state = {

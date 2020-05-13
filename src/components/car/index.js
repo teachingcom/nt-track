@@ -5,39 +5,40 @@
 import * as PIXI from 'pixi.js';
 import { loadImage } from 'nt-animator';
 import { merge } from '../../utils';
+import generateTextures from './texture-generator';
+import { CAR_SHADOW_OPACITY } from '../../config';
+const MAXIMUM_CAR_SHAKE = 1.5;
+
 
 export default class Car extends PIXI.Container {
 
-	constructor(options) {
-		super();
-		this.options = options;
-	}
-
 	/** handles creating a new car */
 	static async create(options) {
-		const { view } = options;
+		const instance = new Car();
 		
-		// create the car instance
-		const instance = new Car(options);
-		const path = `cars/${options.type}`;
-		merge(instance, {
-			path,
-			config: view.animator.lookup(path),
-			view: options.view,
-			options: options
-		});
+		// determine the type to create
+		const { type, view } = options;
+		const path = `cars/${type}`;
+		const config = view.animator.lookup(path);
+		merge(instance, { options, view, path, config });
 		
 		// initialize all car parts
 		await instance._initCar();
-		await instance._initTrail();
-		
-		// give back the instance
+
+		// return the created car
 		return instance;
 	}
 	
+
 	// creates the car instance
 	async _initCar() {
-		const { view, config, options, path } = this;
+		const { path, config, view, options } = this;
+		const { type, hue = 0, baseHeight } = options;
+		const { staticUrl } = view.options;
+
+		// deciding textures to render
+		const includeNormalMap = false; // TODO: depends on view options
+		let includeShadow = false; //TODO: depends on view options
 
 		// tracking the height to scale relative to
 		let height;
@@ -52,7 +53,7 @@ export default class Car extends PIXI.Container {
 
 		// if this isn't an enhanced car, use the default image
 		if (!config) {
-			car = await createStaticCar(view.options.staticUrl, options.type);
+			car = await createStaticCar(staticUrl, type);
 			height = car.height;
 			imageSource = car;
 
@@ -71,75 +72,65 @@ export default class Car extends PIXI.Container {
 			// scale to the base layer
 			height = base.displayObject.height;
 			imageSource = base.displayObject;
+			includeShadow = true;
 		}
 		
 		// scale the car to match the preferred height, which is
 		// the height of the car relative to the base size of the
 		// stage itself - The ResponsiveContainer will handle the rest
-		car.scale.x = car.scale.y = options.baseHeight / height;
+		car.scale.x = car.scale.y = baseHeight / height;
 
 		// apply the hue shift
 		const matrix = this.matrix = new PIXI.filters.ColorMatrixFilter();
-		car.filters = [ matrix ];
-		matrix.hue(options.hue || 0);
 		// const aa = this.aa = new PIXI.filters.FXAAFilter();
-
-		// identify the base image to use
-		// TODO: this isn't ideal
-		while (imageSource && !imageSource.isSprite)
-			imageSource = imageSource.children[0];
+		car.filters = [ matrix ];
+		matrix.hue(hue);
 		
 		// save the car instance
 		this.car = car;
+
+		// load any textures
+		this._initTextures(imageSource, includeShadow, includeNormalMap);
 
 		// add the car to the view
 		this.addChild(car);
 	}
 
-	// start creating loot
-	async _initTrail() {
-		const { view, config, options } = this;
+	// handles generating dynamic textures
+	_initTextures(imageSource, includeShadow, includeNormalMap) {
 
-		// check there's an existing trail
-		const type = options.loot && options.loot.trail;
-		if (!type) return;
+		// create textures for this vehicle
+		const { normalMap, shadow } = generateTextures(imageSource, {
+			includeNormalMap,
+			includeShadow
+		});
 
-		// load the animation
-		const path = `trails/${type}`;
-		const trail = await view.animator.create(path);
-		if (!trail) {
-			console.error(`Unable to create trail "${path}"`);
-			return;
+		// apply each, if possible
+		if (shadow) {
+			this.shadow = PIXI.Sprite.from(shadow);
+			this.shadow.blendMode = PIXI.BLEND_MODES.MULTIPLY;
+			
+			// align to the center
+			this.shadow.pivot.x = this.shadow.width / 2;
+			this.shadow.pivot.y = this.shadow.height / 2;
+			this.shadow.alpha = CAR_SHADOW_OPACITY;
+			
+			// match the car scale
+			this.shadow.scale.x = this.shadow.scale.y = this.car.scale.x;
+		}
+		
+		// the normal map, if any
+		if (normalMap) {
+			this.normalTexture = PIXI.Texture.from(normalMap);
 		}
 
-		// HACK: need to come up with a consistent way of
-		// doing scaling for assets
-		const scale = 0.5;
-
-		// trails are attached as detatched
-		for (let i = trail.children.length; i-- > 0;) {
-			const child = trail.children[i];
-
-			// match to the car layer
-			child.scale.x = child.scale.y = scale;
-
-			// then scale the x/y positions to match
-			// the new scale
-			child.x *= scale;
-			child.y *= scale;
-
-			// lastly, move the effect to the back side
-			// of the car
-			child.x -= this.car.width * 0.5;
-
-			// then add to the view
-			this.addChild(child);
-		}
-
-		// console.log(trail);
-		// this.addChild(trail);
-		this.sortChildren();
-
+	}
+	
+	/** rattles a car by the amount provided */
+	rattle(amount) {
+		const shake = ((MAXIMUM_CAR_SHAKE * amount) * Math.random()) - (MAXIMUM_CAR_SHAKE / 2);
+		this.car.y = shake;
+		this.shadow.y = 10 + (shake * 0.33);
 	}
 
 }
