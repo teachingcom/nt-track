@@ -2,12 +2,12 @@
 // TODO: anti aliasing isn't great - consider creating
 // multiple versions that are pre-scaled using canvas
 
+
 import * as PIXI from 'pixi.js';
-import { loadImage } from 'nt-animator';
+import { loadImage, getBoundsForRole, findDisplayObjectsOfRole } from 'nt-animator';
 import { merge } from '../../utils';
 import generateTextures from './texture-generator';
-import { CAR_SHADOW_OPACITY } from '../../config';
-const MAXIMUM_CAR_SHAKE = 1.5;
+import { CAR_SHADOW_OPACITY, CAR_MAXIMUM_SHAKE, CAR_BODY_OFFSET_Y, CAR_SHADOW_OFFSET_Y } from '../../config';
 
 
 export default class Car extends PIXI.Container {
@@ -67,11 +67,29 @@ export default class Car extends PIXI.Container {
 		// create the car instance
 		else {
 			car = await view.animator.create(path);
-			const { base } = car.instances;
+
+			// find the base layer for the car - if there's
+			// more than one, just use the first one and
+			// warn that it can't be done
+			// NOTE: it is possible to use multiple base layers, but the
+			// texture rendering step expects a single object or container
+			// it's possible to make that process accept multiple, but at
+			// the moment, it doesn't seem like a good use of time
+			const layers = findDisplayObjectsOfRole(car, 'base');
+			if (layers.length > 1) {
+				console.warn(`Cars can only have one 'base' role layer. Using first detected base`);
+			}
+
+			// get the base to use -- without a base
+			// then just use the entire car
+			const base = layers[0] || this;
+			const bounds = base.getBounds();
+
+			// save the size and layer to use
+			height = bounds.height;
+			imageSource = base;
 
 			// scale to the base layer
-			height = base.displayObject.height;
-			imageSource = base.displayObject;
 			includeShadow = true;
 		}
 		
@@ -128,9 +146,9 @@ export default class Car extends PIXI.Container {
 	
 	/** rattles a car by the amount provided */
 	rattle(amount) {
-		const shake = ((MAXIMUM_CAR_SHAKE * amount) * Math.random()) - (MAXIMUM_CAR_SHAKE / 2);
-		this.car.y = shake;
-		this.shadow.y = 10 + (shake * 0.33);
+		const shake = ((CAR_MAXIMUM_SHAKE * amount) * Math.random()) - (CAR_MAXIMUM_SHAKE / 2);
+		this.car.y = CAR_BODY_OFFSET_Y + shake;
+		this.shadow.y = CAR_SHADOW_OFFSET_Y + (shake * 0.33);
 	}
 
 }

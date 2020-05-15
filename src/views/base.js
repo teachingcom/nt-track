@@ -1,8 +1,8 @@
 import * as PIXI from 'pixi.js';
-import { Animator, PIXI as AnimatorPIXI } from 'nt-animator';
+import { Animator, EventEmitter, PIXI as AnimatorPIXI, createContext } from 'nt-animator';
 
 /** creates a track instance */
-export class BaseView {
+export class BaseView extends EventEmitter {
 
 	/** handles initial setup of the rendering area */
 	init(options) {
@@ -26,7 +26,7 @@ export class BaseView {
 		// create a PIXI renderer for the provided canvas
 		this.renderer = new PIXI.Renderer({
 			resolution: 1,
-			antialias: true,
+			antialias: false,
 			view: target,
 			backgroundColor: options.backgroundColor || 0x282d3f
 		});
@@ -57,15 +57,21 @@ export class BaseView {
 		const bounds = parent.getBoundingClientRect();
 		const width = bounds.right - bounds.left;
 		const height = bounds.bottom - bounds.top;
-
+		
 		// resize the view
 		this.width = surface.width = width;
 		this.height = surface.height = height;
 		this.cx = width / 2;
 		this.cy = height / 2;
-
+		
 		// update the responsive stage size
 		stage.resize(width, height);
+
+		// notify of the resize
+		const { cx, cy } = this;
+		this.emit('resize', { width, height, cx, cy });
+
+		// perform a render
 		renderer.render(stage);
 	}
 

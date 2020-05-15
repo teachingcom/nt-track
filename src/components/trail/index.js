@@ -40,7 +40,6 @@ export default class Trail extends PIXI.Container {
 		}
 
 		// save the trail instance
-		console.log('did');
 		this.parts = trail.children.slice();
 		this.addChild(trail);
 	}

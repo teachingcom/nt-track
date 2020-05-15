@@ -2,7 +2,7 @@
 import * as PIXI from 'pixi.js';
 import { PIXI as AnimatorPIXI } from 'nt-animator';
 import Car from '../../components/car';
-import { BASE_HEIGHT, LANES, SCALED_CAR_HEIGHT, SCALED_LANE_HEIGHT, LANE_HEIGHT } from './scaling';
+import { BASE_HEIGHT, LANES, SCALED_CAR_HEIGHT, SCALED_LANE_HEIGHT, LANE_HEIGHT, SCALED_NAMECARD_HEIGHT } from './scaling';
 import { merge } from '../../utils';
 import { MAXIMUM_CAR_SHAKE } from '../../config';
 import Trail from '../../components/trail';
@@ -106,8 +106,10 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 		// load a trail, if any
 		return NameCard.create({
 			view,
-			baseHeight: SCALED_CAR_HEIGHT,
-			type: mods.card
+			baseHeight: SCALED_NAMECARD_HEIGHT,
+			type: mods.card,
+			name: options.playerName,
+			team: options.playerTeam,
 		});
 	}
 
@@ -135,9 +137,9 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 			trail.each(part => part.x -= this.car.width / 2);
 		}
 
+		// save the namecard
 		if (namecard) {
-			namecard.relativeX = -(0.3);
-			this.addChild(namecard);
+			this.layers.namecard = namecard;
 		}
 
 		
@@ -152,7 +154,6 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 		// finalize order
 		this.sortChildren();
 	}
-	
 	
 	// handles the car updating process
 	update = (state) => {

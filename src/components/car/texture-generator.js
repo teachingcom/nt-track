@@ -1,7 +1,7 @@
 // TODO: this file needs to be optimized
 
 import * as PIXI from 'pixi.js';
-import { createContext } from "../../utils/graphics";
+import { createContext } from "nt-animator";
 
 // pixel array offset values
 const RED_OFFSET = 0;

@@ -13,3 +13,8 @@ export function toRGB(color, scale = true) {
 
 	return [r, g, b];
 }
+
+export function toRGBA(color, alpha) {
+	const [r, g, b] = toRGB(color, false);
+	return `rgba(${r}, ${g}, ${b}, ${alpha.toFixed(2)})`;
+}
