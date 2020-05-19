@@ -1,23 +1,23 @@
 import { PIXI as AnimatorPIXI } from 'nt-animator';
 import { merge } from '../../utils';
 
-export default class Trail extends AnimatorPIXI.DetatchedContainer {
+export default class Nitro extends AnimatorPIXI.DetatchedContainer {
 
-	/** handles creating the new trail instance */
+	/** handles creating the new nitro instance */
 	static async create(options) {
 		const { type, view } = options;
-		const path = `trails/${type}`;
+		const path = `nitros/${type}`;
 		const config = view.animator.lookup(path);
 
 		// if this doesn't exist, don't try and create
 		if (!config) return;
 		
 		// determine the type to create
-		const instance = new Trail();
+		const instance = new Nitro();
 		merge(instance, { options, view, path, config });
 		
 		// initialize all car parts
-		await instance._initTrail();
+		await instance._initNitro();
 
 		// if this didn't load for some reason
 		if (!instance.isValid) return;
@@ -27,24 +27,24 @@ export default class Trail extends AnimatorPIXI.DetatchedContainer {
 	}
 
 	// start creating loot
-	async _initTrail() {
+	async _initNitro() {
 		const { view, options } = this;
 		const { type } = options;
 
 		// load the animation
-		const path = `trails/${type}`;
-		const trail = await view.animator.create(path);
-		if (!trail) {
-			console.error(`Unable to create trail "${path}"`);
+		const path = `nitros/${type}`;
+		const nitro = await view.animator.create(path);
+		if (!nitro) {
+			console.error(`Unable to create nitro "${path}"`);
 			return;
 		}
 
-		// save the trail instance
-		this.parts = trail.children.slice();
-		this.addChild(trail);
+		// save the nitro instance
+		this.parts = nitro.children.slice();
+		this.addChild(nitro);
 	}
 
-	/** is a valid Trail instance */
+	/** is a valid Nitro instance */
 	get isValid() {
 		return this.parts && this.parts.length > 0;
 	}

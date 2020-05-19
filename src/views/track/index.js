@@ -91,6 +91,14 @@ export default class TrackView extends BaseView {
 		stage.sortChildren();
 	}
 
+	/** handles activating the nitro effect for a player */
+	activateNitro = index => {
+		const player = this.players[index];
+		if (player) {
+			player.car.activateNitro();
+		}
+	}
+
 	render = () => {
 
 		// const MAX_SPEED = 1;

@@ -2,12 +2,15 @@
 // TODO: anti aliasing isn't great - consider creating
 // multiple versions that are pre-scaled using canvas
 
-
 import * as PIXI from 'pixi.js';
-import { loadImage, getBoundsForRole, findDisplayObjectsOfRole } from 'nt-animator';
+import { findDisplayObjectsOfRole } from 'nt-animator';
 import { merge } from '../../utils';
 import generateTextures from './texture-generator';
+import { tween, easing } from 'popmotion';
+
 import { CAR_SHADOW_OPACITY, CAR_MAXIMUM_SHAKE, CAR_BODY_OFFSET_Y, CAR_SHADOW_OFFSET_Y } from '../../config';
+import { LAYER_CAR, LAYER_SHADOW, LAYER_NITRO_BLUR } from '../../views/track/layers';
+import { createStaticCar } from './create-static-car';
 
 
 export default class Car extends PIXI.Container {
@@ -22,8 +25,9 @@ export default class Car extends PIXI.Container {
 		const config = view.animator.lookup(path);
 		merge(instance, { options, view, path, config });
 		
-		// initialize all car parts
+		// initialize the car
 		await instance._initCar();
+		instance._initFilters();
 
 		// return the created car
 		return instance;
@@ -33,12 +37,12 @@ export default class Car extends PIXI.Container {
 	// creates the car instance
 	async _initCar() {
 		const { path, config, view, options } = this;
-		const { type, hue = 0, baseHeight } = options;
+		const { type, baseHeight } = options;
 		const { staticUrl } = view.options;
 
 		// deciding textures to render
-		const includeNormalMap = false; // TODO: depends on view options
-		let includeShadow = false; //TODO: depends on view options
+		const includeNormalMap = view.options.includeNormalMaps;
+		let includeShadow = view.options.includeShadows;
 
 		// tracking the height to scale relative to
 		let height;
@@ -77,7 +81,7 @@ export default class Car extends PIXI.Container {
 			// the moment, it doesn't seem like a good use of time
 			const layers = findDisplayObjectsOfRole(car, 'base');
 			if (layers.length > 1) {
-				console.warn(`Cars can only have one 'base' role layer. Using first detected base`);
+				console.warn(`Cars should only have one 'base' role layer. Using first detected base`);
 			}
 
 			// get the base to use -- without a base
@@ -98,12 +102,6 @@ export default class Car extends PIXI.Container {
 		// stage itself - The ResponsiveContainer will handle the rest
 		car.scale.x = car.scale.y = baseHeight / height;
 
-		// apply the hue shift
-		const matrix = this.matrix = new PIXI.filters.ColorMatrixFilter();
-		// const aa = this.aa = new PIXI.filters.FXAAFilter();
-		car.filters = [ matrix ];
-		matrix.hue(hue);
-		
 		// save the car instance
 		this.car = car;
 
@@ -114,56 +112,185 @@ export default class Car extends PIXI.Container {
 		this.addChild(car);
 	}
 
+	// setup visual filters
+	_initFilters = () => {
+		const { options } = this;
+		const { hue = 0 } = options;
+
+		// create a color matrix
+		const color = this.matrix = new PIXI.filters.ColorMatrixFilter();
+		color.hue(hue);
+
+		// setup anti-aliasing (this doesn't seem to work well)
+		const aa = this.aa = new PIXI.filters.FXAAFilter();
+		
+		// apply filters
+		this.car.filters = [ aa, color ];
+	}
+
 	// handles generating dynamic textures
 	_initTextures(imageSource, includeShadow, includeNormalMap) {
+		const { options, car } = this;
+		const { hue = 0, hasNitro = false } = options;
+		const scale = car.scale.x;
 
 		// create textures for this vehicle
-		const { normalMap, shadow } = generateTextures(imageSource, {
+		const { normalMap, nitroBlur, shadow } = generateTextures(imageSource, {
 			includeNormalMap,
-			includeShadow
+			includeShadow,
+			includeNitroBlur: hasNitro,
+			nitroBlurHue: hue
 		});
 
 		// apply each, if possible
 		if (shadow) {
-			this.shadow = PIXI.Sprite.from(shadow);
-			this.shadow.blendMode = PIXI.BLEND_MODES.MULTIPLY;
+			this.shadow = shadow;
+			shadow.blendMode = PIXI.BLEND_MODES.MULTIPLY;
 			
 			// align to the center
-			this.shadow.pivot.x = this.shadow.width / 2;
-			this.shadow.pivot.y = this.shadow.height / 2;
-			this.shadow.alpha = CAR_SHADOW_OPACITY;
+			shadow.pivot.x = shadow.width / 2;
+			shadow.pivot.y = shadow.height / 2;
+			shadow.alpha = CAR_SHADOW_OPACITY;
 			
 			// match the car scale
-			this.shadow.scale.x = this.shadow.scale.y = this.car.scale.x;
+			shadow.scale.x = shadow.scale.y = scale;
+		}
+
+		// nitro blurs should be put into another container
+		// since they will be scaled and animated
+		if (nitroBlur) {
+			const nitroBlurContainer = new PIXI.Container();
+			this.nitroBlur = nitroBlurContainer;
+			this.nitroBlur.alpha = 0;
+			
+			// add to the container
+			nitroBlurContainer.addChild(nitroBlur);
+
+			// adjust
+			nitroBlur.blendMode = PIXI.BLEND_MODES.ADD;
+			nitroBlur.pivot.x = nitroBlur.width / 2;
+			nitroBlur.pivot.y = nitroBlur.height / 2;
+
+			// match the car scale
+			nitroBlur.scale.x = nitroBlur.scale.y = scale;
 		}
 		
 		// the normal map, if any
-		if (normalMap) {
-			this.normalTexture = PIXI.Texture.from(normalMap);
+		this.normalMap = normalMap;
+	}
+
+	/** attaches a car to a container */
+	attachTo(view) {
+		const { scale } = view;
+		const { car, shadow, nitroBlur } = this;
+		
+		// include the car
+		view.addChild(this);
+		this.zIndex = LAYER_CAR;
+		car.y = CAR_BODY_OFFSET_Y;
+		
+		// include the shadow
+		if (shadow) {
+			view.addChild(shadow);
+
+			// position just beneat the car a bit
+			shadow.zIndex = LAYER_SHADOW;
+			shadow.y = CAR_SHADOW_OFFSET_Y * scale.y;
 		}
+		
+		// if this has a nitro blurring effect
+		if (nitroBlur) {
+			view.addChild(nitroBlur);
+			nitroBlur.zIndex = LAYER_NITRO_BLUR;
+
+			// position near the back of the car so
+			// that when in "nitro" mode, the effect
+			// is lined up correctly
+			nitroBlur.y = CAR_BODY_OFFSET_Y - 10;
+			nitroBlur.x = (this.car.width * 0.75);
+			nitroBlur.pivot.x = nitroBlur.width / 2;
+		}
+		
+		// nitroBlur.scale.x = 1.5
+		// nitroBlur.pivot.x = nitroBlur.width / -2;
+		// nitroBlur.rotation = 1;
+	}
+
+	offset = { x: 0, y: 0 }
+
+	/** handles activating the car nitros */
+	activateNitro = () => {
+		const { car, nitro } = this;
+		const { x, y, scaleX = car.scale.x, scaleY = car.scale.y } = car;
+		car.pivot.x = 0;
+
+		const update = props => {
+			car.x = props.x;
+			this.offset.y = props.y;
+			car.skew.y = props.skewY;
+			car.skew.x = props.skewX;
+			car.scale.x = props.scaleX;
+			car.scale.y = props.scaleY;
+
+			nitro.assign({ alpha: props.alpha })
+
+			this.nitroBlur.alpha = props.alpha;
+			this.nitroBlur.scale.x = props.blur;
+		}
+
+		const origin = { skewY: 0, skewX: 0, rotation: 0, scaleX, scaleY, x, y: 0, alpha: 0, blur: 0.4 };
+		const destination = { skewY: -0.085, skewX: 0.05, scaleX: scaleX - 0.01, scaleY: scaleY + 0.02, rotation: 0.05, x: -15, y: -5, blur: 1.3, alpha: 2 };
+
+		this.isNitro = true;
+		const outtro = () => {
+			this.isNitro = false;
+			tween({
+				duration: 700,
+				ease: easing.bounceOut,
+				from: Object.assign({ }, destination),
+				to: Object.assign({ }, origin),
+			})
+			.start({ update });
+		}
+
+		tween({ 
+			duration: 250,
+			from: Object.assign({ }, origin),
+			to: Object.assign({ }, destination)
+		})
+		.start({
+			update,
+			complete: () => setTimeout(outtro, 2500)
+		})
+		
+
+		// const neutral = { { x: 0, y } }
+		// const boost = { { x: 0, y } }
+		// tween(props, {
+
+		// })
 
 	}
 	
 	/** rattles a car by the amount provided */
 	rattle(amount) {
-		const shake = ((CAR_MAXIMUM_SHAKE * amount) * Math.random()) - (CAR_MAXIMUM_SHAKE / 2);
-		this.car.y = CAR_BODY_OFFSET_Y + shake;
+		let shake = ((CAR_MAXIMUM_SHAKE * amount) * Math.random()) - (CAR_MAXIMUM_SHAKE / 2);
+
+		if (this.isNitro) {
+			shake *= 2.125;
+		}
+
+		this.car.y = CAR_BODY_OFFSET_Y + this.offset.y + shake;
 		this.shadow.y = CAR_SHADOW_OFFSET_Y + (shake * 0.33);
+		// this.nitroBlur.y = (CAR_BODY_OFFSET_Y + 10 + this.offset.y + (shake * 2));
+
+		// this.car.pivot.x = 0;
+		// this.car.skew.y = -0.1;
+		// this.car.skew.x = 0.1;
+		// this.car.rotation = 0.05;
+		// this.car.x = -15;
+		// this.car.y = -10;
+		// this.car.scale.x = 0.4;
 	}
 
-}
-
-// handles loading a legacy car
-async function createStaticCar(baseUrl, type) {
-	const url = `${baseUrl}/${type}.png`;
-	try {
-		const img = await loadImage(url);
-		const texture = PIXI.Texture.from(img);
-		return PIXI.Sprite.from(texture);
-	}
-	// needs to use a fallback?
-	catch (ex) {
-		console.error(`Failed to load ${url}`);
-		console.error(ex);
-	}
 }

@@ -2,7 +2,6 @@ import * as PIXI from 'pixi.js';
 import { PIXI as AnimatorPIXI, getBoundsForRole } from 'nt-animator';
 import Random from '../../rng';
 import { TRACK_HEIGHT, BASE_HEIGHT, TRACK_TOP } from '../../views/track/scaling';
-import Treadmill from '../treadmill';
 import { MAXIMUM_TRACK_SCROLL_SPEED } from '../../config';
 import { isArray, isNumber } from '../../utils';
 import Segment from './segment';
@@ -27,6 +26,7 @@ export default class Track {
 		instance.container = new PIXI.Container();
 
 		// assign the seed, if needed
+		view.animator.rng.activate(seed);
 		instance.rng = new Random(seed);
 
 		// align to the center
@@ -157,6 +157,12 @@ export default class Track {
 	async _createStartingLine() {
 		const { view, overlay, ground, rng, layers, manifest, path } = this;
 		const { start } = manifest.track;
+
+		// if missing
+		if (!start) {
+			console.warn(`No starting block defined for ${path}`);
+			return;
+		}
 
 		// add the starting line
 		const comp = await view.animator.compose({ compose: start }, path, manifest);

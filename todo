@@ -1,1 +1,25 @@
+
+- speedway #1 (standard race track)
+- speedway #2 (race track, different style)
+- desert dig (dino escavation)
+- digital frontier? (retro, digital)
+- great wall of china (castle wall?)
+- jungle temple
+- dirt rally (rough dirt)
+
+
+
+x repeater type
+x shadow generator
+x normal map generator
+- implement normal maps
+x starting block
+x fit block to looping track
+- refactor track assembly
+x name cards
+- nitros
+- nitro activation effect
+- finish line
+- photo finish
+
 - anti-aliasing isn't great - consider resizing spritesheets dynamically at resize events

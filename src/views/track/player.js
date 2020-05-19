@@ -4,10 +4,11 @@ import { PIXI as AnimatorPIXI } from 'nt-animator';
 import Car from '../../components/car';
 import { BASE_HEIGHT, LANES, SCALED_CAR_HEIGHT, SCALED_LANE_HEIGHT, LANE_HEIGHT, SCALED_NAMECARD_HEIGHT } from './scaling';
 import { merge } from '../../utils';
-import { MAXIMUM_CAR_SHAKE } from '../../config';
+import { MAXIMUM_CAR_SHAKE, NITRO_SCALE, NITRO_OFFSET_X, NITRO_OFFSET_Y, TRAIL_SCALE } from '../../config';
 import Trail from '../../components/trail';
 import NameCard from '../../components/namecard';
 import { LAYER_CAR, LAYER_SHADOW } from './layers';
+import Nitro from '../../components/nitro';
 
 export default class Player extends AnimatorPIXI.ResponsiveContainer {
 
@@ -47,11 +48,11 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 		// initialize all layers
 		const car = instance._initCar();
 		const trail = instance._initTrail();
+		const nitro = instance._initNitro();
 		const namecard = instance._initNameCard();
-		// await _initNitro();
 
 		// wait for the result
-		const resolved = await Promise.all([ car, trail, namecard ]);
+		const resolved = await Promise.all([ car, trail, nitro, namecard ]);
 		await instance._assemble(...resolved);
 
 		// put the player in the correct lane
@@ -67,7 +68,7 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 
 	// handles creating a new car
 	async _initCar() {
-		const { options } = this;
+		const { options, mods } = this;
 		const { view } = options;
 
 		// request for the car
@@ -75,11 +76,14 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 			view,
 			baseHeight: SCALED_CAR_HEIGHT,
 			type: options.type,
-			hue: options.hue
+			hue: options.hue,
+
+			// check for nitro effects
+			hasNitro: !!mods.nitro
 		});
 	}
 
-	// handles creating a new car
+	// handles creating a trail
 	async _initTrail() {
 		const { options, mods } = this;
 		const { view } = options;
@@ -92,6 +96,22 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 			view,
 			baseHeight: SCALED_CAR_HEIGHT,
 			type: mods.trail
+		});
+	}
+
+	// handles creating a nitro trail
+	async _initNitro() {
+		const { options, mods } = this;
+		const { view } = options;
+
+		// no nitro was equiped
+		if (!mods.nitro) return;
+		
+		// load a nitro, if any
+		return Nitro.create({
+			view,
+			baseHeight: SCALED_CAR_HEIGHT,
+			type: mods.nitro
 		});
 	}
 
@@ -112,29 +132,45 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 			team: options.playerTeam,
 		});
 	}
-
+ 
 	// handles assembling the player
-	async _assemble(car, trail, namecard) {
-		
-		// attach the car instance
-		this.addChild(car);
+	async _assemble(car, trail, nitro, namecard) {
+
+		// include the car and it's shadow
 		this.layers.car = car;
-		car.zIndex = LAYER_CAR;
-
-		// verify there's a shadow
-		if (car.shadow) {
-			this.addChild(car.shadow);
-			this.layers.shadow = car.shadow;
-			car.shadow.zIndex = LAYER_SHADOW;
-		}
-
+		this.layers.shadow = car.shadow;
+		car.attachTo(this);
+		
 		// include the trail, if any
 		if (trail) {
 			this.layers.trail = trail;
-			trail.attachTo(this);
+
+			// TODO: trail scaling is hardcoded - we should
+			// calculate this value
+			trail.attachTo(this, TRAIL_SCALE);
 			
 			// update the position of each
 			trail.each(part => part.x -= this.car.width / 2);
+		}
+		
+		// include the nitro, if any
+		if (nitro) {
+
+			// add this layer
+			this.layers.nitro = nitro;
+			nitro.attachTo(this, NITRO_SCALE);
+
+			// give the car a reference to the nitro
+			nitro.alpha = 0;
+			nitro.scale.x = nitro.scale.y = 0.3;
+			this.car.nitro = nitro;
+
+			// update the position of each
+			nitro.each(part => {
+				part.alpha = 0;
+				part.x -= car.width / 2;
+				part.y += NITRO_OFFSET_Y;
+			});
 		}
 
 		// save the namecard

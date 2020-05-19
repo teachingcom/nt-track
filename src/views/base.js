@@ -17,8 +17,8 @@ export class BaseView extends EventEmitter {
 		this.parent = options.container || options.target.parentNode;
 
 		// create the animation creator
-		const { baseUrl, manifest } = options;
-		this.animator = new Animator(manifest, { baseUrl });
+		const { baseUrl, seed, manifest } = options;
+		this.animator = new Animator(manifest, { baseUrl, seed });
 
 		// data used for the animator
 		this.data = options.data;
