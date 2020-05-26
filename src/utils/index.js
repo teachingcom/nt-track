@@ -1,5 +1,8 @@
 export const merge = Object.assign;
 
+// no-operation
+export const noop = () => { };
+
 export const isArray = val => typeof val === 'array' || val instanceof Array;
 export const isNumber = val => typeof val === 'number' || val instanceof Number;
 export const isNil = val => val === null || val === undefined;

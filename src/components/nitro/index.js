@@ -1,5 +1,6 @@
 import { PIXI as AnimatorPIXI } from 'nt-animator';
 import { merge } from '../../utils';
+import * as audio from '../../audio';
 
 export default class Nitro extends AnimatorPIXI.DetatchedContainer {
 
@@ -18,6 +19,12 @@ export default class Nitro extends AnimatorPIXI.DetatchedContainer {
 		
 		// initialize all car parts
 		await instance._initNitro();
+
+		// load the nitro sound - there's no reason
+		// to wait for this since it can't be used
+		// until after the race starts
+		instance._initSound();
+		instance._applyConfig();
 
 		// if this didn't load for some reason
 		if (!instance.isValid) return;
@@ -40,8 +47,39 @@ export default class Nitro extends AnimatorPIXI.DetatchedContainer {
 		}
 
 		// save the nitro instance
+		this.instance = nitro;
 		this.parts = nitro.children.slice();
 		this.addChild(nitro);
+	}
+
+	// loads the sound for this car
+	async _initSound() {
+		const { options } = this;
+		const { type } = options;
+
+		const key = `nitros/${type}`;
+		await audio.register(key);
+		this.sound = audio.create(key);
+	}
+
+	// apply special config values
+	_applyConfig = () => {
+		const { config } = this;
+
+		// save fading configuration values
+		const alwaysFade = config.fade !== false;
+		this.shouldFadeIn = alwaysFade || /in/i.test(config.fade); 
+		this.shouldFadeOut = alwaysFade || /out/i.test(config.fade); 
+		console.log('fading', this.shouldFadeIn, this.shouldFadeOut);
+	}
+
+	/** activates the sound for this */
+	activate = () => {
+		this.sound.volume(1);
+		this.sound.loop(false);
+		this.sound.play();
+
+		this.instance.controller.activateEmitters();
 	}
 
 	/** is a valid Nitro instance */

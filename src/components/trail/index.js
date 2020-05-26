@@ -1,5 +1,6 @@
+import * as PIXI from 'pixi.js';
 import { PIXI as AnimatorPIXI } from 'nt-animator';
-import { merge } from '../../utils';
+import { merge, isNumber } from '../../utils';
 
 export default class Trail extends AnimatorPIXI.DetatchedContainer {
 
@@ -37,6 +38,20 @@ export default class Trail extends AnimatorPIXI.DetatchedContainer {
 		if (!trail) {
 			console.error(`Unable to create trail "${path}"`);
 			return;
+		}
+
+		// save the config
+		const config = this.config = await view.animator.lookup(path);
+
+		// use a color filter, if any
+		if (isNumber(config.hue)) {
+			const color = this.colorFilter = new PIXI.filters.ColorMatrixFilter();
+			color.hue(config.hue || 0);
+			
+			// create a color matrix
+			for (const child of trail.children) {
+				child.filters = [ color ];
+			}
 		}
 
 		// save the trail instance

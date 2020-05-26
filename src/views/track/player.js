@@ -140,6 +140,9 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 		this.layers.car = car;
 		this.layers.shadow = car.shadow;
 		car.attachTo(this);
+
+		// include extra components
+		car.attachMods({ trail, nitro });
 		
 		// include the trail, if any
 		if (trail) {

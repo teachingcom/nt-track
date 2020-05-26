@@ -44,7 +44,6 @@ export default class ComposerView extends BaseView {
 			cars.push(car);
 
 			// add to the view
-			console.log(car.scale, view.scale);
 			car.attachTo(view);
 
 			// if there's a trail, we probabaly want to see

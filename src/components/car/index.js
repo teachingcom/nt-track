@@ -2,15 +2,17 @@
 // TODO: anti aliasing isn't great - consider creating
 // multiple versions that are pre-scaled using canvas
 
+
 import * as PIXI from 'pixi.js';
 import { findDisplayObjectsOfRole } from 'nt-animator';
 import { merge } from '../../utils';
 import generateTextures from './texture-generator';
 import { tween, easing } from 'popmotion';
 
-import { CAR_SHADOW_OPACITY, CAR_MAXIMUM_SHAKE, CAR_BODY_OFFSET_Y, CAR_SHADOW_OFFSET_Y } from '../../config';
+import { CAR_SHADOW_OPACITY, CAR_MAXIMUM_SHAKE, CAR_BODY_OFFSET_Y, CAR_SHADOW_OFFSET_Y, NITRO_END_DURATION, NITRO_START_DURATION, NITRO_DURATION, NITRO_ACTIVATED_TRAIL_OPACITY, TRAIL_SCALE, STATIC_CAR_ROTATION_FIX } from '../../config';
 import { LAYER_CAR, LAYER_SHADOW, LAYER_NITRO_BLUR } from '../../views/track/layers';
 import { createStaticCar } from './create-static-car';
+import ActivateNitroAnimation from '../../animations/activate-nitro';
 
 
 export default class Car extends PIXI.Container {
@@ -42,60 +44,14 @@ export default class Car extends PIXI.Container {
 
 		// deciding textures to render
 		const includeNormalMap = view.options.includeNormalMaps;
-		let includeShadow = view.options.includeShadows;
+		const includeShadow = true; // view.options.includeShadows;
 
-		// tracking the height to scale relative to
-		let height;
-
-		// the PIXI object for the car, either a simple
-		// image or sprite, or advanced animations car
-		let car;
-
-		// used to identify where to get the
-		// actual image for a car
-		let imageSource;
-
-		// if this isn't an enhanced car, use the default image
-		if (!config) {
-			car = await createStaticCar(staticUrl, type);
-			height = car.height;
-			imageSource = car;
-
-			// static cars face the opposite direction
-			car.rotation = Math.PI;
-
-			// adjust the center point
-			car.pivot.x = car.width / 2;
-			car.pivot.y = car.height / 2;
-		}
-		// create the car instance
-		else {
-			car = await view.animator.create(path);
-
-			// find the base layer for the car - if there's
-			// more than one, just use the first one and
-			// warn that it can't be done
-			// NOTE: it is possible to use multiple base layers, but the
-			// texture rendering step expects a single object or container
-			// it's possible to make that process accept multiple, but at
-			// the moment, it doesn't seem like a good use of time
-			const layers = findDisplayObjectsOfRole(car, 'base');
-			if (layers.length > 1) {
-				console.warn(`Cars should only have one 'base' role layer. Using first detected base`);
-			}
-
-			// get the base to use -- without a base
-			// then just use the entire car
-			const base = layers[0] || this;
-			const bounds = base.getBounds();
-
-			// save the size and layer to use
-			height = bounds.height;
-			imageSource = base;
-
-			// scale to the base layer
-			includeShadow = true;
-		}
+		// car: the container for the car instance
+		// height: the identified height of the sprite to use
+		// imageSource: used to identify the actual image for a car
+		const { car, height, imageSource } = config
+			? await this._createEnhancedCar(path)
+			: await this._createStaticCar(type, staticUrl);
 		
 		// scale the car to match the preferred height, which is
 		// the height of the car relative to the base size of the
@@ -112,6 +68,63 @@ export default class Car extends PIXI.Container {
 		this.addChild(car);
 	}
 
+
+	// creates a car from a static resource
+	_createStaticCar = async (type, staticUrl) => {
+		const car = new PIXI.Container();
+			
+		// get the sprite to render
+		const sprite = await createStaticCar(staticUrl, type);
+		const height = sprite.height;
+		const imageSource = sprite;
+
+		// place this car into a container
+		car.addChild(sprite);
+
+		// static cars face the opposite direction
+		sprite.rotation = STATIC_CAR_ROTATION_FIX;
+
+		// adjust the center point
+		sprite.pivot.x = sprite.width / 2;
+		sprite.pivot.y = sprite.height / 2;
+
+		return { car, imageSource, height };
+	}
+
+
+	// creates a car that has enhanced effects
+	_createEnhancedCar = async path => {
+		const { view } = this;
+		const car = await view.animator.create(path);
+
+		// find the base layer for the car - if there's
+		// more than one, just use the first one and
+		// warn that it can't be done
+		// NOTE: it is possible to use multiple base layers, but the
+		// texture rendering step expects a single object or container
+		// it's possible to make that process accept multiple, but at
+		// the moment, it doesn't seem needed
+		const layers = findDisplayObjectsOfRole(car, 'base');
+		if (layers.length > 1) {
+			console.warn(`Cars should only have one 'base' role layer. Using first detected base`);
+		}
+		else if (layers.length === 0) {
+			console.warn(`Cars should at least one 'base' role layer. Using entire composition`);
+		}
+
+		// get the base to use -- without a base
+		// then just use the entire car
+		const base = layers[0] || car;
+		const bounds = base.getBounds();
+
+		// save the size and layer to use
+		const height = bounds.height;
+		const imageSource = base;
+
+		return { car, height, imageSource };
+	}
+
+
 	// setup visual filters
 	_initFilters = () => {
 		const { options } = this;
@@ -127,6 +140,7 @@ export default class Car extends PIXI.Container {
 		// apply filters
 		this.car.filters = [ aa, color ];
 	}
+
 
 	// handles generating dynamic textures
 	_initTextures(imageSource, includeShadow, includeNormalMap) {
@@ -179,6 +193,7 @@ export default class Car extends PIXI.Container {
 		this.normalMap = normalMap;
 	}
 
+
 	/** attaches a car to a container */
 	attachTo(view) {
 		const { scale } = view;
@@ -218,57 +233,27 @@ export default class Car extends PIXI.Container {
 
 	offset = { x: 0, y: 0 }
 
+	attachMods({ trail, nitro }) {
+		this.trail = trail;
+		this.nitro = nitro;
+		this.hasTrail = !!trail;
+		this.hasNitro = !!nitro;
+	}
+
 	/** handles activating the car nitros */
 	activateNitro = () => {
-		const { car, nitro } = this;
-		const { x, y, scaleX = car.scale.x, scaleY = car.scale.y } = car;
-		car.pivot.x = 0;
+		const { car, nitro, trail, shadow, nitroBlur } = this;
+		this.nitroAnimation = new ActivateNitroAnimation({
+			car, nitro, trail, shadow, nitroBlur
+		});
 
-		const update = props => {
-			car.x = props.x;
-			this.offset.y = props.y;
-			car.skew.y = props.skewY;
-			car.skew.x = props.skewX;
-			car.scale.x = props.scaleX;
-			car.scale.y = props.scaleY;
-
-			nitro.assign({ alpha: props.alpha })
-
-			this.nitroBlur.alpha = props.alpha;
-			this.nitroBlur.scale.x = props.blur;
-		}
-
-		const origin = { skewY: 0, skewX: 0, rotation: 0, scaleX, scaleY, x, y: 0, alpha: 0, blur: 0.4 };
-		const destination = { skewY: -0.085, skewX: 0.05, scaleX: scaleX - 0.01, scaleY: scaleY + 0.02, rotation: 0.05, x: -15, y: -5, blur: 1.3, alpha: 2 };
-
-		this.isNitro = true;
-		const outtro = () => {
-			this.isNitro = false;
-			tween({
-				duration: 700,
-				ease: easing.bounceOut,
-				from: Object.assign({ }, destination),
-				to: Object.assign({ }, origin),
-			})
-			.start({ update });
-		}
-
-		tween({ 
-			duration: 250,
-			from: Object.assign({ }, origin),
-			to: Object.assign({ }, destination)
+		// start the animation
+		this.nitroAnimation.play({
+			complete: () => console.log('done'),
+			update: props => {
+				this.offset.y = props.carOffsetY
+			}
 		})
-		.start({
-			update,
-			complete: () => setTimeout(outtro, 2500)
-		})
-		
-
-		// const neutral = { { x: 0, y } }
-		// const boost = { { x: 0, y } }
-		// tween(props, {
-
-		// })
 
 	}
 	

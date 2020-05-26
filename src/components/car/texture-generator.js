@@ -66,14 +66,23 @@ export default function generateTextures(source, options) {
 	const { parent } = source;
 	const { includeNitroBlur, includeShadow, nitroBlurHue = 0 } = options;
 
-	// get the index
-	const index = parent.getChildIndex(source);
+	// get the position of the
+	// source in it's container so it
+	// can be added back when finished
+	let index;
+	if (parent) {
+		index = parent.getChildIndex(source);
+	}
+
+	// create each pregenerated texture
 	const nitroBlur = includeNitroBlur && createNitroBlur(source, nitroBlurHue);
 	const shadow = includeShadow && createShadow(source);
 	// const normalMap = includeNormalMap && createNormalMap(source);
 
-	// put the child back where it came from
-	parent.addChildAt(source, index);
+	// put the child back where it came from, if needed
+	if (parent) {
+		parent.addChildAt(source, index);
+	}
 
 	return { shadow, nitroBlur }
 
