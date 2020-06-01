@@ -27,8 +27,18 @@ export default class NameCard extends PIXI.Container {
 		
 		// determine the type to create
 		const { type, view } = options;
-		const path = `namecards/${type}`;
-		const config = view.animator.lookup(path);
+		
+		// try and load
+		let path = `namecards/${type}`;
+		let config = view.animator.lookup(path);
+
+		// if missing, use the default
+		if (!config) {
+			path = 'namecards/default';
+			config = view.animator.lookup(path);
+		}
+
+		// save the properties
 		merge(instance, { options, view, path, config });
 
 		// create a container for all parts
@@ -49,9 +59,9 @@ export default class NameCard extends PIXI.Container {
 		const { path, view, options } = this;
 		const { baseHeight } = options;
 
-		// create the intsance
+		// create the instance
 		const namecard = await view.animator.create(path);
-		
+
 		// scale correctly
 		this.bounds = getBoundsForRole(namecard, [ 'base' ]);
 		this.container.scale.x = this.container.scale.y = baseHeight / this.bounds.height;

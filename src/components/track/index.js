@@ -1,8 +1,8 @@
 import * as PIXI from 'pixi.js';
-import { PIXI as AnimatorPIXI, getBoundsForRole } from 'nt-animator';
+import { PIXI as AnimatorPIXI } from 'nt-animator';
 import Random from '../../rng';
-import { TRACK_HEIGHT, BASE_HEIGHT, TRACK_TOP } from '../../views/track/scaling';
-import { MAXIMUM_TRACK_SCROLL_SPEED } from '../../config';
+import { TRACK_HEIGHT, TRACK_TOP } from '../../views/track/scaling';
+import { TRACK_MAXIMUM_SCROLL_SPEED } from '../../config';
 import { isArray, isNumber } from '../../utils';
 import Segment from './segment';
 
@@ -10,7 +10,6 @@ import Segment from './segment';
 // consider making this calculated as needed
 // meaning, add more tiles if the view expands
 const TOTAL_ROAD_SEGMENTS = 30;
-
 
 // creates a default track
 export default class Track {
@@ -38,7 +37,7 @@ export default class Track {
 		// setup each part
 		await instance._createRoad();
 		await instance._createStartingLine();
-		// await instance._createFinishLine();
+		await instance._createFinishLine();
 		// await instance._createForeground();
 		// await instance._createBackground();
 
@@ -46,10 +45,6 @@ export default class Track {
 		const y = TRACK_TOP + (TRACK_HEIGHT / 2);
 		instance.overlay.relativeY = y;
 		instance.ground.relativeY = y;
-
-		// sort all layers
-		// instance.addChild(instance.container);
-		// instance.container.sortChildren();
 
 		// can render
 		instance.ready = true;
@@ -77,23 +72,25 @@ export default class Track {
 		
 		// try and load the track and variant - if
 		// missing, use a random track
-		this.zone = tracks[trackId];
-		if (!this.zone) {
+		const zone = tracks[trackId];
+		if (!zone) {
 			const ids = Object.keys(tracks);
 			trackId = rng.select(ids);
-			this.zone = tracks[trackId];
+			zone = tracks[trackId];
 		}
 		
 		// select the variation of the track
-		this.manifest = this.zone[variantId];
-		if (!this.manifest) {
-			const ids = Object.keys(this.zone);
+		const manifest = zone[variantId];
+		if (!manifest) {
+			const ids = Object.keys(zone);
 			variantId = rng.select(ids);
-			this.manifest = this.zone[variantId];
+			manifest = zone[variantId];
 		}
 	
 		// save the working path
 		this.path = `tracks/${trackId}/${variantId}`;
+		this.zone = zone;
+		this.manifest = manifest;
 	}
 
 	// creates the road tiles
@@ -111,7 +108,6 @@ export default class Track {
 		// a little better rather than a hard coded number
 		// this could probably be dynamic depending on the view size
 		for (let i = 0; i < TOTAL_ROAD_SEGMENTS; i++) {
-			const previous = segments[i - 1];
 
 			// select the correct sequence
 			const template = randomize ? rng.select(repeating)
@@ -135,27 +131,17 @@ export default class Track {
 			overlay.addChild(segment.top);
 			ground.addChild(segment.bottom);
 
-			// if there's a previous road, stack up next to it
-			if (previous) {
-				const previousBounds = previous.bottom.getBounds();
-				segment.setX(previousBounds.right);
-			}
-
+			// save the bounds
+			segment.bounds = segment.bottom.getBounds();
 		}
 
-		// set the starting position of each segment which will be
-		// stitched to the next segment, but also offset by half
-		// of the total width so that the road extends the
-		// entire screen
-		const offsetX = 0 | (ground.width / -2);
-		for (const segment of segments) {
-			segment.addX(offsetX);
-		}
+		// set the default positions for each tile
+		this._resetTrackSegements();
 	}
 
 	// creates the finish block
 	async _createStartingLine() {
-		const { view, overlay, ground, rng, layers, manifest, path } = this;
+		const { view, overlay, ground, manifest, path } = this;
 		const { start } = manifest.track;
 
 		// if missing
@@ -173,11 +159,27 @@ export default class Track {
 		ground.addChild(segment.bottom);
 
 		// fit the starting block to the middle of the screen
-		this._fitTo(segment, 0);
+		this._fitBlockToTrackPosition(segment, 0);
+
+		// TODO: calculate this value
+		this._cycleTrack(-400)
 	}
 
+	// creates the finlish line
 	async _createFinishLine() {
+		const { view, manifest, path } = this;
+		const { finish } = manifest.track;
 
+		// if missing
+		if (!finish) {
+			console.warn(`No finishing block defined for ${path}`);
+			return;
+		}
+
+		// add the finishing line
+		const comp = await view.animator.compose({ compose: finish }, path, manifest);
+		const segment = this.finishLine = new Segment(comp);
+		segment.visible = false;
 	}
 
 	// creates a background, if needed
@@ -222,73 +224,135 @@ export default class Track {
 	}
 
 	// positional update 
-	update = (state) => {
-		const { layers, view, segments } = this;
-
-		const diff = state.speed * -MAXIMUM_TRACK_SCROLL_SPEED;
-		this._updateRepeating(diff);
-		
-
-		// if (this.foreground) {
-		// 	this.foreground.y = BASE_HEIGHT / 2;
-		// }
-
-		
-
-		// // scroll the road
-		// layers.track.update({
-		// 	diff,
-		// 	horizontalWrap: view.width * -0.5
-		// });
-
-		// // TODO: need to come up with a unified way of doing this
-		// layers.start.x += diff * layers.start.scale.x;
-
+	update = state => {
+		const distance = state.speed * -TRACK_MAXIMUM_SCROLL_SPEED;
+		this._cycleTrack(distance);
 	}
 
-	_updateRepeating(diff) {
-		const { view, segments, startingLine } = this;
-		const leftEdge = view.width * -0.5;
+	/** activates the finish line view */
+	showFinishLine = () => {
+		const { finishLine, overlay, ground, view } = this;
+		const { width } = view;
+		
+		// just in case (in testing)
+		this.removeStartingLine();
+
+		// reset all
+		this._resetTrackSegements();
+
+		// add the overlay section
+		overlay.addChild(finishLine.top);
+		ground.addChild(finishLine.bottom);
+		finishLine.visible = true;
+
+		// shift backwards
+		const bounds = finishLine.getBounds();
+		const distance = (width - bounds.width) * -0.5
+		this._cycleTrack(distance);
+	}
+
+	/** removes the starting line block */
+	removeStartingLine = () => {
+		const { startingLine } = this;
+		if (!startingLine) return;
+		startingLine.dispose();
+		this.startingLine = undefined;
+	}
+
+	// reset the starting positions for the repeating tiles
+	_resetTrackSegements = () => {
+		const { segments } = this;
+
+		// return to original positions
+		for (const segment of segments) {
+			segment.setX(0);
+		}
+
+		// stitch each 
+		let width = 0;
+		for (let i = 0; i < segments.length; i++) {
+			const segment = segments[i];
+			const previous = segments[i - 1];
+
+			// if there's a previous road, stack up next to it
+			if (previous) {
+				width += Math.floor(previous.bounds.width) - 1;
+			}
+
+			// set to the current position
+			segment.setX(width);
+		}
+
+		// this.totalWidth = width * segments[0].bottom.scale.x;
+		// set the starting position of each segment which will be
+		// stitched to the next segment, but also offset by half
+		// of the total width so that the road extends the
+		// entire screen
+		const offsetX = width * -0.5;
+		for (const segment of segments) {
+			segment.addX(offsetX);
+		}
+	}
+
+	// changes the location of the repeating track
+	_cycleTrack(diff) {
+		const { segments, startingLine, finishLine } = this;
+
+		// keep track of segments that need
+		// to also be shifted
+		let reset;
+		let max;
+
+		// check for off screen
+		// TODO: make this better
+		const offscreen = window.innerWidth * -0.75;
+
+		// update each segment
+		diff = Math.floor(diff);
+		for (const segment of segments) {
+
+			// apply the diff
+			segment.addX(diff);
+
+			// if this has gone off screen, it's time
+			// to reset it -- maximum one per frame
+			if (segment.bottom.x < offscreen) {
+				if (!reset || segment.bottom.x < reset.bottom.x)
+					reset = segment;
+			}
+
+			// if this is the farthest segment
+			if (!max || segment.bottom.x > max.bottom.x) {
+				max = segment;
+			}
+		}
+
+		// if this tile needs to return to the
+		// beginning of the loop
+		if (reset && max) {
+			const shift = Math.floor(max.bottom.x + max.bounds.width) - 1;
+			reset.setX(shift)
+		}
 
 		// move the starting and ending lines
 		if (startingLine) {
 			startingLine.addX(diff);
 
 			// check if time to remove the starting line
-			const bounds = startingLine.getBounds();
-			if (bounds.right < (leftEdge * 2)) {
-				startingLine.dispose();
-				this.startingLine = undefined;
+			if (startingLine.bottom.x < offscreen) {
+				this.removeStartingLine();
 			}
 		}
 
-		// find a segment to move and then
-		// the furthest one back to move
-		// it aligned to
-		let min;
-		let max;
-
-		// shift the segments
-		for (const segment of segments) {
-			min = (!min || segment.bottom.x < min.bottom.x) ? segment : min;
-			max = (!max || segment.bottom.x > max.bottom.x) ? segment : max;
-			segment.addX(diff);
+		// check for the finish line block
+		if (finishLine && finishLine.visible) {
+			finishLine.addX(diff);
 		}
 
-		// wrap at the edge of the screen *plus* double the size of the container
-		// for the most part, this isn't required but it does help eliminate
-		// the segments from wrapping too early when the view is super small
-		// but also super tall - this is an edge case
-		// NOTE: the screen should never be at the size being mentioned, but
-		// it's worth fixing
-		const wrapAt = leftEdge - (min.bounds.width * 2);
-		if (min.bottom.x < wrapAt) {
-			min.setX(max.bottom.x + (max.bounds.width * max.scale));
-		}
 	}
 
-	// tries to fit a starting/finish block into the view
-	_fitTo(block, position) {
+	// tries to fit a block into the view
+	_fitBlockToTrackPosition(block, position) {
 
 		// TODO: if the road is a defined sequence, then we should
 		// move all rows so they're sorted by their sequence again

@@ -5,11 +5,10 @@ import Animation from './base';
 import { NITRO_ACTIVATED_TRAIL_OPACITY } from '../config';
 
 const DURATION = 2000;
-const EASINGS = [ easing.backOut, easing.linear, easing.bounceOut ]
-const TIMINGS = [ 0, 0.15, 0.75, 1 ];
+const EASINGS = [ easing.easeOut, easing.linear, easing.bounceOut ]
+const TIMINGS = [ 0, 0.115, 0.75, 1 ];
 
-
-
+/** standard animation for a car performing a skip problem nitro */
 export default class ActivateNitroAnimation extends Animation {
 
 	constructor({ car, shadow, nitro, track, trail, nitroBlur }) {
@@ -55,6 +54,7 @@ export default class ActivateNitroAnimation extends Animation {
 			// nitro blur
 			nitroBlurAlpha: 0,
 			nitroBlurScaleX: 0,
+			nitroBlurScaleY: 1,
 			
 			// the animated nitro
 			// this is assigned further down where the keyframes are setup
@@ -85,8 +85,9 @@ export default class ActivateNitroAnimation extends Animation {
 
 			// nitro blur
 			// visible and stretched out
-			nitroBlurAlpha: 0.6,
-			nitroBlurScaleX: 1.3,
+			nitroBlurAlpha: 0.4,
+			nitroBlurScaleX: 1.1,
+			nitroBlurScaleY: 1,
 			
 			// the animated nitro
 			// full animation visibility
@@ -99,9 +100,6 @@ export default class ActivateNitroAnimation extends Animation {
 			nitro.activate();
 		}
 
-		// set the default values
-		// this.update(origin);
-
 		// activate the sequence
 		const sequence = keyframes({
 			duration: DURATION,
@@ -112,7 +110,11 @@ export default class ActivateNitroAnimation extends Animation {
 					nitroEffectAlpha: nitroEffectStartingAlpha,
 				}),
 				destination,
-				destination,
+				Object.assign({ }, destination, {
+					nitroBlurScaleX: destination.nitroBlurScaleX * 1.5,
+					nitroBlurScaleY: 1,
+					nitroBlurAlpha: 0.1,
+				}),
 				Object.assign({ }, origin, {
 					nitroEffectAlpha: nitroEffectEndingAlpha
 				}),
@@ -141,8 +143,6 @@ export default class ActivateNitroAnimation extends Animation {
 	update = props => {
 		const { car, trail, hasTrail, shadow, nitro, hasNitro, nitroBlur } = this;
 		
-		// this.offset.y = props.y;
-		
 		// update the car
 		car.x = props.carOffsetX;
 		car.skew.y = props.carSkewY;
@@ -167,9 +167,10 @@ export default class ActivateNitroAnimation extends Animation {
 		// update the default nitro streak
 		nitroBlur.alpha = props.nitroBlurAlpha;
 		nitroBlur.scale.x = props.nitroBlurScaleX;
+		nitroBlur.scale.y = props.nitroBlurScaleY;
 	}
 
-	// animation is requested to stop early
+	/** request to stop the animation early */
 	stop()  {
 		super.stop();
 

@@ -1,12 +1,45 @@
 
 import { Howl } from 'howler';
-import { resolve } from 'nt-animator';
 import { Sound } from './sound';
 
 /** keeps track of active audio files */
 const AUDIO = { }
+const MUSIC = [ ];
+const SFX = [ ];
 
+// default url to load sounds from
 let baseUrl = '/sounds';
+
+/** changes the sound effect state */
+export function configureSFX(config) {
+
+	// change enabled state
+	if ('enabled' in config) {
+		Sound.sfxEnabled = !!config.enabled;
+		for (const sound of SFX)
+			sound.enabled = enabled;
+	}
+
+	// change volume state
+	if ('volume' in config) {
+		Sound.sfxVolume = config.volume;
+	}
+}
+	
+/** changes the music state */
+export function configureMusic(config) {
+	// change enabled state
+	if ('enabled' in config) {
+		Sound.musicEnabled = !!config.enabled;
+		for (const song of MUSIC)
+			song.enabled = enabled;
+	}
+
+	// change volume state
+	if ('volume' in config) {
+		Sound.musicVolume = config.volume;
+	}
+}
 
 /** changes the root url to load audio from */
 export function setBaseUrl(url) {
@@ -41,10 +74,10 @@ export async function register(key, options) {
 	})
 }
 
-/** starts playing a sound */
-export function create(key, sprite) {
+// creates a new sound instance
+export function create(type, key, sprite) {
 	const sound = AUDIO[key];
-
+	
 	// no sound was found
 	if (!sound) {
 		console.warn(`Play request for ${key} failed: not found`);
@@ -53,9 +86,14 @@ export function create(key, sprite) {
 
 	// start the audio
 	const id = sound.play(sprite);
-	const instance = new Sound(sound, id, sprite);
+	const instance = new Sound(type, sound, id, sprite);
 	instance.stop();
 	sound.seek(0, id);
 	// instance.volume(0);
+
+	// save the audio
+	if (instance.isMusic) MUSIC.push(instance);
+	else SFX.push(instance);
+
 	return instance;
 }

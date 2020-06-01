@@ -34,7 +34,7 @@ export default class Trail extends AnimatorPIXI.DetatchedContainer {
 
 		// load the animation
 		const path = `trails/${type}`;
-		const trail = await view.animator.create(path);
+		const trail = this.trail = await view.animator.create(path);
 		if (!trail) {
 			console.error(`Unable to create trail "${path}"`);
 			return;
@@ -62,6 +62,12 @@ export default class Trail extends AnimatorPIXI.DetatchedContainer {
 	/** is a valid Trail instance */
 	get isValid() {
 		return this.parts && this.parts.length > 0;
+	}
+
+	/** deactivates the trail */
+	stop() {
+		this.trail.controller.stopEmitters();
+		
 	}
 
 }

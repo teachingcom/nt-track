@@ -57,9 +57,14 @@ export default class Nitro extends AnimatorPIXI.DetatchedContainer {
 		const { options } = this;
 		const { type } = options;
 
+		// load the sound, if any
 		const key = `nitros/${type}`;
 		await audio.register(key);
-		this.sound = audio.create(key);
+
+		// save the sound effect
+		const sound = this.sound = audio.create('sfx', key);
+		sound.volume(1);
+		sound.loop(false);
 	}
 
 	// apply special config values
@@ -70,21 +75,20 @@ export default class Nitro extends AnimatorPIXI.DetatchedContainer {
 		const alwaysFade = config.fade !== false;
 		this.shouldFadeIn = alwaysFade || /in/i.test(config.fade); 
 		this.shouldFadeOut = alwaysFade || /out/i.test(config.fade); 
-		console.log('fading', this.shouldFadeIn, this.shouldFadeOut);
 	}
 
 	/** activates the sound for this */
 	activate = () => {
-		this.sound.volume(1);
-		this.sound.loop(false);
-		this.sound.play();
+		const { sound, instance } = this;
+		sound.play();
 
-		this.instance.controller.activateEmitters();
+		// show particle emitters
+		instance.controller.activateEmitters();
 	}
 
 	/** is a valid Nitro instance */
 	get isValid() {
-		return this.parts && this.parts.length > 0;
+		return !!(this.parts?.length > 0);
 	}
 
 }

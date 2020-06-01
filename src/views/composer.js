@@ -13,11 +13,6 @@ const PREFERRED_HEIGHT = 800;
 // creates a general rendering view
 export default class ComposerView extends BaseView {
 
-	cars = [ ]
-	namecards = [ ]
-	nitros = [ ]
-	trails = [ ]
-
 	/** prepare the view */
 	init = options => {
 		options = merge(options, {
@@ -30,8 +25,8 @@ export default class ComposerView extends BaseView {
 
 	/** composes anything found at each node */
 	compose = async data => {
-		const { stage, cars, trails, namecards, nitros } = this;
-		
+		const { stage } = this;
+
 		// create a container for the compositions
 		const view = new AnimatorPIXI.ResponsiveContainer();
 		view.relativeX = 0.5;
@@ -39,58 +34,79 @@ export default class ComposerView extends BaseView {
 		stage.addChild(view);
 
 		// start adding each
+		let activeCar;
 		for (const config of data.cars) {
 			const car = await addComponent(this, PREFERRED_HEIGHT * 0.25, Car, config);
-			cars.push(car);
+
+			// save the in case theres a nitro
+			activeCar = car;
 
 			// add to the view
 			car.attachTo(view);
 
-			// if there's a trail, we probabaly want to see
-			// it attached to the car
-			if (config.mods.trail) {
+			// gather up each part used
+			const { trail, card, nitro } = config.mods || { };
+			if (trail)
+				data.trails.push(`trails/${trail}`);
 
-				// nudge the car forward
-				car.x += car.width * 0.6;
+			if (card)
+				data.namecards.push(`namecards/${card}`);
 
-				// create the trail
-				const trail = await addComponent(this, PREFERRED_HEIGHT * 0.25, Trail, { type: config.mods.trail });
-				for (const child of trail.parts) {
-					view.addChild(child);
-					trails.push(trail);
-
-					// move to the back of the car
-					child.x = car.x - (car.width / 2);
-				}
-
-				// check for a nitro
-
-			}
-			
-			// render namecards separately
-			if (config.mods.card) {
-				data.namecards.push(`namecards/${config.mods.card}`);
-			}
+			if (nitro)
+				data.nitros.push(`nitros/${nitro}`);
 		}
 
 		// include each namecard
-		for (const path of data.namecards || [ ]) {
+		for (const path of data.trails) {
+			
+			// nudge the car forward
+			if (activeCar) {
+				activeCar.setX(activeCar.width * 0.6);
+			}
+
+			// create the trail
+			const type = path.substr('trails/'.length);
+			const trail = await addComponent(this, PREFERRED_HEIGHT * 0.25, Trail, { type });
+			trail.each(part => {
+				view.addChild(part);
+				trails.push(trail);
+
+				// move to the back of the car
+				if (activeCar)
+					part.x = activeCar.x + activeCar.positions.back;
+				else
+					part.x = window.innerWidth * 0.25;
+			});
+		}
+
+		// include each namecard
+		for (const path of data.namecards) {
 			const type = path.substr('namecards/'.length);
 			const name = 'Nitro Racer';
 			const team = 'NITRO';
+			
 			const card = await addComponent(this, PREFERRED_HEIGHT * 0.25, NameCard, { type, name, team });
 			view.addChild(card);
-			namecards.push(card);
 		}
 
 		// include each namecard
-		for (const path of data.nitros || [ ]) {
-			console.log('load path', path);
+		for (const path of data.nitros) {
 			const nitro = await this.animator.create(path);
-			// const type = path.substr('nitros/'.length);
-			// const card = await addComponent(this, PREFERRED_HEIGHT * 0.25, NameCard, { type, name, team });
-			view.addChild(nitro);
-			nitros.push(nitro);
+
+			// add each child
+			for (let i = nitro.children.length; i-- > 0;) {
+				const child = nitro.children[i];
+				view.addChild(child);
+				
+				// make the nitros easier to see
+				if (activeCar) {
+					activeCar.setX(window.innerWidth * 0.4);
+					child.x = activeCar.x + activeCar.positions.back;
+				}
+				// just shift forward
+				else child.x += window.innerWidth;
+			}
+
 		}
 
 		// organize as needed

@@ -2,20 +2,41 @@
 // TODO: anti aliasing isn't great - consider creating
 // multiple versions that are pre-scaled using canvas
 
-
 import * as PIXI from 'pixi.js';
 import { findDisplayObjectsOfRole } from 'nt-animator';
-import { merge } from '../../utils';
-import generateTextures from './texture-generator';
-import { tween, easing } from 'popmotion';
+import { merge, isNumber } from '../../utils';
 
-import { CAR_SHADOW_OPACITY, CAR_MAXIMUM_SHAKE, CAR_BODY_OFFSET_Y, CAR_SHADOW_OFFSET_Y, NITRO_END_DURATION, NITRO_START_DURATION, NITRO_DURATION, NITRO_ACTIVATED_TRAIL_OPACITY, TRAIL_SCALE, STATIC_CAR_ROTATION_FIX } from '../../config';
-import { LAYER_CAR, LAYER_SHADOW, LAYER_NITRO_BLUR } from '../../views/track/layers';
+import generateTextures from './texture-generator';
 import { createStaticCar } from './create-static-car';
+
+// layers and positions
+import { LAYER_CAR, LAYER_SHADOW, LAYER_NITRO_BLUR } from '../../views/track/layers';
+import {
+	CAR_SHADOW_OPACITY,
+	CAR_SHAKE_DISTANCE,
+	CAR_BODY_OFFSET_Y,
+	CAR_SHADOW_OFFSET_Y,
+	STATIC_CAR_ROTATION_FIX,
+	NITRO_BLUR_OFFSET_Y,
+	CAR_DEFAULT_FRONT_BACK_OFFSET_X,
+	NITRO_BLUR_DEFAULT_OFFSET_X,
+	CAR_SHAKE_NITRO_BONUS,
+	CAR_SHAKE_SHADOW_REDUCTION
+} from '../../config';
+
+// animations
 import ActivateNitroAnimation from '../../animations/activate-nitro';
 
 
 export default class Car extends PIXI.Container {
+
+	state = {
+
+		// extra offsets used when performing the
+		// nitro animation to keep the car alignment
+		// centered
+		offset: { x: 0, y: 0 }
+	}
 
 	/** handles creating a new car */
 	static async create(options) {
@@ -35,7 +56,6 @@ export default class Car extends PIXI.Container {
 		return instance;
 	}
 	
-
 	// creates the car instance
 	async _initCar() {
 		const { path, config, view, options } = this;
@@ -49,14 +69,17 @@ export default class Car extends PIXI.Container {
 		// car: the container for the car instance
 		// height: the identified height of the sprite to use
 		// imageSource: used to identify the actual image for a car
-		const { car, height, imageSource } = config
+		const { car, height, imageSource, bounds } = config
 			? await this._createEnhancedCar(path)
 			: await this._createStaticCar(type, staticUrl);
-		
+			
 		// scale the car to match the preferred height, which is
 		// the height of the car relative to the base size of the
 		// stage itself - The ResponsiveContainer will handle the rest
-		car.scale.x = car.scale.y = baseHeight / height;
+		const scaleBy = car.scale.x = car.scale.y = baseHeight / height;
+		
+		// get positions to attach things
+		this.positions = this._establishPositions(bounds, scaleBy);
 
 		// save the car instance
 		this.car = car;
@@ -88,7 +111,8 @@ export default class Car extends PIXI.Container {
 		sprite.pivot.x = sprite.width / 2;
 		sprite.pivot.y = sprite.height / 2;
 
-		return { car, imageSource, height };
+		const bounds = sprite.getBounds();
+		return { car, imageSource, bounds, height };
 	}
 
 
@@ -121,7 +145,7 @@ export default class Car extends PIXI.Container {
 		const height = bounds.height;
 		const imageSource = base;
 
-		return { car, height, imageSource };
+		return { car, height, bounds, imageSource };
 	}
 
 
@@ -144,7 +168,7 @@ export default class Car extends PIXI.Container {
 
 	// handles generating dynamic textures
 	_initTextures(imageSource, includeShadow, includeNormalMap) {
-		const { options, car } = this;
+		const { options, config, car } = this;
 		const { hue = 0, hasNitro = false } = options;
 		const scale = car.scale.x;
 
@@ -153,7 +177,8 @@ export default class Car extends PIXI.Container {
 			includeNormalMap,
 			includeShadow,
 			includeNitroBlur: hasNitro,
-			nitroBlurHue: hue
+			nitroBlurHue: hue,
+			isDarkCar: !!(config?.dark || config?.isDarkCar)
 		});
 
 		// apply each, if possible
@@ -193,16 +218,40 @@ export default class Car extends PIXI.Container {
 		this.normalMap = normalMap;
 	}
 
+	/** changes the x position of the car */
+	setX = x =>  {
+		const { shadow } = this;
+		this.x = x;
+		if (shadow) {
+			shadow.x = x;
+		}
+	}
+
+	/** changes the y position of the car */
+	setY = y =>  {
+		const { shadow, nitroBlur, state, scale, hasNitro } = this;
+		const { offset } = state;
+		
+		// default y positions
+		this.y = CAR_BODY_OFFSET_Y + offset.y + y;
+		if (shadow) {
+			shadow.y = (CAR_SHADOW_OFFSET_Y * scale.y) + (y * CAR_SHAKE_SHADOW_REDUCTION);
+		}
+
+		// nitro blur shifting
+		if (hasNitro) {
+			nitroBlur.y = (CAR_BODY_OFFSET_Y + NITRO_BLUR_OFFSET_Y) + (y * 1.5);
+		}
+	}
 
 	/** attaches a car to a container */
 	attachTo(view) {
 		const { scale } = view;
-		const { car, shadow, nitroBlur } = this;
+		const { car, shadow, positions, nitroBlur } = this;
 		
 		// include the car
 		view.addChild(this);
 		this.zIndex = LAYER_CAR;
-		car.y = CAR_BODY_OFFSET_Y;
 		
 		// include the shadow
 		if (shadow) {
@@ -210,7 +259,6 @@ export default class Car extends PIXI.Container {
 
 			// position just beneat the car a bit
 			shadow.zIndex = LAYER_SHADOW;
-			shadow.y = CAR_SHADOW_OFFSET_Y * scale.y;
 		}
 		
 		// if this has a nitro blurring effect
@@ -221,18 +269,46 @@ export default class Car extends PIXI.Container {
 			// position near the back of the car so
 			// that when in "nitro" mode, the effect
 			// is lined up correctly
-			nitroBlur.y = CAR_BODY_OFFSET_Y - 10;
-			nitroBlur.x = (this.car.width * 0.75);
+			nitroBlur.x = positions.nitroBlurX;
 			nitroBlur.pivot.x = nitroBlur.width / 2;
 		}
-		
-		// nitroBlur.scale.x = 1.5
-		// nitroBlur.pivot.x = nitroBlur.width / -2;
-		// nitroBlur.rotation = 1;
+
+		// reset the position
+		this.setY(0);
 	}
 
-	offset = { x: 0, y: 0 }
+	// identifies positions on a car
+	_establishPositions = (bounds, scale) => {
+		const { config } = this;
 
+		// assign a value if is a number
+		const assignIf = (source, target) => {
+			if (isNumber(source)) positions[target] = source;
+		};
+		
+		// get the default set
+		const positions = {
+			back: bounds.width * scale * -CAR_DEFAULT_FRONT_BACK_OFFSET_X,
+			front: bounds.width * scale * CAR_DEFAULT_FRONT_BACK_OFFSET_X,
+			nitroBlurX: bounds.width * scale * NITRO_BLUR_DEFAULT_OFFSET_X,
+		};
+
+		// reuse a few values
+		positions.nitroX = positions.back;
+
+		// check for customizations
+		if (!!config?.positions) {
+			assignIf(config.positions.back, 'back');
+			assignIf(config.positions.back, 'nitroX');
+			assignIf(config.positions.nitroX, 'nitroX');
+			assignIf(config.positions.front, 'front');
+			assignIf(config.positions.nitroBlurX, 'nitroBlurX');
+		}
+
+		return positions;
+	}
+
+	/** associates mods with a specific car */
 	attachMods({ trail, nitro }) {
 		this.trail = trail;
 		this.nitro = nitro;
@@ -242,40 +318,33 @@ export default class Car extends PIXI.Container {
 
 	/** handles activating the car nitros */
 	activateNitro = () => {
-		const { car, nitro, trail, shadow, nitroBlur } = this;
+		const { car, nitro, trail, shadow, nitroBlur, state } = this;
+		const { offset } = state;
 		this.nitroAnimation = new ActivateNitroAnimation({
 			car, nitro, trail, shadow, nitroBlur
 		});
 
 		// start the animation
+		state.isNitro = true;
 		this.nitroAnimation.play({
-			complete: () => console.log('done'),
-			update: props => {
-				this.offset.y = props.carOffsetY
-			}
-		})
-
+			update: props => offset.y = props.carOffsetY,
+			complete: () => state.isNitro = false
+		});
 	}
 	
 	/** rattles a car by the amount provided */
 	rattle(amount) {
-		let shake = ((CAR_MAXIMUM_SHAKE * amount) * Math.random()) - (CAR_MAXIMUM_SHAKE / 2);
+		const { state } = this;
+		const { isNitro } = state;
 
-		if (this.isNitro) {
-			shake *= 2.125;
+		// calculate the default amount to shake the car around
+		let shake = ((CAR_SHAKE_DISTANCE * Math.random()) - (CAR_SHAKE_DISTANCE / 2)) * amount;
+		if (isNitro) {
+			shake *= CAR_SHAKE_NITRO_BONUS;
 		}
 
-		this.car.y = CAR_BODY_OFFSET_Y + this.offset.y + shake;
-		this.shadow.y = CAR_SHADOW_OFFSET_Y + (shake * 0.33);
-		// this.nitroBlur.y = (CAR_BODY_OFFSET_Y + 10 + this.offset.y + (shake * 2));
-
-		// this.car.pivot.x = 0;
-		// this.car.skew.y = -0.1;
-		// this.car.skew.x = 0.1;
-		// this.car.rotation = 0.05;
-		// this.car.x = -15;
-		// this.car.y = -10;
-		// this.car.scale.x = 0.4;
+		// update the y position
+		this.setY(shake);
 	}
 
 }

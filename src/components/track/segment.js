@@ -26,6 +26,14 @@ export default class Segment {
 		bottom.sortChildren();
 	}
 
+	get visible() {
+		return this.top.visible;
+	}
+
+	set visible(value) {
+		this.top.visible = this.bottom.visible = value;
+	}
+
 	top = new PIXI.Container();
 	bottom = new PIXI.Container();
 
@@ -38,9 +46,17 @@ export default class Segment {
 		this.top.x = value;
 	}
 
+	getX() {
+		return this.bottom.x;
+	}
+
 	addX(value) {
 		this.bottom.x += value;
 		this.top.x += value;
+	}
+
+	getY() {
+		return this.bottom.y;
 	}
 	
 	setY(value) {

@@ -1,19 +1,24 @@
 
-import * as PIXI from 'pixi.js';
 import { PIXI as AnimatorPIXI } from 'nt-animator';
+import { tween, easing } from 'popmotion';
+
+import { LANES, SCALED_CAR_HEIGHT, SCALED_NAMECARD_HEIGHT } from './scaling';
+import { NITRO_SCALE, NITRO_OFFSET_Y, TRAIL_SCALE } from '../../config';
+
 import Car from '../../components/car';
-import { BASE_HEIGHT, LANES, SCALED_CAR_HEIGHT, SCALED_LANE_HEIGHT, LANE_HEIGHT, SCALED_NAMECARD_HEIGHT } from './scaling';
-import { merge } from '../../utils';
-import { MAXIMUM_CAR_SHAKE, NITRO_SCALE, NITRO_OFFSET_X, NITRO_OFFSET_Y, TRAIL_SCALE } from '../../config';
 import Trail from '../../components/trail';
 import NameCard from '../../components/namecard';
-import { LAYER_CAR, LAYER_SHADOW } from './layers';
 import Nitro from '../../components/nitro';
 
 export default class Player extends AnimatorPIXI.ResponsiveContainer {
 
-	static INITIALIZING = 'init';
-	static ENTRY = 'entry';
+	state = {
+
+		// values used to track the start and activity
+		// of a skip nitro animation
+		nitroBonus: 0,
+		nitroBonusOffset: 0
+	}
 
 	// layers that comprise a player
 	layers = { }
@@ -42,7 +47,6 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 	static async create(options) {
 		const instance = new Player();
 		instance.options = options;
-		instance.state = Player.INITIALIZING;
 		instance.mods = options.mods || { };
 		
 		// initialize all layers
@@ -56,12 +60,11 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 		await instance._assemble(...resolved);
 
 		// put the player in the correct lane
-		instance.state = Player.ENTRY;
 		instance.relativeY = LANES[options.lane];
 		instance.relativeX = 0;
 
-		// temp
-		instance.rate = Math.max(0.0005, Math.random() * 0.001);
+		// make sure there's a player ID
+		instance.id = options.id || `player_${+new Date}`;
 
 		return instance;
 	}
@@ -135,10 +138,11 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
  
 	// handles assembling the player
 	async _assemble(car, trail, nitro, namecard) {
+		const { layers } = this;
 
 		// include the car and it's shadow
-		this.layers.car = car;
-		this.layers.shadow = car.shadow;
+		layers.car = car;
+		layers.shadow = car.shadow;
 		car.attachTo(this);
 
 		// include extra components
@@ -146,64 +150,95 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 		
 		// include the trail, if any
 		if (trail) {
-			this.layers.trail = trail;
+			layers.trail = trail;
 
 			// TODO: trail scaling is hardcoded - we should
 			// calculate this value
 			trail.attachTo(this, TRAIL_SCALE);
 			
 			// update the position of each
-			trail.each(part => part.x -= this.car.width / 2);
+			trail.each(part => part.x = car.positions.back);
 		}
 		
 		// include the nitro, if any
 		if (nitro) {
 
 			// add this layer
-			this.layers.nitro = nitro;
+			layers.nitro = nitro;
 			nitro.attachTo(this, NITRO_SCALE);
 
 			// give the car a reference to the nitro
 			nitro.alpha = 0;
 			nitro.scale.x = nitro.scale.y = 0.3;
-			this.car.nitro = nitro;
+			car.nitro = nitro;
 
 			// update the position of each
 			nitro.each(part => {
 				part.alpha = 0;
-				part.x -= car.width / 2;
+				part.x = car.positions.back;
 				part.y += NITRO_OFFSET_Y;
 			});
 		}
 
 		// save the namecard
 		if (namecard) {
-			this.layers.namecard = namecard;
+			layers.namecard = namecard;
 		}
-
-		
-		// canvas.width = car.width;
-		// canvas.height = car.height;
-		// shadowRenderer.render(this.car);
-		// const canv = shadowRenderer.plugins.extract.pixels(this.car);
-		// const pixels = canvas.dat
-		// car.x = 0;
-		// car.y = 0;
 
 		// finalize order
 		this.sortChildren();
 	}
+
+	// cancels animating progress
+	stopProgressAnimation = () => {
+		if (!this._progress) return;
+		this._progress.stop();
+		this._progress = undefined;
+	}
+
+	/** start the animation */
+	setProgress = progress => {
+		const { relativeX, state } = this;
+		this.stopProgressAnimation();
+
+		// calculate the duration using the distance
+		const duration = 1500;
+
+		// perform the transition
+		this._progress = tween({
+			duration,
+			ease: easing.linear,
+			from: { x: relativeX - state.nitroBonusOffset },
+			to: { x: progress }
+		})
+		.start({
+			update: props => {
+				this.relativeX = props.x + state.nitroBonusOffset
+			}
+		});
+
+	}
 	
 	// handles the car updating process
-	update = (state) => {
-		
-		// cars can rattle slightly as speed increases
-		// this.layers.car.y = ((MAXIMUM_CAR_SHAKE * state.speed) * Math.random()) - (MAXIMUM_CAR_SHAKE / 2);
-		
-		this.car.rattle(state.speed);
-		this.relativeX = 0.5;
-		// update x based on progress
-		// this.relativeX += this.rate;
+	update = ({ shake }) => {
+		const { state, car } = this;
+		const { isNitro } = car.state;
+
+		// check if the nitro is in effect
+		const nitroActive = isNitro || state.nitroBonus > 0 && state.nitroBonus < 2;
+
+		// update the car
+		car.rattle(shake);
+
+		// update the nitro values
+		if (nitroActive) {
+			state.nitroBonus = Math.min(2, state.nitroBonus + 0.01);
+			state.nitroBonusOffset = (Math.sin((Math.PI / 2) * state.nitroBonus)) * 0.1;
+		}
+		else {
+			state.nitroBonus = 0;
+			state.nitroBonusOffset = 0;
+		}
 
 	}
 

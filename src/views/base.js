@@ -37,21 +37,23 @@ export class BaseView extends EventEmitter {
 		if (scale.width) axes.width = scale.width;
 
 		// setup the scaled stage
-		this.stage = new AnimatorPIXI.ResponsiveStage(axes);
-
+		this.view = new AnimatorPIXI.ResponsiveStage(axes);
+		this.stage = new PIXI.Container();
+		this.view.addChild(this.stage);
+		
 		// match the size
 		this.resize();
 	}
 
 	/** renders the current state of the view */
 	render() {
-		const { renderer, stage } = this;
-		renderer.render(stage);
+		const { renderer, view } = this;
+		renderer.render(view);
 	}
 
 	/** resizes to match the container element */
 	resize = () => {
-		const { parent, target: surface, stage, renderer } = this;
+		const { parent, target: surface, view, renderer } = this;
 
 		// get the updated bounds
 		const bounds = parent.getBoundingClientRect();
@@ -64,15 +66,15 @@ export class BaseView extends EventEmitter {
 		this.cx = width / 2;
 		this.cy = height / 2;
 		
-		// update the responsive stage size
-		stage.resize(width, height);
+		// update the responsive view size
+		view.resize(width, height);
 
 		// notify of the resize
 		const { cx, cy } = this;
 		this.emit('resize', { width, height, cx, cy });
 
 		// perform a render
-		renderer.render(stage);
+		renderer.render(view);
 	}
 
 }

@@ -16,6 +16,7 @@ export const NAMECARD_HEIGHT = CAR_HEIGHT * 0.7;
 // positions
 export const TRACK_TOP = BACKGROUND_SCALE;
 export const TRACK_BOTTOM = TRACK_TOP + TRACK_HEIGHT;
+export const TRACK_CENTER = (TRACK_TOP + TRACK_BOTTOM) / 2;
 export const LANE_START = TRACK_TOP + (SHOULDER_HEIGHT / 2);
 
 // create the sizing for each lane
