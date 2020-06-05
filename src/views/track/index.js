@@ -5,7 +5,7 @@ import * as audio from '../../audio';
 
 // sizing, layers, positions
 import * as scaling from './scaling';
-import { NAMECARD_EDGE_PADDING, STARTING_LINE_POSITION, TRACK_MAXIMUM_SPEED, TRACK_ACCELERATION_RATE, CAR_DEFAULT_SHAKE_LEVEL } from '../../config';
+import { NAMECARD_EDGE_PADDING, TRACK_MAXIMUM_SPEED, TRACK_ACCELERATION_RATE, CAR_DEFAULT_SHAKE_LEVEL } from '../../config';
 import { LAYER_NAMECARD, LAYER_TRACK_GROUND, LAYER_TRACK_OVERLAY } from './layers';
 
 import { BaseView } from '../base';
@@ -41,7 +41,6 @@ export default class TrackView extends BaseView {
 		super.init(options);
 
 		// set default audio state
-		console.log(options);
 		audio.configureSFX({ enabled: !!options.sfx });
 		audio.configureMusic({ enabled: !!options.music });
 
@@ -76,6 +75,7 @@ export default class TrackView extends BaseView {
 		// create the player instance
 		const playerOptions = merge({ view: this }, data);
 		const player = await Player.create(playerOptions);
+		player.track = this;
 
 		// with the player, include their namecard
 		const { namecard } = player.layers;
@@ -183,16 +183,8 @@ export default class TrackView extends BaseView {
 		// the race is done so there's nothing to animate
 		if (isFinished) return;
 
-		// cancel a previous tween, if any
-		player.stopProgressAnimation();
-		
-		// animate the progress
-		let position = this.progress[0 | progress];
-		if (isNaN(position)) position = 1.5;
-		const scaled = (STARTING_LINE_POSITION + ((1 - STARTING_LINE_POSITION) * position));
-
-		// the correct relative x position
-		player.setProgress(scaled);
+		// set the completion value
+		player.setProgress(progress);
 	}
 
 	/** handles activating the nitro effect for a player */

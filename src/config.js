@@ -4,6 +4,7 @@ import * as PIXI from 'pixi.js';
 // PIXI.settings.ANISOTROPIC_LEVEL = 16;
 // PIXI.settings.TARGET_FPMS = 0.001;
 
+// export const TRACK_MAXIMUM_SCROLL_SPEED = 60;
 export const TRACK_MAXIMUM_SCROLL_SPEED = 60;
 export const TRACK_MAXIMUM_SPEED = 0.66;
 export const TRACK_ACCELERATION_RATE = 0.01;
@@ -27,9 +28,9 @@ export const CAR_SHAKE_DISTANCE = 4;
 export const CAR_SHAKE_NITRO_BONUS = 2.125;
 export const CAR_SHAKE_SHADOW_REDUCTION = 0.33;
 
-export const TRAIL_SCALE = 0.575;
+export const TRAIL_SCALE = 0.55;
+export const NITRO_SCALE = 0.75;
 
-export const NITRO_SCALE = 0.65;
 export const NITRO_OFFSET_X = -75;
 export const NITRO_OFFSET_Y = -7;
 export const NITRO_ACTIVATED_TRAIL_OPACITY = 0.33;

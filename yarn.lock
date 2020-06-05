@@ -4584,6 +4584,11 @@ pixi.js@^5.2.3:
     "@pixi/ticker" "5.2.4"
     "@pixi/utils" "5.2.4"
 
+pixi@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/pixi/-/pixi-0.3.1.tgz#858cd6164a32a1e4b41192cdf5c6d98209300ba8"
+  integrity sha1-hYzWFkoyoeS0EZLN9cbZggkwC6g=
+
 pkg-up@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/pkg-up/-/pkg-up-2.0.0.tgz#c819ac728059a461cab1c3889a2be3c49a004d7f"

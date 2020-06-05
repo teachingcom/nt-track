@@ -63,7 +63,7 @@ export default class NameCard extends PIXI.Container {
 		const namecard = await view.animator.create(path);
 
 		// scale correctly
-		this.bounds = getBoundsForRole(namecard, [ 'base' ]);
+		this.bounds = getBoundsForRole(namecard, 'base');
 		this.container.scale.x = this.container.scale.y = baseHeight / this.bounds.height;
 		
 		// add to the view

@@ -69,7 +69,7 @@ export default class ComposerView extends BaseView {
 			const trail = await addComponent(this, PREFERRED_HEIGHT * 0.25, Trail, { type });
 			trail.each(part => {
 				view.addChild(part);
-				trails.push(trail);
+				data.trails.push(trail);
 
 				// move to the back of the car
 				if (activeCar)

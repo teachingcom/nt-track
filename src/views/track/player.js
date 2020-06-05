@@ -3,7 +3,7 @@ import { PIXI as AnimatorPIXI } from 'nt-animator';
 import { tween, easing } from 'popmotion';
 
 import { LANES, SCALED_CAR_HEIGHT, SCALED_NAMECARD_HEIGHT } from './scaling';
-import { NITRO_SCALE, NITRO_OFFSET_Y, TRAIL_SCALE } from '../../config';
+import { NITRO_SCALE, NITRO_OFFSET_Y, TRAIL_SCALE, STARTING_LINE_POSITION } from '../../config';
 
 import Car from '../../components/car';
 import Trail from '../../components/trail';
@@ -138,7 +138,7 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
  
 	// handles assembling the player
 	async _assemble(car, trail, nitro, namecard) {
-		const { layers } = this;
+		const { layers, scale } = this;
 
 		// include the car and it's shadow
 		layers.car = car;
@@ -154,7 +154,7 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 
 			// TODO: trail scaling is hardcoded - we should
 			// calculate this value
-			trail.attachTo(this, TRAIL_SCALE);
+			trail.attachTo(this, scale.x * TRAIL_SCALE);
 			
 			// update the position of each
 			trail.each(part => part.x = car.positions.back);
@@ -165,11 +165,10 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 
 			// add this layer
 			layers.nitro = nitro;
-			nitro.attachTo(this, NITRO_SCALE);
+			nitro.attachTo(this, scale.x * NITRO_SCALE);
 
 			// give the car a reference to the nitro
 			nitro.alpha = 0;
-			nitro.scale.x = nitro.scale.y = 0.3;
 			car.nitro = nitro;
 
 			// update the position of each
@@ -197,19 +196,32 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 	}
 
 	/** start the animation */
-	setProgress = progress => {
-		const { relativeX, state } = this;
+	setProgress = percent => {
+		const { relativeX, state, track } = this;
+		const { progress } = track;
+
+		// stop animating
 		this.stopProgressAnimation();
+		
+		// animate the progress
+		let position = progress[Math.max(0, 0 | percent)];
+
+		// if finishing or exceeding the limit the race
+		if (isNaN(position)) position = 1.5;
+
+		// calculate the scaled position
+		position = (STARTING_LINE_POSITION + ((1 - STARTING_LINE_POSITION) * position));
 
 		// calculate the duration using the distance
-		const duration = 1500;
+		const diff = Math.abs(position - relativeX);
+		const duration = 1000 + (2000 * diff);
 
 		// perform the transition
 		this._progress = tween({
 			duration,
 			ease: easing.linear,
 			from: { x: relativeX - state.nitroBonusOffset },
-			to: { x: progress }
+			to: { x: position }
 		})
 		.start({
 			update: props => {

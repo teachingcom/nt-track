@@ -3,13 +3,14 @@ import { PIXI as AnimatorPIXI } from 'nt-animator';
 import Random from '../../rng';
 import { TRACK_HEIGHT, TRACK_TOP } from '../../views/track/scaling';
 import { TRACK_MAXIMUM_SCROLL_SPEED } from '../../config';
-import { isArray, isNumber } from '../../utils';
+import { isArray, isNumber, noop } from '../../utils';
 import Segment from './segment';
+import createCrowd from '../../plugins/crowd';
 
 // total number of road slices to create
 // consider making this calculated as needed
 // meaning, add more tiles if the view expands
-const TOTAL_ROAD_SEGMENTS = 30;
+const TOTAL_ROAD_SEGMENTS = 20;
 
 // creates a default track
 export default class Track {
@@ -17,6 +18,9 @@ export default class Track {
 	/** creates a new track instance */
 	static async create(options) {
 		const { view, seed } = options;
+
+		// custom crowd type
+		view.animator.install('crowd', createCrowd);
 
 		// create the new track
 		const instance = new Track();
@@ -305,7 +309,7 @@ export default class Track {
 
 		// check for off screen
 		// TODO: make this better
-		const offscreen = window.innerWidth * -0.75;
+		const offscreen = -window.innerWidth * 2;
 
 		// update each segment
 		diff = Math.floor(diff);
@@ -316,7 +320,7 @@ export default class Track {
 
 			// if this has gone off screen, it's time
 			// to reset it -- maximum one per frame
-			if (segment.bottom.x < offscreen) {
+			if (segment.bottom.x + segment.bounds.width < offscreen) {
 				if (!reset || segment.bottom.x < reset.bottom.x)
 					reset = segment;
 			}
