@@ -5,13 +5,15 @@ import * as PIXI from 'pixi.js';
 // PIXI.settings.TARGET_FPMS = 0.001;
 
 // export const TRACK_MAXIMUM_SCROLL_SPEED = 60;
-export const TRACK_MAXIMUM_SCROLL_SPEED = 60;
+export const TRACK_MAXIMUM_SCROLL_SPEED = 5;
 export const TRACK_MAXIMUM_SPEED = 0.66;
 export const TRACK_ACCELERATION_RATE = 0.01;
 export const STATIC_CAR_ROTATION_FIX =  Math.PI;
 export const STARTING_LINE_POSITION = 0.3;
 
 export const CAR_DEFAULT_SHAKE_LEVEL = 0.25;
+
+export const CROWD_DEFAULT_SCALE = 0.4;
 
 export const NAMECARD_EDGE_PADDING = 10;
 

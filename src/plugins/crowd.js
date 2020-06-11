@@ -1,6 +1,7 @@
 import * as PIXI from 'pixi.js';
-import { noop, isArray } from '../utils';
+import { noop, isArray, isNumber } from '../utils';
 import { keyframes, easing } from 'popmotion';
+import { CROWD_DEFAULT_SCALE } from '../config';
 
 let ANIMATIONS;
 
@@ -8,52 +9,55 @@ const PALETTES = {
 	
 	skin: shuffle([ 0xf7d6a7, 0xeabd7a, 0xdba767, 0xc28340, 0x8d5524, 0x543416 ]),
 	hair: shuffle([ 0xcc4824, 0xfcd009, 0xfefed6, 0xcda575, 0xfda0d1, 0xaca8fd, 0x96203f ]),
-	colors: shuffle([ 0x7bc82b, 0x426d14, 0xff6830, 0x6e1813, 0xd3cc1c, 0xfe9fd2, 0xaf4ab2, 0x7675f9, 0x22777c])
+	colors: shuffle([ 0x7bc82b, 0x426d14, 0xff4400, 0x99ff00, 0xff6830, 0x6e1813, 0xd3cc1c, 0xfe9fd2, 0xaf4ab2, 0x7675f9, 0x22777c])
 	
 }
 
 // individual layer data for animations
 const LAYERS = {
-	armupl: {
+	arm_up_l: {
 		sprite: 'arm_up', 
-		height: 100, 
 		pivot: 0.75, 
 		flipX: true, 
 		attachment: 'hand' 
 	},
-	armupr: {
+	arm_up_r: {
 		sprite: 'arm_up', 
-		height: 100, 
 		pivot: 0.75, 
 		attachment: 'hand' 
 	},
-	shoulderl: {
+	arm_down_l: {
+		sprite: 'arm_down', 
+		pivot: 0.75, 
+		flipX: true, 
+		attachment: 'hand' 
+	},
+	arm_down_r: {
+		sprite: 'arm_down', 
+		pivot: 0.75, 
+		attachment: 'hand' 
+	},
+	shoulder_l: {
 		sprite: 'shoulder', 
-		height: 70, 
 		pivot: 0.75, 
 		flipX: true 
 	},
-	shoulderr: {
+	shoulder_r: {
 		sprite: 'shoulder', 
-		height: 70, 
 		pivot: 0.75 
 	},
 	torso: {
 		sprite: 'torso', 
-		height: 140, 
 		pivot: 0.75 
 	},
 	head: {
 		sprite: 'head', 
-		height: 120, 
-		pivot: 0.5, 
+		pivot: 0.66, 
 		attachment: 'hat' 
 	},
 	legs: {
-		sprite: 'legs', 
-		palette: PALETTES.skin,
-		height: 165, 
-		pivot: 0.333 
+		sprite: 'legs',
+		pivot: 0.15
 	},
 }
 
@@ -66,7 +70,8 @@ export default async function createCrowd(animator, controller, path, layer, dat
 	}
 
 	// get the animation to playback
-	const playback = isArray(data.animation) ? sample(data.animation) : data.animation;
+	const playback = choose(data.animation);
+	const actor = choose(data.actor);
 	const animation = ANIMATIONS[playback];
 
 	// not a real animation
@@ -75,26 +80,42 @@ export default async function createCrowd(animator, controller, path, layer, dat
 	}
 
 	// create the color palette
-	const skin = PALETTES.skin.pop();
-	const hat = PALETTES.hair.pop();
-	const top = PALETTES.colors.pop();
-	const bottom = PALETTES.colors.pop();
-	
-	// cycle
-	PALETTES.skin.unshift(skin);
-	PALETTES.hair.unshift(hat);
-	PALETTES.colors.unshift(top);
-	PALETTES.colors.unshift(bottom);
+	let baseColor = PALETTES.skin.pop();
+	let accentColor = PALETTES.hair.pop();
+	let altColor = PALETTES.colors.pop();
+	let secondaryColor = PALETTES.colors.pop();
 
-	const MAPPING = {
-		shoulder: top,
-		arm_up: top,
-		torso: top,
-		hand: skin,
-		hat,
-		head: skin,
-		legs: bottom
+	// cycle
+	PALETTES.skin.unshift(baseColor);
+	PALETTES.hair.unshift(accentColor);
+	PALETTES.colors.unshift(altColor);
+	PALETTES.colors.unshift(secondaryColor);
+
+	// select the color to use
+	if (isNumber(data.color)) {
+		baseColor = altColor = secondaryColor = accentColor = data.color;
+	}
+	else if (data.color) {
+		baseColor = choose('base' in data.color ? data.color.base : baseColor);
+		altColor = choose('top' in data.color ? data.color.top : altColor);
+		secondaryColor = choose('bottom' in data.color ? data.color.bottom : secondaryColor);
+		accentColor = choose('accent' in data.color ? data.color.base : accentColor);
+	}
+	else if (data.color === false) {
+		baseColor = altColor = secondaryColor = accentColor = 0xffffff;
+	}
+
+	// const colors = colorsForActor();
+	const colorsForActor = {
+		hat: accentColor,
+		torso: altColor,
+		shoulder_r: altColor,
+		shoulder_l: altColor,
 	};
+
+	// legs are used to set the
+	// shadow position
+	let legs;
 
 	// get the source
 	const spritesheet = await animator.getSpritesheet('crowd');
@@ -109,7 +130,6 @@ export default async function createCrowd(animator, controller, path, layer, dat
 	// create the container for the actor
 	const container = new PIXI.Container();
 	Object.assign(container, data.props);
-	container.scale.x = container.scale.y = 0.5;
 
 	// create animations?
 	// TODO: does not support animations, but would be easy to add
@@ -122,16 +142,24 @@ export default async function createCrowd(animator, controller, path, layer, dat
 		let obj;
 
 		// create the new sprite
-		const sprite = obj = await animator.getSprite('crowd', `${data.actor}_${meta.sprite}`);
+		const spriteId = `${actor}_${meta.sprite}`;
+		const sprite = obj = await animator.getSprite('crowd', spriteId);
 
-		// perform the tint
-		sprite.tint = MAPPING[meta.sprite];
+		// set the tint
+		if (layer.sprite in colorsForActor) {
+			sprite.tint = colorsForActor[layer.sprite];
+		}
+
+		// save the legs, if needed
+		if (layer.sprite === 'legs') {
+			legs = sprite;
+		}
 		
 		// check for special attachments
 		if (meta.attachment) {
 
 			// get all possible attachments
-			const attachments = getAttachments(spritesheet, data.actor, meta.attachment);
+			const attachments = getAttachments(spritesheet, actor, meta.attachment);
 			
 			// attach, if needed
 			if (!!attachments.length) {
@@ -144,16 +172,22 @@ export default async function createCrowd(animator, controller, path, layer, dat
 				const selected = sample(attachments);
 				const attachment = await animator.getSprite('crowd', selected);
 				obj.addChild(attachment);
-				
-				// apply colors
-				attachment.tint = MAPPING[meta.attachment];
+
+				// check for extras
+				const key = selected.substr(actor.length).replace(/[^a-z]/g, '');
+				if (key in colorsForActor) {
+					attachment.tint = colorsForActor[key];
+				}
+
+				attachment.pivot.x = (attachment.width - sprite.width) / 2;
+				attachment.pivot.y = (attachment.height - sprite.height) / 2;
 			}
 
 		}
 
 		// adjust the scale
 		container.addChildAt(obj, 0);
-		const scale = sprite.height / meta.height;
+		// const scale = sprite.height / meta.height;
 		
 		// pivot from the correct joint positions
 		obj.pivot.x = sprite.width * 0.5;
@@ -168,29 +202,45 @@ export default async function createCrowd(animator, controller, path, layer, dat
 		const frames = animation[layer.sprite];
 
 		// set the starting position
-		const [ origin ] = frames;
-		obj.rotation = origin.rotation;
-		obj.x = origin.x * scale;
-		obj.y = origin.y * scale;
+		if (frames) {
 
-		// create the animator - must have at least
-		// two frames of animation
-		if (frames.length > 1)
-			keyframes({
-				loop: Infinity,
-				ease: easing.linear,
-				duration,
-				elapsed,
-				values: frames
-			})
-			.start({
-				update: createUpdater(obj, scale)
-			});
+			// set starting position
+			const [ origin ] = frames;
+			obj.rotation = origin.rotation;
+			obj.x = origin.x;
+			obj.y = origin.y;
 
+			// create the animator - must have at least
+			// two frames of animation
+			if (frames?.length > 1)
+				keyframes({
+					loop: Infinity,
+					ease: easing.linear,
+					duration,
+					elapsed,
+					values: frames
+				})
+				.start({
+					update: createUpdater(obj, 1)
+				});
+
+		}
 
 	}
 
+	// add the shadow
+	const shadow = await animator.getSprite('crowd', 'shadow');
+	container.addChildAt(shadow, 0);
+
+	// position the shadow at the bottom
+	shadow.pivot.y = shadow.height * 0.75;
+	shadow.pivot.x = shadow.width * 0.5;
+	shadow.y = legs.y + legs.height;
+	shadow.x = legs.x;
+	shadow.scale.x = shadow.scale.y = (legs.width / shadow.width) * 2;
+
 	// scale
+	container.scale.x = CROWD_DEFAULT_SCALE;
 	container.scale.x *= (0.9 + (0.2 * Math.random()));
 	container.scale.y = container.scale.x;
 	
@@ -255,38 +305,38 @@ function generateAnimationFrames({ animations, layers }) {
 			// container for the keyframes
 			let keyframes;
 
-			// tracking which animation is being read
-			let at = 1;
+			// TEMP
+			let count = 0;
+			if (id === 'cheer') count = 1;
+			else if (id === 'wave') count = 2;
+			else if (id === 'jump') count = 3;
 			
 			// create the timings for each animation
 			for (const frame of layer.frames) {
-				
+
+				// find the first frame
+				if (frame._off === false) count--;
+				if (count > 0) continue;
+		
 				// still trying to find the first
 				// frame of animation
 				if (!keyframes) {
-					if (!frame._off && at >= start) {
 						
-						// this is the default frame, get the props
-						// if this is at the beginning, use the 
-						// origin data
-						const keyframe = at === 1 ? origin : frameToKeyframe(frame, origin);
-						keyframes = [ keyframe ];
-						continue;
-					}
-					// continue searching
-					else {
-						at += (frame.frames || 1);
-						continue;
-					}
+					// this is the default frame, get the props
+					// if this is at the beginning, use the 
+					// origin data
+					const keyframe = frameToKeyframe(frame, origin);
+					keyframes = [ keyframe ];
+					continue;
 				}
 
 				// ran out of frames of animation
-				if (frame._off) {
+				if (!!frame._off) {
 					break;
 				}
 
 				// save the captured frame
-				const keyframe = frameToKeyframe(frame, origin);
+				const keyframe = frameToKeyframe(frame, keyframes[0]);
 				keyframes.push(keyframe);
 			}
 
@@ -319,3 +369,6 @@ function shuffle(collection) {
 	return shuffled;
 }
 
+function choose(source) {
+	return isArray(source) ? sample(source) : source;
+}
