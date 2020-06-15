@@ -79,14 +79,17 @@ export default class CarFinishLineAnimation {
 			player.relativeY = props.carY;
 
 			// update each trail part
-			trail.each(part => {
-				part.alpha = Math.min(1, props.trailAlpha * 0.01);
-				part.skew.y = -props.carRotation * 0.25;
+			if (trail) {
 
-				// TODO: -35 is hard coded because it looks good
-				// but probably should be relative to the car
-				part.y = (-props.carRotation * 0.15) * -35;
-			});
+				trail.each(part => {
+					part.alpha = Math.min(1, props.trailAlpha * 0.01);
+					part.skew.y = -props.carRotation * 0.25;
+					
+					// TODO: -35 is hard coded because it looks good
+					// but probably should be relative to the car
+					part.y = (-props.carRotation * 0.15) * -35;
+				});
+			}
 		};
 
 		// set the new starting positions

@@ -1,5 +1,5 @@
 import { noop } from "../utils";
-import { STARTING_LINE_POSITION } from "../config";
+import { TRACK_STARTING_LINE_POSITION } from "../config";
 import { tween, easing, delay } from "popmotion";
 
 
@@ -21,7 +21,7 @@ export default class CarEntryAnimation {
 		
 		// starting line position
 		const entryDestination = {
-			playerX: STARTING_LINE_POSITION
+			playerX: TRACK_STARTING_LINE_POSITION
 		};
 
 		// update the player position

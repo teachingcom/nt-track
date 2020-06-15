@@ -166,7 +166,7 @@ export default class Track {
 		this._fitBlockToTrackPosition(segment, 0);
 
 		// TODO: calculate this value
-		this._cycleTrack(-400)
+		this._cycleTrack(-300)
 	}
 
 	// creates the finlish line

@@ -4,13 +4,62 @@ import { keyframes, easing } from 'popmotion';
 import { CROWD_DEFAULT_SCALE } from '../config';
 
 let ANIMATIONS;
+let ANIMATIONS_LIST;
+
+const HAIR_COLORS = [ 
+	0xf6f2ef,
+	0xcda575,
+	0x96203f,
+	0xcc4824,
+	0xfefed6,
+	0x402d2c,
+	0x563353,
+	0xa84a35,
+	0xb68960,
+	0x625673,
+	0xe05638,
+	0x985a59
+];
+
+const PRIMARY_COLORS = [
+	0x15e1ff,
+	0xff88ce,
+	0xa9eb4c,
+	0xfe7f1d,
+	0xef515c,
+	0x9dcbb8,
+	0x9e5aa1,
+	0xf23a46,
+	0xbbd5d0,
+	0xf5a9c7,
+	0x2585ff,
+	0xffc65e,
+	0xffd258,
+]
+
+const SECONDARY_COLORS = [
+	0x563253,
+	0x625673,
+	0x423d41,
+	0x0c3f96,
+	0x640034,
+	0x683552,
+	0x876443,
+	0xad1f3c,
+	0x3e7253,
+	0x5f8283,
+	0x582744
+];
+
+const ALT_COLORS = [
+
+];
 
 const PALETTES = {
-	
-	skin: shuffle([ 0xf7d6a7, 0xeabd7a, 0xdba767, 0xc28340, 0x8d5524, 0x543416 ]),
-	hair: shuffle([ 0xcc4824, 0xfcd009, 0xfefed6, 0xcda575, 0xfda0d1, 0xaca8fd, 0x96203f ]),
-	colors: shuffle([ 0x7bc82b, 0x426d14, 0xff4400, 0x99ff00, 0xff6830, 0x6e1813, 0xd3cc1c, 0xfe9fd2, 0xaf4ab2, 0x7675f9, 0x22777c])
-	
+	hair: shuffle(HAIR_COLORS),
+	primary: shuffle(PRIMARY_COLORS),
+	secondary: shuffle(SECONDARY_COLORS),
+	alt: shuffle(ALT_COLORS),
 }
 
 // individual layer data for animations
@@ -19,7 +68,7 @@ const LAYERS = {
 		sprite: 'arm_up', 
 		pivot: 0.75, 
 		flipX: true, 
-		attachment: 'hand' 
+		attachment: 'hand'
 	},
 	arm_up_r: {
 		sprite: 'arm_up', 
@@ -69,48 +118,39 @@ export default async function createCrowd(animator, controller, path, layer, dat
 		generateAnimationFrames(animator.manifest.crowd);
 	}
 
-	// get the animation to playback
-	const playback = choose(data.animation);
 	const actor = choose(data.actor);
-	const animation = ANIMATIONS[playback];
 
-	// not a real animation
+	// get the animation to playback
+	let playback = choose(data.animation);
+	if (!playback) {
+		playback = sample(ANIMATIONS_LIST);
+	}
+	
+	// make sure it's a real animation
+	const animation = ANIMATIONS[playback];
 	if (!animation) {
 		throw UnknownCrowdAnimationError();
 	}
 
 	// create the color palette
-	let baseColor = PALETTES.skin.pop();
-	let accentColor = PALETTES.hair.pop();
-	let altColor = PALETTES.colors.pop();
-	let secondaryColor = PALETTES.colors.pop();
+	let hairColor = PALETTES.hair.pop();
+	let primaryColor = PALETTES.primary.pop();
+	let secondaryColor = PALETTES.secondary.pop();
+	let altColor = PALETTES.alt.pop();
 
 	// cycle
-	PALETTES.skin.unshift(baseColor);
-	PALETTES.hair.unshift(accentColor);
-	PALETTES.colors.unshift(altColor);
-	PALETTES.colors.unshift(secondaryColor);
-
-	// select the color to use
-	if (isNumber(data.color)) {
-		baseColor = altColor = secondaryColor = accentColor = data.color;
-	}
-	else if (data.color) {
-		baseColor = choose('base' in data.color ? data.color.base : baseColor);
-		altColor = choose('top' in data.color ? data.color.top : altColor);
-		secondaryColor = choose('bottom' in data.color ? data.color.bottom : secondaryColor);
-		accentColor = choose('accent' in data.color ? data.color.base : accentColor);
-	}
-	else if (data.color === false) {
-		baseColor = altColor = secondaryColor = accentColor = 0xffffff;
-	}
+	PALETTES.hair.unshift(hairColor);
+	PALETTES.primary.unshift(primaryColor);
+	PALETTES.secondary.unshift(secondaryColor);
+	PALETTES.alt.unshift(altColor);
 
 	// const colors = colorsForActor();
 	const colorsForActor = {
-		hat: accentColor,
-		torso: altColor,
-		shoulder_r: altColor,
-		shoulder_l: altColor,
+		hat: hairColor,
+		torso: primaryColor,
+		shoulder_r: primaryColor,
+		shoulder_l: primaryColor,
+		legs: secondaryColor,
 	};
 
 	// legs are used to set the
@@ -119,18 +159,30 @@ export default async function createCrowd(animator, controller, path, layer, dat
 
 	// get the source
 	const spritesheet = await animator.getSpritesheet('crowd');
+	const { layers, animations } = animator.manifest.crowd;
 
 	// randomize the animation some
-	const duration = 0 | (400 + (Math.random() * 1200));
+	const [ start, end ] = animations[playback];
+	const length = (end - start) * 50;
+	const base = length * 0.8;
+	const duration = 0 | (base + (Math.random() * base));
 	const elapsed = 0 | (duration * Math.random());
 
+	// use animation length
+
 	// find the layers to render
-	const { layers } = animator.manifest.crowd;
 
 	// create the container for the actor
 	const container = new PIXI.Container();
-	Object.assign(container, data.props);
 
+	// not all properties are supported
+	const { props = { } } = data;
+	if ('x' in props)
+		container.x = animator.evaluateExpression(props.x);
+
+	if ('y' in props)
+		container.y = animator.evaluateExpression(props.y);
+	
 	// create animations?
 	// TODO: does not support animations, but would be easy to add
 
@@ -142,8 +194,13 @@ export default async function createCrowd(animator, controller, path, layer, dat
 		let obj;
 
 		// create the new sprite
-		const spriteId = `${actor}_${meta.sprite}`;
-		const sprite = obj = await animator.getSprite('crowd', spriteId);
+		const selected = selectRandomSpriteOfType(spritesheet, actor, meta.sprite);
+		if (!selected) {
+			console.error(`Sprite ${layer.sprite} does not exist for actor ${actor}`);
+			throw new MissingCrowdSprite();
+		}
+
+		const sprite = obj = await animator.getSprite('crowd', selected.id);
 
 		// set the tint
 		if (layer.sprite in colorsForActor) {
@@ -157,26 +214,22 @@ export default async function createCrowd(animator, controller, path, layer, dat
 		
 		// check for special attachments
 		if (meta.attachment) {
-
-			// get all possible attachments
-			const attachments = getAttachments(spritesheet, actor, meta.attachment);
 			
-			// attach, if needed
-			if (!!attachments.length) {
+			// check for an extra attachment
+			const extra = selectRandomSpriteOfType(spritesheet, actor, meta.attachment);
+			if (!!extra) {
 
 				// replace the container
 				obj = new PIXI.Container();
 				obj.addChild(sprite);
 				
 				// get the item to create
-				const selected = sample(attachments);
-				const attachment = await animator.getSprite('crowd', selected);
+				const attachment = await animator.getSprite('crowd', extra.id);
 				obj.addChild(attachment);
 
 				// check for extras
-				const key = selected.substr(actor.length).replace(/[^a-z]/g, '');
-				if (key in colorsForActor) {
-					attachment.tint = colorsForActor[key];
+				if (extra.key in colorsForActor) {
+					attachment.tint = colorsForActor[extra.key];
 				}
 
 				attachment.pivot.x = (attachment.width - sprite.width) / 2;
@@ -199,7 +252,7 @@ export default async function createCrowd(animator, controller, path, layer, dat
 		}
 
 		// key animation data
-		const frames = animation[layer.sprite];
+		const { isFlipped, frames } = animation[layer.sprite];
 
 		// set the starting position
 		if (frames) {
@@ -209,6 +262,10 @@ export default async function createCrowd(animator, controller, path, layer, dat
 			obj.rotation = origin.rotation;
 			obj.x = origin.x;
 			obj.y = origin.y;
+
+			// check if flipping
+			if (isFlipped)
+				obj.scale.x *= -1;
 
 			// create the animator - must have at least
 			// two frames of animation
@@ -256,11 +313,15 @@ function UnknownCrowdAnimationError() { }
 
 
 // convert frame data to a keyframe
-const frameToKeyframe = (frame, origin) => ({
-	rotation: isNaN(frame.rotation) ? origin.rotation : frame.rotation * PIXI.DEG_TO_RAD,
-	x: isNaN(frame.x) ? origin.x : frame.x,
-	y: isNaN(frame.y) ? origin.y : frame.y
-});
+const frameToKeyframe = (frame, origin) => {
+	origin.isFlipped = !!(origin.isFlipped || !isNaN(frame.alpha) && frame.alpha);
+	delete frame.alpha;
+	return {
+		rotation: isNaN(frame.rotation) ? origin.rotation : frame.rotation * PIXI.DEG_TO_RAD,
+		x: isNaN(frame.x) ? origin.x : frame.x,
+		y: isNaN(frame.y) ? origin.y : frame.y
+	}
+};
 
 
 // convert transform data to a keyframe
@@ -270,17 +331,36 @@ const originToKeyframe = origin => ({
 	y: origin[1]
 });
 
+const SPRITES = { };
+
 // finds attachments for a part
-function getAttachments(spritesheet, prefix, type) {
-	const head = `${prefix}_${type}`;
-	const attachments = [ ];
-	for (const id in spritesheet) {
-		if (id.substr(0, head.length) === head) {
-			attachments.push(id);
+function selectRandomSpriteOfType(spritesheet, prefix, type) {
+	const name = `${prefix}_${type}`;
+	let source = SPRITES[name];
+
+	// cache the list
+	if (!source) {
+		const ids = [ ];
+		for (const id in spritesheet) {
+			if (id.substr(0, name.length) === name) {
+				ids.push(id);
+			}
 		}
+
+		// save they key and ids
+		let [ key = '' ] = ids;
+		key = key.substr(prefix.length).replace(/[^a-z]/g, '');
+		source = SPRITES[name] = { ids, key };
 	}
 
-	return attachments;
+	// if nothing is found
+	if (!source.key)
+		return null;
+
+	// get all possible attachments
+	const { ids, key } = source;
+	const id = sample(ids);
+	return { id, key };
 }
 
 
@@ -290,10 +370,20 @@ function generateAnimationFrames({ animations, layers }) {
 
 	// create the animation map
 	ANIMATIONS = { };
+	ANIMATIONS_LIST = [ ];
+
+	// capture the animation sequence
+	// TODO: again, all of this is a hack
+	const animationNames = [ ];
+	const sequence = { };
+	let sequencePosition = 0;
+	for (const id in animations) animationNames[animations[id][0]] = id;
+	for (const name of animationNames)
+		if (name) sequence[name] = ++sequencePosition;
 
 	// parse each animation set
 	for (const id in animations) {
-		const [ start ] = animations[id];
+		ANIMATIONS_LIST.push(id);
 
 		// track this assembled animation
 		const animation = ANIMATIONS[id] = { };
@@ -306,10 +396,7 @@ function generateAnimationFrames({ animations, layers }) {
 			let keyframes;
 
 			// TEMP
-			let count = 0;
-			if (id === 'cheer') count = 1;
-			else if (id === 'wave') count = 2;
-			else if (id === 'jump') count = 3;
+			const count = sequence[id];
 			
 			// create the timings for each animation
 			for (const frame of layer.frames) {
@@ -340,7 +427,8 @@ function generateAnimationFrames({ animations, layers }) {
 				keyframes.push(keyframe);
 			}
 
-			animation[layer.sprite] = keyframes;
+			const isFlipped = !!origin.isFlipped;
+			animation[layer.sprite] = { isFlipped, frames: keyframes };
 		}
 
 	}
@@ -372,3 +460,5 @@ function shuffle(collection) {
 function choose(source) {
 	return isArray(source) ? sample(source) : source;
 }
+
+function MissingCrowdSprite() { }

@@ -3,7 +3,7 @@ import { PIXI as AnimatorPIXI } from 'nt-animator';
 import { tween, easing } from 'popmotion';
 
 import { LANES, SCALED_CAR_HEIGHT, SCALED_NAMECARD_HEIGHT } from './scaling';
-import { NITRO_SCALE, NITRO_OFFSET_Y, TRAIL_SCALE, STARTING_LINE_POSITION } from '../../config';
+import { NITRO_SCALE, NITRO_OFFSET_Y, TRAIL_SCALE, TRACK_STARTING_LINE_POSITION } from '../../config';
 
 import Car from '../../components/car';
 import Trail from '../../components/trail';
@@ -210,7 +210,7 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 		if (isNaN(position)) position = 1.5;
 
 		// calculate the scaled position
-		position = (STARTING_LINE_POSITION + ((1 - STARTING_LINE_POSITION) * position));
+		position = (TRACK_STARTING_LINE_POSITION + ((1 - TRACK_STARTING_LINE_POSITION) * position));
 
 		// calculate the duration using the distance
 		const diff = Math.abs(position - relativeX);

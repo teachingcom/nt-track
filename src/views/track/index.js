@@ -5,7 +5,7 @@ import * as audio from '../../audio';
 
 // sizing, layers, positions
 import * as scaling from './scaling';
-import { NAMECARD_EDGE_PADDING, TRACK_MAXIMUM_SPEED, TRACK_ACCELERATION_RATE, CAR_DEFAULT_SHAKE_LEVEL } from '../../config';
+import { TRACK_NAMECARD_EDGE_PADDING, TRACK_MAXIMUM_SPEED, TRACK_ACCELERATION_RATE, CAR_DEFAULT_SHAKE_LEVEL } from '../../config';
 import { LAYER_NAMECARD, LAYER_TRACK_GROUND, LAYER_TRACK_OVERLAY } from './layers';
 
 import { BaseView } from '../base';
@@ -92,7 +92,7 @@ export default class TrackView extends BaseView {
 			container.zIndex = LAYER_NAMECARD;
 			container.relativeY = player.relativeY;
 			container.relativeX = 0;
-			container.pivot.x = (namecard.width * -0.5) - NAMECARD_EDGE_PADDING;
+			container.pivot.x = (namecard.width * -0.5) - TRACK_NAMECARD_EDGE_PADDING;
 		}
 
 		// animate onto the track
