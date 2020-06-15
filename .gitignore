@@ -1,7 +1,5 @@
 .DS_Store
 .cache/
-dist/
-.dist/
 .vscode/
 node_modules/
 tsconfig.json
