@@ -77,6 +77,12 @@ export default class TrackView extends BaseView {
 		const player = await Player.create(playerOptions);
 		player.track = this;
 
+		// set the active player, if needed
+		const { isPlayer, id } = playerOptions;
+		if (isPlayer) {
+			this.activePlayerId = id;
+		}
+
 		// with the player, include their namecard
 		const { namecard } = player.layers;
 		if (namecard) {
@@ -158,8 +164,7 @@ export default class TrackView extends BaseView {
 
 	/** changes the progress for a player */
 	setProgress = (id, progress) => {
-		const { state, options } = this;
-		const { activePlayerId } = options;
+		const { state, activePlayerId } = this;
 		const { isFinished } = state;
 		const player = this.getPlayerById(id);
 		
@@ -202,8 +207,7 @@ export default class TrackView extends BaseView {
 
 	/** activates the finished race state */
 	finishRace = player => {
-		const { track, state, options, players, finishedPlayers } = this;
-		const { activePlayerId } = options;
+		const { track, state, players, activePlayerId, finishedPlayers } = this;
 
 		// save the finish
 		const place = finishedPlayers.length;

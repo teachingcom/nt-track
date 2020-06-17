@@ -122,17 +122,15 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 	async _initNameCard() {
 		const { options, mods } = this;
 		const { view } = options;
-
-		// prepare to create loot items
-		if (!mods.card) return;
 		
 		// load a trail, if any
 		return NameCard.create({
 			view,
 			baseHeight: SCALED_NAMECARD_HEIGHT,
-			type: mods.card,
+			type: mods.card || 'default',
 			name: options.playerName,
 			team: options.playerTeam,
+			color: options.teamColor,
 		});
 	}
  

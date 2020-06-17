@@ -91,13 +91,32 @@ export default class Car extends PIXI.Container {
 		this.addChild(car);
 	}
 
+	// creates a car when the resource is missing
+	_createMissingCar = async () => {
+		this.options.hue = 0 | Math.random() * 360;
+		return this._createEnhancedCar('/cars/missing');
+	}
 
 	// creates a car from a static resource
 	_createStaticCar = async (type, staticUrl) => {
 		const car = new PIXI.Container();
 			
 		// get the sprite to render
-		const sprite = await createStaticCar(staticUrl, type);
+		let sprite;
+		try {
+			sprite = await createStaticCar(staticUrl, type);
+
+			// if this failed to load
+			if (!sprite) {
+				return this._createMissingCar();
+			}
+		}
+		// if this failed to find the image
+		catch (ex) {
+			console.error(`Failed to load ${staticUrl}`);
+			return this._createMissingCar();
+		}
+		
 		const height = sprite.height;
 		const imageSource = sprite;
 
@@ -119,7 +138,19 @@ export default class Car extends PIXI.Container {
 	// creates a car that has enhanced effects
 	_createEnhancedCar = async path => {
 		const { view } = this;
-		const car = await view.animator.create(path);
+
+		// try and load a new car asset
+		let car;
+		try {
+			car = await view.animator.create(path);
+			if (!car) {
+				car = await this._createMissingCar();
+			}
+		}
+		catch (ex) {
+			console.error(`Failed to create ${path}`);
+			car = await view.animator.create(path);
+		}
 
 		// find the base layer for the car - if there's
 		// more than one, just use the first one and
@@ -319,6 +350,11 @@ export default class Car extends PIXI.Container {
 	/** handles activating the car nitros */
 	activateNitro = () => {
 		const { car, nitro, trail, shadow, nitroBlur, state } = this;
+
+		// no nitro to activate
+		if (!nitro) return;
+
+		// perform the animation
 		const { offset } = state;
 		this.nitroAnimation = new ActivateNitroAnimation({
 			car, nitro, trail, shadow, nitroBlur

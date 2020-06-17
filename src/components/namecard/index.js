@@ -74,32 +74,43 @@ export default class NameCard extends PIXI.Container {
 	_initText() {
 		const { config, options } = this;
 		const { text = { } } = config;
-		const { name = 'Nitro Racer', team = 'NITRO' } = options;
+		const { name = 'Guest Racer', team, color = 'white' } = options;
 
 		// setup the name text
 		const nameConfig = createTextConfig(name, PREFERRED_NAME_FONT_SIZE, 'bottom', text.name, config.text);
 		if (isNaN(nameConfig.x) || isNaN(nameConfig.y)) {
 			nameConfig.x = this.bounds.width * LEFT_MARGIN;
 			nameConfig.y = this.bounds.height * NAME_START;
+			nameConfig.color = 'white';
 		}
 		
 		// setup the team text
-		const teamConfig = createTextConfig(`[${team}]`, PREFERRED_TEAM_FONT_SIZE, 'top', text.team, config.text);
-		if (isNaN(teamConfig.x) || isNaN(teamConfig.y)) {
-			teamConfig.x = this.bounds.width * LEFT_MARGIN;
-			teamConfig.y = this.bounds.height * (NAME_START + TEAM_MARGIN);
+		let teamConfig;
+		if (team) {
+			teamConfig = createTextConfig(`[${team}]`, PREFERRED_TEAM_FONT_SIZE, 'top', text.team, config.text);
+			if (isNaN(teamConfig.x) || isNaN(teamConfig.y)) {
+				teamConfig.x = this.bounds.width * LEFT_MARGIN;
+				teamConfig.y = this.bounds.height * (NAME_START + TEAM_MARGIN);
+				teamConfig.color = color;
+			}
+		}
+		// no team was provided? Move the name
+		else {
+			nameConfig.baseline = 'middle';
+			nameConfig.y = this.bounds.height * 0.5;;
 		}
 
 		// reset the view
 		cardRenderer.canvas.width = this.bounds.width;
 		cardRenderer.canvas.height = this.bounds.height;
-
-		// default is bottom
 		
 		// render each block
 		for (const block of [nameConfig, teamConfig]) {
+			if (!block) continue;
+
+			// render the text
 			cardRenderer.ctx.textBaseline = block.baseline;
-			cardRenderer.ctx.fillStyle = toRGBA(block.color, 1);
+			cardRenderer.ctx.fillStyle = block.color;
 			cardRenderer.ctx.font = `${block.fontWeight} ${block.fontSize}px ${block.fontFamily}`;
 
 			// clear shadows
@@ -117,8 +128,12 @@ export default class NameCard extends PIXI.Container {
 			cardRenderer.ctx.fillText(block.text, block.x, block.y);
 		}
 
-		// save the sprite
-		const overlay = new PIXI.Sprite.from(cardRenderer.canvas);
+		// create an image from the nametag
+		const img = document.createElement('img');
+		img.src = cardRenderer.canvas.toDataURL();
+
+		// use it as a sprite
+		const overlay = new PIXI.Sprite.from(img);
 		overlay.pivot.x = cardRenderer.canvas.width / 2;
 		overlay.pivot.y = cardRenderer.canvas.height / 2;
 		this.container.addChild(overlay);	
