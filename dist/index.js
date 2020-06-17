@@ -126619,7 +126619,8 @@ function _register() {
               }; // load the sound
 
 
-              var src = "".concat(baseUrl, "/").concat(key, ".mp3");
+              var src = "".concat(baseUrl, "/").concat(key, ".mp3").replace(/\/+/g, '/');
+              console.log('loading sound', src);
               var sound = new _howler.Howl({
                 src: src,
                 format: ['mp3'],
@@ -136591,6 +136592,7 @@ Object.defineProperty(exports, "Preview", {
     return _preview.default;
   }
 });
+exports.Audio = void 0;
 
 var _track = _interopRequireDefault(require("./views/track"));
 
@@ -136600,6 +136602,15 @@ var _garage = _interopRequireDefault(require("./views/garage"));
 
 var _preview = _interopRequireDefault(require("./views/preview"));
 
+var AudioController = _interopRequireWildcard(require("./audio"));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-},{"./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"views/garage/index.js"}]},{},["index.js"], null)
+
+var Audio = AudioController;
+exports.Audio = Audio;
+},{"./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"views/garage/index.js","./audio":"audio/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

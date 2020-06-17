@@ -62,7 +62,8 @@ export async function register(key, options) {
 		};
 		
 		// load the sound
-		const src = `${baseUrl}/${key}.mp3`;
+		const src = `${baseUrl}/${key}.mp3`.replace(/\/+/g, '/');
+		console.log('loading sound', src);
 		const sound = new Howl({
 			src,
 			format: ['mp3'],
