@@ -5,7 +5,7 @@ import * as audio from '../../audio';
 
 // sizing, layers, positions
 import * as scaling from './scaling';
-import { TRACK_NAMECARD_EDGE_PADDING, TRACK_MAXIMUM_SPEED, TRACK_ACCELERATION_RATE, CAR_DEFAULT_SHAKE_LEVEL } from '../../config';
+import { TRACK_NAMECARD_EDGE_PADDING, TRACK_MAXIMUM_SPEED, TRACK_ACCELERATION_RATE, CAR_DEFAULT_SHAKE_LEVEL, INPUT_ERROR_SOUND_TIME_LIMIT } from '../../config';
 import { LAYER_NAMECARD, LAYER_TRACK_GROUND, LAYER_TRACK_OVERLAY } from './layers';
 
 import { BaseView } from '../base';
@@ -44,6 +44,9 @@ export default class TrackView extends BaseView {
 		audio.configureSFX({ enabled: !!options.sfx });
 		audio.configureMusic({ enabled: !!options.music });
 
+		// preload common sounds
+		audio.register('common', options.manifest.sounds);
+
 		// tracking race position progress
 		this.progress = options.manifest.progress;
 		this.pendingPlayers = options.expectedPlayerCount;
@@ -81,8 +84,16 @@ export default class TrackView extends BaseView {
 		const { isPlayer, id } = playerOptions;
 		if (isPlayer) {
 			this.activePlayerId = id;
-		}
 
+			// since this is the player, activate their
+			// car entry sound effect
+			if (data.car) {
+				const { enterSound } = data.car;
+				const entry = audio.create('sfx', 'common', `entry_${enterSound}`);
+				if (entry) entry.play();
+			}
+		}
+		
 		// with the player, include their namecard
 		const { namecard } = player.layers;
 		if (namecard) {
@@ -148,14 +159,44 @@ export default class TrackView extends BaseView {
 		}
 	}
 
+	/** performs the disqualified effect */
+	disqualifyPlayer = () => {
+		const dq = audio.create('sfx', 'common', 'disqualified');
+		dq.play();
+	}
+
+	/** happens after an input error */
+	playerError = () => {
+
+		// don't play too many error sounds
+		const now = +new Date;
+		if (now < this.lastErrorSound || 0) return;
+		this.lastErrorSound = now + INPUT_ERROR_SOUND_TIME_LIMIT;
+
+		// play the sound
+		const selected = Math.ceil(Math.random() * 4);
+		const err = audio.create('sfx', 'common', `error_${selected}`);
+		err.play();
+	}
+
 	/** starts the game countdown */
 	startCountdown = () => {
-		setTimeout(() => console.log('ready'), 1000);
-		setTimeout(() => console.log('set'), 2000);
+		const mark = audio.create('sfx', 'common', 'countdown_mark');
+		const set = audio.create('sfx', 'common', 'countdown_set');
+		const go = audio.create('sfx', 'common', 'countdown_go');
+
 		setTimeout(() => {
-			console.log('go!')
-			this.emit('start');
+			mark.play();
+		}, 2000);
+
+		setTimeout(() => {
+			set.play();
 		}, 3000);
+
+		setTimeout(() => {
+			go.play();
+			this.emit('start');
+		}, 4000);
 	}
 
 	// set the music state

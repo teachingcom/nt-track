@@ -1,4 +1,5 @@
 import { noop } from "../utils";
+import * as audio from '../audio';
 import { tween, easing, chain, delay } from 'popmotion';
 import { CAR_SHADOW_OFFSET_Y } from "../config";
 import { TRACK_CENTER } from "../views/track/scaling";
@@ -16,6 +17,18 @@ export default class CarFinishLineAnimation {
 		const { player, place, isActivePlayer, track } = this;
 		const { car, trail } = player;
 		const { shadow } = car;
+
+		// sound effect for the current player
+		if (isActivePlayer) {
+
+			// start the audio finish audio
+			const crowd = audio.create('sfx', 'common', 'finish_crowd');
+			crowd.play();
+
+			// queue up the stop sound
+			const stop = audio.create('sfx', 'common', 'car_stopping');
+			setTimeout(() => stop.play(), 500);
+		}
 
 		// push each y position scaled slightly towards
 		// the middle to give room for sliding
@@ -80,7 +93,6 @@ export default class CarFinishLineAnimation {
 
 			// update each trail part
 			if (trail) {
-
 				trail.each(part => {
 					part.alpha = Math.min(1, props.trailAlpha * 0.01);
 					part.skew.y = -props.carRotation * 0.25;
@@ -123,8 +135,6 @@ export default class CarFinishLineAnimation {
 		// sliding in animation
 		const slideAnimation = tween({
 			duration: 600 + Math.abs(400 * rotationDirection),
-			// duration: 4300, // + Math.abs(400 * rotationDirection),
-			// ease: easing.cubicBezier(1,.02,.68,1.36),
 			ease: easing.backOut,
 			from: slideOrigin,
 			to: slideDestination,
@@ -137,61 +147,6 @@ export default class CarFinishLineAnimation {
 					update: updateSlideProps
 				})
 			});
-
-		// // for the current player, zoom in on their car
-		// if (!isActivePlayer) return;
-
-		// // get the stage access
-		// const stage = track.view.view;
-
-		// // recenter the view
-		// // stage.scale.x = stage.scale.y = props.scale;
-		// const bounds = track.view.getViewport();
-		// const cx = bounds.width / 2;
-		// const cy = bounds.height / 2;
-		// stage.pivot.x = cx;
-		// stage.pivot.y = cy;
-		// stage.x = cx;
-		// stage.y = cy;
-
-		// // determine the player position in
-		// // absolute values
-		// const playerX = entryDestination.playerX * stage.width;
-		// console.log(cx, playerX)
-
-		// // const cameraX = 0;
-		// // const cameraX = -(() - cx);
-
-		// const cameraX = playerX; // + (cx - (playerX - hoodPivotPoint));
-		// // console.log(stage.x);
-		// // console.log(cameraX)
-
-		// // update camera values
-
-		// const updateCameraProps = props => {
-			
-		// 	stage.x = props.x;
-		// 	// stage.y -= cy * props.y;
-		// 	stage.scale.x = stage.scale.y = props.scale;
-
-		// };
-
-
-		// const cameraAnimation = tween({
-		// 	duration: 1500,
-		// 	ease: easing.backOut,
-		// 	from: { scale: 1, x: cx },
-		// 	to: { scale: 2.2, x: cameraX }
-		// });
-
-		// delay(500)
-		// 	.start({
-		// 		complete: () => cameraAnimation.start({
-		// 			update: updateCameraProps
-		// 		})
-		// 	});
-		
-
 
 	}
 

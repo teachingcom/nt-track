@@ -29,8 +29,6 @@ export default class ComposerView extends BaseView {
 		view.relativeY = 0.5;
 		stage.addChild(view);
 
-		console.log(data);
-
 		const [ car ] = data.cars;
 		const options = merge({ view: this, baseHeight: PREFERRED_HEIGHT * 0.5 }, car);
 		const player = await Player.create(options);

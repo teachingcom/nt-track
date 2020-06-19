@@ -3,10 +3,11 @@
 // PIXI.settings.ANISOTROPIC_LEVEL = 16;
 // PIXI.settings.TARGET_FPMS = 0.001;
 
+// a rotation to apply to all legacy cars
 export const STATIC_CAR_ROTATION_FIX =  Math.PI;
 
+// tracks
 export const TRACK_MAXIMUM_SCROLL_SPEED = 60;
-// export const TRACK_MAXIMUM_SCROLL_SPEED = 3;
 export const TRACK_MAXIMUM_SPEED = 0.66;
 export const TRACK_ACCELERATION_RATE = 0.01;
 export const TRACK_TOP_SCALE = 0.125;
@@ -46,3 +47,6 @@ export const NITRO_ACTIVATED_TRAIL_OPACITY = 0.33;
 export const NITRO_BLUR_OFFSET_Y = -10;
 export const NITRO_BLUR_DEFAULT_OFFSET_X = 0.75;
 export const NITRO_BLUR_REALTIVE_SIZE_SCALING = 0.9;
+
+// misc
+export const INPUT_ERROR_SOUND_TIME_LIMIT = 2000;

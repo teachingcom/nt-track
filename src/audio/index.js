@@ -47,25 +47,20 @@ export function setBaseUrl(url) {
 }
 
 /** includes a sound to be played */
-export async function register(key, options) {
+export async function register(key, sprites) {
 	return new Promise((resolve, reject) => {
 		
 		// handle finalizing the sound
 		const onLoaded = () => {
-			
-			// register separate sprites
-			// if (options.sprites) { }
-			
-			// TODO: just saving single sounds for now
 			AUDIO[key] = sound;
 			resolve();
 		};
 		
 		// load the sound
 		const src = `${baseUrl}/${key}.mp3`.replace(/\/+/g, '/');
-		console.log('loading sound', src);
 		const sound = new Howl({
 			src,
+			sprite: sprites,
 			format: ['mp3'],
 			preload: true,
 			autoplay: false,

@@ -126603,7 +126603,7 @@ function register(_x, _x2) {
 
 
 function _register() {
-  _register = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(key, options) {
+  _register = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(key, sprites) {
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
@@ -126611,18 +126611,15 @@ function _register() {
             return _context.abrupt("return", new Promise(function (resolve, reject) {
               // handle finalizing the sound
               var onLoaded = function onLoaded() {
-                // register separate sprites
-                // if (options.sprites) { }
-                // TODO: just saving single sounds for now
                 AUDIO[key] = sound;
                 resolve();
               }; // load the sound
 
 
               var src = "".concat(baseUrl, "/").concat(key, ".mp3").replace(/\/+/g, '/');
-              console.log('loading sound', src);
               var sound = new _howler.Howl({
                 src: src,
+                sprite: sprites,
                 format: ['mp3'],
                 preload: true,
                 autoplay: false,
@@ -126665,15 +126662,16 @@ function create(type, key, sprite) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.NITRO_BLUR_REALTIVE_SIZE_SCALING = exports.NITRO_BLUR_DEFAULT_OFFSET_X = exports.NITRO_BLUR_OFFSET_Y = exports.NITRO_ACTIVATED_TRAIL_OPACITY = exports.NITRO_OFFSET_Y = exports.NITRO_OFFSET_X = exports.NITRO_SCALE = exports.TRAIL_SCALE = exports.CAR_SHAKE_SHADOW_REDUCTION = exports.CAR_SHAKE_NITRO_BONUS = exports.CAR_SHAKE_DISTANCE = exports.CAR_DEFAULT_FRONT_BACK_OFFSET_X = exports.CAR_BODY_OFFSET_Y = exports.CAR_SHADOW_OFFSET_Y = exports.CAR_SHADOW_OPACITY = exports.CAR_SHADOW_PADDING = exports.CAR_SHADOW_BLUR = exports.CAR_DEFAULT_SHAKE_LEVEL = exports.NAMECARD_SCALE = exports.CROWD_DEFAULT_SCALE = exports.TRACK_NAMECARD_EDGE_PADDING = exports.TRACK_STARTING_LINE_POSITION = exports.TRACK_CAR_LANE_CENTER_OFFSET = exports.TRACK_CAR_SIZE_RELATIVE_TO_LANE = exports.TRACK_SHOULDER_SCALE = exports.TRACK_BOTTOM_SCALE = exports.TRACK_TOP_SCALE = exports.TRACK_ACCELERATION_RATE = exports.TRACK_MAXIMUM_SPEED = exports.TRACK_MAXIMUM_SCROLL_SPEED = exports.STATIC_CAR_ROTATION_FIX = void 0;
+exports.INPUT_ERROR_SOUND_TIME_LIMIT = exports.NITRO_BLUR_REALTIVE_SIZE_SCALING = exports.NITRO_BLUR_DEFAULT_OFFSET_X = exports.NITRO_BLUR_OFFSET_Y = exports.NITRO_ACTIVATED_TRAIL_OPACITY = exports.NITRO_OFFSET_Y = exports.NITRO_OFFSET_X = exports.NITRO_SCALE = exports.TRAIL_SCALE = exports.CAR_SHAKE_SHADOW_REDUCTION = exports.CAR_SHAKE_NITRO_BONUS = exports.CAR_SHAKE_DISTANCE = exports.CAR_DEFAULT_FRONT_BACK_OFFSET_X = exports.CAR_BODY_OFFSET_Y = exports.CAR_SHADOW_OFFSET_Y = exports.CAR_SHADOW_OPACITY = exports.CAR_SHADOW_PADDING = exports.CAR_SHADOW_BLUR = exports.CAR_DEFAULT_SHAKE_LEVEL = exports.NAMECARD_SCALE = exports.CROWD_DEFAULT_SCALE = exports.TRACK_NAMECARD_EDGE_PADDING = exports.TRACK_STARTING_LINE_POSITION = exports.TRACK_CAR_LANE_CENTER_OFFSET = exports.TRACK_CAR_SIZE_RELATIVE_TO_LANE = exports.TRACK_SHOULDER_SCALE = exports.TRACK_BOTTOM_SCALE = exports.TRACK_TOP_SCALE = exports.TRACK_ACCELERATION_RATE = exports.TRACK_MAXIMUM_SPEED = exports.TRACK_MAXIMUM_SCROLL_SPEED = exports.STATIC_CAR_ROTATION_FIX = void 0;
 // import * as PIXI from 'pixi.js';
 // PIXI.settings.ROUND_PIXELS = true;
 // PIXI.settings.ANISOTROPIC_LEVEL = 16;
 // PIXI.settings.TARGET_FPMS = 0.001;
-var STATIC_CAR_ROTATION_FIX = Math.PI;
-exports.STATIC_CAR_ROTATION_FIX = STATIC_CAR_ROTATION_FIX;
-var TRACK_MAXIMUM_SCROLL_SPEED = 60; // export const TRACK_MAXIMUM_SCROLL_SPEED = 3;
+// a rotation to apply to all legacy cars
+var STATIC_CAR_ROTATION_FIX = Math.PI; // tracks
 
+exports.STATIC_CAR_ROTATION_FIX = STATIC_CAR_ROTATION_FIX;
+var TRACK_MAXIMUM_SCROLL_SPEED = 60;
 exports.TRACK_MAXIMUM_SCROLL_SPEED = TRACK_MAXIMUM_SCROLL_SPEED;
 var TRACK_MAXIMUM_SPEED = 0.66;
 exports.TRACK_MAXIMUM_SPEED = TRACK_MAXIMUM_SPEED;
@@ -126736,8 +126734,11 @@ var NITRO_BLUR_OFFSET_Y = -10;
 exports.NITRO_BLUR_OFFSET_Y = NITRO_BLUR_OFFSET_Y;
 var NITRO_BLUR_DEFAULT_OFFSET_X = 0.75;
 exports.NITRO_BLUR_DEFAULT_OFFSET_X = NITRO_BLUR_DEFAULT_OFFSET_X;
-var NITRO_BLUR_REALTIVE_SIZE_SCALING = 0.9;
+var NITRO_BLUR_REALTIVE_SIZE_SCALING = 0.9; // misc
+
 exports.NITRO_BLUR_REALTIVE_SIZE_SCALING = NITRO_BLUR_REALTIVE_SIZE_SCALING;
+var INPUT_ERROR_SOUND_TIME_LIMIT = 2000;
+exports.INPUT_ERROR_SOUND_TIME_LIMIT = INPUT_ERROR_SOUND_TIME_LIMIT;
 },{}],"views/track/scaling.js":[function(require,module,exports) {
 "use strict";
 
@@ -135668,11 +135669,17 @@ var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/creat
 
 var _utils = require("../utils");
 
+var audio = _interopRequireWildcard(require("../audio"));
+
 var _popmotion = require("popmotion");
 
 var _config = require("../config");
 
 var _scaling = require("../views/track/scaling");
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -135704,8 +135711,20 @@ var CarFinishLineAnimation = /*#__PURE__*/function () {
           track = this.track;
       var car = player.car,
           trail = player.trail;
-      var shadow = car.shadow; // push each y position scaled slightly towards
+      var shadow = car.shadow; // sound effect for the current player
+
+      if (isActivePlayer) {
+        // start the audio finish audio
+        var crowd = audio.create('sfx', 'common', 'finish_crowd');
+        crowd.play(); // queue up the stop sound
+
+        var stop = audio.create('sfx', 'common', 'car_stopping');
+        setTimeout(function () {
+          return stop.play();
+        }, 500);
+      } // push each y position scaled slightly towards
       // the middle to give room for sliding
+
 
       var y = player.relativeY;
       y -= _scaling.TRACK_CENTER;
@@ -135801,8 +135820,6 @@ var CarFinishLineAnimation = /*#__PURE__*/function () {
 
       var slideAnimation = (0, _popmotion.tween)({
         duration: 600 + Math.abs(400 * rotationDirection),
-        // duration: 4300, // + Math.abs(400 * rotationDirection),
-        // ease: easing.cubicBezier(1,.02,.68,1.36),
         ease: _popmotion.easing.backOut,
         from: slideOrigin,
         to: slideDestination
@@ -135814,53 +135831,14 @@ var CarFinishLineAnimation = /*#__PURE__*/function () {
             update: updateSlideProps
           });
         }
-      }); // // for the current player, zoom in on their car
-      // if (!isActivePlayer) return;
-      // // get the stage access
-      // const stage = track.view.view;
-      // // recenter the view
-      // // stage.scale.x = stage.scale.y = props.scale;
-      // const bounds = track.view.getViewport();
-      // const cx = bounds.width / 2;
-      // const cy = bounds.height / 2;
-      // stage.pivot.x = cx;
-      // stage.pivot.y = cy;
-      // stage.x = cx;
-      // stage.y = cy;
-      // // determine the player position in
-      // // absolute values
-      // const playerX = entryDestination.playerX * stage.width;
-      // console.log(cx, playerX)
-      // // const cameraX = 0;
-      // // const cameraX = -(() - cx);
-      // const cameraX = playerX; // + (cx - (playerX - hoodPivotPoint));
-      // // console.log(stage.x);
-      // // console.log(cameraX)
-      // // update camera values
-      // const updateCameraProps = props => {
-      // 	stage.x = props.x;
-      // 	// stage.y -= cy * props.y;
-      // 	stage.scale.x = stage.scale.y = props.scale;
-      // };
-      // const cameraAnimation = tween({
-      // 	duration: 1500,
-      // 	ease: easing.backOut,
-      // 	from: { scale: 1, x: cx },
-      // 	to: { scale: 2.2, x: cameraX }
-      // });
-      // delay(500)
-      // 	.start({
-      // 		complete: () => cameraAnimation.start({
-      // 			update: updateCameraProps
-      // 		})
-      // 	});
+      });
     }
   }]);
   return CarFinishLineAnimation;
 }();
 
 exports.default = CarFinishLineAnimation;
-},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","../utils":"utils/index.js","popmotion":"../node_modules/popmotion/dist/popmotion.es.js","../config":"config.js","../views/track/scaling":"views/track/scaling.js"}],"animations/race-completed.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","../utils":"utils/index.js","../audio":"audio/index.js","popmotion":"../node_modules/popmotion/dist/popmotion.es.js","../config":"config.js","../views/track/scaling":"views/track/scaling.js"}],"animations/race-completed.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -136074,7 +136052,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "addPlayer", /*#__PURE__*/function () {
       var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(data, isInstant) {
-        var _assertThisInitialize, state, stage, playerOptions, player, isPlayer, id, namecard, container, entry;
+        var _assertThisInitialize, state, stage, playerOptions, player, isPlayer, id, enterSound, _entry, namecard, container, entry;
 
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
@@ -136097,7 +136075,14 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 isPlayer = playerOptions.isPlayer, id = playerOptions.id;
 
                 if (isPlayer) {
-                  _this.activePlayerId = id;
+                  _this.activePlayerId = id; // since this is the player, activate their
+                  // car entry sound effect
+
+                  if (data.car) {
+                    enterSound = data.car.enterSound;
+                    _entry = audio.create('sfx', 'common', "entry_".concat(enterSound));
+                    if (_entry) _entry.play();
+                  }
                 } // with the player, include their namecard
 
 
@@ -136198,18 +136183,35 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
         _this.emit('ready');
       }
     });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "disqualifyPlayer", function () {
+      var dq = audio.create('sfx', 'common', 'disqualified');
+      dq.play();
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "playerError", function () {
+      // don't play too many error sounds
+      var now = +new Date();
+      if (now < _this.lastErrorSound || 0) return;
+      _this.lastErrorSound = now + _config.INPUT_ERROR_SOUND_TIME_LIMIT; // play the sound
+
+      var selected = Math.ceil(Math.random() * 4);
+      var err = audio.create('sfx', 'common', "error_".concat(selected));
+      err.play();
+    });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "startCountdown", function () {
+      var mark = audio.create('sfx', 'common', 'countdown_mark');
+      var set = audio.create('sfx', 'common', 'countdown_set');
+      var go = audio.create('sfx', 'common', 'countdown_go');
       setTimeout(function () {
-        return console.log('ready');
-      }, 1000);
-      setTimeout(function () {
-        return console.log('set');
+        mark.play();
       }, 2000);
       setTimeout(function () {
-        console.log('go!');
+        set.play();
+      }, 3000);
+      setTimeout(function () {
+        go.play();
 
         _this.emit('start');
-      }, 3000);
+      }, 4000);
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "configureSFX", audio.configureSFX);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "configureMusic", audio.configureMusic);
@@ -136372,7 +136374,9 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       });
       audio.configureMusic({
         enabled: !!options.music
-      }); // tracking race position progress
+      }); // preload common sounds
+
+      audio.register('common', options.manifest.sounds); // tracking race position progress
 
       this.progress = options.manifest.progress;
       this.pendingPlayers = options.expectedPlayerCount; // attach the effects filter
@@ -136483,16 +136487,15 @@ var ComposerView = /*#__PURE__*/function (_BaseView) {
                 view.relativeX = 0.5;
                 view.relativeY = 0.5;
                 stage.addChild(view);
-                console.log(data);
                 _data$cars = (0, _slicedToArray2.default)(data.cars, 1), car = _data$cars[0];
                 options = (0, _utils.merge)({
                   view: (0, _assertThisInitialized2.default)(_this),
                   baseHeight: PREFERRED_HEIGHT * 0.5
                 }, car);
-                _context.next = 10;
+                _context.next = 9;
                 return _player.default.create(options);
 
-              case 10:
+              case 9:
                 player = _context.sent;
                 stage.addChild(player); // middle of screen
 
@@ -136502,7 +136505,7 @@ var ComposerView = /*#__PURE__*/function (_BaseView) {
 
                 _this.player = player;
 
-              case 15:
+              case 14:
               case "end":
                 return _context.stop();
             }
