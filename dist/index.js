@@ -126371,11 +126371,58 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 /** allows managing a sound */
 var Sound = /*#__PURE__*/function () {
-  function Sound(type, source, id, sprite) {
+  function Sound(type, source, _id, sprite) {
+    var _this = this;
+
     (0, _classCallCheck2.default)(this, Sound);
+    (0, _defineProperty2.default)(this, "volume", function (level) {
+      var id = _this.id;
+
+      _this.source.volume(level, id);
+    });
+    (0, _defineProperty2.default)(this, "rate", function (playbackRate) {
+      var id = _this.id;
+
+      _this.source.rate(playbackRate, id);
+    });
+    (0, _defineProperty2.default)(this, "loop", function (shouldLoop) {
+      var id = _this.id;
+
+      _this.source.loop(shouldLoop, id);
+    });
+    (0, _defineProperty2.default)(this, "fade", function (from, to, duration) {
+      var id = _this.id;
+
+      _this.source.fade(from, to, duration, id);
+    });
+    (0, _defineProperty2.default)(this, "stop", function () {
+      var id = _this.id;
+
+      _this.source.stop(id);
+    });
+    (0, _defineProperty2.default)(this, "pause", function () {
+      var id = _this.id;
+
+      _this.source.pause(id);
+    });
+    (0, _defineProperty2.default)(this, "play", function () {
+      // TODO: this might have different behaviors
+      // when it's music
+      if (!_this.enabled) return;
+      var id = _this.id;
+
+      _this.source.seek(0, id);
+
+      _this.source.play(id);
+    });
+    (0, _defineProperty2.default)(this, "mute", function (shouldMute) {
+      var id = _this.id;
+
+      _this.source.mute(shouldMute, id);
+    });
     this.type = type;
     this.source = source;
-    this.id = id;
+    this.id = _id;
     this.sprite = sprite; // check the default state
 
     this.isMusic = type === 'music';
@@ -126386,84 +126433,6 @@ var Sound = /*#__PURE__*/function () {
 
 
   (0, _createClass2.default)(Sound, [{
-    key: "volume",
-    // // event handling -- not sure if needed
-    // on(event, action) {
-    // 	const { id } = this;
-    // 	this.source.on(level, id);
-    // }
-    // // event handling -- not sure if needed
-    // off(event, action) {
-    // 	const { id } = this;
-    // 	this.source.off(level, id);
-    // }
-
-    /** set the volume */
-    value: function volume(level) {
-      var id = this.id;
-      this.source.volume(level, id);
-    }
-    /** set the rate */
-
-  }, {
-    key: "rate",
-    value: function rate(playbackRate) {
-      var id = this.id;
-      this.source.rate(playbackRate, id);
-    }
-    /** set the rate */
-
-  }, {
-    key: "loop",
-    value: function loop(shouldLoop) {
-      var id = this.id;
-      this.source.loop(shouldLoop, id);
-    }
-    /** set the rate */
-
-  }, {
-    key: "fade",
-    value: function fade(from, to, duration) {
-      var id = this.id;
-      this.source.fade(from, to, duration, id);
-    }
-    /** stop the audio */
-
-  }, {
-    key: "stop",
-    value: function stop() {
-      var id = this.id;
-      this.source.stop(id);
-    }
-    /** pause the audio */
-
-  }, {
-    key: "pause",
-    value: function pause() {
-      var id = this.id;
-      this.source.pause(id);
-    }
-    /** play the audio */
-
-  }, {
-    key: "play",
-    value: function play() {
-      // TODO: this might have different behaviors
-      // when it's music
-      if (!this.enabled) return;
-      var id = this.id;
-      this.source.seek(0, id);
-      this.source.play(id);
-    }
-    /** pause the audio */
-
-  }, {
-    key: "mute",
-    value: function mute(shouldMute) {
-      var id = this.id;
-      this.source.mute(shouldMute, id);
-    }
-  }, {
     key: "isPlaying",
     get: function get() {
       var id = this.id;
@@ -126489,7 +126458,19 @@ var Sound = /*#__PURE__*/function () {
             this.play();
             this.fade(0, Sound.musicVolume, 1000);
           }
-    }
+    } // // event handling -- not sure if needed
+    // on(event, action) {
+    // 	const { id } = this;
+    // 	this.source.on(level, id);
+    // }
+    // // event handling -- not sure if needed
+    // off(event, action) {
+    // 	const { id } = this;
+    // 	this.source.off(level, id);
+    // }
+
+    /** set the volume */
+
   }]);
   return Sound;
 }();
@@ -132079,10 +132060,20 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
         while (1) {
           switch (_context.prev = _context.next) {
             case 0:
+              if (!_this._isUsingMissingCar) {
+                _context.next = 2;
+                break;
+              }
+
+              return _context.abrupt("return");
+
+            case 2:
+              _this._isUsingMissingCar = true; // create the missing car instance
+
               _this.options.hue = 0 | Math.random() * 360;
               return _context.abrupt("return", _this._createEnhancedCar('/cars/missing'));
 
-            case 2:
+            case 5:
             case "end":
               return _context.stop();
           }
@@ -133086,9 +133077,19 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                 if (!config) {
                   path = 'namecards/default';
                   config = view.animator.lookup(path);
-                } // save the properties
+                } // if still missing then there's not
+                // a name card that can be used
 
 
+                if (config) {
+                  _context2.next = 7;
+                  break;
+                }
+
+                return _context2.abrupt("return");
+
+              case 7:
+                // save the properties
                 (0, _utils.merge)(instance, {
                   options: options,
                   view: view,
@@ -133099,16 +133100,16 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                 instance.container = new PIXI.Container();
                 instance.addChild(instance.container); // initialize all namecard parts
 
-                _context2.next = 10;
+                _context2.next = 12;
                 return instance._initNameCard();
 
-              case 10:
+              case 12:
                 instance._initText(); // return the created namecard
 
 
                 return _context2.abrupt("return", instance);
 
-              case 12:
+              case 14:
               case "end":
                 return _context2.stop();
             }
@@ -134470,6 +134471,8 @@ function _createCrowd() {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
+            _context.prev = 0;
+
             // setup animations so this doesn't have to be done
             // multiple times
             if (!ANIMATIONS) {
@@ -134488,13 +134491,13 @@ function _createCrowd() {
             animation = ANIMATIONS[playback];
 
             if (animation) {
-              _context.next = 7;
+              _context.next = 8;
               break;
             }
 
             throw UnknownCrowdAnimationError();
 
-          case 7:
+          case 8:
             // create the color palette
             hairColor = PALETTES.hair.pop();
             primaryColor = PALETTES.primary.pop();
@@ -134515,10 +134518,10 @@ function _createCrowd() {
             }; // legs are used to set the
             // shadow position
 
-            _context.next = 18;
+            _context.next = 19;
             return animator.getSpritesheet('crowd');
 
-          case 18:
+          case 19:
             spritesheet = _context.sent;
             _animator$manifest$cr = animator.manifest.crowd, layers = _animator$manifest$cr.layers, animations = _animator$manifest$cr.animations; // randomize the animation some
 
@@ -134539,13 +134542,13 @@ function _createCrowd() {
             // assemble each of the layers
 
             _iterator3 = _createForOfIteratorHelper(layers);
-            _context.prev = 30;
+            _context.prev = 31;
 
             _iterator3.s();
 
-          case 32:
+          case 33:
             if ((_step3 = _iterator3.n()).done) {
-              _context.next = 65;
+              _context.next = 66;
               break;
             }
 
@@ -134557,18 +134560,18 @@ function _createCrowd() {
             selected = selectRandomSpriteOfType(spritesheet, actor, meta.sprite);
 
             if (selected) {
-              _context.next = 40;
+              _context.next = 41;
               break;
             }
 
             console.error("Sprite ".concat(_layer.sprite, " does not exist for actor ").concat(actor));
             throw new MissingCrowdSprite();
 
-          case 40:
-            _context.next = 42;
+          case 41:
+            _context.next = 43;
             return animator.getSprite('crowd', selected.id);
 
-          case 42:
+          case 43:
             sprite = obj = _context.sent;
 
             // set the tint
@@ -134583,7 +134586,7 @@ function _createCrowd() {
 
 
             if (!meta.attachment) {
-              _context.next = 57;
+              _context.next = 58;
               break;
             }
 
@@ -134591,7 +134594,7 @@ function _createCrowd() {
             extra = selectRandomSpriteOfType(spritesheet, actor, meta.attachment);
 
             if (!extra) {
-              _context.next = 57;
+              _context.next = 58;
               break;
             }
 
@@ -134599,10 +134602,10 @@ function _createCrowd() {
             obj = new PIXI.Container();
             obj.addChild(sprite); // get the item to create
 
-            _context.next = 52;
+            _context.next = 53;
             return animator.getSprite('crowd', extra.id);
 
-          case 52:
+          case 53:
             attachment = _context.sent;
             obj.addChild(attachment); // check for extras
 
@@ -134613,7 +134616,7 @@ function _createCrowd() {
             attachment.pivot.x = (attachment.width - sprite.width) / 2;
             attachment.pivot.y = (attachment.height - sprite.height) / 2;
 
-          case 57:
+          case 58:
             // adjust the scale
             container.addChildAt(obj, 0); // const scale = sprite.height / meta.height;
             // pivot from the correct joint positions
@@ -134649,32 +134652,32 @@ function _createCrowd() {
               });
             }
 
-          case 63:
-            _context.next = 32;
+          case 64:
+            _context.next = 33;
             break;
 
-          case 65:
-            _context.next = 70;
+          case 66:
+            _context.next = 71;
             break;
 
-          case 67:
-            _context.prev = 67;
-            _context.t0 = _context["catch"](30);
+          case 68:
+            _context.prev = 68;
+            _context.t0 = _context["catch"](31);
 
             _iterator3.e(_context.t0);
 
-          case 70:
-            _context.prev = 70;
+          case 71:
+            _context.prev = 71;
 
             _iterator3.f();
 
-            return _context.finish(70);
+            return _context.finish(71);
 
-          case 73:
-            _context.next = 75;
+          case 74:
+            _context.next = 76;
             return animator.getSprite('crowd', 'shadow');
 
-          case 75:
+          case 76:
             shadow = _context.sent;
             container.addChildAt(shadow, 0); // position the shadow at the bottom
 
@@ -134694,12 +134697,20 @@ function _createCrowd() {
               update: _utils.noop
             });
 
-          case 86:
+          case 89:
+            _context.prev = 89;
+            _context.t1 = _context["catch"](0);
+            return _context.abrupt("return", {
+              displayObject: new PIXI.Container(),
+              update: _utils.noop
+            });
+
+          case 92:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[30, 67, 70, 73]]);
+    }, _callee, null, [[0, 89], [31, 68, 71, 74]]);
   }));
   return _createCrowd.apply(this, arguments);
 }
@@ -134939,7 +134950,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 // total number of road slices to create
 // consider making this calculated as needed
 // meaning, add more tiles if the view expands
-var TOTAL_ROAD_SEGMENTS = 20; // creates a default track
+var TOTAL_ROAD_SEGMENTS = 14; // creates a default track
 
 var Track = /*#__PURE__*/function () {
   function Track() {
@@ -136029,6 +136040,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "players", []);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "namecards", []);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "finishedPlayers", []);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "sfx", {});
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "state", {
       speed: 0,
       shake: _config.CAR_DEFAULT_SHAKE_LEVEL,
@@ -136052,13 +136064,13 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "addPlayer", /*#__PURE__*/function () {
       var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(data, isInstant) {
-        var _assertThisInitialize, state, stage, playerOptions, player, isPlayer, id, enterSound, _entry, namecard, container, entry;
+        var _assertThisInitialize, state, stage, sfx, playerOptions, player, isPlayer, id, enterSound, _entry, namecard, container, entry;
 
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                _assertThisInitialize = (0, _assertThisInitialized2.default)(_this), state = _assertThisInitialize.state, stage = _assertThisInitialize.stage; // increase the expected players
+                _assertThisInitialize = (0, _assertThisInitialized2.default)(_this), state = _assertThisInitialize.state, stage = _assertThisInitialize.stage, sfx = _assertThisInitialize.sfx; // increase the expected players
 
                 state.totalPlayers++; // create the player instance
 
@@ -136080,8 +136092,16 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
                   if (data.car) {
                     enterSound = data.car.enterSound;
-                    _entry = audio.create('sfx', 'common', "entry_".concat(enterSound));
-                    if (_entry) _entry.play();
+                    _entry = audio.create('sfx', 'common', "entry_".concat(enterSound)); // start the entry sound
+
+                    if (_entry) {
+                      _entry.loop(true);
+
+                      _entry.play(); // save this for layer
+
+
+                      sfx.entry = _entry;
+                    }
                   }
                 } // with the player, include their namecard
 
@@ -136198,15 +136218,22 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       err.play();
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "startCountdown", function () {
+      // stop the entry sound effect
+      var _assertThisInitialize4 = (0, _assertThisInitialized2.default)(_this),
+          sfx = _assertThisInitialize4.sfx;
+
+      if (sfx.entry) {
+        setTimeout(function () {
+          return sfx.entry.fade(1, 0, 2000);
+        }, 1500);
+      } // play the countdown
+
+
       var mark = audio.create('sfx', 'common', 'countdown_mark');
+      setTimeout(mark.play, 2000);
       var set = audio.create('sfx', 'common', 'countdown_set');
+      setTimeout(set.play, 3000);
       var go = audio.create('sfx', 'common', 'countdown_go');
-      setTimeout(function () {
-        mark.play();
-      }, 2000);
-      setTimeout(function () {
-        set.play();
-      }, 3000);
       setTimeout(function () {
         go.play();
 
@@ -136216,9 +136243,9 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "configureSFX", audio.configureSFX);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "configureMusic", audio.configureMusic);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setProgress", function (id, progress) {
-      var _assertThisInitialize4 = (0, _assertThisInitialized2.default)(_this),
-          state = _assertThisInitialize4.state,
-          activePlayerId = _assertThisInitialize4.activePlayerId;
+      var _assertThisInitialize5 = (0, _assertThisInitialized2.default)(_this),
+          state = _assertThisInitialize5.state,
+          activePlayerId = _assertThisInitialize5.activePlayerId;
 
       var isFinished = state.isFinished;
 
@@ -136258,12 +136285,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       _this.state.accelerate = true;
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "finishRace", function (player) {
-      var _assertThisInitialize5 = (0, _assertThisInitialized2.default)(_this),
-          track = _assertThisInitialize5.track,
-          state = _assertThisInitialize5.state,
-          players = _assertThisInitialize5.players,
-          activePlayerId = _assertThisInitialize5.activePlayerId,
-          finishedPlayers = _assertThisInitialize5.finishedPlayers; // save the finish
+      var _assertThisInitialize6 = (0, _assertThisInitialized2.default)(_this),
+          track = _assertThisInitialize6.track,
+          state = _assertThisInitialize6.state,
+          players = _assertThisInitialize6.players,
+          activePlayerId = _assertThisInitialize6.activePlayerId,
+          finishedPlayers = _assertThisInitialize6.finishedPlayers; // save the finish
 
 
       var place = finishedPlayers.length;
@@ -136314,8 +136341,8 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       _this.raceCompletedAnimation.play({});
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "render", function () {
-      var _assertThisInitialize6 = (0, _assertThisInitialized2.default)(_this),
-          state = _assertThisInitialize6.state;
+      var _assertThisInitialize7 = (0, _assertThisInitialized2.default)(_this),
+          state = _assertThisInitialize7.state;
 
       var isFinished = state.isFinished; // if the race is active, update the game
 

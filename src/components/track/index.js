@@ -10,7 +10,7 @@ import createCrowd from '../../plugins/crowd';
 // total number of road slices to create
 // consider making this calculated as needed
 // meaning, add more tiles if the view expands
-const TOTAL_ROAD_SEGMENTS = 20;
+const TOTAL_ROAD_SEGMENTS = 14;
 
 // creates a default track
 export default class Track {

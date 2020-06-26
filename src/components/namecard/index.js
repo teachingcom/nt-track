@@ -38,6 +38,12 @@ export default class NameCard extends PIXI.Container {
 			config = view.animator.lookup(path);
 		}
 
+		// if still missing then there's not
+		// a name card that can be used
+		if (!config) {
+			return;
+		}
+
 		// save the properties
 		merge(instance, { options, view, path, config });
 

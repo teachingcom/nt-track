@@ -111,199 +111,206 @@ const LAYERS = {
 }
 
 export default async function createCrowd(animator, controller, path, layer, data) {
+	try {
+			
 
-	// setup animations so this doesn't have to be done
-	// multiple times
-	if (!ANIMATIONS) {
-		generateAnimationFrames(animator.manifest.crowd);
-	}
-
-	const actor = choose(data.actor);
-
-	// get the animation to playback
-	let playback = choose(data.animation);
-	if (!playback) {
-		playback = sample(ANIMATIONS_LIST);
-	}
-	
-	// make sure it's a real animation
-	const animation = ANIMATIONS[playback];
-	if (!animation) {
-		throw UnknownCrowdAnimationError();
-	}
-
-	// create the color palette
-	let hairColor = PALETTES.hair.pop();
-	let primaryColor = PALETTES.primary.pop();
-	let secondaryColor = PALETTES.secondary.pop();
-	let altColor = PALETTES.alt.pop();
-
-	// cycle
-	PALETTES.hair.unshift(hairColor);
-	PALETTES.primary.unshift(primaryColor);
-	PALETTES.secondary.unshift(secondaryColor);
-	PALETTES.alt.unshift(altColor);
-
-	// const colors = colorsForActor();
-	const colorsForActor = {
-		hat: hairColor,
-		torso: primaryColor,
-		shoulder_r: primaryColor,
-		shoulder_l: primaryColor,
-		legs: secondaryColor,
-	};
-
-	// legs are used to set the
-	// shadow position
-	let legs;
-
-	// get the source
-	const spritesheet = await animator.getSpritesheet('crowd');
-	const { layers, animations } = animator.manifest.crowd;
-
-	// randomize the animation some
-	const [ start, end ] = animations[playback];
-	const length = (end - start) * 50;
-	const base = length * 0.8;
-	const duration = 0 | (base + (Math.random() * base));
-	const elapsed = 0 | (duration * Math.random());
-
-	// use animation length
-
-	// find the layers to render
-
-	// create the container for the actor
-	const container = new PIXI.Container();
-
-	// not all properties are supported
-	const { props = { } } = data;
-	if ('x' in props)
-		container.x = animator.evaluateExpression(props.x);
-
-	if ('y' in props)
-		container.y = animator.evaluateExpression(props.y);
-	
-	// create animations?
-	// TODO: does not support animations, but would be easy to add
-
-	// assemble each of the layers
-	for (const layer of layers) {
-		const meta = LAYERS[layer.sprite];
-
-		// the object that will be attached
-		let obj;
-
-		// create the new sprite
-		const selected = selectRandomSpriteOfType(spritesheet, actor, meta.sprite);
-		if (!selected) {
-			console.error(`Sprite ${layer.sprite} does not exist for actor ${actor}`);
-			throw new MissingCrowdSprite();
+		// setup animations so this doesn't have to be done
+		// multiple times
+		if (!ANIMATIONS) {
+			generateAnimationFrames(animator.manifest.crowd);
 		}
 
-		const sprite = obj = await animator.getSprite('crowd', selected.id);
+		const actor = choose(data.actor);
 
-		// set the tint
-		if (layer.sprite in colorsForActor) {
-			sprite.tint = colorsForActor[layer.sprite];
-		}
-
-		// save the legs, if needed
-		if (layer.sprite === 'legs') {
-			legs = sprite;
+		// get the animation to playback
+		let playback = choose(data.animation);
+		if (!playback) {
+			playback = sample(ANIMATIONS_LIST);
 		}
 		
-		// check for special attachments
-		if (meta.attachment) {
+		// make sure it's a real animation
+		const animation = ANIMATIONS[playback];
+		if (!animation) {
+			throw UnknownCrowdAnimationError();
+		}
+
+		// create the color palette
+		let hairColor = PALETTES.hair.pop();
+		let primaryColor = PALETTES.primary.pop();
+		let secondaryColor = PALETTES.secondary.pop();
+		let altColor = PALETTES.alt.pop();
+
+		// cycle
+		PALETTES.hair.unshift(hairColor);
+		PALETTES.primary.unshift(primaryColor);
+		PALETTES.secondary.unshift(secondaryColor);
+		PALETTES.alt.unshift(altColor);
+
+		// const colors = colorsForActor();
+		const colorsForActor = {
+			hat: hairColor,
+			torso: primaryColor,
+			shoulder_r: primaryColor,
+			shoulder_l: primaryColor,
+			legs: secondaryColor,
+		};
+
+		// legs are used to set the
+		// shadow position
+		let legs;
+
+		// get the source
+		const spritesheet = await animator.getSpritesheet('crowd');
+		const { layers, animations } = animator.manifest.crowd;
+
+		// randomize the animation some
+		const [ start, end ] = animations[playback];
+		const length = (end - start) * 50;
+		const base = length * 0.8;
+		const duration = 0 | (base + (Math.random() * base));
+		const elapsed = 0 | (duration * Math.random());
+
+		// use animation length
+
+		// find the layers to render
+
+		// create the container for the actor
+		const container = new PIXI.Container();
+
+		// not all properties are supported
+		const { props = { } } = data;
+		if ('x' in props)
+			container.x = animator.evaluateExpression(props.x);
+
+		if ('y' in props)
+			container.y = animator.evaluateExpression(props.y);
+		
+		// create animations?
+		// TODO: does not support animations, but would be easy to add
+
+		// assemble each of the layers
+		for (const layer of layers) {
+			const meta = LAYERS[layer.sprite];
+
+			// the object that will be attached
+			let obj;
+
+			// create the new sprite
+			const selected = selectRandomSpriteOfType(spritesheet, actor, meta.sprite);
+			if (!selected) {
+				console.error(`Sprite ${layer.sprite} does not exist for actor ${actor}`);
+				throw new MissingCrowdSprite();
+			}
+
+			const sprite = obj = await animator.getSprite('crowd', selected.id);
+
+			// set the tint
+			if (layer.sprite in colorsForActor) {
+				sprite.tint = colorsForActor[layer.sprite];
+			}
+
+			// save the legs, if needed
+			if (layer.sprite === 'legs') {
+				legs = sprite;
+			}
 			
-			// check for an extra attachment
-			const extra = selectRandomSpriteOfType(spritesheet, actor, meta.attachment);
-			if (!!extra) {
-
-				// replace the container
-				obj = new PIXI.Container();
-				obj.addChild(sprite);
+			// check for special attachments
+			if (meta.attachment) {
 				
-				// get the item to create
-				const attachment = await animator.getSprite('crowd', extra.id);
-				obj.addChild(attachment);
+				// check for an extra attachment
+				const extra = selectRandomSpriteOfType(spritesheet, actor, meta.attachment);
+				if (!!extra) {
 
-				// check for extras
-				if (extra.key in colorsForActor) {
-					attachment.tint = colorsForActor[extra.key];
+					// replace the container
+					obj = new PIXI.Container();
+					obj.addChild(sprite);
+					
+					// get the item to create
+					const attachment = await animator.getSprite('crowd', extra.id);
+					obj.addChild(attachment);
+
+					// check for extras
+					if (extra.key in colorsForActor) {
+						attachment.tint = colorsForActor[extra.key];
+					}
+
+					attachment.pivot.x = (attachment.width - sprite.width) / 2;
+					attachment.pivot.y = (attachment.height - sprite.height) / 2;
 				}
 
-				attachment.pivot.x = (attachment.width - sprite.width) / 2;
-				attachment.pivot.y = (attachment.height - sprite.height) / 2;
+			}
+
+			// adjust the scale
+			container.addChildAt(obj, 0);
+			// const scale = sprite.height / meta.height;
+			
+			// pivot from the correct joint positions
+			obj.pivot.x = sprite.width * 0.5;
+			obj.pivot.y = sprite.height * meta.pivot;
+
+			// inverted obj
+			if (meta.flipX) {
+				obj.scale.x *= -1;
+			}
+
+			// key animation data
+			const { isFlipped, frames } = animation[layer.sprite];
+
+			// set the starting position
+			if (frames) {
+
+				// set starting position
+				const [ origin ] = frames;
+				obj.rotation = origin.rotation;
+				obj.x = origin.x;
+				obj.y = origin.y;
+
+				// check if flipping
+				if (isFlipped)
+					obj.scale.x *= -1;
+
+				// create the animator - must have at least
+				// two frames of animation
+				if (frames?.length > 1)
+					keyframes({
+						loop: Infinity,
+						ease: easing.linear,
+						duration,
+						elapsed,
+						values: frames
+					})
+					.start({
+						update: createUpdater(obj, 1)
+					});
+
 			}
 
 		}
 
-		// adjust the scale
-		container.addChildAt(obj, 0);
-		// const scale = sprite.height / meta.height;
+		// add the shadow
+		const shadow = await animator.getSprite('crowd', 'shadow');
+		container.addChildAt(shadow, 0);
+
+		// position the shadow at the bottom
+		shadow.pivot.y = shadow.height * 0.75;
+		shadow.pivot.x = shadow.width * 0.5;
+		shadow.y = legs.y + legs.height;
+		shadow.x = legs.x;
+		shadow.scale.x = shadow.scale.y = (legs.width / shadow.width) * 2;
+
+		// scale
+		container.scale.x = CROWD_DEFAULT_SCALE;
+		container.scale.x *= (0.9 + (0.2 * Math.random()));
+		container.scale.y = container.scale.x;
 		
-		// pivot from the correct joint positions
-		obj.pivot.x = sprite.width * 0.5;
-		obj.pivot.y = sprite.height * meta.pivot;
-
-		// inverted obj
-		if (meta.flipX) {
-			obj.scale.x *= -1;
-		}
-
-		// key animation data
-		const { isFlipped, frames } = animation[layer.sprite];
-
-		// set the starting position
-		if (frames) {
-
-			// set starting position
-			const [ origin ] = frames;
-			obj.rotation = origin.rotation;
-			obj.x = origin.x;
-			obj.y = origin.y;
-
-			// check if flipping
-			if (isFlipped)
-				obj.scale.x *= -1;
-
-			// create the animator - must have at least
-			// two frames of animation
-			if (frames?.length > 1)
-				keyframes({
-					loop: Infinity,
-					ease: easing.linear,
-					duration,
-					elapsed,
-					values: frames
-				})
-				.start({
-					update: createUpdater(obj, 1)
-				});
-
-		}
+		// assign the main container positions
+		// Object.assign(container, data.props);
+		return { displayObject: container, update: noop };
 
 	}
-
-	// add the shadow
-	const shadow = await animator.getSprite('crowd', 'shadow');
-	container.addChildAt(shadow, 0);
-
-	// position the shadow at the bottom
-	shadow.pivot.y = shadow.height * 0.75;
-	shadow.pivot.x = shadow.width * 0.5;
-	shadow.y = legs.y + legs.height;
-	shadow.x = legs.x;
-	shadow.scale.x = shadow.scale.y = (legs.width / shadow.width) * 2;
-
-	// scale
-	container.scale.x = CROWD_DEFAULT_SCALE;
-	container.scale.x *= (0.9 + (0.2 * Math.random()));
-	container.scale.y = container.scale.x;
-	
-	// assign the main container positions
-	// Object.assign(container, data.props);
-	return { displayObject: container, update: noop }
+	catch (ex) {
+		return { displayObject: new PIXI.Container(), update: noop };
+	}
 
 }
 

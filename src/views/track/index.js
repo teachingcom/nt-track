@@ -27,6 +27,9 @@ export default class TrackView extends BaseView {
 	// racers that are done
 	finishedPlayers = [ ]
 
+	// sound effects being used
+	sfx = { }
+
 	// tracking track display state
 	state = {
 		speed: 0,
@@ -70,7 +73,7 @@ export default class TrackView extends BaseView {
 
 	/** adds a new car to the track */
 	addPlayer = async (data, isInstant) => {
-		const { state, stage } = this;
+		const { state, stage, sfx } = this;
 
 		// increase the expected players
 		state.totalPlayers++;
@@ -90,7 +93,15 @@ export default class TrackView extends BaseView {
 			if (data.car) {
 				const { enterSound } = data.car;
 				const entry = audio.create('sfx', 'common', `entry_${enterSound}`);
-				if (entry) entry.play();
+				
+				// start the entry sound
+				if (entry) {
+					entry.loop(true);
+					entry.play();
+
+					// save this for layer
+					sfx.entry = entry;
+				}
 			}
 		}
 		
@@ -181,18 +192,21 @@ export default class TrackView extends BaseView {
 
 	/** starts the game countdown */
 	startCountdown = () => {
+		
+		// stop the entry sound effect
+		const { sfx } = this;
+		if (sfx.entry) {
+			setTimeout(() => sfx.entry.fade(1, 0, 2000), 1500);
+		}
+
+		// play the countdown
 		const mark = audio.create('sfx', 'common', 'countdown_mark');
+		setTimeout(mark.play, 2000);
+		
 		const set = audio.create('sfx', 'common', 'countdown_set');
+		setTimeout(set.play, 3000);
+		
 		const go = audio.create('sfx', 'common', 'countdown_go');
-
-		setTimeout(() => {
-			mark.play();
-		}, 2000);
-
-		setTimeout(() => {
-			set.play();
-		}, 3000);
-
 		setTimeout(() => {
 			go.play();
 			this.emit('start');

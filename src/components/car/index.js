@@ -93,6 +93,14 @@ export default class Car extends PIXI.Container {
 
 	// creates a car when the resource is missing
 	_createMissingCar = async () => {
+		
+		// prevent accidental recursive calls
+		// TODO: if this fails at loading the missing car
+		// then potentially use the canvas to draw something
+		if (this._isUsingMissingCar) return;
+		this._isUsingMissingCar = true;
+
+		// create the missing car instance
 		this.options.hue = 0 | Math.random() * 360;
 		return this._createEnhancedCar('/cars/missing');
 	}

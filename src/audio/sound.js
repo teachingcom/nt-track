@@ -62,43 +62,43 @@ export class Sound {
 	// }
 
 	/** set the volume */
-	volume(level) {
+	volume = (level) => {
 		const { id } = this;
 		this.source.volume(level, id);
 	}
 	
 	/** set the rate */
-	rate(playbackRate) {
+	rate = (playbackRate) => {
 		const { id } = this;
 		this.source.rate(playbackRate, id);
 	}
 	
 	/** set the rate */
-	loop(shouldLoop) {
+	loop = (shouldLoop) => {
 		const { id } = this;
 		this.source.loop(shouldLoop, id);
 	}
 	
 	/** set the rate */
-	fade(from, to, duration) {
+	fade = (from, to, duration) => {
 		const { id } = this;
 		this.source.fade(from, to, duration, id);
 	}
 	
 	/** stop the audio */
-	stop() {
+	stop = () => {
 		const { id } = this;
 		this.source.stop(id);
 	}
 	
 	/** pause the audio */
-	pause() {
+	pause = () => {
 		const { id } = this;
 		this.source.pause(id);
 	}
 	
 	/** play the audio */
-	play() {
+	play = () => {
 
 		// TODO: this might have different behaviors
 		// when it's music
@@ -110,7 +110,7 @@ export class Sound {
 	}
 	
 	/** pause the audio */
-	mute(shouldMute) {
+	mute = (shouldMute) => {
 		const { id } = this;
 		this.source.mute(shouldMute, id);
 	}
