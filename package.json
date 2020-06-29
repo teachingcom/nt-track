@@ -4,14 +4,16 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "yarn parcel watch --no-hmr --no-cache ./src/index.js"
+    "dev": "yarn parcel watch --no-hmr --no-cache ./src/index.js",
+    "build": "yarn parcel build --no-cache --no-source-maps ./src/index.js"
   },
   "author": "",
   "license": "ISC",
   "peerDependencies": {
     "pixi-particles": "^4.2.0",
     "pixi.js": "^5.2.3",
-    "popmotion": "^8.7.1"
+    "popmotion": "^8.7.1",
+    "nt-animator": "ssh://git@github.com/teachingcom/nt-animator"
   },
   "dependencies": {
     "clone-deep": "^4.0.1",

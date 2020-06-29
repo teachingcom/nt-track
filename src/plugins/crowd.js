@@ -113,7 +113,6 @@ const LAYERS = {
 export default async function createCrowd(animator, controller, path, layer, data) {
 	try {
 			
-
 		// setup animations so this doesn't have to be done
 		// multiple times
 		if (!ANIMATIONS) {
