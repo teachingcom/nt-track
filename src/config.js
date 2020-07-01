@@ -19,7 +19,7 @@ export const TRACK_STARTING_LINE_POSITION = 0.3;
 export const TRACK_NAMECARD_EDGE_PADDING = 10;
 
 // crowds
-export const CROWD_DEFAULT_SCALE = 0.3;
+export const CROWD_DEFAULT_SCALE = 0.4;
 
 // namecards
 export const NAMECARD_SCALE = 0.8;

@@ -24,3 +24,45 @@ export function first(...collection) {
 	// if nothing was found, just take the last one
 	return collection[collection.length - 1];
 }
+
+
+// simple filter function
+export function filter(collection, condition) {
+	const keep = [ ];
+	for (const index in collection) {
+		const item = collection[index];
+		if (condition(item, index))
+			keep.push(item);
+	}
+	return keep;
+}
+
+
+// takes a random item from an array
+export const sample = (collection) => {
+	return collection[Math.floor(Math.random() * collection.length)];
+}
+
+// returns a shuffled version of an array
+export function shuffle(collection) {
+	const shuffled = [ ];
+	for (let i = collection.length; i-- > 0;) {
+		const index = Math.floor(Math.random() * collection.length);
+		shuffled.push(collection.splice(index, 1));
+	}
+
+	return shuffled;
+}
+
+// makes a random selection from array, otherwise just
+// returns the value provided
+export function choose(source) {
+	return isArray(source) ? sample(source) : source;
+}
+
+/** Merges two functions into sequential calls */
+export function appendFunc(baseFunction, includedFunction) {
+	return includedFunction
+		? (...args) => { baseFunction(...args); includedFunction(...args); }
+		: baseFunction;
+}

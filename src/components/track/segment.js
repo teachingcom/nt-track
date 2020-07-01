@@ -4,13 +4,14 @@ import { getBoundsForRole } from 'nt-animator';
 
 export default class Segment {
 
-	constructor(comp) {
+	constructor(composition) {
+		this.composition = composition;
 		const { top, bottom } = this;
 		
 		// sort check layers using their z-index to put them
 		// into their correct containers
-		for (let i = comp.children.length; i-- > 0;) {
-			const child = comp.children[i];
+		for (let i = composition.children.length; i-- > 0;) {
+			const child = composition.children[i];
 			const target = child.zIndex > 0 ? top : bottom;
 			target.addChildAt(child, 0);
 		}
@@ -77,6 +78,7 @@ export default class Segment {
 	dispose() {
 		this.top.parent.removeChildAt(this.top.parent.getChildIndex(this.top));
 		this.bottom.parent.removeChildAt(this.bottom.parent.getChildIndex(this.bottom));
+		this.composition.dispose();
 	}
 
 }

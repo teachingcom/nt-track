@@ -140,7 +140,7 @@ export default class Track {
 		}
 
 		// set the default positions for each tile
-		this._resetTrackSegements();
+		this._resetTrackSegments();
 	}
 
 	// creates the finish block
@@ -242,7 +242,7 @@ export default class Track {
 		this.removeStartingLine();
 
 		// reset all
-		this._resetTrackSegements();
+		this._resetTrackSegments();
 
 		// add the overlay section
 		overlay.addChild(finishLine.top);
@@ -259,12 +259,14 @@ export default class Track {
 	removeStartingLine = () => {
 		const { startingLine } = this;
 		if (!startingLine) return;
+
+		// clean up
 		startingLine.dispose();
 		this.startingLine = undefined;
 	}
 
 	// reset the starting positions for the repeating tiles
-	_resetTrackSegements = () => {
+	_resetTrackSegments = () => {
 		const { segments } = this;
 
 		// return to original positions
