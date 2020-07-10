@@ -7,8 +7,8 @@
     "dev": "yarn parcel watch --no-hmr --no-cache ./src/index.js",
     "build": "yarn parcel build --no-cache --no-source-maps ./src/index.js"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Teaching.com",
+  "license": "GNU GPLv3",
   "peerDependencies": {
     "pixi-particles": "^4.2.0",
     "pixi.js": "^5.2.3",

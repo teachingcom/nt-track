@@ -5,7 +5,7 @@ import * as audio from '../../audio';
 
 // sizing, layers, positions
 import * as scaling from './scaling';
-import { TRACK_NAMECARD_EDGE_PADDING, TRACK_MAXIMUM_SPEED, TRACK_ACCELERATION_RATE, CAR_DEFAULT_SHAKE_LEVEL, INPUT_ERROR_SOUND_TIME_LIMIT } from '../../config';
+import { TRACK_NAMECARD_EDGE_PADDING, TRACK_MAXIMUM_SPEED, TRACK_ACCELERATION_RATE, CAR_DEFAULT_SHAKE_LEVEL, INPUT_ERROR_SOUND_TIME_LIMIT, ANIMATION_RATE_WHILE_IDLE, ANIMATION_RATE_WHILE_RACING } from '../../config';
 import { LAYER_NAMECARD, LAYER_TRACK_GROUND, LAYER_TRACK_OVERLAY } from './layers';
 
 import { BaseView } from '../base';
@@ -19,6 +19,7 @@ export default class TrackView extends BaseView {
 
 	// global effect filter
 	filter = new PIXI.filters.ColorMatrixFilter()
+	frame = 0
 
 	// tracking players and their namecards
 	players = [ ]
@@ -40,7 +41,13 @@ export default class TrackView extends BaseView {
 
 	// handle remaining setup
 	init(options) {
-		options = merge({ scale: { height: scaling.BASE_HEIGHT }}, options);
+		options = merge({
+			animationRateWhenRacing: ANIMATION_RATE_WHILE_RACING,
+			animationRateWhenIdle: ANIMATION_RATE_WHILE_IDLE,
+			scale: { height: scaling.BASE_HEIGHT }
+		}, options);
+
+		// base class init
 		super.init(options);
 
 		// set default audio state
@@ -53,6 +60,7 @@ export default class TrackView extends BaseView {
 		// tracking race position progress
 		this.progress = options.manifest.progress;
 		this.pendingPlayers = options.expectedPlayerCount;
+		this.animationRate = options.animationRateWhenIdle;
 
 		// attach the effects filter
 		this.stage.filters = [ this.filter ];
@@ -135,9 +143,14 @@ export default class TrackView extends BaseView {
 		stage.sortChildren();
 	}
 
+	// manually changes the scroll value
+	setScroll = position => {
+		this.track.setTrackPosition(position);
+	}
+
 	/** assigns the current track */
 	setTrack = async options => {
-		const { stage } = this;
+		const { stage, animator } = this;
 		const trackOptions = merge({ view: this }, options);
 		const track = this.track = await Track.create(trackOptions);
 
@@ -257,12 +270,14 @@ export default class TrackView extends BaseView {
 
 	// begins the race
 	startRace = () => {
+		const { options } = this;
 		this.state.accelerate = true;
+		this.animationRate = options.animationRateWhenRacing;
 	}
 
 	/** activates the finished race state */
 	finishRace = player => {
-		const { track, state, players, activePlayerId, finishedPlayers } = this;
+		const { track, state, players, activePlayerId, finishedPlayers, options } = this;
 
 		// save the finish
 		const place = finishedPlayers.length;
@@ -275,12 +290,11 @@ export default class TrackView extends BaseView {
 		}
 
 		// nothing to do if an existing player
-		if (player.id !== activePlayerId) {
-			return;
-		}
+		if (player.id !== activePlayerId) return;
 
 		// switch to the finishline view
 		track.showFinishLine();
+		this.animationRate = options.animationRateWhenIdle;
 		
 		// stop the track
 		state.accelerate = false;
@@ -311,7 +325,11 @@ export default class TrackView extends BaseView {
 
 	// handle rendering the track in the requested state
 	render = () => {
-		const { state } = this;
+
+		// increment the frame counter
+		this.frame++;
+
+		const { state, frame, animationRate } = this;
 		const { isFinished } = state;
 
 		// if the race is active, update the game
@@ -337,8 +355,10 @@ export default class TrackView extends BaseView {
 			this.track.update(state);
 		}
 
-		
-		// redraw
+		// if throttling
+		if (frame % animationRate !== 0) return;
+
+		// redraw		
 		super.render();
 	}
 

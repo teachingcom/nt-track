@@ -2,6 +2,7 @@ import { BaseView } from "./base";
 import { PIXI as AnimatorPIXI } from 'nt-animator';
 import { merge, isArray } from "../utils";
 import Player from "./track/player";
+import * as audio from '../audio';
 
 // baseline height value for responsive scaling
 const PREFERRED_HEIGHT = 800;
@@ -16,6 +17,10 @@ export default class ComposerView extends BaseView {
 			includeShadows: true
 		});
 
+		// check for sound
+		if (options.silent)
+			audio.configureSFX({ enabled: false });
+
 		super.init(options);
 	}
 
@@ -29,7 +34,15 @@ export default class ComposerView extends BaseView {
 		view.relativeY = 0.5;
 		stage.addChild(view);
 
-		const [ car ] = data.cars;
+		// ensure there's a car
+		let [ car ] = data.cars;
+		if (!car) {
+			car = { hue: 0, type: 'missing', mods: { } };
+			attachMod(data.nitros, car.mods);
+			attachMod(data.trails, car.mods);
+		};
+
+		// create the player
 		const options = merge({ view: this, baseHeight: PREFERRED_HEIGHT * 0.5 }, car);
 		const player = await Player.create(options);
 		stage.addChild(player);
@@ -55,8 +68,19 @@ export default class ComposerView extends BaseView {
 	
 }
 
-// adds a component to the view
-async function addComponent(view, baseHeight, Component, options) {
-	options = merge({ view, baseHeight }, options);
-	return await Component.create(options);
+// creates a mod from a path
+function attachMod(source, mods) {
+	const [ path ] = source;
+	if (!path) return;
+
+	// get the parts
+	const [key, value] = path.split(/\//);
+	mods[key.substr(0, key.length - 1)] = value;
 }
+
+// // adds a component to the view
+// async function addComponent(view, baseHeight, Component, options) {
+// 	options = merge({ view, baseHeight }, options);
+// 	return await Component.create(options);
+// }
+

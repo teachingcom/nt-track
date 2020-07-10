@@ -22,6 +22,9 @@ export default class Segment {
 		const scale = this.scale = (BASE_HEIGHT * TRACK_HEIGHT) / bounds.height;
 		top.scale.x = top.scale.y = bottom.scale.x = bottom.scale.y = scale;
 
+		// alignment takes place on the left edges
+		top.pivot.x = bottom.pivot.x = bounds.left;
+
 		// sort by z-index
 		top.sortChildren();
 		bottom.sortChildren();
@@ -38,8 +41,8 @@ export default class Segment {
 	top = new PIXI.Container();
 	bottom = new PIXI.Container();
 
-	getBounds() {
-		return getBoundsForRole(this.bottom, 'base');
+	getBounds(asGlobal) {
+		return getBoundsForRole(this.bottom, 'base', asGlobal);
 	}
 
 	setX(value) {

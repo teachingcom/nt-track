@@ -1,13 +1,13 @@
-// import * as PIXI from 'pixi.js';
-// PIXI.settings.ROUND_PIXELS = true;
-// PIXI.settings.ANISOTROPIC_LEVEL = 16;
-// PIXI.settings.TARGET_FPMS = 0.001;
 
 // a rotation to apply to all legacy cars
 export const STATIC_CAR_ROTATION_FIX =  Math.PI;
 
+// animation speeds
+export const ANIMATION_RATE_WHILE_RACING = 2;
+export const ANIMATION_RATE_WHILE_IDLE = 1;
+
 // tracks
-export const TRACK_MAXIMUM_SCROLL_SPEED = 60;
+export const TRACK_MAXIMUM_SCROLL_SPEED = 50;
 export const TRACK_MAXIMUM_SPEED = 0.66;
 export const TRACK_ACCELERATION_RATE = 0.01;
 export const TRACK_TOP_SCALE = 0.125;

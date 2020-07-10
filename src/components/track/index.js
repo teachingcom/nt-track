@@ -1,8 +1,8 @@
 import * as PIXI from 'pixi.js';
-import { PIXI as AnimatorPIXI } from 'nt-animator';
+import { PIXI as AnimatorPIXI, getBoundsForRole } from 'nt-animator';
 import Random from '../../rng';
 import { TRACK_HEIGHT, TRACK_TOP } from '../../views/track/scaling';
-import { TRACK_MAXIMUM_SCROLL_SPEED } from '../../config';
+import { TRACK_MAXIMUM_SCROLL_SPEED, TRACK_STARTING_LINE_POSITION } from '../../config';
 import { isArray, isNumber, noop } from '../../utils';
 import Segment from './segment';
 import createCrowd from '../../plugins/crowd';
@@ -54,6 +54,9 @@ export default class Track {
 		instance.ready = true;
 		return instance;
 	}
+
+	// track scrolling position
+	trackPosition = 0
 
 	// tracking named layers
 	layers = { }
@@ -162,11 +165,15 @@ export default class Track {
 		overlay.addChild(segment.top);
 		ground.addChild(segment.bottom);
 
+		// TODO: calculate this value
+		this._cycleTrack(-1500);
+		
 		// fit the starting block to the middle of the screen
 		this._fitBlockToTrackPosition(segment, 0);
 
-		// TODO: calculate this value
-		this._cycleTrack(-200)
+		// distance to move back
+		const shiftBy = (view.width / 2) - (view.width * TRACK_STARTING_LINE_POSITION);
+		this._cycleToSegmentLine(segment, shiftBy);
 	}
 
 	// creates the finlish line
@@ -236,7 +243,6 @@ export default class Track {
 	/** activates the finish line view */
 	showFinishLine = () => {
 		const { finishLine, overlay, ground, view } = this;
-		const { width } = view;
 		
 		// just in case (in testing)
 		this.removeStartingLine();
@@ -249,10 +255,11 @@ export default class Track {
 		ground.addChild(finishLine.bottom);
 		finishLine.visible = true;
 
-		// shift backwards
-		const bounds = finishLine.getBounds();
-		const distance = (width - bounds.width) * -0.5
-		this._cycleTrack(distance);
+		// fit the starting block to the middle of the screen
+		this._fitBlockToTrackPosition(finishLine, 0);
+
+		// shift to the start of the area
+		this._cycleToSegmentLine(null, view.width * 0.5);
 	}
 
 	/** removes the starting line block */
@@ -263,6 +270,27 @@ export default class Track {
 		// clean up
 		startingLine.dispose();
 		this.startingLine = undefined;
+	}
+
+	// cycles the track to align the segments "line" role to a
+	// preferred position
+	_cycleToSegmentLine = (segment, distance) => {
+		const { view } = this;
+		
+		// HACKY: this needs to determine the distance of the segment left
+		// edge in relationship to a preferred percentage of the screen width
+		// so it requires calculating against the scaled value of the stage
+		// consider a better approach
+		let shift = distance / view.view.scaleX;
+
+		// also align to the line
+		if (segment) {
+			const line = getBoundsForRole(segment.bottom, 'line');
+			if (line) shift += line.left;
+		}
+
+		// cycle to align to the preferred position
+		this._cycleTrack(-shift);
 	}
 
 	// reset the starting positions for the repeating tiles
@@ -300,9 +328,18 @@ export default class Track {
 		}
 	}
 
+	// assigns the track scroll value
+	// used in development
+	setTrackPosition(value) {
+		const diff = value - this.trackPosition;
+		this._cycleTrack(diff);
+	}
+
 	// changes the location of the repeating track
 	_cycleTrack(diff) {
 		const { segments, startingLine, finishLine } = this;
+
+		this.trackPosition += diff;
 
 		// keep track of segments that need
 		// to also be shifted
@@ -345,7 +382,7 @@ export default class Track {
 			startingLine.addX(diff);
 
 			// check if time to remove the starting line
-			if (startingLine.bottom.x < offscreen) {
+			if (startingLine.getBounds().right < offscreen) {
 				this.removeStartingLine();
 			}
 		}
@@ -359,60 +396,56 @@ export default class Track {
 
 	// tries to fit a block into the view
 	_fitBlockToTrackPosition(block, position) {
+		const { segments } = this;
 
 		// TODO: if the road is a defined sequence, then we should
 		// move all rows so they're sorted by their sequence again
 		// this can probably be done by sorting positions first and
 		// then copying the final values and setting again
 
-		const { segments } = this;
-		const total = segments.length;
-		const fit = block.getBounds();
+		// make sure to sort before starting since it's
+		// possible for the array to not match the
+		// visual sequence
+		segments.sort(byRightEdge);
+		
+		// get the inserted block into place
+		const { width } = block.getBounds();
+		block.setX(0);
 
-		// start searching for the "split" of the treadmill (the position to insert at)
+		// start checking each segment
+		const { length: total } = segments;
 		for (let i = 0; i < total; i++) {
 			const segment = segments[i];
-			const bounds = segment.getBounds();
 
-			// found the "split" location
-			if (bounds.left > position) {
+			// if this is past the insertion point, then
+			// it's time to divide the segments
+			const edge = getRightEdge(segment);
+			if (edge > position) {
 
-				// shift the prior layer backwards
-				let shiftBack;
-				for (let j = i; j-- > 0;) {
-					const target = segments[j];
+				// calculate the amount to move by
+				const shiftBy = position - edge;
 
-					// if not set, figure out the amount to shift the layer by
-					if (isNaN(shiftBack)) {
-						const bounds = target.getBounds();
-						shiftBack = (bounds.right - position) + (position - fit.left);
-					}
-
-					// move backwards
-					target.addX(-shiftBack);
-				}
-
-				// shift later layers forward
-				let shiftForward;
-				for (let j = i; j < total; j++) {
-					const target = segments[j];
-
-					// if not set, figure out the amount to shift the layer by
-					if (isNaN(shiftForward)) {
-						const bounds = target.getBounds();
-						shiftForward = (position - bounds.left) + (fit.right - position);
-					}
-
-					// move backwards
-					target.addX(shiftForward);
+				// nudge left layers back
+				for (let j = (i + 1); j--> 0;) {
+					segments[j].addX(shiftBy);
 				}
 				
-				// no need to continue searching
-				break;
+				// for remaining segments, move them to the right
+				for (let j = (i + 1); j < total; j++) {
+					segments[j].addX(shiftBy);
+					segments[j].addX(width);
+				}
+
+				// all finished
+				return;
 			}
-		
+
 		}
 
 	}
 
 }
+
+// helpers
+const getRightEdge = t => t.bottom.x + t.bounds.width;
+const byRightEdge = (a, b) => getRightEdge(a) - getRightEdge(b);
