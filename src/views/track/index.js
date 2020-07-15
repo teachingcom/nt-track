@@ -5,7 +5,7 @@ import * as audio from '../../audio';
 
 // sizing, layers, positions
 import * as scaling from './scaling';
-import { TRACK_NAMECARD_EDGE_PADDING, TRACK_MAXIMUM_SPEED, TRACK_ACCELERATION_RATE, CAR_DEFAULT_SHAKE_LEVEL, INPUT_ERROR_SOUND_TIME_LIMIT, ANIMATION_RATE_WHILE_IDLE, ANIMATION_RATE_WHILE_RACING } from '../../config';
+import { TRACK_MAXIMUM_SPEED, TRACK_ACCELERATION_RATE, CAR_DEFAULT_SHAKE_LEVEL, INPUT_ERROR_SOUND_TIME_LIMIT, ANIMATION_RATE_WHILE_IDLE, ANIMATION_RATE_WHILE_RACING } from '../../config';
 import { LAYER_NAMECARD, LAYER_TRACK_GROUND, LAYER_TRACK_OVERLAY } from './layers';
 
 import { BaseView } from '../base';
@@ -91,6 +91,12 @@ export default class TrackView extends BaseView {
 		const player = await Player.create(playerOptions);
 		player.track = this;
 
+		// check for a plugin with special car rules
+		const { animator } = this;
+		const { car } = player;
+		if (car.plugin?.extend)
+			await car.plugin.extend({ animator, car, player, track: this });
+
 		// set the active player, if needed
 		const { isPlayer, id } = playerOptions;
 		if (isPlayer) {
@@ -98,18 +104,16 @@ export default class TrackView extends BaseView {
 
 			// since this is the player, activate their
 			// car entry sound effect
-			if (data.car) {
-				const { enterSound } = data.car;
-				const entry = audio.create('sfx', 'common', `entry_${enterSound}`);
-				
-				// start the entry sound
-				if (entry) {
-					entry.loop(true);
-					entry.play();
+			const { enterSound = 'sport' } = data.car || { };
+			const entry = audio.create('sfx', 'common', `entry_${enterSound}`);
+			
+			// start the entry sound
+			if (entry) {
+				entry.loop(false);
+				entry.play();
 
-					// save this for layer
-					sfx.entry = entry;
-				}
+				// save this for layer
+				sfx.entry = entry;
 			}
 		}
 		
@@ -128,7 +132,7 @@ export default class TrackView extends BaseView {
 			container.zIndex = LAYER_NAMECARD;
 			container.relativeY = player.relativeY;
 			container.relativeX = 0;
-			container.pivot.x = (namecard.width * -0.5) - TRACK_NAMECARD_EDGE_PADDING;
+			container.pivot.x = (namecard.width * -0.5);
 		}
 
 		// animate onto the track
@@ -281,6 +285,7 @@ export default class TrackView extends BaseView {
 
 		// save the finish
 		const place = finishedPlayers.length;
+		player.car.onFinishRace(place);
 		finishedPlayers.push(player);
 
 		// if currently playing the finish animation, add the player
@@ -329,31 +334,28 @@ export default class TrackView extends BaseView {
 		// increment the frame counter
 		this.frame++;
 
+		// gather some data
 		const { state, frame, animationRate } = this;
-		const { isFinished } = state;
+		const { shake, accelerate } = state;
 
-		// if the race is active, update the game
-		if (!isFinished) {
-
-			// calculate calues
-			const { speed, shake, accelerate } = state;
-			if (accelerate) {
-				state.speed = Math.min(TRACK_MAXIMUM_SPEED, speed + TRACK_ACCELERATION_RATE);
-			}
-			
-			// update the amount cars should shake
-			state.shake = Math.max(shake, speed);
-			
-			// update each player
-			for (const player of this.players) {
-				player.update(state);
-			}
-
-			// TODO: replace with new views
-			// this is temporary check until
-			// garage and preview modes are done
-			this.track.update(state);
+		// speeding up the view
+		state.speed = accelerate
+			? Math.min(TRACK_MAXIMUM_SPEED, state.speed + TRACK_ACCELERATION_RATE)
+			: 0;
+		
+		// update the amount cars should shake
+		const { speed } = state;
+		state.shake = Math.max(shake, speed);
+		
+		// update each player
+		for (const player of this.players) {
+			player.update(state);
 		}
+
+		// TODO: replace with new views
+		// this is temporary check until
+		// garage and preview modes are done
+		this.track.update(state);
 
 		// if throttling
 		if (frame % animationRate !== 0) return;

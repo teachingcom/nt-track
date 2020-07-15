@@ -32,22 +32,19 @@ export default class CarEntryAnimation {
 		// offscreen starting position
 		const namecardOrigin = {
 			namecardX: namecard?.x - namecard?.width,
-			namecardAlpha: 0,
-			namecardSkewX: 1
+			namecardAlpha: 0
 		};
 		
 		// starting line position
 		const namecardDestination = {
 			namecardX: namecard?.x,
-			namecardAlpha: 1,
-			namecardSkewX: 0
+			namecardAlpha: 1
 		};
 
 		// update the player position
 		const updateNamecard = props => {
 			namecard.x = props.namecardX;
-			namecard.scale.y = props.namecardAlpha;
-			namecard.skew.x = props.namecardSkewX;
+			namecard.alpha = props.namecardAlpha;
 		};
 
 		// apply positions immediately
@@ -90,10 +87,6 @@ export default class CarEntryAnimation {
 						update: updateNamecard
 					})
 				});
-
-		// animate the namecard entry
-
-
 
 	}
 

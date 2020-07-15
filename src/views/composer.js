@@ -1,6 +1,6 @@
 import { BaseView } from "./base";
 import { PIXI as AnimatorPIXI } from 'nt-animator';
-import { merge, isArray } from "../utils";
+import { merge } from "../utils";
 import Player from "./track/player";
 import * as audio from '../audio';
 
@@ -18,8 +18,7 @@ export default class ComposerView extends BaseView {
 		});
 
 		// check for sound
-		if (options.silent)
-			audio.configureSFX({ enabled: false });
+		audio.configureSFX({ enabled: !!options.silent });
 
 		super.init(options);
 	}

@@ -3,7 +3,7 @@ import { PIXI as AnimatorPIXI } from 'nt-animator';
 import { tween, easing } from 'popmotion';
 
 import { LANES, SCALED_CAR_HEIGHT, SCALED_NAMECARD_HEIGHT } from './scaling';
-import { NITRO_SCALE, NITRO_OFFSET_Y, TRAIL_SCALE, TRACK_STARTING_LINE_POSITION } from '../../config';
+import { NITRO_SCALE, NITRO_OFFSET_Y, TRAIL_SCALE, TRACK_STARTING_LINE_POSITION, NAMECARD_TETHER_DISTANCE, TRACK_OFFSCREEN_CAR_FINISH, TRACK_NAMECARD_EDGE_PADDING } from '../../config';
 
 import Car from '../../components/car';
 import Trail from '../../components/trail';
@@ -136,7 +136,7 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
  
 	// handles assembling the player
 	async _assemble(car, trail, nitro, namecard) {
-		const { layers, scale } = this;
+		const { layers, track, scale } = this;
 
 		// include the car and it's shadow
 		layers.car = car;
@@ -180,6 +180,9 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 		// save the namecard
 		if (namecard) {
 			layers.namecard = namecard;
+
+			// edge
+			namecard.pivot.x = -TRACK_NAMECARD_EDGE_PADDING;
 		}
 
 		// finalize order
@@ -195,17 +198,26 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 
 	/** start the animation */
 	setProgress = percent => {
-		const { relativeX, state, track } = this;
+		const { relativeX, state, track, layers } = this;
+		const { namecard } = layers;
 		const { progress } = track;
 
-		// stop animating
-		this.stopProgressAnimation();
+		// save the completion
+		state.progress = percent;
 		
 		// animate the progress
 		let position = progress[Math.max(0, 0 | percent)];
+		const isFinished = position > 1 || isNaN(position);
 
 		// if finishing or exceeding the limit the race
-		if (isNaN(position)) position = 1.5;
+		if (isFinished) position = TRACK_OFFSCREEN_CAR_FINISH;
+
+		// has finished the ending animations
+		if (state.isOutro) return;
+		state.isOutro = isFinished;
+
+		// stop animating
+		this.stopProgressAnimation();
 
 		// calculate the scaled position
 		position = (TRACK_STARTING_LINE_POSITION + ((1 - TRACK_STARTING_LINE_POSITION) * position));
@@ -215,15 +227,26 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 		const duration = 1000 + (2000 * diff);
 
 		// perform the transition
+		const origin = relativeX - state.nitroBonusOffset; 
 		this._progress = tween({
 			duration,
 			ease: easing.linear,
-			from: { x: relativeX - state.nitroBonusOffset },
-			to: { x: position }
+			from: {
+				carX: origin,
+				namecardX: origin,
+			},
+			to: {
+				carX: position,
+				namecardX: position + (isFinished ? NAMECARD_TETHER_DISTANCE : 0),
+			}
 		})
 		.start({
 			update: props => {
-				this.relativeX = props.x + state.nitroBonusOffset
+				this.relativeX = props.carX + state.nitroBonusOffset;
+
+				// tether the namecard
+				const tether = track.width * NAMECARD_TETHER_DISTANCE;
+				namecard.x = Math.max(0, (track.width * props.namecardX) + this.car.positions.back - tether);
 			}
 		});
 
@@ -238,6 +261,7 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 		const nitroActive = isNitro || state.nitroBonus > 0 && state.nitroBonus < 2;
 
 		// update the car
+		car.onUpdate();
 		car.rattle(shake);
 
 		// update the nitro values

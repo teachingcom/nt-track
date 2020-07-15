@@ -6,12 +6,12 @@ import { createContext, getBoundsForRole } from 'nt-animator';
 
 // preferred font for namecards
 const DEFAULT_NAMECARD_FONT = 'montserrat';
-const PREFERRED_NAME_FONT_SIZE = 64;
+const PREFERRED_NAME_FONT_SIZE = 58;
 const PREFERRED_TEAM_FONT_SIZE = 48;
 
 // positioning for names
-const NAME_START = 0.52;
-const TEAM_MARGIN = 0.05;
+const NAME_START = 0.5;
+const TEAM_MARGIN = 0.025;
 const LEFT_MARGIN = 0.07;
 
 // handles rendering name cards once to prevent needing
@@ -62,7 +62,7 @@ export default class NameCard extends PIXI.Container {
 
 	// creates the namecard instance
 	async _initNameCard() {
-		const { path, view, options } = this;
+		const { path, view, options, config } = this;
 		const { baseHeight } = options;
 
 		// create the instance
@@ -70,6 +70,8 @@ export default class NameCard extends PIXI.Container {
 
 		// scale correctly
 		this.bounds = getBoundsForRole(namecard, 'base');
+		if (config.height) this.bounds.height = config.height;
+		if (config.width) this.bounds.width = config.width;
 		this.container.scale.x = this.container.scale.y = baseHeight / this.bounds.height;
 		
 		// add to the view
@@ -79,15 +81,22 @@ export default class NameCard extends PIXI.Container {
 	// create the text labels
 	_initText() {
 		const { config, options } = this;
+
+		// skip for special namecards
+		if (config.noText) return;
+		
 		const { text = { } } = config;
-		const { name = 'Guest Racer', team, color = 'white' } = options;
+		const { name = 'Guest Racer', team = 'Nitro' } = options;
+
+		// get the color to use
+		const color = toRGBA('color' in config ? config.color : 0xffffff, 1); 
 
 		// setup the name text
 		const nameConfig = createTextConfig(name, PREFERRED_NAME_FONT_SIZE, 'bottom', text.name, config.text);
 		if (isNaN(nameConfig.x) || isNaN(nameConfig.y)) {
 			nameConfig.x = this.bounds.width * LEFT_MARGIN;
 			nameConfig.y = this.bounds.height * NAME_START;
-			nameConfig.color = 'white';
+			nameConfig.color = color;
 		}
 		
 		// setup the team text
@@ -97,6 +106,9 @@ export default class NameCard extends PIXI.Container {
 			if (isNaN(teamConfig.x) || isNaN(teamConfig.y)) {
 				teamConfig.x = this.bounds.width * LEFT_MARGIN;
 				teamConfig.y = this.bounds.height * (NAME_START + TEAM_MARGIN);
+
+				// NOTE: can support team colors
+				// teamConfig.color = color;
 				teamConfig.color = color;
 			}
 		}
@@ -124,10 +136,14 @@ export default class NameCard extends PIXI.Container {
 				cardRenderer.ctx.shadowColor = null;
 			// render with a shadow
 			else {
+				const color = config.shadow?.color || config.shadow || 0x000000;
+				const alpha = config.shadow?.alpha || config.shadowAlpha || 0.7;
+				const distance = config.shadow?.distance || config.shadowDistance || 2;
+				const size = config.shadow?.size || config.shadowSize || 5;
 				cardRenderer.ctx.shadowOffsetX = 0;
-				cardRenderer.ctx.shadowOffsetY = 2;
-				cardRenderer.ctx.shadowBlur = 5;
-				cardRenderer.ctx.shadowColor = toRGBA(block.dropShadowColor, block.dropShadowAlpha);
+				cardRenderer.ctx.shadowOffsetY = distance;
+				cardRenderer.ctx.shadowBlur = size;
+				cardRenderer.ctx.shadowColor = toRGBA(color, alpha);
 			}
 
 			// render the text

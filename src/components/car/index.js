@@ -4,10 +4,13 @@
 
 import * as PIXI from 'pixi.js';
 import { findDisplayObjectsOfRole } from 'nt-animator';
-import { merge, isNumber } from '../../utils';
+import { merge, isNumber, noop } from '../../utils';
 
 import generateTextures from './texture-generator';
 import { createStaticCar } from './create-static-car';
+
+// get special car extensions
+import carPlugins from '../../plugins/cars';
 
 // layers and positions
 import { LAYER_CAR, LAYER_SHADOW, LAYER_NITRO_BLUR } from '../../views/track/layers';
@@ -21,7 +24,9 @@ import {
 	CAR_DEFAULT_FRONT_BACK_OFFSET_X,
 	NITRO_BLUR_DEFAULT_OFFSET_X,
 	CAR_SHAKE_NITRO_BONUS,
-	CAR_SHAKE_SHADOW_REDUCTION
+	CAR_SHAKE_SHADOW_REDUCTION,
+	CAR_404_STATIC_VERSION,
+	CAR_404_ENHANCED_VERSION
 } from '../../config';
 
 // animations
@@ -60,8 +65,7 @@ export default class Car extends PIXI.Container {
 	async _initCar() {
 		const { path, config, view, options } = this;
 		const { type, baseHeight } = options;
-		const { staticUrl } = view.options;
-
+		
 		// deciding textures to render
 		const includeNormalMap = view.options.includeNormalMaps;
 		const includeShadow = true; // view.options.includeShadows;
@@ -71,7 +75,7 @@ export default class Car extends PIXI.Container {
 		// imageSource: used to identify the actual image for a car
 		const { car, height, imageSource, bounds } = config
 			? await this._createEnhancedCar(path)
-			: await this._createStaticCar(type, staticUrl);
+			: await this._createStaticCar(type);
 			
 		// scale the car to match the preferred height, which is
 		// the height of the car relative to the base size of the
@@ -79,10 +83,21 @@ export default class Car extends PIXI.Container {
 		const scaleBy = car.scale.x = car.scale.y = baseHeight / height;
 		
 		// get positions to attach things
-		this.positions = this._establishPositions(bounds, scaleBy);
+		const positions = this._establishPositions(bounds, scaleBy);
 
-		// save the car instance
+		// shift everything to align to the front of the car
+		const front = positions.front;
+		this.pivot.x = front;
+		for (const id in positions) {
+			positions[id] -= front;
+		}
+
+		// save the car and positions
+		this.positions = positions;
 		this.car = car;
+
+		// append plugins, if any
+		this.plugin = carPlugins[type];
 
 		// load any textures
 		this._initTextures(imageSource, includeShadow, includeNormalMap);
@@ -102,11 +117,21 @@ export default class Car extends PIXI.Container {
 
 		// create the missing car instance
 		this.options.hue = 0 | Math.random() * 360;
-		return this._createEnhancedCar('/cars/missing');
+		
+		// TODO: if the missing car needs to be animated, then
+		// use the enhanced car loader
+		// return this._createEnhancedCar(CAR_404_ENHANCED_VERSION);
+		return this._createStaticCar(CAR_404_STATIC_VERSION);
 	}
 
+	// overrideable functions
+	onFinishRace = noop
+	onUpdate = noop
+
 	// creates a car from a static resource
-	_createStaticCar = async (type, staticUrl) => {
+	_createStaticCar = async type => {
+		const { view } = this;
+		const { staticUrl } = view.options;
 		const car = new PIXI.Container();
 			
 		// get the sprite to render
@@ -145,7 +170,7 @@ export default class Car extends PIXI.Container {
 
 	// creates a car that has enhanced effects
 	_createEnhancedCar = async path => {
-		const { view } = this;
+		const { view, config } = this;
 
 		// try and load a new car asset
 		let car;
@@ -167,18 +192,28 @@ export default class Car extends PIXI.Container {
 		// texture rendering step expects a single object or container
 		// it's possible to make that process accept multiple, but at
 		// the moment, it doesn't seem needed
+		let bounds;
 		const layers = findDisplayObjectsOfRole(car, 'base');
-		if (layers.length > 1) {
-			console.warn(`Cars should only have one 'base' role layer. Using first detected base`);
-		}
-		else if (layers.length === 0) {
-			console.warn(`Cars should at least one 'base' role layer. Using entire composition`);
-		}
 
+		// bounds were defined in advance - special scenarios
+		if (isNumber(config.height)) {
+			bounds = { height: config.height };
+		}
+		// detect the bounds
+		else {
+			if (layers.length > 1) {
+				console.warn(`Cars should only have one 'base' role layer. Using first detected base`);
+			}
+			else if (layers.length === 0) {
+				console.warn(`Cars should at least one 'base' role layer. Using entire composition`);
+			}
+
+		}
+		
 		// get the base to use -- without a base
 		// then just use the entire car
 		const base = layers[0] || car;
-		const bounds = base.getBounds();
+		bounds = bounds || base.getBounds();
 
 		// save the size and layer to use
 		const height = bounds.height;
@@ -232,6 +267,7 @@ export default class Car extends PIXI.Container {
 			
 			// match the car scale
 			shadow.scale.x = shadow.scale.y = scale;
+			shadow.x = -this.pivot.x;
 		}
 
 		// nitro blurs should be put into another container
@@ -285,8 +321,7 @@ export default class Car extends PIXI.Container {
 
 	/** attaches a car to a container */
 	attachTo(view) {
-		const { scale } = view;
-		const { car, shadow, positions, nitroBlur } = this;
+		const { shadow, positions, nitroBlur } = this;
 		
 		// include the car
 		view.addChild(this);
