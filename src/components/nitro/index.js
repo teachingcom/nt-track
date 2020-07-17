@@ -54,15 +54,30 @@ export default class Nitro extends AnimatorPIXI.DetatchedContainer {
 
 	// loads the sound for this car
 	async _initSound() {
-		const { options } = this;
+		const { options, config } = this;
+		const { sfx } = config;
 		const { type } = options;
 
-		// load the sound, if any
-		const key = `nitros/${type}`;
-		await audio.register(key);
+		// if this uses a standard library sound
+		let sound;
+		if (sfx) {
+			sound = audio.create('sfx', 'common', sfx)
+		}
+		// use sound name convention
+		else {
+			// load the sound, if any
+			const key = `nitros/${type}`;
+			await audio.register(key);
+	
+			// save the sound effect
+			sound = audio.create('sfx', key);
+		}
 
-		// save the sound effect
-		const sound = this.sound = audio.create('sfx', key);
+		// no sound was found?
+		if (!sound) return;
+	
+		// prepare the sound
+		this.sound = sound;
 		sound.volume(1);
 		sound.loop(false);
 	}
@@ -80,7 +95,11 @@ export default class Nitro extends AnimatorPIXI.DetatchedContainer {
 	/** activates the sound for this */
 	activate = () => {
 		const { sound, instance } = this;
-		sound.play();
+
+		// check for a sound to play
+		if (sound) {
+			sound.play();
+		}
 
 		// show particle emitters
 		instance.controller.activateEmitters();

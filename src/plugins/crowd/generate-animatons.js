@@ -1,4 +1,5 @@
 import CrowdAnimator from './crowd-animator';
+import { CROWD_ANIMATION_VARIATIONS } from '../../config';
 
 // This file converts animations into an easier to use
 // data format for the game. This entire process should be removed
@@ -81,13 +82,16 @@ export default function generateAnimationFrames({ animations, layers }) {
 
 		// calculate the animation time
 		const [start, end] = animations[type];
-		const time = (end - start) * 100;
+		const time = (end - start) * 70;
 
 		// create three animators at varying times
-		for (let i = -1; i < 1; i++) {
-			const duration = time + (time * (i * 0.5));
+		// for (let i = -1; i < 1; i++) {
+		for (let i = 0; i < CROWD_ANIMATION_VARIATIONS; i++) {
+			const scale = i / CROWD_ANIMATION_VARIATIONS;
+			const duration = time + (time * scale);
 			const animator = new CrowdAnimator(data, type, duration);
 			animators.push(animator);
+
 		}
 	}
 

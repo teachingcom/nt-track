@@ -2,12 +2,12 @@
 import * as PIXI from 'pixi.js';
 import { first, merge } from '../../utils';
 import { toRGBA } from '../../utils/color';
-import { createContext, getBoundsForRole } from 'nt-animator';
+import { createContext, getBoundsForRole, findDisplayObjectsOfRole } from 'nt-animator';
 
 // preferred font for namecards
 const DEFAULT_NAMECARD_FONT = 'montserrat';
-const PREFERRED_NAME_FONT_SIZE = 58;
-const PREFERRED_TEAM_FONT_SIZE = 48;
+const PREFERRED_NAME_FONT_SIZE = 52;
+const PREFERRED_TEAM_FONT_SIZE = 42;
 
 // positioning for names
 const NAME_START = 0.5;
@@ -29,6 +29,7 @@ export default class NameCard extends PIXI.Container {
 		const { type, view } = options;
 		
 		// try and load
+		const isDefault = /default/.test(type);
 		let path = `namecards/${type}`;
 		let config = view.animator.lookup(path);
 
@@ -54,6 +55,15 @@ export default class NameCard extends PIXI.Container {
 		// initialize all namecard parts
 		await instance._initNameCard();
 		instance._initText();
+
+		// find the background
+		// if (isDefault) {
+		// 	const sprite = findDisplayObjectsOfRole(instance.container, 'base');
+		// 	if (sprite && sprite.children[0]) {
+		// 		sprite.children[0].tint = 0 | (Math.random() * 0xffffff);
+		// 	}
+		// }
+
 
 		// return the created namecard
 		return instance;

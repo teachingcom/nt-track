@@ -118171,6 +118171,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 var IMAGE_RESOURCE_TIMEOUT = 3000; // resources that are currently loading
 
 var pending = {};
+var images = {};
 /** handles loading an external image url 
  * @param {string} url The url of the image to load
 */
@@ -118185,25 +118186,42 @@ function _loadImage() {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            if (!pending[url]) {
+            if (!(url in images)) {
               _context.next = 2;
               break;
             }
 
-            return _context.abrupt("return", new Promise(function (resolve, reject) {
-              pending[url].push([resolve, reject]);
-            }));
+            return _context.abrupt("return", images[url]);
 
           case 2:
+            if (!pending[url]) {
+              _context.next = 4;
+              break;
+            }
+
             return _context.abrupt("return", new Promise(function (resolve, reject) {
-              // if no active queue is available, start it now
-              pending[url] = [[resolve, reject]]; // create resolution actions
+              pending[url].push({
+                resolve: resolve,
+                reject: reject
+              });
+            }));
+
+          case 4:
+            return _context.abrupt("return", new Promise(function (resolve, reject) {
+              var img = document.createElement('img'); // if no active queue is available, start it now
+
+              pending[url] = [{
+                resolve: resolve,
+                reject: reject
+              }]; // create resolution actions
 
               var timeout = setTimeout(reject, IMAGE_RESOURCE_TIMEOUT);
 
-              var handle = function handle(action) {
+              var handle = function handle(success) {
                 return function () {
-                  // kick off each handler
+                  // all finished, resolve the result
+                  images[url] = img; // execute all waiting requests
+
                   try {
                     var _iterator = _createForOfIteratorHelper(pending[url]),
                         _step;
@@ -118211,7 +118229,8 @@ function _loadImage() {
                     try {
                       for (_iterator.s(); !(_step = _iterator.n()).done;) {
                         var handler = _step.value;
-                        handler[action](img);
+                        var action = handler[success ? 'resolve' : 'reject'];
+                        action(img);
                       }
                     } catch (err) {
                       _iterator.e(err);
@@ -118227,13 +118246,12 @@ function _loadImage() {
               }; // make the exernal image request
 
 
-              var img = document.createElement('img');
-              img.onload = handle(0);
-              img.onerror = handle(1);
+              img.onload = handle(true);
+              img.onerror = handle(false);
               img.src = url;
             }));
 
-          case 3:
+          case 5:
           case "end":
             return _context.stop();
         }
@@ -121802,7 +121820,8 @@ function _createEmitter() {
             phase = 'creating animation';
             (0, _animation.default)(animator, path, composition, layer, generator); // include this instance
 
-            controller.register(generator); // attach the update function
+            controller.register(generator);
+            console.log(generator, controller, layer); // attach the update function
 
             return _context.abrupt("return", [{
               displayObject: container,
@@ -121811,18 +121830,18 @@ function _createEmitter() {
               dispose: dispose
             }]);
 
-          case 74:
-            _context.prev = 74;
+          case 75:
+            _context.prev = 75;
             _context.t3 = _context["catch"](7);
             console.error("Failed to create emitter ".concat(path, " while ").concat(phase));
             throw _context.t3;
 
-          case 78:
+          case 79:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[7, 74], [15, 19]]);
+    }, _callee, null, [[7, 75], [15, 19]]);
   }));
   return _createEmitter.apply(this, arguments);
 }
@@ -126969,7 +126988,13 @@ function _register() {
         switch (_context.prev = _context.next) {
           case 0:
             return _context.abrupt("return", new Promise(function (resolve, reject) {
-              // handle finalizing the sound
+              // handle sound loading errors
+              var onFailed = function onFailed() {
+                console.error("Failed to load sound: ".concat(key));
+                reject(new MissingSoundException());
+              }; // handle finalizing the sound
+
+
               var onLoaded = function onLoaded() {
                 AUDIO[key] = sound;
                 resolve();
@@ -126983,7 +127008,7 @@ function _register() {
                 format: ['mp3'],
                 preload: true,
                 autoplay: false,
-                onloaderror: reject,
+                onloaderror: onFailed,
                 onload: onLoaded
               });
             }));
@@ -127015,14 +127040,17 @@ function create(type, key, sprite) {
 
   if (instance.isMusic) MUSIC.push(instance);else SFX.push(instance);
   return instance;
-}
+} // exceptions
+
+
+function MissingSoundException() {}
 },{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","howler":"../node_modules/howler/dist/howler.js","./sound":"audio/sound.js"}],"config.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.INPUT_ERROR_SOUND_TIME_LIMIT = exports.NITRO_BLUR_REALTIVE_SIZE_SCALING = exports.NITRO_BLUR_DEFAULT_OFFSET_X = exports.NITRO_BLUR_OFFSET_Y = exports.NITRO_ACTIVATED_TRAIL_OPACITY = exports.NITRO_OFFSET_Y = exports.NITRO_OFFSET_X = exports.NITRO_SCALE = exports.TRAIL_SCALE = exports.CAR_404_ENHANCED_VERSION = exports.CAR_404_STATIC_VERSION = exports.CAR_SHAKE_SHADOW_REDUCTION = exports.CAR_SHAKE_NITRO_BONUS = exports.CAR_SHAKE_DISTANCE = exports.CAR_DEFAULT_FRONT_BACK_OFFSET_X = exports.CAR_BODY_OFFSET_Y = exports.CAR_SHADOW_OFFSET_Y = exports.CAR_SHADOW_OPACITY = exports.CAR_SHADOW_PADDING = exports.CAR_SHADOW_BLUR = exports.CAR_DEFAULT_SHAKE_LEVEL = exports.NAMECARD_TETHER_DISTANCE = exports.NAMECARD_SCALE = exports.CROWD_DEFAULT_SCALE = exports.TRACK_OFFSCREEN_CAR_FINISH = exports.TRACK_NAMECARD_EDGE_PADDING = exports.TRACK_STARTING_LINE_POSITION = exports.TRACK_CAR_LANE_CENTER_OFFSET = exports.TRACK_CAR_SIZE_RELATIVE_TO_LANE = exports.TRACK_SHOULDER_SCALE = exports.TRACK_BOTTOM_SCALE = exports.TRACK_TOP_SCALE = exports.TRACK_ACCELERATION_RATE = exports.TRACK_MAXIMUM_SPEED = exports.TRACK_MAXIMUM_SCROLL_SPEED = exports.ANIMATION_RATE_WHILE_IDLE = exports.ANIMATION_RATE_WHILE_RACING = exports.STATIC_CAR_ROTATION_FIX = void 0;
+exports.INPUT_ERROR_SOUND_TIME_LIMIT = exports.NITRO_BLUR_REALTIVE_SIZE_SCALING = exports.NITRO_BLUR_DEFAULT_OFFSET_X = exports.NITRO_BLUR_OFFSET_Y = exports.NITRO_ACTIVATED_TRAIL_OPACITY = exports.NITRO_OFFSET_Y = exports.NITRO_OFFSET_X = exports.NITRO_SCALE = exports.TRAIL_SCALE = exports.CAR_404_ENHANCED_VERSION = exports.CAR_404_STATIC_VERSION = exports.CAR_SHAKE_SHADOW_REDUCTION = exports.CAR_SHAKE_NITRO_BONUS = exports.CAR_SHAKE_DISTANCE = exports.CAR_DEFAULT_FRONT_BACK_OFFSET_X = exports.CAR_BODY_OFFSET_Y = exports.CAR_SHADOW_OFFSET_Y = exports.CAR_SHADOW_OPACITY = exports.CAR_SHADOW_PADDING = exports.CAR_SHADOW_BLUR = exports.CAR_DEFAULT_SHAKE_LEVEL = exports.NAMECARD_TETHER_DISTANCE = exports.NAMECARD_SCALE = exports.CROWD_ANIMATION_VARIATIONS = exports.CROWD_DEFAULT_SCALE = exports.TRACK_OFFSCREEN_CAR_FINISH = exports.TRACK_NAMECARD_EDGE_PADDING = exports.TRACK_STARTING_LINE_POSITION = exports.TRACK_CAR_LANE_CENTER_OFFSET = exports.TRACK_CAR_SIZE_RELATIVE_TO_LANE = exports.TRACK_SHOULDER_SCALE = exports.TRACK_BOTTOM_SCALE = exports.TRACK_TOP_SCALE = exports.TRACK_ACCELERATION_RATE = exports.TRACK_MAXIMUM_SPEED = exports.TRACK_MAXIMUM_SCROLL_SPEED = exports.ANIMATION_RATE_WHILE_IDLE = exports.ANIMATION_RATE_WHILE_RACING = exports.STATIC_CAR_ROTATION_FIX = void 0;
 // a rotation to apply to all legacy cars
 var STATIC_CAR_ROTATION_FIX = Math.PI; // animation speeds
 
@@ -127055,9 +127083,11 @@ exports.TRACK_NAMECARD_EDGE_PADDING = TRACK_NAMECARD_EDGE_PADDING;
 var TRACK_OFFSCREEN_CAR_FINISH = 1.25; // crowds
 
 exports.TRACK_OFFSCREEN_CAR_FINISH = TRACK_OFFSCREEN_CAR_FINISH;
-var CROWD_DEFAULT_SCALE = 0.4; // namecards
-
+var CROWD_DEFAULT_SCALE = 0.4;
 exports.CROWD_DEFAULT_SCALE = CROWD_DEFAULT_SCALE;
+var CROWD_ANIMATION_VARIATIONS = 5; // namecards
+
+exports.CROWD_ANIMATION_VARIATIONS = CROWD_ANIMATION_VARIATIONS;
 var NAMECARD_SCALE = 0.8;
 exports.NAMECARD_SCALE = NAMECARD_SCALE;
 var NAMECARD_TETHER_DISTANCE = 0.33; // cars
@@ -133497,8 +133527,8 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 
 // preferred font for namecards
 var DEFAULT_NAMECARD_FONT = 'montserrat';
-var PREFERRED_NAME_FONT_SIZE = 58;
-var PREFERRED_TEAM_FONT_SIZE = 48; // positioning for names
+var PREFERRED_NAME_FONT_SIZE = 52;
+var PREFERRED_TEAM_FONT_SIZE = 42; // positioning for names
 
 var NAME_START = 0.5;
 var TEAM_MARGIN = 0.025;
@@ -133647,7 +133677,7 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
     /** handles creating a new namecard */
     value: function () {
       var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(options) {
-        var instance, type, view, path, config;
+        var instance, type, view, isDefault, path, config;
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
@@ -133656,6 +133686,7 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
 
                 type = options.type, view = options.view; // try and load
 
+                isDefault = /default/.test(type);
                 path = "namecards/".concat(type);
                 config = view.animator.lookup(path); // if missing, use the default
 
@@ -133667,13 +133698,13 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
 
 
                 if (config) {
-                  _context2.next = 7;
+                  _context2.next = 8;
                   break;
                 }
 
                 return _context2.abrupt("return");
 
-              case 7:
+              case 8:
                 // save the properties
                 (0, _utils.merge)(instance, {
                   options: options,
@@ -133685,16 +133716,23 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                 instance.container = new PIXI.Container();
                 instance.addChild(instance.container); // initialize all namecard parts
 
-                _context2.next = 12;
+                _context2.next = 13;
                 return instance._initNameCard();
 
-              case 12:
-                instance._initText(); // return the created namecard
+              case 13:
+                instance._initText(); // find the background
+                // if (isDefault) {
+                // 	const sprite = findDisplayObjectsOfRole(instance.container, 'base');
+                // 	if (sprite && sprite.children[0]) {
+                // 		sprite.children[0].tint = 0 | (Math.random() * 0xffffff);
+                // 	}
+                // }
+                // return the created namecard
 
 
                 return _context2.abrupt("return", instance);
 
-              case 14:
+              case 15:
               case "end":
                 return _context2.stop();
             }
@@ -133809,9 +133847,13 @@ var Nitro = /*#__PURE__*/function (_AnimatorPIXI$Detatch) {
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "activate", function () {
       var _assertThisInitialize2 = (0, _assertThisInitialized2.default)(_this),
           sound = _assertThisInitialize2.sound,
-          instance = _assertThisInitialize2.instance;
+          instance = _assertThisInitialize2.instance; // check for a sound to play
 
-      sound.play(); // show particle emitters
+
+      if (sound) {
+        sound.play();
+      } // show particle emitters
+
 
       instance.controller.activateEmitters();
     });
@@ -133871,25 +133913,49 @@ var Nitro = /*#__PURE__*/function (_AnimatorPIXI$Detatch) {
     key: "_initSound",
     value: function () {
       var _initSound2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
-        var options, type, key, sound;
+        var options, config, sfx, type, sound, key;
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                options = this.options;
-                type = options.type; // load the sound, if any
+                options = this.options, config = this.config;
+                sfx = config.sfx;
+                type = options.type; // if this uses a standard library sound
 
+                if (!sfx) {
+                  _context2.next = 7;
+                  break;
+                }
+
+                sound = audio.create('sfx', 'common', sfx);
+                _context2.next = 11;
+                break;
+
+              case 7:
+                // load the sound, if any
                 key = "nitros/".concat(type);
-                _context2.next = 5;
+                _context2.next = 10;
                 return audio.register(key);
 
-              case 5:
+              case 10:
                 // save the sound effect
-                sound = this.sound = audio.create('sfx', key);
+                sound = audio.create('sfx', key);
+
+              case 11:
+                if (sound) {
+                  _context2.next = 13;
+                  break;
+                }
+
+                return _context2.abrupt("return");
+
+              case 13:
+                // prepare the sound
+                this.sound = sound;
                 sound.volume(1);
                 sound.loop(false);
 
-              case 8:
+              case 16:
               case "end":
                 return _context2.stop();
             }
@@ -135086,6 +135152,8 @@ var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/sli
 
 var _crowdAnimator = _interopRequireDefault(require("./crowd-animator"));
 
+var _config = require("../../config");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
@@ -135199,10 +135267,12 @@ function generateAnimationFrames(_ref) {
         start = _animations$type[0],
         end = _animations$type[1];
 
-    var time = (end - start) * 100; // create three animators at varying times
+    var time = (end - start) * 70; // create three animators at varying times
+    // for (let i = -1; i < 1; i++) {
 
-    for (var i = -1; i < 1; i++) {
-      var duration = time + time * (i * 0.5);
+    for (var i = 0; i < _config.CROWD_ANIMATION_VARIATIONS; i++) {
+      var scale = i / _config.CROWD_ANIMATION_VARIATIONS;
+      var duration = time + time * scale;
       var animator = new _crowdAnimator.default(data, type, duration);
       animators.push(animator);
     }
@@ -135234,7 +135304,7 @@ var frameToKeyframe = function frameToKeyframe(frame, origin) {
     y: isNaN(frame.y) ? origin.y : frame.y
   };
 };
-},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","./crowd-animator":"plugins/crowd/crowd-animator.js"}],"plugins/crowd/palettes.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","./crowd-animator":"plugins/crowd/crowd-animator.js","../../config":"config.js"}],"plugins/crowd/palettes.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {

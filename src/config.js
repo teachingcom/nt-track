@@ -21,6 +21,7 @@ export const TRACK_OFFSCREEN_CAR_FINISH = 1.25;
 
 // crowds
 export const CROWD_DEFAULT_SCALE = 0.4;
+export const CROWD_ANIMATION_VARIATIONS = 5;
 
 // namecards
 export const NAMECARD_SCALE = 0.8;

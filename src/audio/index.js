@@ -49,6 +49,12 @@ export function setBaseUrl(url) {
 /** includes a sound to be played */
 export async function register(key, sprites) {
 	return new Promise((resolve, reject) => {
+
+		// handle sound loading errors
+		const onFailed = () => {
+			console.error(`Failed to load sound: ${key}`);
+			reject(new MissingSoundException());
+		};
 		
 		// handle finalizing the sound
 		const onLoaded = () => {
@@ -64,7 +70,7 @@ export async function register(key, sprites) {
 			format: ['mp3'],
 			preload: true,
 			autoplay: false,
-			onloaderror: reject,
+			onloaderror: onFailed,
 			onload: onLoaded
 		});
 	})
@@ -93,3 +99,6 @@ export function create(type, key, sprite) {
 
 	return instance;
 }
+
+// exceptions
+function MissingSoundException() { }
