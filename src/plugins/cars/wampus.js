@@ -35,15 +35,14 @@ export async function extend({ animator, player, car, track }) {
 	setTimeout(laughSound.play, 1000);
 
 	// handle raceplace
-	car.onFinishRace = place => {
-		isWinner = place === 0;
+	car.onFinishRace = ({ place, isRaceFinished }) => {
 
 		// turn off the animation
 		head.rotation = 0;
 		if (animation) animation.stop();
 
 		// update the winning animation
-		if (isWinner) {
+		if (!isRaceFinished) {
 			laughEffect.visible = true;
 			head.visible = false;
 			headWinner.visible = true;

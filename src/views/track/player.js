@@ -12,6 +12,9 @@ import Nitro from '../../components/nitro';
 
 export default class Player extends AnimatorPIXI.ResponsiveContainer {
 
+	// keeping track of game state
+	state = { }
+
 	// layers that comprise a player
 	layers = { }
 
@@ -172,9 +175,6 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 		// save the namecard
 		if (namecard) {
 			layers.namecard = namecard;
-
-			// edge
-			namecard.pivot.x = -TRACK_NAMECARD_EDGE_PADDING;
 		}
 
 		// finalize order
@@ -187,11 +187,21 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 		this._progress.stop();
 		this._progress = undefined;
 	}
-	
-	// handles the car updating process
-	update = ({ shake }) => {
-		const { state, car } = this;
-		car.onUpdate();
+
+	// handles 
+	render(...args) {
+		const { car, track, namecard } = this;
+		car.onUpdate(...args);
+
+		// tether namecards
+		if (namecard) {
+			const width = track.view.width / track.view.scaleX;
+			const tether = NAMECARD_TETHER_DISTANCE / width;
+			namecard.x = (this.relativeX - tether) * width;
+		}
+
+		super.render(...args);
 	}
+
 
 }

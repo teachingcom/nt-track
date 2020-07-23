@@ -14,6 +14,7 @@ import Track from '../../components/track';
 import CarEntryAnimation from '../../animations/car-entry';
 import RaceCompletedAnimation from '../../animations/race-completed';
 import RaceProgressAnimation from '../../animations/race-progress';
+import { VOLUME_CAR_ENTRY, VOLUME_DISQUALIFY, VOLUME_START_ACCELERATION, VOLUME_COUNTDOWN } from '../../audio/volume';
 
 /** creates a track view that supports multiple cars for racing */
 export default class TrackView extends BaseView {
@@ -111,6 +112,7 @@ export default class TrackView extends BaseView {
 		const { enterSound = 'sport' } = data.car || { };
 		const rev = audio.create('sfx', 'common', `entry_${enterSound}`);
 		if (rev) {
+			rev.volume(VOLUME_CAR_ENTRY)
 			rev.loop(false);
 			rev.play();
 		}
@@ -188,6 +190,7 @@ export default class TrackView extends BaseView {
 	/** performs the disqualified effect */
 	disqualifyPlayer = () => {
 		const dq = audio.create('sfx', 'common', 'disqualified');
+		dq.volume(VOLUME_DISQUALIFY)
 		dq.play();
 	}
 
@@ -216,12 +219,17 @@ export default class TrackView extends BaseView {
 
 		// prepare sounds
 		const mark = audio.create('sfx', 'common', 'countdown_mark');
+		mark.volume(VOLUME_COUNTDOWN);
+
 		const set = audio.create('sfx', 'common', 'countdown_set');
+		set.volume(VOLUME_COUNTDOWN);
+
 		const go = audio.create('sfx', 'common', 'countdown_go');
+		set.volume(VOLUME_COUNTDOWN);
 
 		// accelerate -- kinda loud
 		const acceleration = audio.create('sfx', 'common', 'acceleration');
-		acceleration.volume(0.15);
+		acceleration.volume(VOLUME_START_ACCELERATION);
 		
 		// play the countdown
 		setTimeout(mark.play, 2000);
@@ -272,13 +280,16 @@ export default class TrackView extends BaseView {
 	/** activates the finished race state */
 	finishRace = ({ id } = { }) => {
 		const { track, state, players, activePlayer, finishedPlayers, options } = this;
+		const isRaceFinished = state.isFinished;
 
 		// already added to finish
 		if (!!~finishedPlayers.indexOf(id)) return;
 		finishedPlayers.push(id);
 		
-		// find the player
+		// update the plauer and ending, if any
+		const place = finishedPlayers.length - 1;
 		const player = this.getPlayerById(id);
+		player.car.onFinishRace({ isRaceFinished, place });
 
 		// if the animation has already begun, add them
 		// to the animation

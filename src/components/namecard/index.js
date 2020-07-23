@@ -7,7 +7,7 @@ import { createContext, getBoundsForRole, findDisplayObjectsOfRole } from 'nt-an
 // preferred font for namecards
 const DEFAULT_NAMECARD_FONT = 'montserrat';
 const PREFERRED_NAME_FONT_SIZE = 52;
-const PREFERRED_TEAM_FONT_SIZE = 42;
+// const PREFERRED_TEAM_FONT_SIZE = 42;
 
 // positioning for names
 const NAME_START = 0.5;
@@ -87,69 +87,94 @@ export default class NameCard extends PIXI.Container {
 		if (config.noText) return;
 		
 		const { text = { } } = config;
-		const { name = 'Guest Racer', team = 'Nitro' } = options;
+		const { name = 'Guest Racer', team } = options;
 
 		// get the color to use
 		const color = toRGBA('color' in config ? config.color : 0xffffff, 1); 
 
-		// setup the name text
-		const nameConfig = createTextConfig(name, PREFERRED_NAME_FONT_SIZE, 'bottom', text.name, config.text);
-		if (isNaN(nameConfig.x) || isNaN(nameConfig.y)) {
-			nameConfig.x = this.bounds.width * LEFT_MARGIN;
-			nameConfig.y = this.bounds.height * NAME_START;
-			nameConfig.color = color;
-		}
-		
-		// setup the team text
-		let teamConfig;
-		if (team) {
-			teamConfig = createTextConfig(`[${team}]`, PREFERRED_TEAM_FONT_SIZE, 'top', text.team, config.text);
-			if (isNaN(teamConfig.x) || isNaN(teamConfig.y)) {
-				teamConfig.x = this.bounds.width * LEFT_MARGIN;
-				teamConfig.y = this.bounds.height * (NAME_START + TEAM_MARGIN);
+		// get the name to show
+		const str = [ name ];
+		if (team) str.unshift(`[${team}]`);
+		const displayText = str.join(' ');
 
-				// NOTE: can support team colors
-				// teamConfig.color = color;
-				teamConfig.color = color;
-			}
-		}
-		// no team was provided? Move the name
-		else {
-			nameConfig.baseline = 'middle';
-			nameConfig.y = this.bounds.height * 0.5;;
-		}
+		// // setup the name text
+		// const nameConfig = createTextConfig(name, PREFERRED_NAME_FONT_SIZE, 'bottom', text.name, config.text);
+		// if (isNaN(nameConfig.x) || isNaN(nameConfig.y)) {
+		// 	nameConfig.x = this.bounds.width * LEFT_MARGIN;
+		// 	nameConfig.y = this.bounds.height * NAME_START;
+		// 	nameConfig.color = color;
+		// }
+		
+		// // setup the team text
+		// let teamConfig;
+		// if (team) {
+		// 	teamConfig = createTextConfig(`[${team}]`, PREFERRED_TEAM_FONT_SIZE, 'top', text.team, config.text);
+		// 	if (isNaN(teamConfig.x) || isNaN(teamConfig.y)) {
+		// 		teamConfig.x = this.bounds.width * LEFT_MARGIN;
+		// 		teamConfig.y = this.bounds.height * (NAME_START + TEAM_MARGIN);
+
+		// 		// NOTE: can support team colors
+		// 		// teamConfig.color = color;
+		// 		teamConfig.color = color;
+		// 	}
+		// }
+		// // no team was provided? Move the name
+		// else {
+		// 	nameConfig.baseline = 'middle';
+		// 	nameConfig.y = this.bounds.height * 0.5;;
+		// }
 
 		// reset the view
 		cardRenderer.canvas.width = this.bounds.width;
 		cardRenderer.canvas.height = this.bounds.height;
 		
-		// render each block
-		for (const block of [nameConfig, teamConfig]) {
-			if (!block) continue;
+		// // render each block
+		// for (const block of [nameConfig, teamConfig]) {
+		// 	if (!block) continue;
 
-			// render the text
-			cardRenderer.ctx.textBaseline = block.baseline;
-			cardRenderer.ctx.fillStyle = block.color;
-			cardRenderer.ctx.font = `${block.fontWeight} ${block.fontSize}px ${block.fontFamily}`;
+		// 	// render the text
+		// 	cardRenderer.ctx.textBaseline = block.baseline;
+		// 	cardRenderer.ctx.fillStyle = block.color;
+		// 	cardRenderer.ctx.font = `${block.fontWeight} ${block.fontSize}px ${block.fontFamily}`;
 
-			// clear shadows
-			if (block.disableShadow)
-				cardRenderer.ctx.shadowColor = null;
-			// render with a shadow
-			else {
-				const color = config.shadow?.color || config.shadow || 0x000000;
-				const alpha = config.shadow?.alpha || config.shadowAlpha || 0.7;
-				const distance = config.shadow?.distance || config.shadowDistance || 2;
-				const size = config.shadow?.size || config.shadowSize || 5;
-				cardRenderer.ctx.shadowOffsetX = 0;
-				cardRenderer.ctx.shadowOffsetY = distance;
-				cardRenderer.ctx.shadowBlur = size;
-				cardRenderer.ctx.shadowColor = toRGBA(color, alpha);
-			}
+		// 	// clear shadows
+		// 	if (block.disableShadow)
+		// 		cardRenderer.ctx.shadowColor = null;
+		// 	// render with a shadow
+		// 	else {
+		// 		const color = config.shadow?.color || config.shadow || 0x000000;
+		// 		const alpha = config.shadow?.alpha || config.shadowAlpha || 0.7;
+		// 		const distance = config.shadow?.distance || config.shadowDistance || 2;
+		// 		const size = config.shadow?.size || config.shadowSize || 5;
+		// 		cardRenderer.ctx.shadowOffsetX = 0;
+		// 		cardRenderer.ctx.shadowOffsetY = distance;
+		// 		cardRenderer.ctx.shadowBlur = size;
+		// 		cardRenderer.ctx.shadowColor = toRGBA(color, alpha);
+		// 	}
 
-			// render the text
-			cardRenderer.ctx.fillText(block.text, block.x, block.y);
-		}
+		// 	// render the text
+		// 	cardRenderer.ctx.fillText(block.text, block.x, block.y);
+		// }
+
+		// render the text
+		cardRenderer.ctx.textBaseline = 'top';
+		cardRenderer.ctx.fillStyle = color;
+		cardRenderer.ctx.font = `bold ${PREFERRED_NAME_FONT_SIZE}px ${DEFAULT_NAMECARD_FONT}`;
+		
+		// prepare the shadpw
+		const shadowColor = config.shadow?.color || config.shadow || 0x000000;
+		const shadowAlpha = config.shadow?.alpha || config.shadowAlpha || 0.7;
+		const shadowDistance = config.shadow?.distance || config.shadowDistance || 2;
+		const shadowSize = config.shadow?.size || config.shadowSize || 5;
+		cardRenderer.ctx.shadowOffsetX = 0;
+		cardRenderer.ctx.shadowOffsetY = shadowDistance;
+		cardRenderer.ctx.shadowBlur = shadowSize;
+		cardRenderer.ctx.shadowColor = toRGBA(shadowColor, shadowAlpha);
+
+		// render the text
+		const x = this.bounds.width * LEFT_MARGIN;
+		const y = this.bounds.height * (NAME_START + TEAM_MARGIN);
+		cardRenderer.ctx.fillText(displayText, x, y);
 
 		// create an image from the nametag
 		const img = document.createElement('img');
@@ -159,6 +184,9 @@ export default class NameCard extends PIXI.Container {
 		const overlay = new PIXI.Sprite.from(img);
 		overlay.pivot.x = cardRenderer.canvas.width / 2;
 		overlay.pivot.y = cardRenderer.canvas.height / 2;
+
+		// const c = new PIXI.Sprite();
+		this.container.roundPixels = overlay.roundPixels = false;
 		this.container.addChild(overlay);	
 	}
 

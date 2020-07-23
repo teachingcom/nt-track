@@ -1,9 +1,11 @@
 import * as PIXI from 'pixi.js';
+import * as audio from '../audio';
 
 import { noop } from "../utils";
 import CarFinishLineAnimation from "./car-finish";
 import { tween, easing } from 'popmotion';
 import { RACE_FINISH_FLASH_FADE_TIME } from '../config';
+import { VOLUME_FINISH_LINE_CROWD } from '../audio/volume';
 
 export default class RaceCompletedAnimation {
 
@@ -71,11 +73,16 @@ export default class RaceCompletedAnimation {
 			}
 			// otherwise, move off screen
 			else {
-				player.relativeX = -5;
+				player.relativeX = -5; // negative 5 is way off to the side
 				player.visible = false;
 			}
 
 		}
+		
+		// play the finish sound
+		const finish = audio.create('sfx', 'common', 'finish_crowd');
+		finish.volume(VOLUME_FINISH_LINE_CROWD);
+		finish.play();
 
 		// fade the flash effect
 		tween({ 

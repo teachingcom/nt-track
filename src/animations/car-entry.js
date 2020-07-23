@@ -31,19 +31,19 @@ export default class CarEntryAnimation {
 		
 		// offscreen starting position
 		const namecardOrigin = {
-			namecardX: namecard?.x - namecard?.width,
+			// namecardX: namecard?.x - namecard?.width,
 			namecardAlpha: 0
 		};
 		
 		// starting line position
 		const namecardDestination = {
-			namecardX: namecard?.x,
+			// namecardX: namecard?.x,
 			namecardAlpha: 1
 		};
 
 		// update the player position
 		const updateNamecard = props => {
-			namecard.x = props.namecardX;
+			// namecard.x = props.namecardX;
 			namecard.alpha = props.namecardAlpha;
 		};
 

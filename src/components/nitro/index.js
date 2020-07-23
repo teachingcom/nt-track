@@ -1,6 +1,7 @@
 import { PIXI as AnimatorPIXI } from 'nt-animator';
 import { merge } from '../../utils';
 import * as audio from '../../audio';
+import { VOLUME_NITRO } from '../../audio/volume';
 
 export default class Nitro extends AnimatorPIXI.DetatchedContainer {
 
@@ -81,7 +82,7 @@ export default class Nitro extends AnimatorPIXI.DetatchedContainer {
 	
 		// prepare the sound
 		this.sound = sound;
-		sound.volume(1);
+		sound.volume(VOLUME_NITRO);
 		sound.loop(false);
 	}
 

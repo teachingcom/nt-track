@@ -2,6 +2,7 @@ import { noop } from "../utils";
 import * as audio from '../audio';
 import { tween, easing } from 'popmotion';
 import { RACE_FINISH_CAR_STOPPING_TIME } from "../config";
+import { VOLUME_FINISH_LINE_STOP } from "../audio/volume";
 
 export default class CarFinishLineAnimation {
 
@@ -14,16 +15,11 @@ export default class CarFinishLineAnimation {
 
 	play({ isInstant = false, update = noop, complete = noop }) {
 		const { player, isActivePlayer } = this;
-		
-		// sound effect for the current player
-		if (isActivePlayer) {
-			const crowd = audio.create('sfx', 'common', 'finish_crowd');
-			crowd.play();
-		}
 
 		// if this car is entering
 		if (!isInstant) {
 			const stop = audio.create('sfx', 'common', 'car_stopping');
+			stop.volume(VOLUME_FINISH_LINE_STOP);
 			setTimeout(() => stop.play(), 500);
 		}
 

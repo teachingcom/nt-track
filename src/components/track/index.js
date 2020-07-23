@@ -190,7 +190,7 @@ export default class Track {
 		// add the finishing line
 		const comp = await view.animator.compose({ compose: finish }, path, manifest);
 		const segment = this.finishLine = new Segment(comp);
-		segment.visible = false;
+		// segment.visible = false;
 	}
 
 	// creates a background, if needed
@@ -255,9 +255,12 @@ export default class Track {
 		ground.addChild(finishLine.bottom);
 		finishLine.visible = true;
 
+		// TODO: calculate this value
+		this._cycleTrack(-2500);
+		
 		// fit the starting block to the middle of the screen
 		this._fitBlockToTrackPosition(finishLine, 0);
-
+		
 		// shift to the start of the area
 		this._cycleToSegmentLine(null, view.width * 0.5);
 	}
@@ -317,7 +320,6 @@ export default class Track {
 			segment.setX(width);
 		}
 
-		// this.totalWidth = width * segments[0].bottom.scale.x;
 		// set the starting position of each segment which will be
 		// stitched to the next segment, but also offset by half
 		// of the total width so that the road extends the
@@ -409,7 +411,9 @@ export default class Track {
 		segments.sort(byRightEdge);
 		
 		// get the inserted block into place
-		const { width } = block.getBounds();
+		const bounds = getBoundsForRole(block.bottom, 'base'); // block.getBounds();
+		console.log(block);
+		const width = bounds.width;
 		block.setX(0);
 
 		// start checking each segment
