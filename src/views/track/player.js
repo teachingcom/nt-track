@@ -12,14 +12,6 @@ import Nitro from '../../components/nitro';
 
 export default class Player extends AnimatorPIXI.ResponsiveContainer {
 
-	state = {
-
-		// values used to track the start and activity
-		// of a skip nitro animation
-		nitroBonus: 0,
-		nitroBonusOffset: 0
-	}
-
 	// layers that comprise a player
 	layers = { }
 
@@ -39,8 +31,8 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 	}
 
 	/** the players name card layer */
-	get card() {
-		return this.layers.car;
+	get namecard() {
+		return this.layers.namecard;
 	}
 
 	/** handles creating a new player instance */
@@ -48,7 +40,7 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 		const instance = new Player();
 		instance.options = options;
 		instance.mods = options.mods || { };
-		
+
 		// initialize all layers
 		const car = instance._initCar();
 		const trail = instance._initTrail();
@@ -195,85 +187,11 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 		this._progress.stop();
 		this._progress = undefined;
 	}
-
-	/** start the animation */
-	setProgress = percent => {
-		const { relativeX, state, track, layers } = this;
-		const { namecard } = layers;
-		const { progress } = track;
-
-		// save the completion
-		state.progress = percent;
-		
-		// animate the progress
-		let position = progress[Math.max(0, 0 | percent)];
-		const isFinished = position > 1 || isNaN(position);
-
-		// if finishing or exceeding the limit the race
-		if (isFinished) position = TRACK_OFFSCREEN_CAR_FINISH;
-
-		// has finished the ending animations
-		if (state.isOutro) return;
-		state.isOutro = isFinished;
-
-		// stop animating
-		this.stopProgressAnimation();
-
-		// calculate the scaled position
-		position = (TRACK_STARTING_LINE_POSITION + ((1 - TRACK_STARTING_LINE_POSITION) * position));
-
-		// calculate the duration using the distance
-		const diff = Math.abs(position - relativeX);
-		const duration = 1000 + (2000 * diff);
-
-		// perform the transition
-		const origin = relativeX - state.nitroBonusOffset; 
-		this._progress = tween({
-			duration,
-			ease: easing.linear,
-			from: {
-				carX: origin,
-				namecardX: origin,
-			},
-			to: {
-				carX: position,
-				namecardX: position + (isFinished ? NAMECARD_TETHER_DISTANCE : 0),
-			}
-		})
-		.start({
-			update: props => {
-				this.relativeX = props.carX + state.nitroBonusOffset;
-
-				// tether the namecard
-				const tether = track.width * NAMECARD_TETHER_DISTANCE;
-				namecard.x = Math.max(0, (track.width * props.namecardX) + this.car.positions.back - tether);
-			}
-		});
-
-	}
 	
 	// handles the car updating process
 	update = ({ shake }) => {
 		const { state, car } = this;
-		const { isNitro } = car.state;
-
-		// check if the nitro is in effect
-		const nitroActive = isNitro || state.nitroBonus > 0 && state.nitroBonus < 2;
-
-		// update the car
 		car.onUpdate();
-		car.rattle(shake);
-
-		// update the nitro values
-		if (nitroActive) {
-			state.nitroBonus = Math.min(2, state.nitroBonus + 0.01);
-			state.nitroBonusOffset = (Math.sin((Math.PI / 2) * state.nitroBonus)) * 0.1;
-		}
-		else {
-			state.nitroBonus = 0;
-			state.nitroBonusOffset = 0;
-		}
-
 	}
 
 }

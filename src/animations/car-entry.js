@@ -1,5 +1,5 @@
 import { noop } from "../utils";
-import { TRACK_STARTING_LINE_POSITION } from "../config";
+import { TRACK_STARTING_LINE_POSITION, RACE_START_CAR_ENTRY_TIME, RACE_START_NAMECARD_DELAY_TIME, RACE_START_NAMECARD_ENTRY_TIME } from "../config";
 import { tween, easing, delay } from "popmotion";
 
 
@@ -63,8 +63,8 @@ export default class CarEntryAnimation {
 
 		// animate the player entry
 		tween({
-			duration: 3000,
-			ease: easing.easeInOut,
+			duration: RACE_START_CAR_ENTRY_TIME,
+			ease: easing.cubicBezier(0.43, 1.15, 0.91, 1),
 			from: entryOrigin,
 			to: entryDestination
 		})
@@ -75,10 +75,10 @@ export default class CarEntryAnimation {
 
 		// animate the player entry
 		if (namecard)
-			delay(2200)
+			delay(RACE_START_NAMECARD_DELAY_TIME)
 				.start({
 					complete: () => tween({
-						duration: 1000,
+						duration: RACE_START_NAMECARD_ENTRY_TIME,
 						ease: easing.backOut,
 						from: namecardOrigin,
 						to: namecardDestination

@@ -56,15 +56,6 @@ export default class NameCard extends PIXI.Container {
 		await instance._initNameCard();
 		instance._initText();
 
-		// find the background
-		// if (isDefault) {
-		// 	const sprite = findDisplayObjectsOfRole(instance.container, 'base');
-		// 	if (sprite && sprite.children[0]) {
-		// 		sprite.children[0].tint = 0 | (Math.random() * 0xffffff);
-		// 	}
-		// }
-
-
 		// return the created namecard
 		return instance;
 	}

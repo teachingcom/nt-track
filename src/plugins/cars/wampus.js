@@ -7,20 +7,20 @@ export async function extend({ animator, player, car, track }) {
 	
 	// find parts
 	const [ head ] = findDisplayObjectsOfRole(car, 'head');
-	const [ head_winner ] = findDisplayObjectsOfRole(car, 'head_winner');
-	const [ head_loser ] = findDisplayObjectsOfRole(car, 'head_loser');
-	const [ laugh ] = findDisplayObjectsOfRole(car, 'laugh');
-	const [ panic1, panic2 ] = findDisplayObjectsOfRole(car, 'panic');
+	const [ headWinner ] = findDisplayObjectsOfRole(car, 'head_winner');
+	const [ headLoser ] = findDisplayObjectsOfRole(car, 'head_loser');
+	const [ laughEffect ] = findDisplayObjectsOfRole(car, 'laugh');
+	const [ panicEffect1, panicEffect2 ] = findDisplayObjectsOfRole(car, 'panic');
 
 	// hidden by default
-	if (laugh) laugh.visible = false;
-	if (head_winner) head_winner.visible = false;
-	if (head_loser) head_loser.visible = false;
-	if (panic1) panic1.visible = false;
-	if (panic2) panic2.visible = false;
+	if (laughEffect) laughEffect.visible = false;
+	if (headWinner) headWinner.visible = false;
+	if (headLoser) headLoser.visible = false;
+	if (panicEffect1) panicEffect1.visible = false;
+	if (panicEffect2) panicEffect2.visible = false;
 
 	// if missing layers then the effect can't play
-	if (!(panic1 && panic2 && laugh)) {
+	if (!(panicEffect1 && panicEffect2 && laughEffect)) {
 		return;
 	}
 
@@ -44,16 +44,16 @@ export async function extend({ animator, player, car, track }) {
 
 		// update the winning animation
 		if (isWinner) {
-			laugh.visible = true;
+			laughEffect.visible = true;
 			head.visible = false;
-			head_winner.visible = true;
+			headWinner.visible = true;
 		}
 		// show the crying animation
 		else {
 			head.visible = false;
-			head_loser.visible = true;
-			panic1.visible = true;
-			panic2.visible = true;
+			headLoser.visible = true;
+			panicEffect1.visible = true;
+			panicEffect2.visible = true;
 		}
 	};
 
@@ -62,10 +62,10 @@ export async function extend({ animator, player, car, track }) {
 		const { isFinished } = track.state;
 
 		// align the laugh animation to the top
-		if (isFinished && isWinner && laugh) {
-			laugh.rotation = -(player.rotation * 0.9);
-			laugh.emitter.spawnPos.y = player.rotation * 140;
-			laugh.emitter.spawnPos.x = player.rotation * 40;
+		if (isFinished && isWinner && laughEffect) {
+			laughEffect.rotation = -(player.rotation * 0.9);
+			laughEffect.emitter.spawnPos.y = player.rotation * 140;
+			laughEffect.emitter.spawnPos.x = player.rotation * 40;
 		}
 		// check if someone is ahead
 		else if (!isFinished) {
@@ -83,7 +83,7 @@ export async function extend({ animator, player, car, track }) {
 			// check if falling beind
 			const scale = behind / track.view.width;
 			const isBehind = progress > 50 && scale > 0.15;
-			panic1.visible = panic2.visible = isBehind;
+			panicEffect1.visible = panicEffect2.visible = isBehind;
 
 		}
 

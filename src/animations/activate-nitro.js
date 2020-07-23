@@ -55,7 +55,7 @@ export default class ActivateNitroAnimation extends Animation {
 			nitroBlurAlpha: 0,
 			nitroBlurScaleX: 0,
 			nitroBlurScaleY: 1,
-			
+
 			// the animated nitro
 			// this is assigned further down where the keyframes are setup
 			// nitroEffectAlpha: vvvvv
@@ -67,7 +67,7 @@ export default class ActivateNitroAnimation extends Animation {
 			// car positions
 			// skewed at front to appear lifted
 			carOffsetX: -15,
-			carOffsetY: -5,
+			carOffsetY: -7,
 			carSkewY: -0.085,
 			carSkewX: 0.05,
 			carScaleX: origin.carScaleX - 0.01,
@@ -113,7 +113,7 @@ export default class ActivateNitroAnimation extends Animation {
 				Object.assign({ }, destination, {
 					nitroBlurScaleX: destination.nitroBlurScaleX * 1.5,
 					nitroBlurScaleY: 1,
-					nitroBlurAlpha: 0.1,
+					nitroBlurAlpha: 0.1
 				}),
 				Object.assign({ }, origin, {
 					nitroEffectAlpha: nitroEffectEndingAlpha
@@ -122,10 +122,18 @@ export default class ActivateNitroAnimation extends Animation {
 		});
 
 		// begin the animation sequence
+		const start = +new Date;
 		const playback = sequence.start({
 			
 			// render the animation
 			update: props => {
+
+				// rather than starting another animation sequence
+				// just calculate the progress
+				const progress = ((+new Date) - start) / DURATION;
+				props.progress = progress;
+
+				// update the props
 				this.update(props);
 				update(props);
 			},
@@ -145,10 +153,14 @@ export default class ActivateNitroAnimation extends Animation {
 		
 		// update the car
 		car.x = props.carOffsetX;
+		car.y = props.carOffsetY;
 		car.skew.y = props.carSkewY;
 		car.skew.x = props.carSkewX;
 		car.scale.x = props.carScaleX;
 		car.scale.y = props.carScaleY;
+
+		// set the offset amount
+		car.nitroOffsetX = props.progress;
 		
 		// update the shadow
 		shadow.scale.x = props.shadowScaleX;
@@ -175,7 +187,7 @@ export default class ActivateNitroAnimation extends Animation {
 		super.stop();
 
 		// cancel nitros and sounds
-		const { nitro, hasNitro } = this;
+		const { hasNitro } = this;
 		if (hasNitro) {
 
 			// TODO

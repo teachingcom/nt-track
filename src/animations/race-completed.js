@@ -3,6 +3,7 @@ import * as PIXI from 'pixi.js';
 import { noop } from "../utils";
 import CarFinishLineAnimation from "./car-finish";
 import { tween, easing } from 'popmotion';
+import { RACE_FINISH_FLASH_FADE_TIME } from '../config';
 
 export default class RaceCompletedAnimation {
 
@@ -12,13 +13,42 @@ export default class RaceCompletedAnimation {
 		this.allPlayers = allPlayers;
 		this.finishedPlayers = finishedPlayers;
 		this.activePlayerId = activePlayerId;
+		
+		// create the flash of white
+		const { view } = track.view;
+		const flash = new PIXI.Sprite(PIXI.Texture.WHITE);
+		this.flash = flash;
+		
+		// match the screen and place on the top
+		flash.width = view.width;
+		flash.height = view.height;
+		flash.zIndex = Number.MAX_SAFE_INTEGER;
+
+		// add it to the race
+		view.addChild(flash);
+
+		// reset all car positions
+		for (const p of allPlayers) {
+			p.car.relativeX = -0.15;
+
+			// also has a namecard
+			if (p.namecard) {
+				p.namecard.relativeX = -0.15;
+			}
+		}
 	}
 
 	// shows the player animation
-	addPlayer = (player, place, isInstant) => {
-		const { track, activePlayerId } = this;
+	addPlayer = (player, isInstant) => {
+		const { track, finishedPlayers, activePlayerId } = this;
 		const { stage } = track;
 		const isActivePlayer = player.id === activePlayerId;
+
+		// create the animation
+		const place = finishedPlayers.indexOf(player.id) + 1;
+
+		// restore the car view, if needed
+		player.visible = true;
 
 		// create the animation
 		const animate = new CarFinishLineAnimation({ player, track, isActivePlayer, place, stage });
@@ -27,39 +57,32 @@ export default class RaceCompletedAnimation {
 
 	// starts the animation
 	play({ update = noop, complete = noop }) {
-		const { player, finishedPlayers, allPlayers, track } = this;
+		const { allPlayers, finishedPlayers, track, flash } = this;
+		const { view } = track;
 
-		// hide namecards
-		for (const p of allPlayers) {
-			if (p.layers.namecard) {
-				p.layers.namecard.visible = false;
-				p.relativeX = -5;
+		// start by putting the players on the ending line
+		// TODO: this need to have some timestamp logic
+		for (let player of allPlayers) {
+			const isFinished = !!~finishedPlayers.indexOf(player.id);
+
+			// finished players, move to the finish line
+			if (player.isPlayer || isFinished) {
+				this.addPlayer(player, !player.isPlayer);
 			}
-		}
+			// otherwise, move off screen
+			else {
+				player.relativeX = -5;
+				player.visible = false;
+			}
 
-		// place finished cars into the view
-		for (let place = 0; place < finishedPlayers.length; place++) {
-			const finished = finishedPlayers[place];
-			const isAlreadyHere = player.id !== finished.id;
-			this.addPlayer(finished, place, isAlreadyHere);
 		}
-
-		// create the flash effect
-		const { view } = track.view;
-		const flash = new PIXI.Sprite(PIXI.Texture.WHITE);
-		view.addChild(flash);
-		
-		// match the screen and place on the top
-		flash.width = view.width;
-		flash.height = view.height;
-		flash.zIndex = Number.MAX_SAFE_INTEGER;
 
 		// fade the flash effect
 		tween({ 
 			from: 1,
 			to: 0,
 			ease: easing.circIn,
-			duration: 1000
+			duration: RACE_FINISH_FLASH_FADE_TIME
 		})
 		.start({
 			update: v => {

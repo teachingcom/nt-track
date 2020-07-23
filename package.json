@@ -10,10 +10,10 @@
   "author": "Teaching.com",
   "license": "GPL-3.0-or-later",
   "peerDependencies": {
+    "nt-animator": "https://github.com/teachingcom/nt-animator",
     "pixi-particles": "^4.2.0",
     "pixi.js": "^5.2.3",
-    "popmotion": "^8.7.1",
-    "nt-animator": "https://github.com/teachingcom/nt-animator"
+    "popmotion": "^8.7.1"
   },
   "dependencies": {
     "clone-deep": "^4.0.1",

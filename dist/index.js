@@ -121820,8 +121820,7 @@ function _createEmitter() {
             phase = 'creating animation';
             (0, _animation.default)(animator, path, composition, layer, generator); // include this instance
 
-            controller.register(generator);
-            console.log(generator, controller, layer); // attach the update function
+            controller.register(generator); // attach the update function
 
             return _context.abrupt("return", [{
               displayObject: container,
@@ -121830,18 +121829,18 @@ function _createEmitter() {
               dispose: dispose
             }]);
 
-          case 75:
-            _context.prev = 75;
+          case 74:
+            _context.prev = 74;
             _context.t3 = _context["catch"](7);
             console.error("Failed to create emitter ".concat(path, " while ").concat(phase));
             throw _context.t3;
 
-          case 79:
+          case 78:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[7, 75], [15, 19]]);
+    }, _callee, null, [[7, 74], [15, 19]]);
   }));
   return _createEmitter.apply(this, arguments);
 }
@@ -123456,6 +123455,7 @@ exports.PIXI = PIXI;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.clamp = clamp;
 exports.first = first;
 exports.filter = filter;
 exports.shuffle = shuffle;
@@ -123485,10 +123485,16 @@ exports.isNumber = isNumber;
 var isNil = function isNil(val) {
   return val === null || val === undefined;
 };
-/** grabs the first item from a collection */
+/** clamps between two ranges */
 
 
 exports.isNil = isNil;
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+/** grabs the first item from a collection */
+
 
 function first() {
   for (var _len = arguments.length, collection = new Array(_len), _key = 0; _key < _len; _key++) {
@@ -126917,7 +126923,7 @@ var baseUrl = '/sounds';
 function configureSFX(config) {
   // change enabled state
   if ('enabled' in config) {
-    _sound.Sound.sfxEnabled = !!config.enabled;
+    var enabled = _sound.Sound.sfxEnabled = !!config.enabled;
 
     var _iterator = _createForOfIteratorHelper(SFX),
         _step;
@@ -126925,7 +126931,9 @@ function configureSFX(config) {
     try {
       for (_iterator.s(); !(_step = _iterator.n()).done;) {
         var sound = _step.value;
-        sound.enabled = enabled;
+        sound.enabled = enabled; // stop, if needed
+
+        if (!enabled) sound.stop();
       }
     } catch (err) {
       _iterator.e(err);
@@ -126945,7 +126953,7 @@ function configureSFX(config) {
 function configureMusic(config) {
   // change enabled state
   if ('enabled' in config) {
-    _sound.Sound.musicEnabled = !!config.enabled;
+    var enabled = _sound.Sound.musicEnabled = !!config.enabled;
 
     var _iterator2 = _createForOfIteratorHelper(MUSIC),
         _step2;
@@ -126953,7 +126961,9 @@ function configureMusic(config) {
     try {
       for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
         var song = _step2.value;
-        song.enabled = enabled;
+        song.enabled = enabled; // activate or deactivate
+
+        if (!enabled) song.stop();else song.play();
       }
     } catch (err) {
       _iterator2.e(err);
@@ -127035,8 +127045,7 @@ function create(type, key, sprite) {
   var id = sound.play(sprite);
   var instance = new _sound.Sound(type, sound, id, sprite);
   instance.stop();
-  sound.seek(0, id); // instance.volume(0);
-  // save the audio
+  sound.seek(0, id); // save the audio
 
   if (instance.isMusic) MUSIC.push(instance);else SFX.push(instance);
   return instance;
@@ -127050,7 +127059,7 @@ function MissingSoundException() {}
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.INPUT_ERROR_SOUND_TIME_LIMIT = exports.NITRO_BLUR_REALTIVE_SIZE_SCALING = exports.NITRO_BLUR_DEFAULT_OFFSET_X = exports.NITRO_BLUR_OFFSET_Y = exports.NITRO_ACTIVATED_TRAIL_OPACITY = exports.NITRO_OFFSET_Y = exports.NITRO_OFFSET_X = exports.NITRO_SCALE = exports.TRAIL_SCALE = exports.CAR_404_ENHANCED_VERSION = exports.CAR_404_STATIC_VERSION = exports.CAR_SHAKE_SHADOW_REDUCTION = exports.CAR_SHAKE_NITRO_BONUS = exports.CAR_SHAKE_DISTANCE = exports.CAR_DEFAULT_FRONT_BACK_OFFSET_X = exports.CAR_BODY_OFFSET_Y = exports.CAR_SHADOW_OFFSET_Y = exports.CAR_SHADOW_OPACITY = exports.CAR_SHADOW_PADDING = exports.CAR_SHADOW_BLUR = exports.CAR_DEFAULT_SHAKE_LEVEL = exports.NAMECARD_TETHER_DISTANCE = exports.NAMECARD_SCALE = exports.CROWD_ANIMATION_VARIATIONS = exports.CROWD_DEFAULT_SCALE = exports.TRACK_OFFSCREEN_CAR_FINISH = exports.TRACK_NAMECARD_EDGE_PADDING = exports.TRACK_STARTING_LINE_POSITION = exports.TRACK_CAR_LANE_CENTER_OFFSET = exports.TRACK_CAR_SIZE_RELATIVE_TO_LANE = exports.TRACK_SHOULDER_SCALE = exports.TRACK_BOTTOM_SCALE = exports.TRACK_TOP_SCALE = exports.TRACK_ACCELERATION_RATE = exports.TRACK_MAXIMUM_SPEED = exports.TRACK_MAXIMUM_SCROLL_SPEED = exports.ANIMATION_RATE_WHILE_IDLE = exports.ANIMATION_RATE_WHILE_RACING = exports.STATIC_CAR_ROTATION_FIX = void 0;
+exports.INPUT_ERROR_SOUND_TIME_LIMIT = exports.NITRO_BLUR_REALTIVE_SIZE_SCALING = exports.NITRO_BLUR_DEFAULT_OFFSET_X = exports.NITRO_BLUR_OFFSET_Y = exports.NITRO_ACTIVATED_TRAIL_OPACITY = exports.NITRO_OFFSET_Y = exports.NITRO_OFFSET_X = exports.NITRO_SCALE = exports.TRAIL_SCALE = exports.CAR_404_ENHANCED_VERSION = exports.CAR_404_STATIC_VERSION = exports.CAR_SHAKE_SHADOW_REDUCTION = exports.CAR_SHAKE_NITRO_BONUS = exports.CAR_SHAKE_DISTANCE = exports.CAR_DEFAULT_FRONT_BACK_OFFSET_X = exports.CAR_BODY_OFFSET_Y = exports.CAR_SHADOW_OFFSET_Y = exports.CAR_SHADOW_OPACITY = exports.CAR_SHADOW_PADDING = exports.CAR_SHADOW_BLUR = exports.CAR_DEFAULT_SHAKE_LEVEL = exports.NAMECARD_TETHER_DISTANCE = exports.NAMECARD_SCALE = exports.CROWD_ANIMATION_VARIATIONS = exports.CROWD_DEFAULT_SCALE = exports.RACE_FINISH_CAR_STOPPING_TIME = exports.RACE_START_NAMECARD_DELAY_TIME = exports.RACE_START_NAMECARD_ENTRY_TIME = exports.RACE_START_CAR_ENTRY_TIME = exports.RACE_AUTO_PROGRESS_DISTANCE = exports.RACE_OFF_SCREEN_FINISH_DISTANCE = exports.RACE_PLAYER_DISTANCE_MODIFIER = exports.RACE_ENDING_ANIMATION_THRESHOLD = exports.TRACK_OFFSCREEN_CAR_FINISH = exports.TRACK_NAMECARD_EDGE_PADDING = exports.TRACK_STARTING_LINE_POSITION = exports.TRACK_CAR_LANE_CENTER_OFFSET = exports.TRACK_CAR_SIZE_RELATIVE_TO_LANE = exports.TRACK_SHOULDER_SCALE = exports.TRACK_BOTTOM_SCALE = exports.TRACK_TOP_SCALE = exports.TRACK_ACCELERATION_RATE = exports.TRACK_MAXIMUM_SPEED = exports.TRACK_MAXIMUM_SCROLL_SPEED = exports.ANIMATION_RATE_WHILE_IDLE = exports.ANIMATION_RATE_WHILE_RACING = exports.STATIC_CAR_ROTATION_FIX = void 0;
 // a rotation to apply to all legacy cars
 var STATIC_CAR_ROTATION_FIX = Math.PI; // animation speeds
 
@@ -127060,7 +127069,7 @@ exports.ANIMATION_RATE_WHILE_RACING = ANIMATION_RATE_WHILE_RACING;
 var ANIMATION_RATE_WHILE_IDLE = 1; // tracks
 
 exports.ANIMATION_RATE_WHILE_IDLE = ANIMATION_RATE_WHILE_IDLE;
-var TRACK_MAXIMUM_SCROLL_SPEED = 50;
+var TRACK_MAXIMUM_SCROLL_SPEED = 60;
 exports.TRACK_MAXIMUM_SCROLL_SPEED = TRACK_MAXIMUM_SCROLL_SPEED;
 var TRACK_MAXIMUM_SPEED = 0.66;
 exports.TRACK_MAXIMUM_SPEED = TRACK_MAXIMUM_SPEED;
@@ -127080,9 +127089,26 @@ var TRACK_STARTING_LINE_POSITION = 0.4;
 exports.TRACK_STARTING_LINE_POSITION = TRACK_STARTING_LINE_POSITION;
 var TRACK_NAMECARD_EDGE_PADDING = 10;
 exports.TRACK_NAMECARD_EDGE_PADDING = TRACK_NAMECARD_EDGE_PADDING;
-var TRACK_OFFSCREEN_CAR_FINISH = 1.25; // crowds
+var TRACK_OFFSCREEN_CAR_FINISH = 1.25; // progress
 
 exports.TRACK_OFFSCREEN_CAR_FINISH = TRACK_OFFSCREEN_CAR_FINISH;
+var RACE_ENDING_ANIMATION_THRESHOLD = 0.75;
+exports.RACE_ENDING_ANIMATION_THRESHOLD = RACE_ENDING_ANIMATION_THRESHOLD;
+var RACE_PLAYER_DISTANCE_MODIFIER = 5;
+exports.RACE_PLAYER_DISTANCE_MODIFIER = RACE_PLAYER_DISTANCE_MODIFIER;
+var RACE_OFF_SCREEN_FINISH_DISTANCE = 1.15;
+exports.RACE_OFF_SCREEN_FINISH_DISTANCE = RACE_OFF_SCREEN_FINISH_DISTANCE;
+var RACE_AUTO_PROGRESS_DISTANCE = 0.00015;
+exports.RACE_AUTO_PROGRESS_DISTANCE = RACE_AUTO_PROGRESS_DISTANCE;
+var RACE_START_CAR_ENTRY_TIME = 2000;
+exports.RACE_START_CAR_ENTRY_TIME = RACE_START_CAR_ENTRY_TIME;
+var RACE_START_NAMECARD_ENTRY_TIME = 1000;
+exports.RACE_START_NAMECARD_ENTRY_TIME = RACE_START_NAMECARD_ENTRY_TIME;
+var RACE_START_NAMECARD_DELAY_TIME = 1200;
+exports.RACE_START_NAMECARD_DELAY_TIME = RACE_START_NAMECARD_DELAY_TIME;
+var RACE_FINISH_CAR_STOPPING_TIME = 1100; // crowds
+
+exports.RACE_FINISH_CAR_STOPPING_TIME = RACE_FINISH_CAR_STOPPING_TIME;
 var CROWD_DEFAULT_SCALE = 0.4;
 exports.CROWD_DEFAULT_SCALE = CROWD_DEFAULT_SCALE;
 var CROWD_ANIMATION_VARIATIONS = 5; // namecards
@@ -127093,7 +127119,8 @@ exports.NAMECARD_SCALE = NAMECARD_SCALE;
 var NAMECARD_TETHER_DISTANCE = 0.33; // cars
 
 exports.NAMECARD_TETHER_DISTANCE = NAMECARD_TETHER_DISTANCE;
-var CAR_DEFAULT_SHAKE_LEVEL = 0.25;
+var CAR_DEFAULT_SHAKE_LEVEL = 0; // 0.25;
+
 exports.CAR_DEFAULT_SHAKE_LEVEL = CAR_DEFAULT_SHAKE_LEVEL;
 var CAR_SHADOW_BLUR = 25;
 exports.CAR_SHADOW_BLUR = CAR_SHADOW_BLUR;
@@ -127321,6 +127348,7 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
       }); // data used for the animator
 
       this.data = options.data; // create a PIXI renderer for the provided canvas
+      // and hide the launch message
 
       this.renderer = new PIXI.Renderer({
         resolution: 1,
@@ -132239,7 +132267,7 @@ function extend(_x) {
 
 function _extend() {
   _extend = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(_ref) {
-    var animator, player, car, track, laughSound, _findDisplayObjectsOf, _findDisplayObjectsOf2, head, _findDisplayObjectsOf3, _findDisplayObjectsOf4, head_winner, _findDisplayObjectsOf5, _findDisplayObjectsOf6, head_loser, _findDisplayObjectsOf7, _findDisplayObjectsOf8, laugh, _findDisplayObjectsOf9, _findDisplayObjectsOf10, panic1, panic2, isWinner, animation;
+    var animator, player, car, track, laughSound, _findDisplayObjectsOf, _findDisplayObjectsOf2, head, _findDisplayObjectsOf3, _findDisplayObjectsOf4, headWinner, _findDisplayObjectsOf5, _findDisplayObjectsOf6, headLoser, _findDisplayObjectsOf7, _findDisplayObjectsOf8, laughEffect, _findDisplayObjectsOf9, _findDisplayObjectsOf10, panicEffect1, panicEffect2, isWinner, animation;
 
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
@@ -132249,18 +132277,18 @@ function _extend() {
             laughSound = audio.create('sfx', 'common', 'wampus'); // find parts
 
             _findDisplayObjectsOf = (0, _ntAnimator.findDisplayObjectsOfRole)(car, 'head'), _findDisplayObjectsOf2 = (0, _slicedToArray2.default)(_findDisplayObjectsOf, 1), head = _findDisplayObjectsOf2[0];
-            _findDisplayObjectsOf3 = (0, _ntAnimator.findDisplayObjectsOfRole)(car, 'head_winner'), _findDisplayObjectsOf4 = (0, _slicedToArray2.default)(_findDisplayObjectsOf3, 1), head_winner = _findDisplayObjectsOf4[0];
-            _findDisplayObjectsOf5 = (0, _ntAnimator.findDisplayObjectsOfRole)(car, 'head_loser'), _findDisplayObjectsOf6 = (0, _slicedToArray2.default)(_findDisplayObjectsOf5, 1), head_loser = _findDisplayObjectsOf6[0];
-            _findDisplayObjectsOf7 = (0, _ntAnimator.findDisplayObjectsOfRole)(car, 'laugh'), _findDisplayObjectsOf8 = (0, _slicedToArray2.default)(_findDisplayObjectsOf7, 1), laugh = _findDisplayObjectsOf8[0];
-            _findDisplayObjectsOf9 = (0, _ntAnimator.findDisplayObjectsOfRole)(car, 'panic'), _findDisplayObjectsOf10 = (0, _slicedToArray2.default)(_findDisplayObjectsOf9, 2), panic1 = _findDisplayObjectsOf10[0], panic2 = _findDisplayObjectsOf10[1]; // hidden by default
+            _findDisplayObjectsOf3 = (0, _ntAnimator.findDisplayObjectsOfRole)(car, 'head_winner'), _findDisplayObjectsOf4 = (0, _slicedToArray2.default)(_findDisplayObjectsOf3, 1), headWinner = _findDisplayObjectsOf4[0];
+            _findDisplayObjectsOf5 = (0, _ntAnimator.findDisplayObjectsOfRole)(car, 'head_loser'), _findDisplayObjectsOf6 = (0, _slicedToArray2.default)(_findDisplayObjectsOf5, 1), headLoser = _findDisplayObjectsOf6[0];
+            _findDisplayObjectsOf7 = (0, _ntAnimator.findDisplayObjectsOfRole)(car, 'laugh'), _findDisplayObjectsOf8 = (0, _slicedToArray2.default)(_findDisplayObjectsOf7, 1), laughEffect = _findDisplayObjectsOf8[0];
+            _findDisplayObjectsOf9 = (0, _ntAnimator.findDisplayObjectsOfRole)(car, 'panic'), _findDisplayObjectsOf10 = (0, _slicedToArray2.default)(_findDisplayObjectsOf9, 2), panicEffect1 = _findDisplayObjectsOf10[0], panicEffect2 = _findDisplayObjectsOf10[1]; // hidden by default
 
-            if (laugh) laugh.visible = false;
-            if (head_winner) head_winner.visible = false;
-            if (head_loser) head_loser.visible = false;
-            if (panic1) panic1.visible = false;
-            if (panic2) panic2.visible = false; // if missing layers then the effect can't play
+            if (laughEffect) laughEffect.visible = false;
+            if (headWinner) headWinner.visible = false;
+            if (headLoser) headLoser.visible = false;
+            if (panicEffect1) panicEffect1.visible = false;
+            if (panicEffect2) panicEffect2.visible = false; // if missing layers then the effect can't play
 
-            if (panic1 && panic2 && laugh) {
+            if (panicEffect1 && panicEffect2 && laughEffect) {
               _context.next = 14;
               break;
             }
@@ -132284,15 +132312,15 @@ function _extend() {
               if (animation) animation.stop(); // update the winning animation
 
               if (isWinner) {
-                laugh.visible = true;
+                laughEffect.visible = true;
                 head.visible = false;
-                head_winner.visible = true;
+                headWinner.visible = true;
               } // show the crying animation
               else {
                   head.visible = false;
-                  head_loser.visible = true;
-                  panic1.visible = true;
-                  panic2.visible = true;
+                  headLoser.visible = true;
+                  panicEffect1.visible = true;
+                  panicEffect2.visible = true;
                 }
             }; // handle race progress
 
@@ -132300,10 +132328,10 @@ function _extend() {
             car.onUpdate = function () {
               var isFinished = track.state.isFinished; // align the laugh animation to the top
 
-              if (isFinished && isWinner && laugh) {
-                laugh.rotation = -(player.rotation * 0.9);
-                laugh.emitter.spawnPos.y = player.rotation * 140;
-                laugh.emitter.spawnPos.x = player.rotation * 40;
+              if (isFinished && isWinner && laughEffect) {
+                laughEffect.rotation = -(player.rotation * 0.9);
+                laughEffect.emitter.spawnPos.y = player.rotation * 140;
+                laughEffect.emitter.spawnPos.x = player.rotation * 40;
               } // check if someone is ahead
               else if (!isFinished) {
                   var progress = player.state.progress; // check if behind
@@ -132331,7 +132359,7 @@ function _extend() {
 
                   var scale = behind / track.view.width;
                   var isBehind = progress > 50 && scale > 0.15;
-                  panic1.visible = panic2.visible = isBehind;
+                  panicEffect1.visible = panicEffect2.visible = isBehind;
                 }
             };
 
@@ -132450,10 +132478,13 @@ var ActivateNitroAnimation = /*#__PURE__*/function (_Animation) {
 
 
       car.x = props.carOffsetX;
+      car.y = props.carOffsetY;
       car.skew.y = props.carSkewY;
       car.skew.x = props.carSkewX;
       car.scale.x = props.carScaleX;
-      car.scale.y = props.carScaleY; // update the shadow
+      car.scale.y = props.carScaleY; // set the offset amount
+
+      car.nitroOffsetX = props.progress; // update the shadow
 
       shadow.scale.x = props.shadowScaleX;
       shadow.x = props.shadowX; // update the trail, if any
@@ -132535,7 +132566,7 @@ var ActivateNitroAnimation = /*#__PURE__*/function (_Animation) {
         // car positions
         // skewed at front to appear lifted
         carOffsetX: -15,
-        carOffsetY: -5,
+        carOffsetY: -7,
         carSkewY: -0.085,
         carSkewX: 0.05,
         carScaleX: origin.carScaleX - 0.01,
@@ -132578,9 +132609,15 @@ var ActivateNitroAnimation = /*#__PURE__*/function (_Animation) {
         })]
       }); // begin the animation sequence
 
+      var start = +new Date();
       var playback = sequence.start({
         // render the animation
         update: function update(props) {
+          // rather than starting another animation sequence
+          // just calculate the progress
+          var progress = (+new Date() - start) / DURATION;
+          props.progress = progress; // update the props
+
           _this2.update(props);
 
           _update(props);
@@ -132601,8 +132638,7 @@ var ActivateNitroAnimation = /*#__PURE__*/function (_Animation) {
     value: function stop() {
       (0, _get2.default)((0, _getPrototypeOf2.default)(ActivateNitroAnimation.prototype), "stop", this).call(this); // cancel nitros and sounds
 
-      var nitro = this.nitro,
-          hasNitro = this.hasNitro;
+      var hasNitro = this.hasNitro;
 
       if (hasNitro) {} // TODO
       // nitro.deactivateNitro();
@@ -133044,7 +133080,8 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
 
 
                 this.positions = positions;
-                this.car = car; // append plugins, if any
+                this.car = car;
+                this.bounds = bounds; // append plugins, if any
 
                 this.plugin = _cars.default[type]; // load any textures
 
@@ -133053,7 +133090,7 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
 
                 this.addChild(car);
 
-              case 28:
+              case 29:
               case "end":
                 return _context4.stop();
             }
@@ -133123,6 +133160,23 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
 
 
       this.normalMap = normalMap;
+    }
+    /** returns the scaling for the car */
+
+  }, {
+    key: "getRelativeSize",
+    value: function getRelativeSize() {
+      var _this$car$getBounds = this.car.getBounds(),
+          width = _this$car$getBounds.width,
+          height = _this$car$getBounds.height;
+
+      var _this$car$scale = this.car.scale,
+          x = _this$car$scale.x,
+          y = _this$car$scale.y;
+      return {
+        width: width * x,
+        height: height * y
+      };
     }
     /** changes the x position of the car */
 
@@ -133720,14 +133774,7 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                 return instance._initNameCard();
 
               case 13:
-                instance._initText(); // find the background
-                // if (isDefault) {
-                // 	const sprite = findDisplayObjectsOfRole(instance.container, 'base');
-                // 	if (sprite && sprite.children[0]) {
-                // 		sprite.children[0].tint = 0 | (Math.random() * 0xffffff);
-                // 	}
-                // }
-                // return the created namecard
+                instance._initText(); // return the created namecard
 
 
                 return _context2.abrupt("return", instance);
@@ -133995,13 +134042,14 @@ var Nitro = /*#__PURE__*/function (_AnimatorPIXI$Detatch) {
                 config = view.animator.lookup(path); // if this doesn't exist, don't try and create
 
                 if (config) {
-                  _context3.next = 5;
+                  _context3.next = 6;
                   break;
                 }
 
+                console.error("Failed to find nitro effect: ".concat(path));
                 return _context3.abrupt("return");
 
-              case 5:
+              case 6:
                 // determine the type to create
                 instance = new Nitro();
                 (0, _utils.merge)(instance, {
@@ -134011,10 +134059,10 @@ var Nitro = /*#__PURE__*/function (_AnimatorPIXI$Detatch) {
                   config: config
                 }); // initialize all car parts
 
-                _context3.next = 9;
+                _context3.next = 10;
                 return instance._initNitro();
 
-              case 9:
+              case 10:
                 // load the nitro sound - there's no reason
                 // to wait for this since it can't be used
                 // until after the race starts
@@ -134024,16 +134072,16 @@ var Nitro = /*#__PURE__*/function (_AnimatorPIXI$Detatch) {
 
 
                 if (instance.isValid) {
-                  _context3.next = 13;
+                  _context3.next = 14;
                   break;
                 }
 
                 return _context3.abrupt("return");
 
-              case 13:
+              case 14:
                 return _context3.abrupt("return", instance);
 
-              case 14:
+              case 15:
               case "end":
                 return _context3.stop();
             }
@@ -134117,12 +134165,6 @@ var Player = /*#__PURE__*/function (_AnimatorPIXI$Respons) {
     }
 
     _this = _super.call.apply(_super, [this].concat(args));
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "state", {
-      // values used to track the start and activity
-      // of a skip nitro animation
-      nitroBonus: 0,
-      nitroBonusOffset: 0
-    });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "layers", {});
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "stopProgressAnimation", function () {
       if (!_this._progress) return;
@@ -134131,76 +134173,14 @@ var Player = /*#__PURE__*/function (_AnimatorPIXI$Respons) {
 
       _this._progress = undefined;
     });
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setProgress", function (percent) {
-      var _assertThisInitialize = (0, _assertThisInitialized2.default)(_this),
-          relativeX = _assertThisInitialize.relativeX,
-          state = _assertThisInitialize.state,
-          track = _assertThisInitialize.track,
-          layers = _assertThisInitialize.layers;
-
-      var namecard = layers.namecard;
-      var progress = track.progress; // save the completion
-
-      state.progress = percent; // animate the progress
-
-      var position = progress[Math.max(0, 0 | percent)];
-      var isFinished = position > 1 || isNaN(position); // if finishing or exceeding the limit the race
-
-      if (isFinished) position = _config.TRACK_OFFSCREEN_CAR_FINISH; // has finished the ending animations
-
-      if (state.isOutro) return;
-      state.isOutro = isFinished; // stop animating
-
-      _this.stopProgressAnimation(); // calculate the scaled position
-
-
-      position = _config.TRACK_STARTING_LINE_POSITION + (1 - _config.TRACK_STARTING_LINE_POSITION) * position; // calculate the duration using the distance
-
-      var diff = Math.abs(position - relativeX);
-      var duration = 1000 + 2000 * diff; // perform the transition
-
-      var origin = relativeX - state.nitroBonusOffset;
-      _this._progress = (0, _popmotion.tween)({
-        duration: duration,
-        ease: _popmotion.easing.linear,
-        from: {
-          carX: origin,
-          namecardX: origin
-        },
-        to: {
-          carX: position,
-          namecardX: position + (isFinished ? _config.NAMECARD_TETHER_DISTANCE : 0)
-        }
-      }).start({
-        update: function update(props) {
-          _this.relativeX = props.carX + state.nitroBonusOffset; // tether the namecard
-
-          var tether = track.width * _config.NAMECARD_TETHER_DISTANCE;
-          namecard.x = Math.max(0, track.width * props.namecardX + _this.car.positions.back - tether);
-        }
-      });
-    });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "update", function (_ref) {
       var shake = _ref.shake;
 
-      var _assertThisInitialize2 = (0, _assertThisInitialized2.default)(_this),
-          state = _assertThisInitialize2.state,
-          car = _assertThisInitialize2.car;
-
-      var isNitro = car.state.isNitro; // check if the nitro is in effect
-
-      var nitroActive = isNitro || state.nitroBonus > 0 && state.nitroBonus < 2; // update the car
+      var _assertThisInitialize = (0, _assertThisInitialized2.default)(_this),
+          state = _assertThisInitialize.state,
+          car = _assertThisInitialize.car;
 
       car.onUpdate();
-      car.rattle(shake); // update the nitro values
-
-      if (nitroActive) {
-        state.nitroBonus = Math.min(2, state.nitroBonus + 0.01);
-        state.nitroBonusOffset = Math.sin(Math.PI / 2 * state.nitroBonus) * 0.1;
-      } else {
-        state.nitroBonus = 0;
-        state.nitroBonusOffset = 0;
-      }
     });
     return _this;
   }
@@ -134456,9 +134436,9 @@ var Player = /*#__PURE__*/function (_AnimatorPIXI$Respons) {
     /** the players name card layer */
 
   }, {
-    key: "card",
+    key: "namecard",
     get: function get() {
-      return this.layers.car;
+      return this.layers.namecard;
     }
     /** handles creating a new player instance */
 
@@ -136589,8 +136569,8 @@ var CarEntryAnimation = function CarEntryAnimation(_ref) {
 
 
     (0, _popmotion.tween)({
-      duration: 3000,
-      ease: _popmotion.easing.easeInOut,
+      duration: _config.RACE_START_CAR_ENTRY_TIME,
+      ease: _popmotion.easing.cubicBezier(0.43, 1.15, 0.91, 1),
       from: entryOrigin,
       to: entryDestination
     }).start({
@@ -136598,10 +136578,10 @@ var CarEntryAnimation = function CarEntryAnimation(_ref) {
       complete: complete
     }); // animate the player entry
 
-    if (namecard) (0, _popmotion.delay)(2200).start({
+    if (namecard) (0, _popmotion.delay)(_config.RACE_START_NAMECARD_DELAY_TIME).start({
       complete: function complete() {
         return (0, _popmotion.tween)({
-          duration: 1000,
+          duration: _config.RACE_START_NAMECARD_ENTRY_TIME,
           ease: _popmotion.easing.backOut,
           from: namecardOrigin,
           to: namecardDestination
@@ -136635,7 +136615,7 @@ var audio = _interopRequireWildcard(require("../audio"));
 
 var _popmotion = require("popmotion");
 
-var _scaling = require("../views/track/scaling");
+var _config = require("../config");
 
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
@@ -136666,40 +136646,32 @@ var CarFinishLineAnimation = /*#__PURE__*/function () {
           _ref2$complete = _ref2.complete,
           complete = _ref2$complete === void 0 ? _utils.noop : _ref2$complete;
       var player = this.player,
-          place = this.place,
-          isActivePlayer = this.isActivePlayer,
-          track = this.track;
-      var car = player.car,
-          trail = player.trail;
-      var shadow = car.shadow; // sound effect for the current player
+          isActivePlayer = this.isActivePlayer; // sound effect for the current player
 
       if (isActivePlayer) {
-        // start the audio finish audio
         var crowd = audio.create('sfx', 'common', 'finish_crowd');
-        crowd.play(); // queue up the stop sound
+        crowd.play();
+      } // if this car is entering
 
+
+      if (!isInstant) {
         var stop = audio.create('sfx', 'common', 'car_stopping');
         setTimeout(function () {
           return stop.play();
         }, 500);
-      } // create params
+      } // starting and ending points
 
-
-      var placementOffset = place * 0.1; // the starting point for the animatin
-      // TODO: look at shortening the animation and
-      // starting closer to the line
 
       var entryOrigin = {
-        playerX: -0.25 - placementOffset
-      }; // the stopping point
-      // TODO: look at a tigher fit when lanes are staggered
-
+        playerX: -0.15
+      };
       var entryDestination = {
         playerX: 0.975
       }; // handle updating the entry animation
 
       var updateEntryProps = function updateEntryProps(props) {
         player.relativeX = props.playerX;
+        player.visible = true;
       }; // set the new starting positions
 
 
@@ -136716,10 +136688,8 @@ var CarFinishLineAnimation = /*#__PURE__*/function () {
       updateEntryProps(entryOrigin); // start the entry animation
 
       (0, _popmotion.tween)({
-        duration: 1500,
-        // duration: 3000,
-        // ease: easing.cubicBezier(.27,1.31,.25,.72),
-        ease: _popmotion.easing.easeOut,
+        duration: _config.RACE_FINISH_CAR_STOPPING_TIME,
+        ease: _popmotion.easing.circOut,
         from: entryOrigin,
         to: entryDestination
       }).start({
@@ -136731,7 +136701,7 @@ var CarFinishLineAnimation = /*#__PURE__*/function () {
 }();
 
 exports.default = CarFinishLineAnimation;
-},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","../utils":"utils/index.js","../audio":"audio/index.js","popmotion":"../node_modules/popmotion/dist/popmotion.es.js","../views/track/scaling":"views/track/scaling.js"}],"animations/race-completed.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","../utils":"utils/index.js","../audio":"audio/index.js","popmotion":"../node_modules/popmotion/dist/popmotion.es.js","../config":"config.js"}],"animations/race-completed.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -136753,6 +136723,8 @@ var _carFinish = _interopRequireDefault(require("./car-finish"));
 
 var _popmotion = require("popmotion");
 
+var _config = require("../config");
+
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
@@ -136773,13 +136745,18 @@ var RaceCompletedAnimation = /*#__PURE__*/function () {
         _activePlayerId = _ref.activePlayerId,
         _player = _ref.player,
         allPlayers = _ref.allPlayers,
-        finishedPlayers = _ref.finishedPlayers;
+        _finishedPlayers = _ref.finishedPlayers;
     (0, _classCallCheck2.default)(this, RaceCompletedAnimation);
-    (0, _defineProperty2.default)(this, "addPlayer", function (player, place, isInstant) {
+    (0, _defineProperty2.default)(this, "addPlayer", function (player, isInstant) {
       var track = _this.track,
+          finishedPlayers = _this.finishedPlayers,
           activePlayerId = _this.activePlayerId;
       var stage = track.stage;
       var isActivePlayer = player.id === activePlayerId; // create the animation
+
+      var place = finishedPlayers.indexOf(player.id) + 1; // restore the car view, if needed
+
+      player.visible = true; // create the animation
 
       var animate = new _carFinish.default({
         player: player,
@@ -136795,8 +136772,36 @@ var RaceCompletedAnimation = /*#__PURE__*/function () {
     this.track = _track;
     this.player = _player;
     this.allPlayers = allPlayers;
-    this.finishedPlayers = finishedPlayers;
-    this.activePlayerId = _activePlayerId;
+    this.finishedPlayers = _finishedPlayers;
+    this.activePlayerId = _activePlayerId; // create the flash of white
+
+    var view = _track.view.view;
+    var flash = new PIXI.Sprite(PIXI.Texture.WHITE);
+    this.flash = flash; // match the screen and place on the top
+
+    flash.width = view.width;
+    flash.height = view.height;
+    flash.zIndex = Number.MAX_SAFE_INTEGER; // add it to the race
+
+    view.addChild(flash); // reset all car positions
+
+    var _iterator = _createForOfIteratorHelper(allPlayers),
+        _step;
+
+    try {
+      for (_iterator.s(); !(_step = _iterator.n()).done;) {
+        var p = _step.value;
+        p.car.relativeX = -0.15; // also has a namecard
+
+        if (p.namecard) {
+          p.namecard.relativeX = -0.15;
+        }
+      }
+    } catch (err) {
+      _iterator.e(err);
+    } finally {
+      _iterator.f();
+    }
   } // shows the player animation
 
 
@@ -136808,50 +136813,41 @@ var RaceCompletedAnimation = /*#__PURE__*/function () {
           update = _ref2$update === void 0 ? _utils.noop : _ref2$update,
           _ref2$complete = _ref2.complete,
           complete = _ref2$complete === void 0 ? _utils.noop : _ref2$complete;
-      var player = this.player,
+      var allPlayers = this.allPlayers,
           finishedPlayers = this.finishedPlayers,
-          allPlayers = this.allPlayers,
-          track = this.track; // hide namecards
+          track = this.track,
+          flash = this.flash;
+      var view = track.view; // start by putting the players on the ending line
+      // TODO: this need to have some timestamp logic
 
-      var _iterator = _createForOfIteratorHelper(allPlayers),
-          _step;
+      var _iterator2 = _createForOfIteratorHelper(allPlayers),
+          _step2;
 
       try {
-        for (_iterator.s(); !(_step = _iterator.n()).done;) {
-          var p = _step.value;
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+          var player = _step2.value;
+          var isFinished = !!~finishedPlayers.indexOf(player.id); // finished players, move to the finish line
 
-          if (p.layers.namecard) {
-            p.layers.namecard.visible = false;
-            p.relativeX = -5;
-          }
-        } // place finished cars into the view
+          if (player.isPlayer || isFinished) {
+            this.addPlayer(player, !player.isPlayer);
+          } // otherwise, move off screen
+          else {
+              player.relativeX = -5;
+              player.visible = false;
+            }
+        } // fade the flash effect
 
       } catch (err) {
-        _iterator.e(err);
+        _iterator2.e(err);
       } finally {
-        _iterator.f();
+        _iterator2.f();
       }
-
-      for (var place = 0; place < finishedPlayers.length; place++) {
-        var finished = finishedPlayers[place];
-        var isAlreadyHere = player.id !== finished.id;
-        this.addPlayer(finished, place, isAlreadyHere);
-      } // create the flash effect
-
-
-      var view = track.view.view;
-      var flash = new PIXI.Sprite(PIXI.Texture.WHITE);
-      view.addChild(flash); // match the screen and place on the top
-
-      flash.width = view.width;
-      flash.height = view.height;
-      flash.zIndex = Number.MAX_SAFE_INTEGER; // fade the flash effect
 
       (0, _popmotion.tween)({
         from: 1,
         to: 0,
         ease: _popmotion.easing.circIn,
-        duration: 1000
+        duration: _config.RACE_FINISH_FLASH_FADE_TIME
       }).start({
         update: function update(v) {
           // match the size in case the view changes
@@ -136867,7 +136863,328 @@ var RaceCompletedAnimation = /*#__PURE__*/function () {
 }();
 
 exports.default = RaceCompletedAnimation;
-},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","pixi.js":"../node_modules/pixi.js/lib/pixi.es.js","../utils":"utils/index.js","./car-finish":"animations/car-finish.js","popmotion":"../node_modules/popmotion/dist/popmotion.es.js"}],"views/track/index.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","pixi.js":"../node_modules/pixi.js/lib/pixi.es.js","../utils":"utils/index.js","./car-finish":"animations/car-finish.js","popmotion":"../node_modules/popmotion/dist/popmotion.es.js","../config":"config.js"}],"../node_modules/@babel/runtime/helpers/isNativeFunction.js":[function(require,module,exports) {
+function _isNativeFunction(fn) {
+  return Function.toString.call(fn).indexOf("[native code]") !== -1;
+}
+
+module.exports = _isNativeFunction;
+},{}],"../node_modules/@babel/runtime/helpers/isNativeReflectConstruct.js":[function(require,module,exports) {
+function _isNativeReflectConstruct() {
+  if (typeof Reflect === "undefined" || !Reflect.construct) return false;
+  if (Reflect.construct.sham) return false;
+  if (typeof Proxy === "function") return true;
+
+  try {
+    Date.prototype.toString.call(Reflect.construct(Date, [], function () {}));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+module.exports = _isNativeReflectConstruct;
+},{}],"../node_modules/@babel/runtime/helpers/construct.js":[function(require,module,exports) {
+var setPrototypeOf = require("./setPrototypeOf");
+
+var isNativeReflectConstruct = require("./isNativeReflectConstruct");
+
+function _construct(Parent, args, Class) {
+  if (isNativeReflectConstruct()) {
+    module.exports = _construct = Reflect.construct;
+  } else {
+    module.exports = _construct = function _construct(Parent, args, Class) {
+      var a = [null];
+      a.push.apply(a, args);
+      var Constructor = Function.bind.apply(Parent, a);
+      var instance = new Constructor();
+      if (Class) setPrototypeOf(instance, Class.prototype);
+      return instance;
+    };
+  }
+
+  return _construct.apply(null, arguments);
+}
+
+module.exports = _construct;
+},{"./setPrototypeOf":"../node_modules/@babel/runtime/helpers/setPrototypeOf.js","./isNativeReflectConstruct":"../node_modules/@babel/runtime/helpers/isNativeReflectConstruct.js"}],"../node_modules/@babel/runtime/helpers/wrapNativeSuper.js":[function(require,module,exports) {
+var getPrototypeOf = require("./getPrototypeOf");
+
+var setPrototypeOf = require("./setPrototypeOf");
+
+var isNativeFunction = require("./isNativeFunction");
+
+var construct = require("./construct");
+
+function _wrapNativeSuper(Class) {
+  var _cache = typeof Map === "function" ? new Map() : undefined;
+
+  module.exports = _wrapNativeSuper = function _wrapNativeSuper(Class) {
+    if (Class === null || !isNativeFunction(Class)) return Class;
+
+    if (typeof Class !== "function") {
+      throw new TypeError("Super expression must either be null or a function");
+    }
+
+    if (typeof _cache !== "undefined") {
+      if (_cache.has(Class)) return _cache.get(Class);
+
+      _cache.set(Class, Wrapper);
+    }
+
+    function Wrapper() {
+      return construct(Class, arguments, getPrototypeOf(this).constructor);
+    }
+
+    Wrapper.prototype = Object.create(Class.prototype, {
+      constructor: {
+        value: Wrapper,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+    return setPrototypeOf(Wrapper, Class);
+  };
+
+  return _wrapNativeSuper(Class);
+}
+
+module.exports = _wrapNativeSuper;
+},{"./getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","./setPrototypeOf":"../node_modules/@babel/runtime/helpers/setPrototypeOf.js","./isNativeFunction":"../node_modules/@babel/runtime/helpers/isNativeFunction.js","./construct":"../node_modules/@babel/runtime/helpers/construct.js"}],"animations/race-progress.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
+
+var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
+
+var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
+
+var _wrapNativeSuper2 = _interopRequireDefault(require("@babel/runtime/helpers/wrapNativeSuper"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var _popmotion = require("popmotion");
+
+var _ntAnimator = require("nt-animator");
+
+var _config = require("../config");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
+  (0, _inherits2.default)(RaceProgressAnimation, _Animation);
+
+  var _super = _createSuper(RaceProgressAnimation);
+
+  function RaceProgressAnimation(_ref) {
+    var _this;
+
+    var _track = _ref.track,
+        _player = _ref.player,
+        _ref$isQualifyingRace = _ref.isQualifyingRace,
+        isQualifyingRace = _ref$isQualifyingRace === void 0 ? false : _ref$isQualifyingRace;
+    (0, _classCallCheck2.default)(this, RaceProgressAnimation);
+    _this = _super.call(this);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "autoProgress", 0);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "fitTo", {});
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "tweens", {});
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "timestamps", {});
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "lastUpdate", {});
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "getOffscreenScale", function (player) {
+      var _assertThisInitialize = (0, _assertThisInitialized2.default)(_this),
+          track = _assertThisInitialize.track,
+          fitTo = _assertThisInitialize.fitTo; // calculate the size of the car relative to the track and
+      // add that to the required progress to finish the race
+      // cache this so the sizing doesn't change over time
+
+
+      var size = fitTo[player.id];
+
+      if (!size) {
+        var bounds = (0, _ntAnimator.getBoundsForRole)(player.car.car, 'base');
+        var width = bounds ? bounds.width : player.car.car.width;
+        fitTo[player.id] = size = width * _config.RACE_OFF_SCREEN_FINISH_DISTANCE;
+      }
+
+      return size / track.view.width;
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "animateOther", function (player) {
+      var _assertThisInitialize2 = (0, _assertThisInitialized2.default)(_this),
+          track = _assertThisInitialize2.track;
+
+      var activePlayer = track.activePlayer; // calculate a position relative to the player but
+      // offset by the difference in progress
+
+      var percent = player.progress / 100;
+      var diff = percent - activePlayer.progress / 100;
+      diff *= _config.RACE_PLAYER_DISTANCE_MODIFIER; // save the position
+
+      player.preferredX = activePlayer.relativeX + diff;
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "animatePlayer", function (player) {
+      var _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this),
+          now = _assertThisInitialize3.now,
+          timestamps = _assertThisInitialize3.timestamps;
+
+      var percent = player.progress / 100; // nothing to update
+
+      if (!timestamps[player.id]) {
+        timestamps[player.id] = now;
+        return;
+      } // is allowed to animate
+
+
+      if (percent > _config.RACE_ENDING_ANIMATION_THRESHOLD) {
+        // set the origin for the exit animation
+        if (!player.exitAnimationOrigin) {
+          player.exitAnimationOrigin = player.relativeX;
+          _this.isOutro = true;
+        }
+
+        var width = _this.getOffscreenScale(player);
+
+        var remaining = (percent - player.exitAnimationOrigin) * (1 / (1 - player.exitAnimationOrigin)); // save the preferred location for the car	
+
+        player.preferredX = // the defaul starting edge
+        _config.TRACK_STARTING_LINE_POSITION + // plus a percentage of the remaining
+        (1 - _config.TRACK_STARTING_LINE_POSITION) * remaining + // and a percentage of the bonus room off the edge of
+        // the entire track
+        width * percent;
+      }
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "updatePlayer", function (player) {
+      var _assertThisInitialize4 = (0, _assertThisInitialized2.default)(_this),
+          now = _assertThisInitialize4.now,
+          timestamps = _assertThisInitialize4.timestamps,
+          lastUpdate = _assertThisInitialize4.lastUpdate,
+          tweens = _assertThisInitialize4.tweens; // check if already updated
+
+
+      if (lastUpdate[player.id] === player.progress) return;
+      lastUpdate[player.id] = player.progress; // perform the update
+
+      if (player.isPlayer) _this.animatePlayer(player);else _this.animateOther(player); // cannot animate yet
+
+      if (isNaN(player.preferredX)) return; // start the tween
+
+      if (tweens[player.id]) tweens[player.id].stop(); // update timestamps
+
+      var lastTimestamp = timestamps[player.id] || now;
+      timestamps[player.id] = now; // calculate the current position
+
+      var nitroBonus = _this.getNitroBonus(player);
+
+      var startAt = player.relativeX - nitroBonus; // start the new tween
+
+      var duration = Math.max(2000, now - lastTimestamp);
+      tweens[player.id] = (0, _popmotion.tween)({
+        ease: _popmotion.easing.linear,
+        from: startAt,
+        to: player.preferredX,
+        duration: duration
+      }).start({
+        update: function update(v) {
+          var nitroBonus = _this.getNitroBonus(player);
+
+          player.relativeX = v + nitroBonus;
+        }
+      });
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "getNitroBonus", function (player) {
+      var _player$car, _player$car$car;
+
+      // TODO: refactor this - it's not a very nice way
+      // to access this value
+      return Math.sin((((_player$car = player.car) === null || _player$car === void 0 ? void 0 : (_player$car$car = _player$car.car) === null || _player$car$car === void 0 ? void 0 : _player$car$car.nitroOffsetX) || 0) * Math.PI) * 0.05;
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "update", function () {
+      _this.now = +new Date();
+
+      var _assertThisInitialize5 = (0, _assertThisInitialized2.default)(_this),
+          track = _assertThisInitialize5.track;
+
+      var activePlayer = track.activePlayer,
+          players = track.players; // // if the active player isn't ready yet
+      // // then don't fail - this shouldn't ever happen
+
+      if (!activePlayer) return; // // always update the active player first
+
+      _this.updatePlayer(activePlayer); // if this hasn't started the ending animation, add a 
+      // small amount to the main car so it continues to move
+
+
+      if (!_this.isOutro) {
+        // keep track of actual positioning
+        _this.autoProgressOrigin = _this.autoProgressOrigin || activePlayer.relativeX;
+        _this.autoProgress += _config.RACE_AUTO_PROGRESS_DISTANCE; // get a nitro bonus, if any
+
+        var nitroBonus = _this.getNitroBonus(activePlayer); // update the position
+
+
+        activePlayer.relativeX = Math.min(_this.autoProgressOrigin + _this.autoProgress + nitroBonus, _config.RACE_ENDING_ANIMATION_THRESHOLD);
+      } // update remaining players
+
+
+      var _iterator = _createForOfIteratorHelper(players),
+          _step;
+
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var player = _step.value;
+          if (player.isPlayer) continue;
+
+          _this.updatePlayer(player);
+        }
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "stop", function () {
+      var _assertThisInitialize6 = (0, _assertThisInitialized2.default)(_this),
+          tweens = _assertThisInitialize6.tweens;
+
+      for (var id in tweens) {
+        tweens[id].stop();
+      }
+    });
+    _this.track = _track;
+    return _this;
+  } // extra x value for slight continued car movement
+
+
+  return RaceProgressAnimation;
+}( /*#__PURE__*/(0, _wrapNativeSuper2.default)(Animation));
+
+exports.default = RaceProgressAnimation;
+
+function setPosition(player, v) {
+  player.relativeX = v;
+}
+
+;
+},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/wrapNativeSuper":"../node_modules/@babel/runtime/helpers/wrapNativeSuper.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","popmotion":"../node_modules/popmotion/dist/popmotion.es.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../config":"config.js"}],"views/track/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -136918,6 +137235,8 @@ var _track = _interopRequireDefault(require("../../components/track"));
 var _carEntry = _interopRequireDefault(require("../../animations/car-entry"));
 
 var _raceCompleted = _interopRequireDefault(require("../../animations/race-completed"));
+
+var _raceProgress = _interopRequireDefault(require("../../animations/race-progress"));
 
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
@@ -136982,7 +137301,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(data, isInstant) {
         var _car$plugin;
 
-        var _assertThisInitialize, state, stage, sfx, playerOptions, player, _assertThisInitialize2, animator, car, isPlayer, id, _ref2, _ref2$enterSound, enterSound, _entry, namecard, container, entry;
+        var _assertThisInitialize, state, stage, sfx, playerOptions, player, _assertThisInitialize2, animator, car, isPlayer, id, _ref2, _ref2$enterSound, enterSound, rev, namecard, container, entry;
 
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
@@ -137023,20 +137342,18 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 isPlayer = playerOptions.isPlayer, id = playerOptions.id;
 
                 if (isPlayer) {
-                  _this.activePlayerId = id; // since this is the player, activate their
-                  // car entry sound effect
-
-                  _ref2 = data.car || {}, _ref2$enterSound = _ref2.enterSound, enterSound = _ref2$enterSound === void 0 ? 'sport' : _ref2$enterSound;
-                  _entry = audio.create('sfx', 'common', "entry_".concat(enterSound)); // start the entry sound
-
-                  if (_entry) {
-                    _entry.loop(false);
-
-                    _entry.play(); // save this for layer
+                  _this.activePlayerId = id;
+                  _this.activePlayer = player;
+                  player.isPlayer = true;
+                } // activate their car entry sound effect
 
 
-                    sfx.entry = _entry;
-                  }
+                _ref2 = data.car || {}, _ref2$enterSound = _ref2.enterSound, enterSound = _ref2$enterSound === void 0 ? 'sport' : _ref2$enterSound;
+                rev = audio.create('sfx', 'common', "entry_".concat(enterSound));
+
+                if (rev) {
+                  rev.loop(false);
+                  rev.play();
                 } // with the player, include their namecard
 
 
@@ -137071,7 +137388,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 stage.addChild(player);
                 stage.sortChildren();
 
-              case 20:
+              case 23:
               case "end":
                 return _context.stop();
             }
@@ -137088,13 +137405,13 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setTrack", /*#__PURE__*/function () {
       var _ref3 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(options) {
-        var _assertThisInitialize3, stage, animator, trackOptions, track;
+        var _assertThisInitialize3, stage, trackOptions, track;
 
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this), stage = _assertThisInitialize3.stage, animator = _assertThisInitialize3.animator;
+                _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this), stage = _assertThisInitialize3.stage;
                 trackOptions = (0, _utils.merge)({
                   view: (0, _assertThisInitialized2.default)(_this)
                 }, options);
@@ -137163,16 +137480,22 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
         setTimeout(function () {
           return sfx.entry.fade(1, 0, 2000);
         }, 1500);
-      } // play the countdown
+      } // prepare sounds
 
 
       var mark = audio.create('sfx', 'common', 'countdown_mark');
-      setTimeout(mark.play, 2000);
       var set = audio.create('sfx', 'common', 'countdown_set');
+      var go = audio.create('sfx', 'common', 'countdown_go'); // accelerate -- kinda loud
+
+      var acceleration = audio.create('sfx', 'common', 'acceleration');
+      acceleration.volume(0.15); // play the countdown
+
+      setTimeout(mark.play, 2000);
       setTimeout(set.play, 3000);
-      var go = audio.create('sfx', 'common', 'countdown_go');
       setTimeout(function () {
+        // sounds
         go.play();
+        acceleration.play(); // notify the race has begun
 
         _this.emit('start');
       }, 4000);
@@ -137180,36 +137503,13 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "configureSFX", audio.configureSFX);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "configureMusic", audio.configureMusic);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setProgress", function (id, progress) {
-      var _assertThisInitialize6 = (0, _assertThisInitialized2.default)(_this),
-          state = _assertThisInitialize6.state,
-          activePlayerId = _assertThisInitialize6.activePlayerId;
+      var player = _this.getPlayerById(id);
 
-      var isFinished = state.isFinished;
+      player.progress = progress;
+      player.isFinished = progress >= 0; // finish the race for this player
+      // if progress is done
 
-      var player = _this.getPlayerById(id); // nothing to do
-
-
-      if (player.isFinished) {
-        return;
-      } // if the progress is 100 then this is a winner
-
-
-      if (progress >= 100) {
-        player.isFinished = true;
-
-        _this.finishRace(player); // if this activates the ending animation
-        // then it can stop now
-
-
-        if (player.id === activePlayerId) {
-          return;
-        }
-      } // the race is done so there's nothing to animate
-
-
-      if (isFinished) return; // set the completion value
-
-      player.setProgress(progress);
+      if (player.progress >= 100) _this.finishRace(player);
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "activateNitro", function (id) {
       var player = _this.getPlayerById(id);
@@ -137219,65 +137519,63 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       }
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "startRace", function () {
-      var _assertThisInitialize7 = (0, _assertThisInitialized2.default)(_this),
-          options = _assertThisInitialize7.options;
+      var _assertThisInitialize6 = (0, _assertThisInitialized2.default)(_this),
+          options = _assertThisInitialize6.options;
 
       _this.state.accelerate = true;
+      _this.state.isStarted = true;
       _this.animationRate = options.animationRateWhenRacing;
     });
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "finishRace", function (player) {
-      var _assertThisInitialize8 = (0, _assertThisInitialized2.default)(_this),
-          track = _assertThisInitialize8.track,
-          state = _assertThisInitialize8.state,
-          players = _assertThisInitialize8.players,
-          activePlayerId = _assertThisInitialize8.activePlayerId,
-          finishedPlayers = _assertThisInitialize8.finishedPlayers,
-          options = _assertThisInitialize8.options; // save the finish
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "finishRace", function () {
+      var _ref4 = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+          id = _ref4.id;
+
+      var _assertThisInitialize7 = (0, _assertThisInitialized2.default)(_this),
+          track = _assertThisInitialize7.track,
+          state = _assertThisInitialize7.state,
+          players = _assertThisInitialize7.players,
+          activePlayer = _assertThisInitialize7.activePlayer,
+          finishedPlayers = _assertThisInitialize7.finishedPlayers,
+          options = _assertThisInitialize7.options; // already added to finish
 
 
-      var place = finishedPlayers.length;
-      player.car.onFinishRace(place);
-      finishedPlayers.push(player); // if currently playing the finish animation, add the player
+      if (!!~finishedPlayers.indexOf(id)) return;
+      finishedPlayers.push(id); // find the player
+
+      var player = _this.getPlayerById(id); // if the animation has already begun, add them
+      // to the animation
+
 
       if (_this.raceCompletedAnimation) {
-        _this.raceCompletedAnimation.addPlayer(player, place);
+        _this.raceCompletedAnimation.addPlayer(player);
 
         return;
-      } // nothing to do if an existing player
+      } // if this is not the active player, then there's
+      // nothing left to do -- just continue to let them
+      // animate off the track
 
 
-      if (player.id !== activePlayerId) return; // switch to the finishline view
-
-      track.showFinishLine();
-      _this.animationRate = options.animationRateWhenIdle; // stop the track
+      if (!player.isPlayer) return; // stop the track
 
       state.accelerate = false;
       state.speed = 0;
       state.shake = _config.CAR_DEFAULT_SHAKE_LEVEL;
-      state.isFinished = true; // deactivate all current tweens
+      state.isFinished = true;
+      track.showFinishLine(); // return to idle animation speed
 
-      var _iterator2 = _createForOfIteratorHelper(players),
-          _step2;
+      _this.animationRate = options.animationRateWhenIdle; // stop animating progress
 
-      try {
-        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-          var p = _step2.value;
-          p.stopProgressAnimation();
-        } // play the final animation
+      _this.raceProgressAnimation.stop(); // play the final animation
 
-      } catch (err) {
-        _iterator2.e(err);
-      } finally {
-        _iterator2.f();
-      }
 
       _this.raceCompletedAnimation = new _raceCompleted.default({
         track: track,
         player: player,
-        activePlayerId: activePlayerId,
+        activePlayer: activePlayer,
         allPlayers: players,
         finishedPlayers: finishedPlayers
-      }); // start the animation
+      }); // start the animation - does this need
+      // to be delayed?
 
       _this.raceCompletedAnimation.play({});
     });
@@ -137285,10 +137583,10 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       // increment the frame counter
       _this.frame++; // gather some data
 
-      var _assertThisInitialize9 = (0, _assertThisInitialized2.default)(_this),
-          state = _assertThisInitialize9.state,
-          frame = _assertThisInitialize9.frame,
-          animationRate = _assertThisInitialize9.animationRate;
+      var _assertThisInitialize8 = (0, _assertThisInitialized2.default)(_this),
+          state = _assertThisInitialize8.state,
+          frame = _assertThisInitialize8.frame,
+          animationRate = _assertThisInitialize8.animationRate;
 
       var shake = state.shake,
           accelerate = state.accelerate; // speeding up the view
@@ -137296,27 +137594,13 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       state.speed = accelerate ? Math.min(_config.TRACK_MAXIMUM_SPEED, state.speed + _config.TRACK_ACCELERATION_RATE) : 0; // update the amount cars should shake
 
       var speed = state.speed;
-      state.shake = Math.max(shake, speed); // update each player
+      state.shake = Math.max(shake, speed); // TODO: replace with new views
+      // this is temporary check until
+      // garage and preview modes are done
 
-      var _iterator3 = _createForOfIteratorHelper(_this.players),
-          _step3;
+      _this.track.update(state);
 
-      try {
-        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
-          var player = _step3.value;
-          player.update(state);
-        } // TODO: replace with new views
-        // this is temporary check until
-        // garage and preview modes are done
-
-      } catch (err) {
-        _iterator3.e(err);
-      } finally {
-        _iterator3.f();
-      }
-
-      _this.track.update(state); // if throttling
-
+      if (state.isStarted && !state.isFinished) _this.raceProgressAnimation.update(); // if throttling
 
       if (frame % animationRate !== 0) return; // redraw		
 
@@ -137350,7 +137634,10 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
       this.progress = options.manifest.progress;
       this.pendingPlayers = options.expectedPlayerCount;
-      this.animationRate = options.animationRateWhenIdle; // attach the effects filter
+      this.animationRate = options.animationRateWhenIdle;
+      this.raceProgressAnimation = new _raceProgress.default({
+        track: this
+      }); // attach the effects filter
 
       this.stage.filters = [this.filter];
     }
@@ -137373,7 +137660,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 }(_base.BaseView);
 
 exports.default = TrackView;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","pixi.js":"../node_modules/pixi.js/lib/pixi.es.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","../../audio":"audio/index.js","./scaling":"views/track/scaling.js","../../config":"config.js","./layers":"views/track/layers.js","../base":"views/base.js","./player":"views/track/player.js","../../components/track":"components/track/index.js","../../animations/car-entry":"animations/car-entry.js","../../animations/race-completed":"animations/race-completed.js"}],"views/composer.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","pixi.js":"../node_modules/pixi.js/lib/pixi.es.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","../../audio":"audio/index.js","./scaling":"views/track/scaling.js","../../config":"config.js","./layers":"views/track/layers.js","../base":"views/base.js","./player":"views/track/player.js","../../components/track":"components/track/index.js","../../animations/car-entry":"animations/car-entry.js","../../animations/race-completed":"animations/race-completed.js","../../animations/race-progress":"animations/race-progress.js"}],"views/composer.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {

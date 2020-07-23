@@ -7,7 +7,7 @@ export const ANIMATION_RATE_WHILE_RACING = 1;
 export const ANIMATION_RATE_WHILE_IDLE = 1;
 
 // tracks
-export const TRACK_MAXIMUM_SCROLL_SPEED = 50;
+export const TRACK_MAXIMUM_SCROLL_SPEED = 60;
 export const TRACK_MAXIMUM_SPEED = 0.66;
 export const TRACK_ACCELERATION_RATE = 0.01;
 export const TRACK_TOP_SCALE = 0.125;
@@ -19,6 +19,16 @@ export const TRACK_STARTING_LINE_POSITION = 0.4;
 export const TRACK_NAMECARD_EDGE_PADDING = 10;
 export const TRACK_OFFSCREEN_CAR_FINISH = 1.25;
 
+// progress
+export const RACE_ENDING_ANIMATION_THRESHOLD = 0.75;
+export const RACE_PLAYER_DISTANCE_MODIFIER = 5;
+export const RACE_OFF_SCREEN_FINISH_DISTANCE = 1.15;
+export const RACE_AUTO_PROGRESS_DISTANCE = 0.00015;
+export const RACE_START_CAR_ENTRY_TIME = 2000;
+export const RACE_START_NAMECARD_ENTRY_TIME = 1000;
+export const RACE_START_NAMECARD_DELAY_TIME = 1200;
+export const RACE_FINISH_CAR_STOPPING_TIME = 1100;
+
 // crowds
 export const CROWD_DEFAULT_SCALE = 0.4;
 export const CROWD_ANIMATION_VARIATIONS = 5;
@@ -28,7 +38,7 @@ export const NAMECARD_SCALE = 0.8;
 export const NAMECARD_TETHER_DISTANCE = 0.33;
 
 // cars
-export const CAR_DEFAULT_SHAKE_LEVEL = 0.25;
+export const CAR_DEFAULT_SHAKE_LEVEL = 0; // 0.25;
 export const CAR_SHADOW_BLUR = 25;
 export const CAR_SHADOW_PADDING = 10;
 export const CAR_SHADOW_OPACITY = 0.5;

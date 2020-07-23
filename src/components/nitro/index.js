@@ -11,7 +11,10 @@ export default class Nitro extends AnimatorPIXI.DetatchedContainer {
 		const config = view.animator.lookup(path);
 
 		// if this doesn't exist, don't try and create
-		if (!config) return;
+		if (!config) {
+			console.error(`Failed to find nitro effect: ${path}`);
+			return;
+		}
 		
 		// determine the type to create
 		const instance = new Nitro();

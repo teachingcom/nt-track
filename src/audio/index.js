@@ -15,9 +15,13 @@ export function configureSFX(config) {
 
 	// change enabled state
 	if ('enabled' in config) {
-		Sound.sfxEnabled = !!config.enabled;
-		for (const sound of SFX)
+		const enabled = Sound.sfxEnabled = !!config.enabled;
+		for (const sound of SFX) {
 			sound.enabled = enabled;
+
+			// stop, if needed
+			if (!enabled) sound.stop();
+		}
 	}
 
 	// change volume state
@@ -30,9 +34,14 @@ export function configureSFX(config) {
 export function configureMusic(config) {
 	// change enabled state
 	if ('enabled' in config) {
-		Sound.musicEnabled = !!config.enabled;
-		for (const song of MUSIC)
+		const enabled = Sound.musicEnabled = !!config.enabled;
+		for (const song of MUSIC) {
 			song.enabled = enabled;
+
+			// activate or deactivate
+			if (!enabled) song.stop();
+			else song.play();
+		}
 	}
 
 	// change volume state
@@ -91,7 +100,6 @@ export function create(type, key, sprite) {
 	const instance = new Sound(type, sound, id, sprite);
 	instance.stop();
 	sound.seek(0, id);
-	// instance.volume(0);
 
 	// save the audio
 	if (instance.isMusic) MUSIC.push(instance);

@@ -13,6 +13,7 @@ import Player from './player';
 import Track from '../../components/track';
 import CarEntryAnimation from '../../animations/car-entry';
 import RaceCompletedAnimation from '../../animations/race-completed';
+import RaceProgressAnimation from '../../animations/race-progress';
 
 /** creates a track view that supports multiple cars for racing */
 export default class TrackView extends BaseView {
@@ -61,6 +62,7 @@ export default class TrackView extends BaseView {
 		this.progress = options.manifest.progress;
 		this.pendingPlayers = options.expectedPlayerCount;
 		this.animationRate = options.animationRateWhenIdle;
+		this.raceProgressAnimation = new RaceProgressAnimation({ track: this });
 
 		// attach the effects filter
 		this.stage.filters = [ this.filter ];
@@ -101,20 +103,16 @@ export default class TrackView extends BaseView {
 		const { isPlayer, id } = playerOptions;
 		if (isPlayer) {
 			this.activePlayerId = id;
+			this.activePlayer = player;
+			player.isPlayer = true;
+		}
 
-			// since this is the player, activate their
-			// car entry sound effect
-			const { enterSound = 'sport' } = data.car || { };
-			const entry = audio.create('sfx', 'common', `entry_${enterSound}`);
-			
-			// start the entry sound
-			if (entry) {
-				entry.loop(false);
-				entry.play();
-
-				// save this for layer
-				sfx.entry = entry;
-			}
+		// activate their car entry sound effect
+		const { enterSound = 'sport' } = data.car || { };
+		const rev = audio.create('sfx', 'common', `entry_${enterSound}`);
+		if (rev) {
+			rev.loop(false);
+			rev.play();
 		}
 		
 		// with the player, include their namecard
@@ -154,7 +152,7 @@ export default class TrackView extends BaseView {
 
 	/** assigns the current track */
 	setTrack = async options => {
-		const { stage, animator } = this;
+		const { stage } = this;
 		const trackOptions = merge({ view: this }, options);
 		const track = this.track = await Track.create(trackOptions);
 
@@ -216,16 +214,25 @@ export default class TrackView extends BaseView {
 			setTimeout(() => sfx.entry.fade(1, 0, 2000), 1500);
 		}
 
-		// play the countdown
+		// prepare sounds
 		const mark = audio.create('sfx', 'common', 'countdown_mark');
-		setTimeout(mark.play, 2000);
-		
 		const set = audio.create('sfx', 'common', 'countdown_set');
-		setTimeout(set.play, 3000);
-		
 		const go = audio.create('sfx', 'common', 'countdown_go');
+
+		// accelerate -- kinda loud
+		const acceleration = audio.create('sfx', 'common', 'acceleration');
+		acceleration.volume(0.15);
+		
+		// play the countdown
+		setTimeout(mark.play, 2000);
+		setTimeout(set.play, 3000);
 		setTimeout(() => {
+			
+			// sounds
 			go.play();
+			acceleration.play();
+
+			// notify the race has begun
 			this.emit('start');
 		}, 4000);
 	}
@@ -236,32 +243,14 @@ export default class TrackView extends BaseView {
 
 	/** changes the progress for a player */
 	setProgress = (id, progress) => {
-		const { state, activePlayerId } = this;
-		const { isFinished } = state;
 		const player = this.getPlayerById(id);
-		
-		// nothing to do
-		if (player.isFinished) {
-			return;
-		}
+		player.progress = progress;
+		player.isFinished = progress >= 0;
 
-		// if the progress is 100 then this is a winner
-		if (progress >= 100) {
-			player.isFinished = true;
+		// finish the race for this player
+		// if progress is done
+		if (player.progress >= 100)
 			this.finishRace(player);
-
-			// if this activates the ending animation
-			// then it can stop now
-			if (player.id === activePlayerId) {
-				return;
-			}
-		}
-
-		// the race is done so there's nothing to animate
-		if (isFinished) return;
-
-		// set the completion value
-		player.setProgress(progress);
 	}
 
 	/** handles activating the nitro effect for a player */
@@ -276,56 +265,58 @@ export default class TrackView extends BaseView {
 	startRace = () => {
 		const { options } = this;
 		this.state.accelerate = true;
+		this.state.isStarted = true;
 		this.animationRate = options.animationRateWhenRacing;
 	}
 
 	/** activates the finished race state */
-	finishRace = player => {
-		const { track, state, players, activePlayerId, finishedPlayers, options } = this;
+	finishRace = ({ id } = { }) => {
+		const { track, state, players, activePlayer, finishedPlayers, options } = this;
 
-		// save the finish
-		const place = finishedPlayers.length;
-		player.car.onFinishRace(place);
-		finishedPlayers.push(player);
+		// already added to finish
+		if (!!~finishedPlayers.indexOf(id)) return;
+		finishedPlayers.push(id);
+		
+		// find the player
+		const player = this.getPlayerById(id);
 
-		// if currently playing the finish animation, add the player
+		// if the animation has already begun, add them
+		// to the animation
 		if (this.raceCompletedAnimation) {
-			this.raceCompletedAnimation.addPlayer(player, place);
+			this.raceCompletedAnimation.addPlayer(player);
 			return;
 		}
 
-		// nothing to do if an existing player
-		if (player.id !== activePlayerId) return;
+		// if this is not the active player, then there's
+		// nothing left to do -- just continue to let them
+		// animate off the track
+		if (!player.isPlayer) return;
 
-		// switch to the finishline view
-		track.showFinishLine();
-		this.animationRate = options.animationRateWhenIdle;
-		
 		// stop the track
 		state.accelerate = false;
 		state.speed = 0;
 		state.shake = CAR_DEFAULT_SHAKE_LEVEL;
 		state.isFinished = true;
+		track.showFinishLine();
 
-		// deactivate all current tweens
-		for (const p of players) {
-			p.stopProgressAnimation();
-		}
+		// return to idle animation speed
+		this.animationRate = options.animationRateWhenIdle;
+
+		// stop animating progress
+		this.raceProgressAnimation.stop();
 
 		// play the final animation
 		this.raceCompletedAnimation = new RaceCompletedAnimation({
 			track,
 			player,
-			activePlayerId,
+			activePlayer,
 			allPlayers: players,
 			finishedPlayers
 		});
 
-		// start the animation
-		this.raceCompletedAnimation.play({
-			
-		});
-
+		// start the animation - does this need
+		// to be delayed?
+		this.raceCompletedAnimation.play({ });
 	}
 
 	// handle rendering the track in the requested state
@@ -346,16 +337,13 @@ export default class TrackView extends BaseView {
 		// update the amount cars should shake
 		const { speed } = state;
 		state.shake = Math.max(shake, speed);
-		
-		// update each player
-		for (const player of this.players) {
-			player.update(state);
-		}
 
 		// TODO: replace with new views
 		// this is temporary check until
 		// garage and preview modes are done
 		this.track.update(state);
+		if (state.isStarted && !state.isFinished)
+			this.raceProgressAnimation.update();
 
 		// if throttling
 		if (frame % animationRate !== 0) return;

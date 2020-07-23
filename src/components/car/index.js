@@ -95,6 +95,7 @@ export default class Car extends PIXI.Container {
 		// save the car and positions
 		this.positions = positions;
 		this.car = car;
+		this.bounds = bounds;
 
 		// append plugins, if any
 		this.plugin = carPlugins[type];
@@ -291,6 +292,13 @@ export default class Car extends PIXI.Container {
 		
 		// the normal map, if any
 		this.normalMap = normalMap;
+	}
+
+	/** returns the scaling for the car */
+	getRelativeSize() {
+		const { width, height } = this.car.getBounds();
+		const { x, y } = this.car.scale;
+		return { width: width * x, height: height * y };
 	}
 
 	/** changes the x position of the car */

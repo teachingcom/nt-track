@@ -7,6 +7,11 @@ export const isArray = val => typeof val === 'array' || val instanceof Array;
 export const isNumber = val => typeof val === 'number' || val instanceof Number;
 export const isNil = val => val === null || val === undefined;
 
+/** clamps between two ranges */
+export function clamp(value, min, max) {
+	return Math.min(Math.max(value, min), max);
+}
+
 /** grabs the first item from a collection */
 export function first(...collection) {
 	

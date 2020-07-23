@@ -1,7 +1,7 @@
 import { noop } from "../utils";
 import * as audio from '../audio';
-import { tween, easing, delay } from 'popmotion';
-import { TRACK_CENTER } from "../views/track/scaling";
+import { tween, easing } from 'popmotion';
+import { RACE_FINISH_CAR_STOPPING_TIME } from "../config";
 
 export default class CarFinishLineAnimation {
 
@@ -13,42 +13,28 @@ export default class CarFinishLineAnimation {
 	}
 
 	play({ isInstant = false, update = noop, complete = noop }) {
-		const { player, place, isActivePlayer, track } = this;
-		const { car, trail } = player;
-		const { shadow } = car;
-
+		const { player, isActivePlayer } = this;
+		
 		// sound effect for the current player
 		if (isActivePlayer) {
-
-			// start the audio finish audio
 			const crowd = audio.create('sfx', 'common', 'finish_crowd');
 			crowd.play();
+		}
 
-			// queue up the stop sound
+		// if this car is entering
+		if (!isInstant) {
 			const stop = audio.create('sfx', 'common', 'car_stopping');
 			setTimeout(() => stop.play(), 500);
 		}
 
-		
-		// create params
-		const placementOffset = place * 0.1;
-
-		// the starting point for the animatin
-		// TODO: look at shortening the animation and
-		// starting closer to the line
-		const entryOrigin = {
-			playerX: -0.25 - placementOffset
-		};
-
-		// the stopping point
-		// TODO: look at a tigher fit when lanes are staggered
-		const entryDestination = {
-			playerX: 0.975
-		};
+		// starting and ending points
+		const entryOrigin = { playerX: -0.15 };
+		const entryDestination = { playerX: 0.975 };
 		
 		// handle updating the entry animation
 		const updateEntryProps = props => {
 			player.relativeX = props.playerX;
+			player.visible = true;
 		};
 
 		// set the new starting positions
@@ -67,10 +53,8 @@ export default class CarFinishLineAnimation {
 
 		// start the entry animation
 		tween({
-			duration: 1500,
-			// duration: 3000,
-			// ease: easing.cubicBezier(.27,1.31,.25,.72),
-			ease: easing.easeOut,
+			duration: RACE_FINISH_CAR_STOPPING_TIME,
+			ease: easing.circOut,
 			from: entryOrigin,
 			to: entryDestination
 		})
