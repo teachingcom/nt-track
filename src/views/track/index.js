@@ -5,7 +5,7 @@ import * as audio from '../../audio';
 
 // sizing, layers, positions
 import * as scaling from './scaling';
-import { TRACK_MAXIMUM_SPEED, TRACK_ACCELERATION_RATE, CAR_DEFAULT_SHAKE_LEVEL, INPUT_ERROR_SOUND_TIME_LIMIT, ANIMATION_RATE_WHILE_IDLE, ANIMATION_RATE_WHILE_RACING } from '../../config';
+import { TRACK_MAXIMUM_SPEED, TRACK_ACCELERATION_RATE, CAR_DEFAULT_SHAKE_LEVEL, INPUT_ERROR_SOUND_TIME_LIMIT, ANIMATION_RATE_WHILE_IDLE, ANIMATION_RATE_WHILE_RACING, RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT } from '../../config';
 import { LAYER_NAMECARD, LAYER_TRACK_GROUND, LAYER_TRACK_OVERLAY } from './layers';
 
 import { BaseView } from '../base';
@@ -14,7 +14,7 @@ import Track from '../../components/track';
 import CarEntryAnimation from '../../animations/car-entry';
 import RaceCompletedAnimation from '../../animations/race-completed';
 import RaceProgressAnimation from '../../animations/race-progress';
-import { VOLUME_CAR_ENTRY, VOLUME_DISQUALIFY, VOLUME_START_ACCELERATION, VOLUME_COUNTDOWN } from '../../audio/volume';
+import { VOLUME_DISQUALIFY, VOLUME_START_ACCELERATION, VOLUME_COUNTDOWN } from '../../audio/volume';
 
 /** creates a track view that supports multiple cars for racing */
 export default class TrackView extends BaseView {
@@ -84,7 +84,8 @@ export default class TrackView extends BaseView {
 
 	/** adds a new car to the track */
 	addPlayer = async (data, isInstant) => {
-		const { state, stage, sfx } = this;
+		const now = +new Date;
+		const { state, stage } = this;
 
 		// increase the expected players
 		state.totalPlayers++;
@@ -107,15 +108,6 @@ export default class TrackView extends BaseView {
 			this.activePlayer = player;
 			player.isPlayer = true;
 		}
-
-		// activate their car entry sound effect
-		const { enterSound = 'sport' } = data.car || { };
-		const rev = audio.create('sfx', 'common', `entry_${enterSound}`);
-		if (rev) {
-			rev.volume(VOLUME_CAR_ENTRY)
-			rev.loop(false);
-			rev.play();
-		}
 		
 		// with the player, include their namecard
 		const { namecard } = player.layers;
@@ -136,7 +128,8 @@ export default class TrackView extends BaseView {
 		}
 
 		// animate onto the track
-		const entry = new CarEntryAnimation({ player, namecard, track: this });
+		const { enterSound = 'sport' } = data.car || { };
+		const entry = new CarEntryAnimation({ player, namecard, enterSound, track: this });
 		entry.play({
 			isInstant,
 			complete: () => this.setPlayerReady(player)

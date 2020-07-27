@@ -3,7 +3,7 @@ import { PIXI as AnimatorPIXI } from 'nt-animator';
 import { tween, easing } from 'popmotion';
 
 import { LANES, SCALED_CAR_HEIGHT, SCALED_NAMECARD_HEIGHT } from './scaling';
-import { NITRO_SCALE, NITRO_OFFSET_Y, TRAIL_SCALE, TRACK_STARTING_LINE_POSITION, NAMECARD_TETHER_DISTANCE, TRACK_OFFSCREEN_CAR_FINISH, TRACK_NAMECARD_EDGE_PADDING } from '../../config';
+import { NITRO_SCALE, NITRO_OFFSET_Y, TRAIL_SCALE, NAMECARD_TETHER_DISTANCE } from '../../config';
 
 import Car from '../../components/car';
 import Trail from '../../components/trail';
@@ -194,7 +194,7 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 		car.onUpdate(...args);
 
 		// tether namecards
-		if (namecard) {
+		if (namecard && track) {
 			const width = track.view.width / track.view.scaleX;
 			const tether = NAMECARD_TETHER_DISTANCE / width;
 			namecard.x = (this.relativeX - tether) * width;

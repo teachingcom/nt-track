@@ -33,6 +33,24 @@ export default class ComposerView extends BaseView {
 		view.relativeY = 0.5;
 		stage.addChild(view);
 
+		// if there are comps, render those alone
+		if (data.comps.length) this.renderComps(data, view);
+		else this.renderScene(data, view);
+	}
+
+	// renders general compositions
+	renderComps = async (data, stage) => {
+		const { animator } = this;
+		
+		for (const path of data.comps) {
+			const comp = await animator.create(path);
+			stage.addChild(comp);
+		}
+	}
+
+	// renders game scenes like cars and tracks
+	renderScene = async (data, stage) => {
+
 		// ensure there's a car
 		let [ car ] = data.cars;
 		if (!car) {

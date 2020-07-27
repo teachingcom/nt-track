@@ -97,7 +97,7 @@ export function create(type, key, sprite) {
 
 	// start the audio
 	const id = sound.play(sprite);
-	const instance = new Sound(type, sound, id, sprite);
+	const instance = new Sound(type, sound, key, id, sprite);
 	instance.stop();
 	sound.seek(0, id);
 

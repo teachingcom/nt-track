@@ -8,16 +8,26 @@ export class Sound {
 	static musicEnabled = true;
 	static musicVolume = 0.5;
 
-	constructor(type, source, id, sprite) {
+	/** keeping track of the last time a sound was played */
+	static timestamps = { }
+
+	constructor(type, source, key, id, sprite) {
 		this.type = type;
 		this.source = source;
 		this.id = id;
 		this.sprite = sprite;
+		this.key = `${type}::${key}:${sprite || 'default'}`;
 
 		// check the default state
 		this.isMusic = type === 'music';
 		this.isSfx = !this.isMusic;
 		this._enabled = this.isMusic ? Sound.musicEnabled : Sound.sfxEnabled;
+	}
+
+	/** checks the last time this sound instance was played */
+	get lastInstancePlay() {
+		const { key } = this;
+		return Sound.timestamps[key] || 0;
 	}
 
 	/** tests if the sound is playing */
@@ -31,19 +41,20 @@ export class Sound {
 		return this._enabled;
 	}
 
-	set enabled(value) {
-		this._enabled = value;
+	set enabled(enabled) {
+		const { isSfx, isMusic } = this;
+		this._enabled = enabled;
 
 		// stop playing
-		if (!this._enabled && this.isSfx) {
+		if (!enabled && isSfx) {
 			this.stop();
 		}
 		// disabling music
-		else if (!this._enabled && this.isMusic) {
+		else if (!enabled && isMusic) {
 			this.fade(Sound.musicVolume, 0, 1000);
 		}
 		// enabling music to play
-		else if (this._enabled && this.isMusic) {
+		else if (enabled && isMusic) {
 			this.play();
 			this.fade(0, Sound.musicVolume, 1000);
 		}
@@ -99,12 +110,13 @@ export class Sound {
 	
 	/** play the audio */
 	play = () => {
+		const { key, enabled, id } = this;
+		Sound.timestamps[key] = +new Date;
 
 		// TODO: this might have different behaviors
 		// when it's music
-		if (!this.enabled) return;
+		if (!enabled) return;
 
-		const { id } = this;
 		this.source.seek(0, id);
 		this.source.play(id);
 	}
