@@ -38,13 +38,37 @@ export default class ComposerView extends BaseView {
 		else this.renderScene(data, view);
 	}
 
+	// plays a sound effect
+	sounds = [ ];
+	playSfx = async (type, source, sprite) => {
+		const { options } = this;
+		await audio.register(source, source === 'common' ? options.manifest.sounds : null);
+		const sound = audio.create(type, source, sprite);
+		this.sounds.push(sound);
+	}
+
 	// renders general compositions
 	renderComps = async (data, stage) => {
 		const { animator } = this;
-		
 		for (const path of data.comps) {
+
+			// this is a sound effect request
+			// doesn't happen often
+			if (path.substr(0, 4) === 'sfx/') {
+				const args = path.split(/\/+/g);
+				await this.playSfx(...args);
+				continue;
+			}
+
+			// creates a comp
 			const comp = await animator.create(path);
 			stage.addChild(comp);
+		}
+
+		// play sounds, if any
+		for (const sound of this.sounds) {
+			sound.enabled = true;
+			sound.play();
 		}
 	}
 

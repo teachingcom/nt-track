@@ -11,7 +11,7 @@ import Track from '../../components/track';
 import * as scaling from './scaling';
 import { TRACK_MAXIMUM_SPEED, TRACK_ACCELERATION_RATE, CAR_DEFAULT_SHAKE_LEVEL, INPUT_ERROR_SOUND_TIME_LIMIT, ANIMATION_RATE_WHILE_IDLE, ANIMATION_RATE_WHILE_RACING, RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT } from '../../config';
 import { LAYER_NAMECARD, LAYER_TRACK_GROUND, LAYER_TRACK_OVERLAY } from './layers';
-import { VOLUME_DISQUALIFY, VOLUME_START_ACCELERATION, VOLUME_COUNTDOWN } from '../../audio/volume';
+import { VOLUME_DISQUALIFY, VOLUME_START_ACCELERATION, VOLUME_COUNTDOWN, VOLUME_COUNTDOWN_ANNOUNCER } from '../../audio/volume';
 
 // animations
 import CarEntryAnimation from '../../animations/car-entry';
@@ -204,40 +204,35 @@ export default class TrackView extends BaseView {
 	}
 
 	/** starts the game countdown */
-	startCountdown = () => {
+	startCountdown = async () => {
+		const { animator, stage } = this;
+
+		// create the main container
+		const container = new AnimatorPIXI.ResponsiveContainer();
+		container.relativeX = 0.5;
+		container.relativeY = 0.5;
+		stage.addChild(container);
+
+		// create the countdown
+		const countdown = await animator.create('/extras/countdown');
+		container.addChild(countdown);
 		
-		// stop the entry sound effect
-		const { sfx } = this;
-		if (sfx.entry) {
-			setTimeout(() => sfx.entry.fade(1, 0, 2000), 1500);
-		}
+		// start the sound effect
+		const announcer = audio.create('sfx', 'common', 'countdown');
+		announcer.volume(VOLUME_COUNTDOWN_ANNOUNCER);
+		announcer.play();
 
-		// prepare sounds
-		const mark = audio.create('sfx', 'common', 'countdown_mark');
-		mark.volume(VOLUME_COUNTDOWN);
-
-		const set = audio.create('sfx', 'common', 'countdown_set');
-		set.volume(VOLUME_COUNTDOWN);
-
-		const go = audio.create('sfx', 'common', 'countdown_go');
-		set.volume(VOLUME_COUNTDOWN);
-
-		// accelerate -- kinda loud
+		// accelerate from the line
 		const acceleration = audio.create('sfx', 'common', 'acceleration');
 		acceleration.volume(VOLUME_START_ACCELERATION);
-		
-		// play the countdown
-		setTimeout(mark.play, 2000);
-		setTimeout(set.play, 3000);
+
+		// wait for the countdown
 		setTimeout(() => {
-			
-			// sounds
-			go.play();
 			acceleration.play();
 
 			// notify the race has begun
 			this.emit('start');
-		}, 4000);
+		}, 3000);
 	}
 
 	// set the music state
