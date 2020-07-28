@@ -3,18 +3,20 @@ import { PIXI as AnimatorPIXI } from 'nt-animator';
 import { merge } from '../../utils';
 import * as audio from '../../audio';
 
+import { BaseView } from '../base';
+import Player from './player';
+import Track from '../../components/track';
+
 // sizing, layers, positions
 import * as scaling from './scaling';
 import { TRACK_MAXIMUM_SPEED, TRACK_ACCELERATION_RATE, CAR_DEFAULT_SHAKE_LEVEL, INPUT_ERROR_SOUND_TIME_LIMIT, ANIMATION_RATE_WHILE_IDLE, ANIMATION_RATE_WHILE_RACING, RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT } from '../../config';
 import { LAYER_NAMECARD, LAYER_TRACK_GROUND, LAYER_TRACK_OVERLAY } from './layers';
+import { VOLUME_DISQUALIFY, VOLUME_START_ACCELERATION, VOLUME_COUNTDOWN } from '../../audio/volume';
 
-import { BaseView } from '../base';
-import Player from './player';
-import Track from '../../components/track';
+// animations
 import CarEntryAnimation from '../../animations/car-entry';
 import RaceCompletedAnimation from '../../animations/race-completed';
 import RaceProgressAnimation from '../../animations/race-progress';
-import { VOLUME_DISQUALIFY, VOLUME_START_ACCELERATION, VOLUME_COUNTDOWN } from '../../audio/volume';
 
 /** creates a track view that supports multiple cars for racing */
 export default class TrackView extends BaseView {

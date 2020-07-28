@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-import { Animator, EventEmitter, PIXI as AnimatorPIXI, createContext } from 'nt-animator';
+import { Animator, EventEmitter, PIXI as AnimatorPIXI } from 'nt-animator';
 
 /** creates a track instance */
 export class BaseView extends EventEmitter {
