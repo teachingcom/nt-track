@@ -411,8 +411,7 @@ export default class Track {
 		segments.sort(byRightEdge);
 		
 		// get the inserted block into place
-		const bounds = getBoundsForRole(block.bottom, 'base'); // block.getBounds();
-		console.log(block);
+		const bounds = getBoundsForRole(block.bottom, 'base');
 		const width = bounds.width;
 		block.setX(0);
 
