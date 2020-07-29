@@ -30,6 +30,12 @@ export class Sound {
 		return Sound.timestamps[key] || 0;
 	}
 
+	/** sets the last time this sound instance was played */
+	set lastInstancePlay(value) {
+		const { key } = this;
+		Sound.timestamps[key] = value;
+	}
+
 	/** tests if the sound is playing */
 	get isPlaying() {
 		const { id } = this;
@@ -41,23 +47,14 @@ export class Sound {
 		return this._enabled;
 	}
 
-	set enabled(enabled) {
-		const { isSfx, isMusic } = this;
-		this._enabled = enabled;
+	get preferredVolumeLevel() {
+		return isNaN(this._preferredVolumeLevel) ? 0.5 : this._preferredVolumeLevel;
+	}
 
-		// stop playing
-		if (!enabled && isSfx) {
-			this.stop();
-		}
-		// disabling music
-		else if (!enabled && isMusic) {
-			this.fade(Sound.musicVolume, 0, 1000);
-		}
-		// enabling music to play
-		else if (enabled && isMusic) {
-			this.play();
-			this.fade(0, Sound.musicVolume, 1000);
-		}
+	// enables or disables sound
+	set enabled(enabled) {
+		this._enabled = !!enabled;
+		this.volume(enabled ? this.preferredVolumeLevel : 0);
 	}
 
 	// // event handling -- not sure if needed
@@ -75,6 +72,7 @@ export class Sound {
 	/** set the volume */
 	volume = (level) => {
 		const { id } = this;
+		this._preferredVolumeLevel = level;
 		this.source.volume(level, id);
 	}
 	
@@ -110,8 +108,8 @@ export class Sound {
 	
 	/** play the audio */
 	play = () => {
-		const { key, enabled, id } = this;
-		Sound.timestamps[key] = +new Date;
+		const { enabled, id } = this;
+		this.lastInstancePlay = +new Date;
 
 		// TODO: this might have different behaviors
 		// when it's music

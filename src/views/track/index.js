@@ -50,16 +50,20 @@ export default class TrackView extends BaseView {
 			animationRateWhenIdle: ANIMATION_RATE_WHILE_IDLE,
 			scale: { height: scaling.BASE_HEIGHT }
 		}, options);
-
+		
 		// base class init
 		super.init(options);
-
+		
 		// set default audio state
 		audio.configureSFX({ enabled: !!options.sfx });
 		audio.configureMusic({ enabled: !!options.music });
-
+		
 		// preload common sounds
 		audio.register('common', options.manifest.sounds);
+		
+		// preload the countdown animation images
+		const { animator } = this;
+		animator.getSpritesheet('extras/countdown');
 
 		// tracking race position progress
 		this.progress = options.manifest.progress;
@@ -213,18 +217,25 @@ export default class TrackView extends BaseView {
 		container.relativeY = 0.5;
 		stage.addChild(container);
 
-		// create the countdown
-		const countdown = await animator.create('/extras/countdown');
-		container.addChild(countdown);
 		
-		// start the sound effect
+		// create the sounds
 		const announcer = audio.create('sfx', 'common', 'countdown');
 		announcer.volume(VOLUME_COUNTDOWN_ANNOUNCER);
-		announcer.play();
-
+		
 		// accelerate from the line
 		const acceleration = audio.create('sfx', 'common', 'acceleration');
 		acceleration.volume(VOLUME_START_ACCELERATION);
+		
+		// wait a moment before showing
+		setTimeout(async () => {
+
+			// create the countdown
+			const countdown = await animator.create('/extras/countdown');
+			container.addChild(countdown);
+			
+			// start the sound effect
+			announcer.play();
+		}, 1000);
 
 		// wait for the countdown
 		setTimeout(() => {
@@ -232,7 +243,7 @@ export default class TrackView extends BaseView {
 
 			// notify the race has begun
 			this.emit('start');
-		}, 3000);
+		}, 4000);
 	}
 
 	// set the music state

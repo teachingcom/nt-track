@@ -4,6 +4,11 @@ import { Animator, EventEmitter, PIXI as AnimatorPIXI } from 'nt-animator';
 /** creates a track instance */
 export class BaseView extends EventEmitter {
 
+	/** returns the active fps */
+	get fps() {
+		return PIXI.Ticker.shared.FPS;
+	}
+
 	/** handles initial setup of the rendering area */
 	init(options) {
 		const { target, scale } = options;

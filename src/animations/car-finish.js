@@ -19,8 +19,18 @@ export default class CarFinishLineAnimation {
 		// if this car is entering
 		if (!isInstant) {
 			const stop = audio.create('sfx', 'common', 'car_stopping');
-			stop.volume(VOLUME_FINISH_LINE_STOP);
-			setTimeout(() => stop.play(), 500);
+
+			// make sure this hasn't played too recently to avoid
+			// 5 car screeching noises all at once
+			setTimeout(() => {
+				const nextAllowedPlay = (+new Date) + 1000; //TODO: config?
+				if (stop.lastInstancePlay > nextAllowedPlay) return;
+				
+				// play the sound effect, if possible
+				stop.volume(VOLUME_FINISH_LINE_STOP);
+				stop.play();
+			}, 500);
+
 		}
 
 		// starting and ending points

@@ -186,7 +186,7 @@ export default class NameCard extends PIXI.Container {
 		overlay.pivot.y = cardRenderer.canvas.height / 2;
 
 		// const c = new PIXI.Sprite();
-		this.container.roundPixels = overlay.roundPixels = false;
+		this.roundPixels = this.container.roundPixels = overlay.roundPixels = false;
 		this.container.addChild(overlay);	
 	}
 
