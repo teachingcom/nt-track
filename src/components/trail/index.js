@@ -67,7 +67,6 @@ export default class Trail extends AnimatorPIXI.DetatchedContainer {
 	/** deactivates the trail */
 	stop() {
 		this.trail.controller.stopEmitters();
-		
 	}
 
 }

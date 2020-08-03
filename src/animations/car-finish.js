@@ -23,8 +23,9 @@ export default class CarFinishLineAnimation {
 			// make sure this hasn't played too recently to avoid
 			// 5 car screeching noises all at once
 			setTimeout(() => {
-				const nextAllowedPlay = (+new Date) + 1000; //TODO: config?
-				if (stop.lastInstancePlay > nextAllowedPlay) return;
+				const now = +new Date;
+				const nextAllowedPlay = stop.lastInstancePlay + 1000; // config?
+				if (nextAllowedPlay > now) return;
 				
 				// play the sound effect, if possible
 				stop.volume(VOLUME_FINISH_LINE_STOP);

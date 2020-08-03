@@ -13,7 +13,7 @@ const blurContainer = (() => {
 	
 	// set blurs
 	const blur = new PIXI.filters.BlurFilter();
-	blur.quality = 100;
+	blur.quality = 10;
 	
 	// set adjustments
 	const base = new PIXI.filters.ColorMatrixFilter();

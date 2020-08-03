@@ -1,6 +1,12 @@
+import { Howler } from 'howler';
 
 /** allows managing a sound */
 export class Sound {
+
+	/** checks if sound can be played at all */
+	static get isAllowed() {
+		return Howler.ctx.state === 'running';
+	}
 
 	static sfxEnabled = true;
 	static sfxVolume = 1;
@@ -108,6 +114,10 @@ export class Sound {
 	
 	/** play the audio */
 	play = () => {
+		
+		// don't play sound if it's not allowed.
+		if (!Sound.isAllowed) return;
+
 		const { enabled, id } = this;
 		this.lastInstancePlay = +new Date;
 

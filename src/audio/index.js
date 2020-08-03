@@ -10,6 +10,10 @@ const SFX = [ ];
 // default url to load sounds from
 let baseUrl = '/sounds';
 
+// mute by default
+Sound.sfxEnabled = false;
+Sound.musicEnabled = false;
+
 /** changes the sound effect state */
 export function configureSFX(config) {
 
@@ -99,7 +103,12 @@ export function create(type, key, sprite) {
 	const id = sound.play(sprite);
 	const instance = new Sound(type, sound, key, id, sprite);
 	instance.stop();
-	sound.seek(0, id);
+
+	// prepare to play
+	if (Sound.sfxEnabled && instance.isSfx) {
+		sound.seek(0, id);
+	}
+
 
 	// save the audio
 	if (instance.isMusic) MUSIC.push(instance);

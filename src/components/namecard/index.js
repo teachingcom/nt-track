@@ -54,6 +54,7 @@ export default class NameCard extends PIXI.Container {
 		
 		// initialize all namecard parts
 		await instance._initNameCard();
+		await instance._initIcons();
 		instance._initText();
 
 		// return the created namecard
@@ -77,6 +78,46 @@ export default class NameCard extends PIXI.Container {
 		
 		// add to the view
 		this.container.addChild(namecard);
+	}
+
+	// creates the namecard instance
+	async _initIcons() {
+		const { path, view, options, config } = this;
+		const { isGold, isTop3, isFriend } = options;
+		const { baseHeight } = options;
+
+		const icons = [ ];
+
+		// load each icon
+		if (isTop3 || true) {
+			const icon = await view.animator.getSprite('images', 'icon_top');
+			icons.push(icon);
+		}
+
+		if (isGold || true) {
+			const icon = await view.animator.getSprite('images', 'icon_gold');
+			icons.push(icon);
+		}
+
+		if (isFriend || true) {
+			const icon = await view.animator.getSprite('images', 'icon_friend');
+			icons.push(icon);
+		}
+		
+		// include and position each
+		let left = this.bounds.width * -0.45;
+		for (const icon of icons) {
+			this.container.addChild(icon);
+			icon.x = left;
+			icon.y = this.bounds.height * -0.425
+			icon.scale.x = icon.scale.y = 0.75;
+			icon.pivot.x = 0;
+			icon.pivot.y = 0.5;
+			
+			const size = icon.getBounds();
+			left += icon.width + 20;
+		}
+		
 	}
 
 	// create the text labels
@@ -185,8 +226,6 @@ export default class NameCard extends PIXI.Container {
 		overlay.pivot.x = cardRenderer.canvas.width / 2;
 		overlay.pivot.y = cardRenderer.canvas.height / 2;
 
-		// const c = new PIXI.Sprite();
-		this.roundPixels = this.container.roundPixels = overlay.roundPixels = false;
 		this.container.addChild(overlay);	
 	}
 

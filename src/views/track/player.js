@@ -1,6 +1,5 @@
 
-import { PIXI as AnimatorPIXI } from 'nt-animator';
-import { tween, easing } from 'popmotion';
+import { PIXI as AnimatorPIXI, removeDisplayObject } from 'nt-animator';
 
 import { LANES, SCALED_CAR_HEIGHT, SCALED_NAMECARD_HEIGHT } from './scaling';
 import { NITRO_SCALE, NITRO_OFFSET_Y, TRAIL_SCALE, NAMECARD_TETHER_DISTANCE } from '../../config';
@@ -36,6 +35,11 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 	/** the players name card layer */
 	get namecard() {
 		return this.layers.namecard;
+	}
+
+	/** the players car shadow */
+	get shadow() {
+		return this.layers.shadow;
 	}
 
 	/** handles creating a new player instance */
@@ -175,6 +179,11 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 		// save the namecard
 		if (namecard) {
 			layers.namecard = namecard;
+
+			// hide the namecard when it is first loaded
+			// since it will show up in the top left corner
+			// until it's been positioned
+			namecard.x = -1000;
 		}
 
 		// finalize order
@@ -197,11 +206,27 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 		if (namecard && track) {
 			const width = track.view.width / track.view.scaleX;
 			const tether = NAMECARD_TETHER_DISTANCE / width;
+
+			// HACK: namecard.js hides the card until the first
+			// tile is is updated, then made visible - this is
+			// due to a bug where newly added assets appear in
+			// the top left corner - Fix this later
 			namecard.x = (this.relativeX - tether) * width;
 		}
 
 		super.render(...args);
 	}
 
+	/** handle removing all resources */
+	dispose = () => {
+		const { car, namecard, shadow } = this;
+
+		// remove emitters, animations, and objects
+		removeDisplayObject(car);
+		removeDisplayObject(namecard);
+		removeDisplayObject(shadow);
+	}
+
 
 }
+

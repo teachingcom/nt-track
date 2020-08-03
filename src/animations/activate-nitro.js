@@ -2,9 +2,9 @@
 import { keyframes, easing } from 'popmotion';
 import { noop } from '../utils';
 import Animation from './base';
-import { NITRO_ACTIVATED_TRAIL_OPACITY } from '../config';
+import { NITRO_ACTIVATED_TRAIL_OPACITY, CAR_NITRO_ADVANCEMENT_DISTANCE } from '../config';
 
-const DURATION = 2000;
+const DURATION = 1200;
 const EASINGS = [ easing.easeOut, easing.linear, easing.bounceOut ]
 const TIMINGS = [ 0, 0.115, 0.75, 1 ];
 
@@ -121,24 +121,30 @@ export default class ActivateNitroAnimation extends Animation {
 			]
 		});
 
-		// begin the animation sequence
-		const start = +new Date;
-		const playback = sequence.start({
-			
-			// render the animation
+		// animates the forward and back movement for the car
+		// TODO: clean this up
+		keyframes({
+			duration: DURATION * 2,
+			easings: [  easing.easeOut, easing.easeOut, easing.easeInOut ],
+			timings: [ 0, TIMINGS[1] * 2, 1 ],
+			values: [
+				{ x: 0 },
+				{ x: CAR_NITRO_ADVANCEMENT_DISTANCE },
+				{ x: 0 }
+			]
+		})
+		.start({
 			update: props => {
+				car.nitroOffsetX = props.x || 0;
+			}
+		});
 
-				// rather than starting another animation sequence
-				// just calculate the progress
-				const progress = ((+new Date) - start) / DURATION;
-				props.progress = progress;
-
-				// update the props
-				this.update(props);
+		// begin the animation sequence
+		const playback = sequence.start({
+			update: props => {
 				update(props);
+				this.update(props);
 			},
-
-			// incase, if interested
 			complete
 		});
 
@@ -158,9 +164,6 @@ export default class ActivateNitroAnimation extends Animation {
 		car.skew.x = props.carSkewX;
 		car.scale.x = props.carScaleX;
 		car.scale.y = props.carScaleY;
-
-		// set the offset amount
-		car.nitroOffsetX = props.progress;
 		
 		// update the shadow
 		shadow.scale.x = props.shadowScaleX;

@@ -1,4 +1,5 @@
 import * as PIXI from 'pixi.js';
+
 import { PIXI as AnimatorPIXI } from 'nt-animator';
 import { merge } from '../../utils';
 import * as audio from '../../audio';
@@ -17,12 +18,17 @@ import { VOLUME_DISQUALIFY, VOLUME_START_ACCELERATION, VOLUME_COUNTDOWN, VOLUME_
 import CarEntryAnimation from '../../animations/car-entry';
 import RaceCompletedAnimation from '../../animations/race-completed';
 import RaceProgressAnimation from '../../animations/race-progress';
+import FpsMonitor from '../../fps';
 
 /** creates a track view that supports multiple cars for racing */
 export default class TrackView extends BaseView {
 
+	// tracking FPS changes
+	fps = new FpsMonitor();
+
 	// global effect filter
-	filter = new PIXI.filters.ColorMatrixFilter()
+	colorFilter = new PIXI.filters.ColorMatrixFilter()
+	aaFilter = new PIXI.filters.FXAAFilter()
 	frame = 0
 
 	// tracking players and their namecards
@@ -39,12 +45,13 @@ export default class TrackView extends BaseView {
 	state = {
 		speed: 0,
 		shake: CAR_DEFAULT_SHAKE_LEVEL,
-		accelerate: false,
+		animateTrackMovement: false,
+		trackMovementAmount: 0,
 		totalPlayers: 0
 	}
 
 	// handle remaining setup
-	init(options) {
+	async init(options) {
 		options = merge({
 			animationRateWhenRacing: ANIMATION_RATE_WHILE_RACING,
 			animationRateWhenIdle: ANIMATION_RATE_WHILE_IDLE,
@@ -52,18 +59,27 @@ export default class TrackView extends BaseView {
 		}, options);
 		
 		// base class init
-		super.init(options);
+		await super.init(options);
+
+		// identify loading tasks
+		this.addTasks(
+			'load_track',
+			'load_extras',
+			'load_audio'
+		);
 		
 		// set default audio state
 		audio.configureSFX({ enabled: !!options.sfx });
 		audio.configureMusic({ enabled: !!options.music });
 		
 		// preload common sounds
-		audio.register('common', options.manifest.sounds);
+		await audio.register('common', options.manifest.sounds);
+		this.resolveTask('load_audio');
 		
 		// preload the countdown animation images
-		const { animator } = this;
-		animator.getSpritesheet('extras/countdown');
+		const { animator, aaFilter, colorFilter } = this;
+		await animator.getSpritesheet('extras/countdown');
+		this.resolveTask('load_extras');
 
 		// tracking race position progress
 		this.progress = options.manifest.progress;
@@ -71,8 +87,22 @@ export default class TrackView extends BaseView {
 		this.animationRate = options.animationRateWhenIdle;
 		this.raceProgressAnimation = new RaceProgressAnimation({ track: this });
 
+		// aaFilter.legacy = false;
+		// aaFilter.resolution = 200;
+
 		// attach the effects filter
-		this.stage.filters = [ this.filter ];
+		this.stage.filters = [
+			colorFilter,
+			// aaFilter,
+		];
+
+		// after initialized, start tracking
+		this.fps.activate();
+	}
+
+	/** returns the FPS cache values */
+	getFpsCache() {
+		return this.fps.flush();
 	}
 
 	/** get the viewport size */
@@ -90,7 +120,6 @@ export default class TrackView extends BaseView {
 
 	/** adds a new car to the track */
 	addPlayer = async (data, isInstant) => {
-		const now = +new Date;
 		const { state, stage } = this;
 
 		// increase the expected players
@@ -156,6 +185,7 @@ export default class TrackView extends BaseView {
 		const { stage } = this;
 		const trackOptions = merge({ view: this }, options);
 		const track = this.track = await Track.create(trackOptions);
+		this.resolveTask('load_track');
 
 		// add the scroling ground
 		stage.addChild(track.ground);
@@ -186,11 +216,45 @@ export default class TrackView extends BaseView {
 		}
 	}
 
+	/** removes a player */
+	removePlayer = id => {
+		const { players, state } = this;
+		const player = this.getPlayerById(id);
+		const index = players.indexOf(player);
+
+		// if the player wasn't found then there's nothing to do
+		if (!~index) return;
+		console.log('will remove', player);
+
+		// remove the entry
+		players.splice(index, 1);
+
+		// remove from total players
+		state.totalPlayers--;
+
+		// hide then remove
+		player.dispose();
+	}
+
 	/** performs the disqualified effect */
-	disqualifyPlayer = () => {
-		const dq = audio.create('sfx', 'common', 'disqualified');
-		dq.volume(VOLUME_DISQUALIFY)
-		dq.play();
+	disqualifyPlayer = id => {
+		const { state } = this;
+
+		// get the player
+		const player = this.getPlayerById(id);
+		if (player && !player.isDisqualified) {
+			player.isDisqualified = true;
+
+			// play the sound
+			if (player.isPlayer) {
+				const dq = audio.create('sfx', 'common', 'disqualified');
+				dq.volume(VOLUME_DISQUALIFY)
+				dq.play();
+
+				// tell the track to slow down and stop
+				state.trackMovementAmount = -TRACK_ACCELERATION_RATE;
+			}
+		}
 	}
 
 	/** happens after an input error */
@@ -251,9 +315,11 @@ export default class TrackView extends BaseView {
 	configureMusic = audio.configureMusic
 
 	/** changes the progress for a player */
-	setProgress = (id, progress) => {
+	setProgress = (id, progress, speedBoost) => {
 		const player = this.getPlayerById(id);
 		player.progress = progress;
+		player.lastUpdate = +new Date;
+		player.speedBoost = speedBoost;
 		player.isFinished = progress >= 0;
 
 		// finish the race for this player
@@ -272,9 +338,11 @@ export default class TrackView extends BaseView {
 
 	// begins the race
 	startRace = () => {
-		const { options } = this;
-		this.state.accelerate = true;
-		this.state.isStarted = true;
+		const { options, state } = this;
+		state.animateTrackMovement = true;
+		state.trackMovementAmount = TRACK_ACCELERATION_RATE;
+		state.isStarted = true;
+
 		this.animationRate = options.animationRateWhenRacing;
 	}
 
@@ -305,7 +373,7 @@ export default class TrackView extends BaseView {
 		if (!player.isPlayer) return;
 
 		// stop the track
-		state.accelerate = false;
+		state.animateTrackMovement = false;
 		state.speed = 0;
 		state.shake = CAR_DEFAULT_SHAKE_LEVEL;
 		state.isFinished = true;
@@ -338,13 +406,21 @@ export default class TrackView extends BaseView {
 		this.frame++;
 
 		// gather some data
-		const { state, frame, animationRate } = this;
-		const { shake, accelerate } = state;
+		const { state, frame, animationRate, activePlayer } = this;
+		const { shake, animateTrackMovement, trackMovementAmount } = state;
+		const isRaceActive = state.isStarted && !state.isFinished;
 
 		// speeding up the view
-		state.speed = accelerate
-			? Math.min(TRACK_MAXIMUM_SPEED, state.speed + TRACK_ACCELERATION_RATE)
+		state.speed = animateTrackMovement
+			? Math.max(0, Math.min(TRACK_MAXIMUM_SPEED, state.speed + trackMovementAmount))
 			: 0;
+
+		// increase the track movement by the speed bonus
+		// allows up to an extra 75% of the normal speed
+		if (isRaceActive && activePlayer && activePlayer.speedBoost) {
+			const boost = activePlayer.speedBoost * (TRACK_MAXIMUM_SPEED * 0.75);
+			state.speed += boost;
+		}
 		
 		// update the amount cars should shake
 		const { speed } = state;
@@ -354,7 +430,7 @@ export default class TrackView extends BaseView {
 		// this is temporary check until
 		// garage and preview modes are done
 		this.track.update(state);
-		if (state.isStarted && !state.isFinished)
+		if (isRaceActive)
 			this.raceProgressAnimation.update();
 
 		// if throttling

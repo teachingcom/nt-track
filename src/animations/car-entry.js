@@ -11,11 +11,13 @@ export default class CarEntryAnimation {
 		this.player = player;
 		this.track = track;
 		this.namecard = namecard;
+
+		// load the sound
 		this.rev = audio.create('sfx', 'common', `entry_${enterSound}`);
 	}
 
 	play = ({ isInstant = false, update = noop, complete = noop }) => {
-		const { player, rev, namecard } = this;
+		const { player, rev } = this;
 		
 		// offscreen starting position
 		const entryOrigin = {
@@ -31,39 +33,17 @@ export default class CarEntryAnimation {
 		const updateEntry = props => {
 			player.relativeX = props.playerX;
 		};
-		
-		// offscreen starting position
-		const namecardOrigin = {
-			// namecardX: namecard?.x - namecard?.width,
-			namecardAlpha: 0
-		};
-		
-		// starting line position
-		const namecardDestination = {
-			// namecardX: namecard?.x,
-			namecardAlpha: 1
-		};
-
-		// update the player position
-		const updateNamecard = props => {
-			// namecard.x = props.namecardX;
-			namecard.alpha = props.namecardAlpha;
-		};
 
 		// apply positions immediately
 		if (isInstant) {
 			updateEntry(entryDestination);
-			if (namecard) updateNamecard(namecardDestination);
 			if (complete) complete();
 			return;
 		}
 
 		// starting positions
 		player.relativeX = entryOrigin.playerX;
-		if (namecard) {
-			updateNamecard(namecardOrigin);
-		}
-
+		
 		// animate the player entry
 		tween({
 			duration: RACE_START_CAR_ENTRY_TIME,
@@ -86,21 +66,6 @@ export default class CarEntryAnimation {
 			rev.loop(false);
 			rev.play();
 		}
-
-		// animate the player entry
-		if (namecard)
-			delay(RACE_START_NAMECARD_DELAY_TIME)
-				.start({
-					complete: () => tween({
-						duration: RACE_START_NAMECARD_ENTRY_TIME,
-						ease: easing.backOut,
-						from: namecardOrigin,
-						to: namecardDestination
-					})
-					.start({
-						update: updateNamecard
-					})
-				});
 
 	}
 

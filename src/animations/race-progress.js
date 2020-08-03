@@ -50,15 +50,16 @@ export default class RaceProgressAnimation extends Animation {
 		return size / track.view.width;
 	}
 
+	/** animates everyone except for the current player */
 	animateOther = player => {
 		const { track } = this;
 		const { activePlayer } = track;
 
 		// calculate a position relative to the player but
 		// offset by the difference in progress
-		const percent = player.progress / 100;
-		let diff = percent - (activePlayer.progress / 100)
-		diff *= RACE_PLAYER_DISTANCE_MODIFIER;
+		const progress = player.progress / 100;
+		const compareTo = activePlayer.progress / 100;
+		const diff = (progress - compareTo) * RACE_PLAYER_DISTANCE_MODIFIER;
 
 		// save the position
 		player.preferredX = activePlayer.relativeX + diff;
@@ -105,11 +106,18 @@ export default class RaceProgressAnimation extends Animation {
 
 	/** updates a player's current target progress value */
 	updatePlayer = player =>  {
-		const { now, timestamps, lastUpdate, tweens } = this;
+		const { now, timestamps, lastUpdate, tweens, track } = this;
+		const { activePlayer } = track;
+
+		// if disqualified, just start falling off the track
+		if (player.isDisqualified && !activePlayer.isDisqualified) {
+			player.relativeX -= 0.01;
+			return;
+		}
 
 		// check if already updated
-		if (lastUpdate[player.id] === player.progress) return;
-		lastUpdate[player.id] = player.progress;
+		if (lastUpdate[player.id] === player.lastUpdate) return;
+		lastUpdate[player.id] = player.lastUpdate;
 
 		// perform the update
 		if (player.isPlayer) this.animatePlayer(player);
@@ -151,7 +159,7 @@ export default class RaceProgressAnimation extends Animation {
 	getNitroBonus = player => {
 		// TODO: refactor this - it's not a very nice way
 		// to access this value
-		return Math.sin(((player.car?.car?.nitroOffsetX || 0) * Math.PI)) * 0.05;
+		return player.car?.car?.nitroOffsetX || 0;
 	}
 	
 	// NOTE: this animation is depended on race progress so it's 

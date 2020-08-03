@@ -113,21 +113,46 @@ export default class Car extends PIXI.Container {
 		// prevent accidental recursive calls
 		// TODO: if this fails at loading the missing car
 		// then potentially use the canvas to draw something
-		if (this._isUsingMissingCar) return;
-		this._isUsingMissingCar = true;
-
+		if (this._isUsingMissingCarFallback) {
+			return this._createGeneratedCar();
+		}
+		
 		// create the missing car instance
 		this.options.hue = 0 | Math.random() * 360;
 		
 		// TODO: if the missing car needs to be animated, then
 		// use the enhanced car loader
 		// return this._createEnhancedCar(CAR_404_ENHANCED_VERSION);
+		this._isUsingMissingCarFallback = true;
 		return this._createStaticCar(CAR_404_STATIC_VERSION);
+		
 	}
 
 	// overrideable functions
 	onFinishRace = noop
 	onUpdate = noop
+
+	// if this happens then we're seriously struggling to get
+	// a car image - at this point use a backup
+	_createGeneratedCar = () => {
+		const car = new PIXI.Container();
+		const sprite = new PIXI.Sprite(PIXI.Texture.WHITE);
+		
+		// this is all very temporary
+		sprite.width = 500;
+		sprite.height = 250;
+		sprite.pivot.x = (500 / 2) / sprite.scale.x;
+		sprite.pivot.y = (250 / 2) / sprite.scale.y;
+		car.addChild(sprite);
+
+		// give back required data
+		return {
+			car,
+			imageSource: sprite,
+			height: sprite.height,
+			bounds: sprite.getBounds()
+		};
+	}
 
 	// creates a car from a static resource
 	_createStaticCar = async type => {
@@ -232,12 +257,9 @@ export default class Car extends PIXI.Container {
 		// create a color matrix
 		const color = this.matrix = new PIXI.filters.ColorMatrixFilter();
 		color.hue(hue);
-
-		// setup anti-aliasing (this doesn't seem to work well)
-		const aa = this.aa = new PIXI.filters.FXAAFilter();
 		
 		// apply filters
-		this.car.filters = [ aa, color ];
+		this.car.filters = [ color ];
 	}
 
 

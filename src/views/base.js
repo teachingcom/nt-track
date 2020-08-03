@@ -1,16 +1,12 @@
 import * as PIXI from 'pixi.js';
 import { Animator, EventEmitter, PIXI as AnimatorPIXI } from 'nt-animator';
+import { noop } from '../utils';
 
 /** creates a track instance */
 export class BaseView extends EventEmitter {
 
-	/** returns the active fps */
-	get fps() {
-		return PIXI.Ticker.shared.FPS;
-	}
-
 	/** handles initial setup of the rendering area */
-	init(options) {
+	async init(options) {
 		const { target, scale } = options;
 
 		// save some options
@@ -32,7 +28,8 @@ export class BaseView extends EventEmitter {
 		// and hide the launch message
 		this.renderer = new PIXI.Renderer({
 			resolution: 1,
-			antialias: false,
+			antialias: true,
+			// forceFXAA: true,
 			view: target,
 			backgroundColor: options.backgroundColor || 0x282d3f
 		});
@@ -49,6 +46,31 @@ export class BaseView extends EventEmitter {
 		
 		// match the size
 		this.resize();
+	}
+	
+	/** keeping track of progress */
+	activeTasks = [ ]
+	totalTasks = 0
+	loadingProgress = 0
+
+	/** includes a new task */
+	addTasks(...tasks) {
+		const { activeTasks } = this;
+		activeTasks.push(...tasks);
+		this.totalTasks += tasks.length;
+	}
+
+	/** resolves an item and moves progress forward */
+	resolveTask(name) {
+		const { activeTasks, totalTasks, options } = this;
+		const { onLoadProgress = noop } = options;
+		for (let i = activeTasks.length; i-- > 0;)
+			if (activeTasks[i] === name)
+				activeTasks.splice(i, 1);
+
+		// update the progress
+		this.loadingProgress = 1 - (activeTasks.length / totalTasks);
+		onLoadProgress(this.loadingProgress);
 	}
 
 	/** renders the current state of the view */
