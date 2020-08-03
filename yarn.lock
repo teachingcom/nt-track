@@ -4192,12 +4192,11 @@ normalize-url@^3.0.0:
 
 "nt-animator@https://github.com/teachingcom/nt-animator":
   version "1.0.0"
-  resolved "https://github.com/teachingcom/nt-animator#0752322a0d69bd9b4691cf41f5836636aadea678"
+  resolved "https://github.com/teachingcom/nt-animator#f07afb78eb0b76f898c6536c69077fc74885a18d"
   dependencies:
     clone-deep "^4.0.1"
     deep-defaults "^1.0.5"
     deep-get-set "^1.1.0"
-    pixi "^0.3.1"
     pixi-particles "^4.2.0"
     pixi.js "^5.2.3"
     popmotion "^8.7.1"
@@ -4596,11 +4595,6 @@ pixi.js@^5.2.3:
     "@pixi/text-bitmap" "5.2.4"
     "@pixi/ticker" "5.2.4"
     "@pixi/utils" "5.2.4"
-
-pixi@^0.3.1:
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/pixi/-/pixi-0.3.1.tgz#858cd6164a32a1e4b41192cdf5c6d98209300ba8"
-  integrity sha1-hYzWFkoyoeS0EZLN9cbZggkwC6g=
 
 pkg-up@^2.0.0:
   version "2.0.0"
