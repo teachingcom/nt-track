@@ -78,15 +78,10 @@ export default class RaceProgressAnimation extends Animation {
 		
 		// is allowed to animate
 		if (percent > RACE_ENDING_ANIMATION_THRESHOLD) {
-
-			// set the origin for the exit animation
-			if (!player.exitAnimationOrigin) {
-				player.exitAnimationOrigin = player.relativeX;
-				this.isOutro = true;
-			}
+			this.isOutro = true;
 
 			const width = this.getOffscreenScale(player);
-			const remaining = (percent - player.exitAnimationOrigin) * (1 / (1 - player.exitAnimationOrigin));
+			const remaining = (percent - RACE_ENDING_ANIMATION_THRESHOLD) / (1 - RACE_ENDING_ANIMATION_THRESHOLD); 
 
 			// save the preferred location for the car	
 			player.preferredX =
@@ -99,15 +94,21 @@ export default class RaceProgressAnimation extends Animation {
 				// and a percentage of the bonus room off the edge of
 				// the entire track
 				(width * percent);
-
 		}
 		
 	}
 
-	/** updates a player's current target progress value */
+	/** updates a player's currenpt target progress value */
 	updatePlayer = player =>  {
 		const { now, timestamps, lastUpdate, tweens, track } = this;
 		const { activePlayer } = track;
+
+		// if the player is done, then they shouldn't
+		// do anything more than go further off the screen (hide)
+		if (player.isFinished) {
+			player.relativeX += 0.01;
+			return;
+		}
 
 		// if disqualified, just start falling off the track
 		if (player.isDisqualified && !activePlayer.isDisqualified) {
@@ -133,33 +134,17 @@ export default class RaceProgressAnimation extends Animation {
 		// update timestamps
 		const lastTimestamp = timestamps[player.id] || now;
 		timestamps[player.id] = now;
-
-		// calculate the current position
-		const nitroBonus = this.getNitroBonus(player);
-		const startAt = player.relativeX - nitroBonus;
 		
 		// start the new tween
 		const duration = Math.max(2000, now - lastTimestamp)
 		tweens[player.id] = tween({
 			ease: easing.linear,
-			from: startAt,
+			from: player.relativeX,
 			to: player.preferredX,
 			duration
 		})
-		.start({
-			update: v => {
-				const nitroBonus = this.getNitroBonus(player);
-				player.relativeX = v + nitroBonus;
-			}
-		})
+		.start({ update: v => player.relativeX = v })
 		
-	}
-
-	/** gets the active nitro bonus for a car */
-	getNitroBonus = player => {
-		// TODO: refactor this - it's not a very nice way
-		// to access this value
-		return player.car?.car?.nitroOffsetX || 0;
 	}
 	
 	// NOTE: this animation is depended on race progress so it's 
@@ -176,23 +161,6 @@ export default class RaceProgressAnimation extends Animation {
 
 		// // always update the active player first
 		this.updatePlayer(activePlayer);
-
-		// if this hasn't started the ending animation, add a 
-		// small amount to the main car so it continues to move
-		if (!this.isOutro) {
-
-			// keep track of actual positioning
-			this.autoProgressOrigin = this.autoProgressOrigin || activePlayer.relativeX;
-			this.autoProgress += RACE_AUTO_PROGRESS_DISTANCE;
-
-			// get a nitro bonus, if any
-			const nitroBonus = this.getNitroBonus(activePlayer);
-
-			// update the position
-			activePlayer.relativeX = Math.min(
-				this.autoProgressOrigin + this.autoProgress + nitroBonus,
-				RACE_ENDING_ANIMATION_THRESHOLD);
-		}
 
 		// update remaining players
 		for (const player of players) {

@@ -121,21 +121,25 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 	async _initNameCard() {
 		const { options, mods } = this;
 		const { view } = options;
+		const { playerName, playerTeam, teamColor, isGold, isFriend, isTop3 } = options;
 		
 		// load a trail, if any
 		return NameCard.create({
 			view,
 			baseHeight: SCALED_NAMECARD_HEIGHT,
 			type: mods.card || 'default',
-			name: options.playerName,
-			team: options.playerTeam,
-			color: options.teamColor,
+			name: playerName,
+			team: playerTeam,
+			color: teamColor,
+			isGold,
+			isFriend,
+			isTop3,
 		});
 	}
  
 	// handles assembling the player
 	async _assemble(car, trail, nitro, namecard) {
-		const { layers, track, scale } = this;
+		const { layers, scale } = this;
 
 		// include the car and it's shadow
 		layers.car = car;
@@ -183,7 +187,8 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 			// hide the namecard when it is first loaded
 			// since it will show up in the top left corner
 			// until it's been positioned
-			namecard.x = -1000;
+			namecard.setPosition(-1000);
+			namecard.setVisibility(true);
 		}
 
 		// finalize order
@@ -197,26 +202,6 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 		this._progress = undefined;
 	}
 
-	// handles 
-	render(...args) {
-		const { car, track, namecard } = this;
-		car.onUpdate(...args);
-
-		// tether namecards
-		if (namecard && track) {
-			const width = track.view.width / track.view.scaleX;
-			const tether = NAMECARD_TETHER_DISTANCE / width;
-
-			// HACK: namecard.js hides the card until the first
-			// tile is is updated, then made visible - this is
-			// due to a bug where newly added assets appear in
-			// the top left corner - Fix this later
-			namecard.x = (this.relativeX - tether) * width;
-		}
-
-		super.render(...args);
-	}
-
 	/** handle removing all resources */
 	dispose = () => {
 		const { car, namecard, shadow } = this;
@@ -225,6 +210,30 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 		removeDisplayObject(car);
 		removeDisplayObject(namecard);
 		removeDisplayObject(shadow);
+	}
+
+	/** handles updating the car */
+	render(...args) {
+		
+		// perform updates
+		const { car, track, namecard } = this;
+		car.onUpdate(...args);
+		
+		// tether namecards
+		if (namecard && track) {
+			const width = track.view.width / track.view.scaleX;
+			const tether = NAMECARD_TETHER_DISTANCE / width;
+			
+			// HACK: namecard.js hides the card until the first
+			// tile is is updated, then made visible - this is
+			// due to a bug where newly added assets appear in
+			// the top left corner - Fix this later
+			const x = (this.relativeX - tether) * width;
+			namecard.setPosition(x);
+		}
+
+		// perform the normal render
+		super.render(...args);
 	}
 
 

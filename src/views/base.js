@@ -29,7 +29,6 @@ export class BaseView extends EventEmitter {
 		this.renderer = new PIXI.Renderer({
 			resolution: 1,
 			antialias: true,
-			// forceFXAA: true,
 			view: target,
 			backgroundColor: options.backgroundColor || 0x282d3f
 		});

@@ -3,6 +3,9 @@ import * as PIXI from 'pixi.js';
 import { first, merge } from '../../utils';
 import { toRGBA } from '../../utils/color';
 import { createContext, getBoundsForRole, findDisplayObjectsOfRole } from 'nt-animator';
+import { LAYER_NAMECARD_OVERLAY } from '../../views/track/layers';
+import { NAMECARD_SCALE } from '../../config';
+import { scaleCanvas } from '../../utils/scaling';
 
 // preferred font for namecards
 const DEFAULT_NAMECARD_FONT = 'montserrat';
@@ -14,8 +17,8 @@ const NAME_START = 0.5;
 const TEAM_MARGIN = 0.025;
 const LEFT_MARGIN = 0.07;
 
-// handles rendering name cards once to prevent needing
-// to call rendering functions the entire race
+// // handles rendering name cards once to prevent needing
+// // to call rendering functions the entire race
 const cardRenderer = createContext();
 
 // trailing namecard for a player
@@ -24,12 +27,13 @@ export default class NameCard extends PIXI.Container {
 	/** handles creating a new namecard */
 	static async create(options) {
 		const instance = new NameCard();
+		instance.visible = false;
 		
 		// determine the type to create
 		const { type, view } = options;
 		
 		// try and load
-		const isDefault = /default/.test(type);
+		// const isDefault = /default/.test(type);
 		let path = `namecards/${type}`;
 		let config = view.animator.lookup(path);
 
@@ -41,12 +45,12 @@ export default class NameCard extends PIXI.Container {
 
 		// if still missing then there's not
 		// a name card that can be used
-		if (!config) {
-			return;
-		}
+		if (!config) return;
 
 		// save the properties
-		merge(instance, { options, view, path, config });
+		const isGold = type === 'gold';
+		const hasOverlay = config.overlay !== false;
+		merge(instance, { options, view, path, config, isGold, hasOverlay });
 
 		// create a container for all parts
 		instance.container = new PIXI.Container();
@@ -55,16 +59,18 @@ export default class NameCard extends PIXI.Container {
 		// initialize all namecard parts
 		await instance._initNameCard();
 		await instance._initIcons();
-		instance._initText();
+
+		// check for an overlay to render
+		if (hasOverlay)
+			instance._initOverlay();
 
 		// return the created namecard
 		return instance;
 	}
 	
-
 	// creates the namecard instance
 	async _initNameCard() {
-		const { path, view, options, config } = this;
+		const { path, view, options, config, container } = this;
 		const { baseHeight } = options;
 
 		// create the instance
@@ -74,188 +80,189 @@ export default class NameCard extends PIXI.Container {
 		this.bounds = getBoundsForRole(namecard, 'base');
 		if (config.height) this.bounds.height = config.height;
 		if (config.width) this.bounds.width = config.width;
-		this.container.scale.x = this.container.scale.y = baseHeight / this.bounds.height;
+		
+		// save scaling values
+		container.scale.x = container.scale.y = baseHeight / this.bounds.height;
 		
 		// add to the view
-		this.container.addChild(namecard);
+		container.addChild(namecard);
 	}
 
-	// creates the namecard instance
+	// handle loading icons
 	async _initIcons() {
-		const { path, view, options, config } = this;
-		const { isGold, isTop3, isFriend } = options;
-		const { baseHeight } = options;
+		if (!!NameCard.ICONS) return;
+		const { view } = this;
+		const top3 = await view.animator.getImage('images', 'icon_top');
+		const gold = await view.animator.getImage('images', 'icon_gold');
+		const friend = await view.animator.getImage('images', 'icon_friend');
+		NameCard.ICONS = { top3, gold, friend };
+	}
 
-		const icons = [ ];
+	/** changes the visibility for a namecard */
+	setVisibility = visible => {
+		this.visible = visible;
+		if (this.overlay)
+			this.overlay.visible = visible;
+	}
 
-		// load each icon
-		if (isTop3 || true) {
-			const icon = await view.animator.getSprite('images', 'icon_top');
-			icons.push(icon);
-		}
+	/** changes the position and makes the namecard visible */
+	setPosition = x => {
+		this.x = x;
 
-		if (isGold || true) {
-			const icon = await view.animator.getSprite('images', 'icon_gold');
-			icons.push(icon);
-		}
+		// nothing to render
+		if (!this.hasOverlay) 
+			return;
 
-		if (isFriend || true) {
-			const icon = await view.animator.getSprite('images', 'icon_friend');
-			icons.push(icon);
-		}
+		// redraw, if needed
+		this.redraw();
+
+		// match the position
+		this.getGlobalPosition(this.overlay, true);
+		this.overlay.x = 0 | this.overlay.x;
+		this.overlay.y = 0 | this.overlay.y;
+	}
+
+	/** redraws the namecard container */
+	redraw = () => {
+		const { lastScale, view, displayName, icons, container, overlay, config, hasOverlay } = this;
+		const { scaleY } = view.view;
 		
-		// include and position each
-		let left = this.bounds.width * -0.45;
-		for (const icon of icons) {
-			this.container.addChild(icon);
-			icon.x = left;
-			icon.y = this.bounds.height * -0.425
-			icon.scale.x = icon.scale.y = 0.75;
-			icon.pivot.x = 0;
-			icon.pivot.y = 0.5;
-			
-			const size = icon.getBounds();
-			left += icon.width + 20;
-		}
+		// no need to resize
+		if (!hasOverlay || scaleY === lastScale) return;
+		this.lastScale = scaleY;
+
+		// remove previous values
+		overlay.removeChildren();
+
+		// create a mask for the container
+		const left = 0 | -((container.width * scaleY) * 0.465);
+		const mask = new PIXI.Sprite(PIXI.Texture.WHITE);
+		const width = container.width * scaleY * 0.9;
+		const height = container.height * scaleY * 0.9;
+		mask.width = 0 | width;
+		mask.height = 0 | height;
+		mask.x = left - 1;
+		mask.y = 0 | -(height * 0.5);
+		overlay.addChild(mask);
 		
+		// get colors to use for text
+		let textColor = 0xffffff;
+		let shadowColor = 0x000000;
+		if (config.text) {
+			textColor = 'color' in config.text ? toRGBA(config.text.color, 1) : textColor;
+			shadowColor = 'shadow' in config.text ? toRGBA(config.text.shadow, 1) : shadowColor;
+		}
+
+		// render each line
+		for (const style of [
+			{ color: shadowColor, y: 2 },
+			{ color: textColor, y: 0 }
+		]) {
+		
+			// draw the text/shadow
+			const text = new PIXI.Text(displayName, {
+				fontSize: 22 * scaleY,
+				fontFamily: 'Montserrat',
+				fontWeight: 500,
+				fill: style.color
+			});
+	
+			// align
+			text.x = left;
+			text.y = style.y * scaleY;
+			text.mask = mask;
+	
+			// add to the view
+			overlay.addChild(text);
+		}
+
+		// no icons to render
+		if (!icons) return;
+
+		// render the icon block
+		const { tallest, ids } = icons;
+		const surface = createContext();
+
+		// create the icon strip
+		surface.resize(500, tallest);
+		surface.ctx.setTransform(1, 0, 0, 1, 0, 0);
+		surface.ctx.translate(0, 0 | (tallest / 2));
+		drawIcons(surface.ctx, ids, scaleY);
+
+		// scale the icons down - try to use a sharper scaling
+		const resample = scaleY * 0.6;
+		scaleCanvas(surface.canvas, 0 | (500 * resample), 0 | (tallest * resample), true);
+		
+		// create the new texture
+		const texture = PIXI.Texture.from(surface.canvas);
+		const banner = new PIXI.Sprite(texture)
+		
+		// add the banner to the view
+		banner.y = 0 | -(banner.getBounds().height * 0.9);
+		banner.x = left + 3;
+		overlay.addChild(banner);
 	}
 
 	// create the text labels
-	_initText() {
-		const { config, options } = this;
+	_initOverlay() {
+		const { ICONS } = NameCard;
+		const isGoldNameCard = !!this.isGold;
 
-		// skip for special namecards
-		if (config.noText) return;
+		// prepare the floating overlay container
+		this.overlay = new PIXI.Container();
+		this.overlay.zIndex = LAYER_NAMECARD_OVERLAY;
+		this.overlay.visible = false;
+
+		// get info to show
+		const { options } = this;
+		const { name = 'Guest Racer', team, isTop3, isGold, isFriend } = options;
+		this.displayName = [ team && `[${team}]`, name ].join(' ');
+
+		// check for icons
+		let tallest = 0;
+		const ids = [ ];
+		if (isGold && !isGoldNameCard) {
+			tallest = Math.max(tallest, ICONS.gold.height);
+			ids.push('gold');
+		}
 		
-		const { text = { } } = config;
-		const { name = 'Guest Racer', team } = options;
+		if (isTop3) {
+			tallest = Math.max(tallest, ICONS.top3.height);
+			ids.push('top3');
+		}
 
-		// get the color to use
-		const color = toRGBA('color' in config ? config.color : 0xffffff, 1); 
+		if (isFriend) {
+			tallest = Math.max(tallest, ICONS.friend.height);
+			ids.push('friend');
+		}
 
-		// get the name to show
-		const str = [ name ];
-		if (team) str.unshift(`[${team}]`);
-		const displayText = str.join(' ');
+		// if there are no icons
+		if (ids.length === 0) return;
 
-		// // setup the name text
-		// const nameConfig = createTextConfig(name, PREFERRED_NAME_FONT_SIZE, 'bottom', text.name, config.text);
-		// if (isNaN(nameConfig.x) || isNaN(nameConfig.y)) {
-		// 	nameConfig.x = this.bounds.width * LEFT_MARGIN;
-		// 	nameConfig.y = this.bounds.height * NAME_START;
-		// 	nameConfig.color = color;
-		// }
-		
-		// // setup the team text
-		// let teamConfig;
-		// if (team) {
-		// 	teamConfig = createTextConfig(`[${team}]`, PREFERRED_TEAM_FONT_SIZE, 'top', text.team, config.text);
-		// 	if (isNaN(teamConfig.x) || isNaN(teamConfig.y)) {
-		// 		teamConfig.x = this.bounds.width * LEFT_MARGIN;
-		// 		teamConfig.y = this.bounds.height * (NAME_START + TEAM_MARGIN);
+		// save icon rendering
+		this.icons = {
+			surface: createContext(),
+			tallest,
+			ids
+		};
 
-		// 		// NOTE: can support team colors
-		// 		// teamConfig.color = color;
-		// 		teamConfig.color = color;
-		// 	}
-		// }
-		// // no team was provided? Move the name
-		// else {
-		// 	nameConfig.baseline = 'middle';
-		// 	nameConfig.y = this.bounds.height * 0.5;;
-		// }
-
-		// reset the view
-		cardRenderer.canvas.width = this.bounds.width;
-		cardRenderer.canvas.height = this.bounds.height;
-		
-		// // render each block
-		// for (const block of [nameConfig, teamConfig]) {
-		// 	if (!block) continue;
-
-		// 	// render the text
-		// 	cardRenderer.ctx.textBaseline = block.baseline;
-		// 	cardRenderer.ctx.fillStyle = block.color;
-		// 	cardRenderer.ctx.font = `${block.fontWeight} ${block.fontSize}px ${block.fontFamily}`;
-
-		// 	// clear shadows
-		// 	if (block.disableShadow)
-		// 		cardRenderer.ctx.shadowColor = null;
-		// 	// render with a shadow
-		// 	else {
-		// 		const color = config.shadow?.color || config.shadow || 0x000000;
-		// 		const alpha = config.shadow?.alpha || config.shadowAlpha || 0.7;
-		// 		const distance = config.shadow?.distance || config.shadowDistance || 2;
-		// 		const size = config.shadow?.size || config.shadowSize || 5;
-		// 		cardRenderer.ctx.shadowOffsetX = 0;
-		// 		cardRenderer.ctx.shadowOffsetY = distance;
-		// 		cardRenderer.ctx.shadowBlur = size;
-		// 		cardRenderer.ctx.shadowColor = toRGBA(color, alpha);
-		// 	}
-
-		// 	// render the text
-		// 	cardRenderer.ctx.fillText(block.text, block.x, block.y);
-		// }
-
-		// render the text
-		cardRenderer.ctx.textBaseline = 'top';
-		cardRenderer.ctx.fillStyle = color;
-		cardRenderer.ctx.font = `bold ${PREFERRED_NAME_FONT_SIZE}px ${DEFAULT_NAMECARD_FONT}`;
-		
-		// prepare the shadpw
-		const shadowColor = config.shadow?.color || config.shadow || 0x000000;
-		const shadowAlpha = config.shadow?.alpha || config.shadowAlpha || 0.7;
-		const shadowDistance = config.shadow?.distance || config.shadowDistance || 2;
-		const shadowSize = config.shadow?.size || config.shadowSize || 5;
-		cardRenderer.ctx.shadowOffsetX = 0;
-		cardRenderer.ctx.shadowOffsetY = shadowDistance;
-		cardRenderer.ctx.shadowBlur = shadowSize;
-		cardRenderer.ctx.shadowColor = toRGBA(shadowColor, shadowAlpha);
-
-		// render the text
-		const x = this.bounds.width * LEFT_MARGIN;
-		const y = this.bounds.height * (NAME_START + TEAM_MARGIN);
-		cardRenderer.ctx.fillText(displayText, x, y);
-
-		// create an image from the nametag
-		const img = document.createElement('img');
-		img.src = cardRenderer.canvas.toDataURL();
-
-		// use it as a sprite
-		const overlay = new PIXI.Sprite.from(img);
-		overlay.pivot.x = cardRenderer.canvas.width / 2;
-		overlay.pivot.y = cardRenderer.canvas.height / 2;
-
-		this.container.addChild(overlay);	
 	}
 
 }
 
-// common text configs
-const createTextConfig = (text, fontSize, baseline, config = { }, defaults = { }) => ({
-	
-	// fonts
-	fontFamily: first(config.font, DEFAULT_NAMECARD_FONT),
-	fontWeight: first(config.weight, 'bold'),
+// renders the player icons onto a single canvas
+function drawIcons(ctx, icons, scale) {
+	const GAP = 0 | (10 * scale);
+	let x = 0;
+	for (const id of icons) {
+		const icon = NameCard.ICONS[id];
+		let { width, height } = icon;
 
-	// copied
-	text,
-	fontSize,
-	baseline,
-	
-	// styles
-	color: first(config.color, defaults.color, 0xffffff),
-	disableShadow: first(config.disableShadow, defaults.disableShadow, false),
-	dropShadowColor: first(config.shadow, defaults.shadow, 0x000000),
-	dropShadowAlpha: first(config.shadowOpacity, defaults.shadowOpacity, 0.7),
-	
-	// maybe allow layer
-	// dropShadowBlur: 3,
-	// dropShadowDistance: 2,
-	// dropShadowAngle: Math.PI / 2,
+		width = ((width * 1) * scale);
+		height = ((height * 1) * scale);
 
-	// position
-	x: config.x,
-	y: config.y
-});
-
+		// render onto the view
+		ctx.drawImage(icon, x, 0 | (height * -0.5), width, height);
+		x += 0 | (width + GAP);
+	}
+}

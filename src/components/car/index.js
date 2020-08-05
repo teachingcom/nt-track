@@ -257,9 +257,14 @@ export default class Car extends PIXI.Container {
 		// create a color matrix
 		const color = this.matrix = new PIXI.filters.ColorMatrixFilter();
 		color.hue(hue);
+
+		// setup some anti-aliasing
+		// NOTE: this doesn't really look all that great
+		const aa = this.aa = new PIXI.filters.FXAAFilter();
+		aa.resolution = 1;
 		
 		// apply filters
-		this.car.filters = [ color ];
+		this.car.filters = [ color, aa ];
 	}
 
 
@@ -335,10 +340,9 @@ export default class Car extends PIXI.Container {
 	/** changes the y position of the car */
 	setY = y =>  {
 		const { shadow, nitroBlur, state, scale, hasNitro } = this;
-		const { offset } = state;
 		
 		// default y positions
-		this.y = CAR_BODY_OFFSET_Y + offset.y + y;
+		this.y = CAR_BODY_OFFSET_Y + y;
 		if (shadow) {
 			shadow.y = (CAR_SHADOW_OFFSET_Y * scale.y) + (y * CAR_SHAKE_SHADOW_REDUCTION);
 		}
@@ -436,7 +440,6 @@ export default class Car extends PIXI.Container {
 		// start the animation
 		state.isNitro = true;
 		this.nitroAnimation.play({
-			update: props => offset.y = props.carOffsetY,
 			complete: () => state.isNitro = false
 		});
 	}

@@ -1,3 +1,4 @@
+export const LAYER_NAMECARD_OVERLAY = 151;
 export const LAYER_NAMECARD = 150;
 export const LAYER_TRACK_OVERLAY = 100;
 export const LAYER_NITRO_BLUR = 30;

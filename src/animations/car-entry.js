@@ -1,7 +1,7 @@
 import * as audio from '../audio';
 import { noop } from "../utils";
-import { tween, easing, delay } from "popmotion";
-import { TRACK_STARTING_LINE_POSITION, RACE_START_CAR_ENTRY_TIME, RACE_START_NAMECARD_DELAY_TIME, RACE_START_NAMECARD_ENTRY_TIME, RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT } from "../config";
+import { tween, easing } from "popmotion";
+import { TRACK_STARTING_LINE_POSITION, RACE_START_CAR_ENTRY_TIME, RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT } from "../config";
 import { VOLUME_CAR_ENTRY } from '../audio/volume';
 
 
@@ -47,7 +47,7 @@ export default class CarEntryAnimation {
 		// animate the player entry
 		tween({
 			duration: RACE_START_CAR_ENTRY_TIME,
-			ease: easing.cubicBezier(0.43, 1.15, 0.91, 1),
+			ease: easing.easeOut,
 			from: entryOrigin,
 			to: entryDestination
 		})

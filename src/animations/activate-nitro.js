@@ -121,24 +121,6 @@ export default class ActivateNitroAnimation extends Animation {
 			]
 		});
 
-		// animates the forward and back movement for the car
-		// TODO: clean this up
-		keyframes({
-			duration: DURATION * 2,
-			easings: [  easing.easeOut, easing.easeOut, easing.easeInOut ],
-			timings: [ 0, TIMINGS[1] * 2, 1 ],
-			values: [
-				{ x: 0 },
-				{ x: CAR_NITRO_ADVANCEMENT_DISTANCE },
-				{ x: 0 }
-			]
-		})
-		.start({
-			update: props => {
-				car.nitroOffsetX = props.x || 0;
-			}
-		});
-
 		// begin the animation sequence
 		const playback = sequence.start({
 			update: props => {

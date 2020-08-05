@@ -24,11 +24,10 @@ import FpsMonitor from '../../fps';
 export default class TrackView extends BaseView {
 
 	// tracking FPS changes
-	fps = new FpsMonitor();
+	fps = new FpsMonitor()
 
 	// global effect filter
 	colorFilter = new PIXI.filters.ColorMatrixFilter()
-	aaFilter = new PIXI.filters.FXAAFilter()
 	frame = 0
 
 	// tracking players and their namecards
@@ -87,14 +86,8 @@ export default class TrackView extends BaseView {
 		this.animationRate = options.animationRateWhenIdle;
 		this.raceProgressAnimation = new RaceProgressAnimation({ track: this });
 
-		// aaFilter.legacy = false;
-		// aaFilter.resolution = 200;
-
 		// attach the effects filter
-		this.stage.filters = [
-			colorFilter,
-			// aaFilter,
-		];
+		this.stage.filters = [ colorFilter ];
 
 		// after initialized, start tracking
 		this.fps.activate();
@@ -154,6 +147,11 @@ export default class TrackView extends BaseView {
 
 			// add to the view
 			stage.addChild(container);
+
+			// also include the text layer that
+			// should ignore scaling and be treated separately
+			if (namecard.hasOverlay)
+				stage.addChild(namecard.overlay);
 
 			// match positions to the car
 			container.zIndex = LAYER_NAMECARD;
@@ -320,12 +318,13 @@ export default class TrackView extends BaseView {
 		player.progress = progress;
 		player.lastUpdate = +new Date;
 		player.speedBoost = speedBoost;
-		player.isFinished = progress >= 0;
-
+		
 		// finish the race for this player
 		// if progress is done
-		if (player.progress >= 100)
+		if (player.progress >= 100) {
+			player.isFinished = true;
 			this.finishRace(player);
+		}
 	}
 
 	/** handles activating the nitro effect for a player */
@@ -421,10 +420,6 @@ export default class TrackView extends BaseView {
 			const boost = activePlayer.speedBoost * (TRACK_MAXIMUM_SPEED * 0.75);
 			state.speed += boost;
 		}
-		
-		// update the amount cars should shake
-		const { speed } = state;
-		state.shake = Math.max(shake, speed);
 
 		// TODO: replace with new views
 		// this is temporary check until
