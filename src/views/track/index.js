@@ -222,7 +222,6 @@ export default class TrackView extends BaseView {
 
 		// if the player wasn't found then there's nothing to do
 		if (!~index) return;
-		console.log('will remove', player);
 
 		// remove the entry
 		players.splice(index, 1);
@@ -313,16 +312,25 @@ export default class TrackView extends BaseView {
 	configureMusic = audio.configureMusic
 
 	/** changes the progress for a player */
-	setProgress = (id, progress, speedBoost) => {
+	setProgress = (id, { progress, finished, typed, speedBoost, completed }) => {
+		const { isAnimatingFinishline, raceCompletedAnimation } = this;
+		
+		// update the player
 		const player = this.getPlayerById(id);
 		player.progress = progress;
-		player.lastUpdate = +new Date;
+		player.completedAt = completed;
+		player.isFinished = finished;
+		player.totalTyped = typed;
 		player.speedBoost = speedBoost;
+		player.lastUpdate = +new Date;
 		
-		// finish the race for this player
-		// if progress is done
-		if (player.progress >= 100) {
-			player.isFinished = true;
+		// finish the race for this player, if done
+		if (player.isPlayer && !!completed && !isAnimatingFinishline) {
+			this.isAnimatingFinishline = true;
+			raceCompletedAnimation.play({ });
+		}
+		// mark finish line progress
+		else if (player.isFinished) {
 			this.finishRace(player);
 		}
 	}
@@ -395,7 +403,9 @@ export default class TrackView extends BaseView {
 
 		// start the animation - does this need
 		// to be delayed?
-		this.raceCompletedAnimation.play({ });
+		// waiting for activation
+		// console.log('is activating ending?');
+		
 	}
 
 	// handle rendering the track in the requested state

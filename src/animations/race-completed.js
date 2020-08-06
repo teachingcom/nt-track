@@ -41,20 +41,46 @@ export default class RaceCompletedAnimation {
 	}
 
 	// shows the player animation
-	addPlayer = (player, isInstant) => {
+	addPlayer = player => {
 		const { track, finishedPlayers, activePlayerId } = this;
 		const { stage } = track;
 		const isActivePlayer = player.id === activePlayerId;
 
 		// create the animation
-		const place = finishedPlayers.indexOf(player.id) + 1;
+		const index = finishedPlayers.indexOf(player.id);
+		const place = index + 1;
+		const prior = finishedPlayers[index - 1];
+
+		// first place 
+		let delay = 0;
+		let isInstant = false;
+
+		// check for the best time to compare against
+		if (place === 1) {
+			this.firstCompletedTimestamp = player.completedAt;
+			isInstant = true;
+		}
+		// for all other players
+		else {
+
+			// calculate the time difference
+			const diff = player.completedAt - prior.completedAt;
+			const delayModifier =
+				diff <= 15 ? 10
+				: diff <= 50 ?  5
+				: diff <= 100 ? 2
+				: 1;
+
+			// create the TS delay
+			delay = diff * delayModifier;
+		}
 
 		// restore the car view, if needed
 		player.visible = true;
 
 		// create the animation
 		const animate = new CarFinishLineAnimation({ player, track, isActivePlayer, place, stage });
-		animate.play({ isInstant });
+		animate.play({ isInstant, delay });
 	}
 
 	// starts the animation
@@ -69,7 +95,7 @@ export default class RaceCompletedAnimation {
 
 			// finished players, move to the finish line
 			if (player.isPlayer || isFinished) {
-				this.addPlayer(player, !player.isPlayer);
+				this.addPlayer(player);
 			}
 			// otherwise, move off screen
 			else {
@@ -100,7 +126,9 @@ export default class RaceCompletedAnimation {
 
 				// fade the effect
 				flash.alpha = v;
-			}
+			},
+			// notify when the view is ready
+			complete: () => this.hasFinishedFlashAnimation = true
 		});
 
 	}

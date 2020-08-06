@@ -5,7 +5,7 @@ import {
 	RACE_PLAYER_DISTANCE_MODIFIER,
 	RACE_OFF_SCREEN_FINISH_DISTANCE,
 	TRACK_STARTING_LINE_POSITION,
-	RACE_AUTO_PROGRESS_DISTANCE
+	RACE_PROGRESS_TWEEN_TIMING
 } from "../config";
 
 
@@ -136,7 +136,7 @@ export default class RaceProgressAnimation extends Animation {
 		timestamps[player.id] = now;
 		
 		// start the new tween
-		const duration = Math.max(2000, now - lastTimestamp)
+		const duration = Math.max(RACE_PROGRESS_TWEEN_TIMING, now - lastTimestamp)
 		tweens[player.id] = tween({
 			ease: easing.linear,
 			from: player.relativeX,

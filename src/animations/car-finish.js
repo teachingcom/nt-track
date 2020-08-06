@@ -13,8 +13,8 @@ export default class CarFinishLineAnimation {
 		this.isActivePlayer = isActivePlayer;
 	}
 
-	play({ isInstant = false, update = noop, complete = noop }) {
-		const { player, isActivePlayer } = this;
+	play({ isInstant = false, delay = 0, update = noop, complete = noop }) {
+		const { player } = this;
 
 		// if this car is entering
 		if (!isInstant) {
@@ -59,13 +59,15 @@ export default class CarFinishLineAnimation {
 		updateEntryProps(entryOrigin);
 
 		// start the entry animation
-		tween({
-			duration: RACE_FINISH_CAR_STOPPING_TIME,
-			ease: easing.circOut,
-			from: entryOrigin,
-			to: entryDestination
-		})
-		.start({ update: updateEntryProps });
+		setTimeout(() => {
+			tween({
+				duration: RACE_FINISH_CAR_STOPPING_TIME,
+				ease: easing.circOut,
+				from: entryOrigin,
+				to: entryDestination
+			})
+			.start({ update: updateEntryProps });
+		}, delay);
 
 	}
 

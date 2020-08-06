@@ -27,8 +27,8 @@ export class BaseView extends EventEmitter {
 		// create a PIXI renderer for the provided canvas
 		// and hide the launch message
 		this.renderer = new PIXI.Renderer({
+			// antialias: true, // doesn't appear to improve anything
 			resolution: 1,
-			antialias: true,
 			view: target,
 			backgroundColor: options.backgroundColor || 0x282d3f
 		});

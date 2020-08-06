@@ -4192,7 +4192,7 @@ normalize-url@^3.0.0:
 
 "nt-animator@https://github.com/teachingcom/nt-animator":
   version "1.0.0"
-  resolved "https://github.com/teachingcom/nt-animator#f07afb78eb0b76f898c6536c69077fc74885a18d"
+  resolved "https://github.com/teachingcom/nt-animator#b6b06fc340054486b6c2f7957dcaafdccb7d704c"
   dependencies:
     clone-deep "^4.0.1"
     deep-defaults "^1.0.5"
