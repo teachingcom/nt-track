@@ -10,9 +10,9 @@ import Track from '../../components/track';
 
 // sizing, layers, positions
 import * as scaling from './scaling';
-import { TRACK_MAXIMUM_SPEED, TRACK_ACCELERATION_RATE, CAR_DEFAULT_SHAKE_LEVEL, INPUT_ERROR_SOUND_TIME_LIMIT, ANIMATION_RATE_WHILE_IDLE, ANIMATION_RATE_WHILE_RACING, RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT } from '../../config';
+import { TRACK_MAXIMUM_SPEED, TRACK_ACCELERATION_RATE, CAR_DEFAULT_SHAKE_LEVEL, ANIMATION_RATE_WHILE_IDLE, ANIMATION_RATE_WHILE_RACING, RACE_SOUND_ERROR_MAX_INTERVAL, TRACK_MAXIMUM_SPEED_BOOST_RATE, TRACK_MAXIMUM_SPEED_DRAG_RATE } from '../../config';
 import { LAYER_NAMECARD, LAYER_TRACK_GROUND, LAYER_TRACK_OVERLAY } from './layers';
-import { VOLUME_DISQUALIFY, VOLUME_START_ACCELERATION, VOLUME_COUNTDOWN, VOLUME_COUNTDOWN_ANNOUNCER } from '../../audio/volume';
+import { VOLUME_DISQUALIFY, VOLUME_START_ACCELERATION, VOLUME_COUNTDOWN_ANNOUNCER } from '../../audio/volume';
 
 // animations
 import CarEntryAnimation from '../../animations/car-entry';
@@ -46,6 +46,9 @@ export default class TrackView extends BaseView {
 		shake: CAR_DEFAULT_SHAKE_LEVEL,
 		animateTrackMovement: false,
 		trackMovementAmount: 0,
+		activeTypingSpeedModifier: 0,
+		typingSpeedModifier: 0,
+		typingSpeedModifierShift: 0,
 		totalPlayers: 0
 	}
 
@@ -61,11 +64,7 @@ export default class TrackView extends BaseView {
 		await super.init(options);
 
 		// identify loading tasks
-		this.addTasks(
-			'load_track',
-			'load_extras',
-			'load_audio'
-		);
+		this.addTasks('load_track', 'load_extras', 'load_audio');
 		
 		// set default audio state
 		audio.configureSFX({ enabled: !!options.sfx });
@@ -157,7 +156,7 @@ export default class TrackView extends BaseView {
 			container.zIndex = LAYER_NAMECARD;
 			container.relativeY = player.relativeY;
 			container.relativeX = 0;
-			container.pivot.x = (namecard.width * -0.5);
+			container.pivot.x = namecard.width * -0.5;
 		}
 
 		// animate onto the track
@@ -249,6 +248,7 @@ export default class TrackView extends BaseView {
 				dq.play();
 
 				// tell the track to slow down and stop
+				state.typingSpeedModifier = 0;
 				state.trackMovementAmount = -TRACK_ACCELERATION_RATE;
 			}
 		}
@@ -260,7 +260,7 @@ export default class TrackView extends BaseView {
 		// don't play too many error sounds
 		const now = +new Date;
 		if (now < this.lastErrorSound || 0) return;
-		this.lastErrorSound = now + INPUT_ERROR_SOUND_TIME_LIMIT;
+		this.lastErrorSound = now + RACE_SOUND_ERROR_MAX_INTERVAL;
 
 		// play the sound
 		const selected = Math.ceil(Math.random() * 4);
@@ -312,8 +312,8 @@ export default class TrackView extends BaseView {
 	configureMusic = audio.configureMusic
 
 	/** changes the progress for a player */
-	setProgress = (id, { progress, finished, typed, speedBoost, completed }) => {
-		const { isAnimatingFinishline, raceCompletedAnimation } = this;
+	setProgress = (id, { progress, finished, typed, typingSpeedModifier, completed }) => {
+		const { isAnimatingFinishline, raceCompletedAnimation, state } = this;
 		
 		// update the player
 		const player = this.getPlayerById(id);
@@ -321,8 +321,15 @@ export default class TrackView extends BaseView {
 		player.completedAt = completed;
 		player.isFinished = finished;
 		player.totalTyped = typed;
-		player.speedBoost = speedBoost;
 		player.lastUpdate = +new Date;
+
+		// cause the track to scroll faster if the player
+		// is typing quickly or slowly
+		if (player.isPlayer) {
+			const rate = (typingSpeedModifier > 0) ? TRACK_MAXIMUM_SPEED_BOOST_RATE : TRACK_MAXIMUM_SPEED_DRAG_RATE;
+			state.typingSpeedModifier = typingSpeedModifier * rate;
+			state.typingSpeedModifierShift = (state.typingSpeedModifier - (state.activeTypingSpeedModifier || 0)) * 0.01;
+		}
 		
 		// finish the race for this player, if done
 		if (player.isPlayer && !!completed && !isAnimatingFinishline) {
@@ -394,7 +401,7 @@ export default class TrackView extends BaseView {
 
 		// play the final animation
 		this.raceCompletedAnimation = new RaceCompletedAnimation({
-			track,
+			track: this,
 			player,
 			activePlayer,
 			allPlayers: players,
@@ -415,8 +422,8 @@ export default class TrackView extends BaseView {
 		this.frame++;
 
 		// gather some data
-		const { state, frame, animationRate, activePlayer } = this;
-		const { shake, animateTrackMovement, trackMovementAmount } = state;
+		const { state, frame, animationRate } = this;
+		const { animateTrackMovement, trackMovementAmount } = state;
 		const isRaceActive = state.isStarted && !state.isFinished;
 
 		// speeding up the view
@@ -426,9 +433,18 @@ export default class TrackView extends BaseView {
 
 		// increase the track movement by the speed bonus
 		// allows up to an extra 75% of the normal speed
-		if (isRaceActive && activePlayer && activePlayer.speedBoost) {
-			const boost = activePlayer.speedBoost * (TRACK_MAXIMUM_SPEED * 0.75);
-			state.speed += boost;
+		if (isRaceActive) {
+			const { typingSpeedModifier = 0 } = state;
+
+			// shift to the new size
+			state.activeTypingSpeedModifier += state.typingSpeedModifierShift;
+			if (state.typingSpeedModifierShift > 0)
+				state.activeTypingSpeedModifier = Math.min(state.activeTypingSpeedModifier, typingSpeedModifier);
+			else if (state.typingSpeedModifierShift < 0)
+				state.activeTypingSpeedModifier = Math.max(state.activeTypingSpeedModifier, typingSpeedModifier);
+			else state.activeTypingSpeedModifier = 0;
+
+			state.speed = Math.max(state.speed, state.speed + state.activeTypingSpeedModifier);
 		}
 
 		// TODO: replace with new views

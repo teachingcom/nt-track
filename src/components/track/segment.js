@@ -4,12 +4,13 @@ import { getBoundsForRole } from 'nt-animator';
 
 export default class Segment {
 
-	constructor(composition) {
+	constructor(track, composition) {
+		this.track = track;
 		this.composition = composition;
-		const { top, bottom } = this;
-		
+
 		// sort check layers using their z-index to put them
 		// into their correct containers
+		const { top, bottom } = this;
 		for (let i = composition.children.length; i-- > 0;) {
 			const child = composition.children[i];
 			const target = child.zIndex > 0 ? top : bottom;
@@ -40,6 +41,14 @@ export default class Segment {
 
 	top = new PIXI.Container();
 	bottom = new PIXI.Container();
+
+	// perform culling if out of view
+	cull = () => {
+		const { bottom, track } = this;
+		const { x, width } = bottom;
+		const overflow = track.view.width * 1.5;
+		this.visible = x < overflow && x > -(width + overflow);
+	}
 
 	getBounds(asGlobal) {
 		return getBoundsForRole(this.bottom, 'base', asGlobal);

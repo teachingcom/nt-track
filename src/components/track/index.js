@@ -126,7 +126,7 @@ export default class Track {
 			// compose the slice and add to the
 			// scrolling overlay/bottom containers
 			const comp = await view.animator.compose(template, path, manifest);
-			const segment = new Segment(comp);
+			const segment = new Segment(this, comp);
 			segments.push(segment);
 
 			// for repeating road, offset so that
@@ -159,7 +159,7 @@ export default class Track {
 
 		// add the starting line
 		const comp = await view.animator.compose({ compose: start }, path, manifest);
-		const segment = this.startingLine = new Segment(comp);
+		const segment = this.startingLine = new Segment(this, comp);
 
 		// add the overlay section
 		overlay.addChild(segment.top);
@@ -189,7 +189,7 @@ export default class Track {
 
 		// add the finishing line
 		const comp = await view.animator.compose({ compose: finish }, path, manifest);
-		const segment = this.finishLine = new Segment(comp);
+		const segment = this.finishLine = new Segment(this, comp);
 		// segment.visible = false;
 	}
 
@@ -327,6 +327,7 @@ export default class Track {
 		const offsetX = width * -0.5;
 		for (const segment of segments) {
 			segment.addX(offsetX);
+			segment.cull();
 		}
 	}
 
@@ -340,6 +341,7 @@ export default class Track {
 	// changes the location of the repeating track
 	_cycleTrack(diff) {
 		const { segments, startingLine, finishLine } = this;
+		const halfScreen = screen.width / 2;
 
 		this.trackPosition += diff;
 
@@ -358,6 +360,7 @@ export default class Track {
 
 			// apply the diff
 			segment.addX(diff);
+			segment.cull();
 
 			// if this has gone off screen, it's time
 			// to reset it -- maximum one per frame
@@ -376,7 +379,8 @@ export default class Track {
 		// beginning of the loop
 		if (reset && max) {
 			const shift = Math.floor(max.bottom.x + max.bounds.width) - 1;
-			reset.setX(shift)
+			reset.setX(shift);
+			reset.visible = false;
 		}
 
 		// move the starting and ending lines

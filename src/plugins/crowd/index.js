@@ -120,6 +120,11 @@ export default async function createCrowd(animator, controller, path, layer, dat
 		// add the shadow
 		await attachShadow(animator, container, legs);
 
+		// scale
+		container.scale.x = CROWD_DEFAULT_SCALE;
+		container.scale.x *= (0.9 + (0.2 * Math.random()));
+		container.scale.y = container.scale.x;
+
 		// randomly flip
 		container.scale.x *= Math.random() > 0.5 ? -1 : 1;
 		
@@ -173,21 +178,16 @@ async function attachExtra(animator, relativeTo, spritesheet, target, actor, att
 
 // adds a shadow to a sprite
 async function attachShadow(animator, container, relativeTo) {
-	const shadow = await animator.getSprite('crowd', 'shadow');
-	container.addChildAt(shadow, 0);
+	// const shadow = await animator.getSprite('crowd', 'shadow');
+	// container.addChildAt(shadow, 0);
 
-	// position the shadow at the bottom
-	shadow.pivot.y = shadow.height * 0.75;
-	shadow.pivot.x = shadow.width * 0.5;
-	shadow.y = relativeTo.y + relativeTo.height;
-	shadow.x = relativeTo.x;
-	shadow.scale.x = shadow.scale.y = (relativeTo.width / shadow.width) * 2;
-	shadow.alpha = 0.75;
-
-	// scale
-	container.scale.x = CROWD_DEFAULT_SCALE;
-	container.scale.x *= (0.9 + (0.2 * Math.random()));
-	container.scale.y = container.scale.x;
+	// // position the shadow at the bottom
+	// shadow.pivot.y = shadow.height * 0.75;
+	// shadow.pivot.x = shadow.width * 0.5;
+	// shadow.y = relativeTo.y + relativeTo.height;
+	// shadow.x = relativeTo.x;
+	// shadow.scale.x = shadow.scale.y = (relativeTo.width / shadow.width) * 2;
+	// shadow.alpha = 0.75;
 }
 
 

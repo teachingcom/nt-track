@@ -1,7 +1,7 @@
 import { noop } from "../utils";
 import * as audio from '../audio';
 import { tween, easing } from 'popmotion';
-import { RACE_FINISH_CAR_STOPPING_TIME } from "../config";
+import { RACE_FINISH_CAR_STOPPING_TIME, RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL } from "../config";
 import { VOLUME_FINISH_LINE_STOP } from "../audio/volume";
 
 export default class CarFinishLineAnimation {
@@ -13,7 +13,7 @@ export default class CarFinishLineAnimation {
 		this.isActivePlayer = isActivePlayer;
 	}
 
-	play({ isInstant = false, delay = 0, update = noop, complete = noop }) {
+	play({ isInstant = false, delay = 0, elapsed = 0, update = noop, complete = noop }) {
 		const { player } = this;
 
 		// if this car is entering
@@ -24,7 +24,7 @@ export default class CarFinishLineAnimation {
 			// 5 car screeching noises all at once
 			setTimeout(() => {
 				const now = +new Date;
-				const nextAllowedPlay = stop.lastInstancePlay + 1000; // config?
+				const nextAllowedPlay = stop.lastInstancePlay + RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL;
 				if (nextAllowedPlay > now) return;
 				
 				// play the sound effect, if possible
@@ -62,6 +62,7 @@ export default class CarFinishLineAnimation {
 		setTimeout(() => {
 			tween({
 				duration: RACE_FINISH_CAR_STOPPING_TIME,
+				elapsed: Math.min(elapsed, RACE_FINISH_CAR_STOPPING_TIME),
 				ease: easing.circOut,
 				from: entryOrigin,
 				to: entryDestination

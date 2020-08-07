@@ -61,6 +61,7 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 		// put the player in the correct lane
 		instance.relativeY = LANES[options.lane];
 		instance.relativeX = 0;
+		instance.zIndex = options.lane;
 
 		// make sure there's a player ID
 		instance.id = options.id || `player_${+new Date}`;
