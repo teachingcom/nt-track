@@ -28,6 +28,11 @@ export default class RaceCompletedAnimation {
 		// add it to the race
 		track.view.addChild(flash);
 
+		// play the finish sound
+		const finish = audio.create('sfx', 'common', 'finish_crowd');
+		finish.volume(VOLUME_FINISH_LINE_CROWD);
+		finish.play();
+
 		// reset all car positions
 		for (const p of allPlayers) {
 			p.car.relativeX = -0.15;
@@ -106,11 +111,6 @@ export default class RaceCompletedAnimation {
 				player.visible = false;
 			}
 		}
-		
-		// play the finish sound
-		const finish = audio.create('sfx', 'common', 'finish_crowd');
-		finish.volume(VOLUME_FINISH_LINE_CROWD);
-		finish.play();
 
 		// mark this animation as active
 		this.raceCompletedAt = activePlayer.completedAt;

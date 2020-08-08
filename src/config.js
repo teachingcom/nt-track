@@ -8,8 +8,8 @@ export const ANIMATION_RATE_WHILE_IDLE = 1;
 
 // tracks
 export const TRACK_MAXIMUM_SCROLL_SPEED = 60;
-export const TRACK_MAXIMUM_SPEED_BOOST_RATE = 0.85;
-export const TRACK_MAXIMUM_SPEED_DRAG_RATE = 0.50;
+export const TRACK_MAXIMUM_SPEED_BOOST_RATE = 0.4;
+export const TRACK_MAXIMUM_SPEED_DRAG_RATE = 0.5;
 export const TRACK_MAXIMUM_SPEED = 0.66;
 export const TRACK_ACCELERATION_RATE = 0.005;
 export const TRACK_TOP_SCALE = 0.125;
@@ -19,10 +19,10 @@ export const TRACK_CAR_SIZE_RELATIVE_TO_LANE = 0.75;
 export const TRACK_CAR_LANE_CENTER_OFFSET = 0.03;
 export const TRACK_STARTING_LINE_POSITION = 0.35;
 export const TRACK_NAMECARD_EDGE_PADDING = 10;
-export const TRACK_OFFSCREEN_CAR_FINISH = 0.9;
+export const TRACK_OFFSCREEN_CAR_FINISH = 0.25;
 
 // progress
-export const RACE_ENDING_ANIMATION_THRESHOLD = 0.66;
+export const RACE_ENDING_ANIMATION_THRESHOLD = 0.7;
 export const RACE_PLAYER_DISTANCE_MODIFIER = 5;
 export const RACE_OFF_SCREEN_FINISH_DISTANCE = 1.15;
 export const RACE_AUTO_PROGRESS_DISTANCE = 0; // 0.00015;
@@ -38,7 +38,7 @@ export const RACE_FINISH_FLASH_FADE_TIME = 300;
 
 // crowds
 export const CROWD_DEFAULT_SCALE = 0.4;
-export const CROWD_ANIMATION_VARIATIONS = 1;
+export const CROWD_ANIMATION_VARIATIONS = 5;
 
 // namecards
 export const NAMECARD_SCALE = 0.8;

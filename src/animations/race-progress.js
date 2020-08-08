@@ -80,20 +80,14 @@ export default class RaceProgressAnimation extends Animation {
 		if (percent > RACE_ENDING_ANIMATION_THRESHOLD) {
 			this.isOutro = true;
 
+			// calculate the position
 			const width = this.getOffscreenScale(player);
-			const remaining = (percent - RACE_ENDING_ANIMATION_THRESHOLD) / (1 - RACE_ENDING_ANIMATION_THRESHOLD); 
-
-			// save the preferred location for the car	
-			player.preferredX =
-				// the defaul starting edge
-				TRACK_STARTING_LINE_POSITION +
-
-				// plus a percentage of the remaining
-				((1 - TRACK_STARTING_LINE_POSITION) * remaining) +
-
-				// and a percentage of the bonus room off the edge of
-				// the entire track
-				(width * percent);
+			const base = 1 - RACE_ENDING_ANIMATION_THRESHOLD;
+			const scaled = (percent - RACE_ENDING_ANIMATION_THRESHOLD) / base;
+			const done = (1 - TRACK_STARTING_LINE_POSITION) * scaled;
+			const offset = width * scaled;
+			const at = TRACK_STARTING_LINE_POSITION + done + offset;
+			player.preferredX = Math.max(TRACK_STARTING_LINE_POSITION, at);
 		}
 		
 	}
