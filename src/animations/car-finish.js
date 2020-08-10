@@ -16,6 +16,14 @@ export default class CarFinishLineAnimation {
 	play({ isInstant = false, delay = 0, elapsed = 0, update = noop, complete = noop }) {
 		const { player } = this;
 
+		// if this animation has already been activated, then
+		// don't do it again
+		// TODO: there was a scenario where the finish line
+		// animation played twice - This is to prevent it from happening
+		// but that bug should be tracked down
+		if (player.hasShownFinishLineAnimation) return;
+		player.hasShownFinishLineAnimation = true;
+
 		// if this car is entering
 		if (!isInstant) {
 			const stop = audio.create('sfx', 'common', 'car_stopping');

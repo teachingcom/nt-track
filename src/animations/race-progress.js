@@ -7,6 +7,7 @@ import {
 	TRACK_STARTING_LINE_POSITION,
 	RACE_PROGRESS_TWEEN_TIMING
 } from "../config";
+import * as debug from '../debug';
 
 
 export default class RaceProgressAnimation extends Animation {
@@ -16,9 +17,6 @@ export default class RaceProgressAnimation extends Animation {
 
 		this.track = track;
 	}
-
-	// extra x value for slight continued car movement
-	autoProgress = 0
 
 	// cached sizes for cars
 	fitTo = { }
@@ -62,6 +60,7 @@ export default class RaceProgressAnimation extends Animation {
 		const diff = (progress - compareTo) * RACE_PLAYER_DISTANCE_MODIFIER;
 
 		// save the position
+		player.raceProgressModifier = diff;
 		player.preferredX = activePlayer.relativeX + diff;
 	}
 
@@ -124,20 +123,30 @@ export default class RaceProgressAnimation extends Animation {
 		// start the tween
 		if (tweens[player.id])
 			tweens[player.id].stop();
-		
+			
 		// update timestamps
 		const lastTimestamp = timestamps[player.id] || now;
 		timestamps[player.id] = now;
 		
+		// save some progress
+		const diff = now - lastTimestamp;
+		debug.addProgress({
+			id: player.id,
+			isPlayer: player.isPlayer,
+			ts: diff,
+			mod: player.raceProgressModifier || 0,
+			progress: player.preferredX
+		});
+		
 		// start the new tween
-		const duration = Math.max(RACE_PROGRESS_TWEEN_TIMING, now - lastTimestamp)
+		const duration = Math.min(Math.max(RACE_PROGRESS_TWEEN_TIMING, diff), RACE_PROGRESS_TWEEN_TIMING * 1.05);
 		tweens[player.id] = tween({
 			ease: easing.linear,
 			from: player.relativeX,
 			to: player.preferredX,
 			duration
 		})
-		.start({ update: v => player.relativeX = v })
+		.start({ update: v => player.relativeX = v });
 		
 	}
 	
@@ -172,7 +181,3 @@ export default class RaceProgressAnimation extends Animation {
 	}
 
 }
-
-function setPosition(player, v) {
-	player.relativeX = v
-};

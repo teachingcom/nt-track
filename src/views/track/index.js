@@ -406,13 +406,7 @@ export default class TrackView extends BaseView {
 			activePlayer,
 			allPlayers: players,
 			finishedPlayers
-		});
-
-		// start the animation - does this need
-		// to be delayed?
-		// waiting for activation
-		// console.log('is activating ending?');
-		
+		});		
 	}
 
 	// handle rendering the track in the requested state
@@ -444,6 +438,7 @@ export default class TrackView extends BaseView {
 				state.activeTypingSpeedModifier = Math.max(state.activeTypingSpeedModifier, typingSpeedModifier);
 			else state.activeTypingSpeedModifier = 0;
 
+			// set the racing speed with modifiers
 			state.speed = Math.max(state.speed, state.speed + state.activeTypingSpeedModifier);
 		}
 
