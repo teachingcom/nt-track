@@ -1,8 +1,8 @@
+import Animation from './base';
 
 import { keyframes, easing } from 'popmotion';
 import { noop } from '../utils';
-import Animation from './base';
-import { NITRO_ACTIVATED_TRAIL_OPACITY, CAR_NITRO_ADVANCEMENT_DISTANCE } from '../config';
+import { NITRO_ACTIVATED_TRAIL_OPACITY } from '../config';
 
 const DURATION = 1200;
 const EASINGS = [ easing.easeOut, easing.linear, easing.bounceOut ]

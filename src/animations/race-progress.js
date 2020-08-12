@@ -1,3 +1,5 @@
+import Animation from './base';
+
 import { tween, easing } from 'popmotion';
 import { getBoundsForRole } from "nt-animator";
 import {
@@ -16,6 +18,7 @@ export default class RaceProgressAnimation extends Animation {
 		super();
 
 		this.track = track;
+		this.isQualifyingRace = isQualifyingRace;
 	}
 
 	// cached sizes for cars
@@ -93,7 +96,7 @@ export default class RaceProgressAnimation extends Animation {
 
 	/** updates a player's currenpt target progress value */
 	updatePlayer = player =>  {
-		const { now, timestamps, lastUpdate, tweens, track } = this;
+		const { now, timestamps, lastUpdate, tweens, track, isQualifyingRace } = this;
 		const { activePlayer } = track;
 
 		// if the player is done, then they shouldn't
@@ -118,7 +121,14 @@ export default class RaceProgressAnimation extends Animation {
 		else this.animateOther(player);
 				
 		// cannot animate yet
-		if (isNaN(player.preferredX)) return;
+		if (isNaN(player.preferredX)) {
+
+			// if this is the qualifying race
+			if (isQualifyingRace)
+				player.relativeX += 0.01;
+
+			return;
+		}
 		
 		// start the tween
 		if (tweens[player.id])

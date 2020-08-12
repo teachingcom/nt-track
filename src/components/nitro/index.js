@@ -82,7 +82,6 @@ export default class Nitro extends AnimatorPIXI.DetatchedContainer {
 	
 		// prepare the sound
 		this.sound = sound;
-		sound.volume(VOLUME_NITRO);
 		sound.loop(false);
 	}
 
@@ -102,6 +101,7 @@ export default class Nitro extends AnimatorPIXI.DetatchedContainer {
 
 		// check for a sound to play
 		if (sound) {
+			sound.volume(VOLUME_NITRO);
 			sound.play();
 		}
 

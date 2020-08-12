@@ -1,5 +1,5 @@
 
-import { Howl } from 'howler';
+import { Howl, Howler } from 'howler';
 import { Sound } from './sound';
 
 /** keeps track of active audio files */
@@ -16,6 +16,7 @@ Sound.musicEnabled = false;
 
 /** changes the sound effect state */
 export function configureSFX(config) {
+	console.log('new config');
 
 	// change enabled state
 	if ('enabled' in config) {
@@ -36,22 +37,22 @@ export function configureSFX(config) {
 	
 /** changes the music state */
 export function configureMusic(config) {
-	// change enabled state
-	if ('enabled' in config) {
-		const enabled = Sound.musicEnabled = !!config.enabled;
-		for (const song of MUSIC) {
-			song.enabled = enabled;
+	// // change enabled state
+	// if ('enabled' in config) {
+	// 	const enabled = Sound.musicEnabled = !!config.enabled;
+	// 	for (const song of MUSIC) {
+	// 		song.enabled = enabled;
 
-			// activate or deactivate
-			if (!enabled) song.stop();
-			else song.play();
-		}
-	}
+	// 		// activate or deactivate
+	// 		if (!enabled) song.stop();
+	// 		else song.play();
+	// 	}
+	// }
 
-	// change volume state
-	if ('volume' in config) {
-		Sound.musicVolume = config.volume;
-	}
+	// // change volume state
+	// if ('volume' in config) {
+	// 	Sound.musicVolume = config.volume;
+	// }
 }
 
 /** changes the root url to load audio from */
@@ -81,6 +82,7 @@ export async function register(key, sprites) {
 			src,
 			sprite: sprites,
 			format: ['mp3'],
+			volume: 0,
 			preload: true,
 			autoplay: false,
 			onloaderror: onFailed,
@@ -101,14 +103,11 @@ export function create(type, key, sprite) {
 
 	// start the audio
 	const id = sound.play(sprite);
+	
+	// creates a new sound instance
 	const instance = new Sound(type, sound, key, id, sprite);
 	instance.stop();
-
-	// prepare to play
-	if (Sound.sfxEnabled && instance.isSfx) {
-		sound.seek(0, id);
-	}
-
+	instance.reset();
 
 	// save the audio
 	if (instance.isMusic) MUSIC.push(instance);

@@ -1,23 +1,27 @@
 import * as audio from '../audio';
+import Animation from './base';
+
 import { noop } from "../utils";
 import { tween, easing } from "popmotion";
 import { TRACK_STARTING_LINE_POSITION, RACE_START_CAR_ENTRY_TIME, RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT } from "../config";
 import { VOLUME_CAR_ENTRY } from '../audio/volume';
 
-
-export default class CarEntryAnimation {
+export default class CarEntryAnimation extends Animation {
 
 	constructor({ player, enterSound, namecard, track }) {
+		super();
+		
 		this.player = player;
 		this.track = track;
 		this.namecard = namecard;
-
-		// load the sound
-		this.rev = audio.create('sfx', 'common', `entry_${enterSound}`);
+		this.enterSound = enterSound;
 	}
 
 	play = ({ isInstant = false, update = noop, complete = noop }) => {
-		const { player, rev } = this;
+		const { player, enterSound } = this;
+		
+		// load the sound
+		this.rev = audio.create('sfx', 'common', `entry_${enterSound}`);
 		
 		// offscreen starting position
 		const entryOrigin = {
@@ -57,14 +61,20 @@ export default class CarEntryAnimation {
 		});
 
 		// play the entry sound, if possible
+		const { rev } = this;
 		const canPlayTimestamp = rev.lastInstancePlay + RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT;
 			
 		// don't play duplicate sounds too close together
 		const now = +new Date;
-		if (rev && now > canPlayTimestamp) {
-			rev.volume(VOLUME_CAR_ENTRY)
-			rev.loop(false);
-			rev.play();
+		try {
+			if (rev && now > canPlayTimestamp) {
+				rev.volume(VOLUME_CAR_ENTRY)
+				rev.loop(false);
+				rev.play();
+			}
+		}
+		catch (ex) {
+			console.warn('unable to play entry sound')
 		}
 
 	}

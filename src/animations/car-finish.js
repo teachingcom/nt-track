@@ -1,12 +1,16 @@
+import Animation from "./base";
+
 import { noop } from "../utils";
 import * as audio from '../audio';
 import { tween, easing } from 'popmotion';
 import { RACE_FINISH_CAR_STOPPING_TIME, RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL } from "../config";
 import { VOLUME_FINISH_LINE_STOP } from "../audio/volume";
 
-export default class CarFinishLineAnimation {
+export default class CarFinishLineAnimation extends Animation {
 
 	constructor({ isActivePlayer, player, track, place }) {
+		super();
+		
 		this.player = player;
 		this.track = track;
 		this.place = place;

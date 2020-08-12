@@ -7,12 +7,37 @@ import * as audio from '../../audio';
 import { BaseView } from '../base';
 import Player from './player';
 import Track from '../../components/track';
+import AmbientAudio from '../../audio/ambient';
 
 // sizing, layers, positions
 import * as scaling from './scaling';
-import { TRACK_MAXIMUM_SPEED, TRACK_ACCELERATION_RATE, CAR_DEFAULT_SHAKE_LEVEL, ANIMATION_RATE_WHILE_IDLE, ANIMATION_RATE_WHILE_RACING, RACE_SOUND_ERROR_MAX_INTERVAL, TRACK_MAXIMUM_SPEED_BOOST_RATE, TRACK_MAXIMUM_SPEED_DRAG_RATE } from '../../config';
-import { LAYER_NAMECARD, LAYER_TRACK_GROUND, LAYER_TRACK_OVERLAY } from './layers';
-import { VOLUME_DISQUALIFY, VOLUME_START_ACCELERATION, VOLUME_COUNTDOWN_ANNOUNCER } from '../../audio/volume';
+import {
+	TRACK_MAXIMUM_SPEED,
+	TRACK_ACCELERATION_RATE,
+	CAR_DEFAULT_SHAKE_LEVEL,
+	ANIMATION_RATE_WHILE_IDLE,
+	ANIMATION_RATE_WHILE_RACING,
+	TRACK_MAXIMUM_SPEED_BOOST_RATE,
+	TRACK_MAXIMUM_SPEED_DRAG_RATE
+} from '../../config';
+
+import {
+	LAYER_NAMECARD,
+	LAYER_TRACK_GROUND,
+	LAYER_TRACK_OVERLAY
+} from './layers';
+
+import {
+	VOLUME_DISQUALIFY,
+	VOLUME_START_ACCELERATION,
+	VOLUME_COUNTDOWN_ANNOUNCER,
+	VOLUME_ERROR_1,
+	VOLUME_ERROR_2,
+	VOLUME_ERROR_3,
+	VOLUME_ERROR_4,
+	VOLUME_ERROR_DEFAULT,
+	VOLUME_CROWD_AMBIENCE
+} from '../../audio/volume';
 
 // animations
 import CarEntryAnimation from '../../animations/car-entry';
@@ -75,7 +100,7 @@ export default class TrackView extends BaseView {
 		this.resolveTask('load_audio');
 		
 		// preload the countdown animation images
-		const { animator, aaFilter, colorFilter } = this;
+		const { animator } = this;
 		await animator.getSpritesheet('extras/countdown');
 		this.resolveTask('load_extras');
 
@@ -86,7 +111,7 @@ export default class TrackView extends BaseView {
 		this.raceProgressAnimation = new RaceProgressAnimation({ track: this });
 
 		// attach the effects filter
-		this.stage.filters = [ colorFilter ];
+		// this.stage.filters = [ this.colorFilter ];
 
 		// after initialized, start tracking
 		this.fps.activate();
@@ -193,6 +218,18 @@ export default class TrackView extends BaseView {
 		stage.addChild(track.overlay);
 		track.overlay.zIndex = LAYER_TRACK_OVERLAY;
 		track.overlay.relativeX = 0.5;
+		
+		// TODO: support other ambient track audio types
+		const c1 = audio.create('sfx', 'common', 'cheering_short');
+		const c2 = audio.create('sfx', 'common', 'cheering_short');
+		
+		// set volumes
+		c1.volume(VOLUME_CROWD_AMBIENCE);
+		c2.volume(VOLUME_CROWD_AMBIENCE);
+		
+		// start the ambient sound player
+		this.ambient = new AmbientAudio([ c1, c2 ]);
+		this.ambient.start();
 
 		// sort the layers
 		stage.sortChildren();
@@ -256,15 +293,19 @@ export default class TrackView extends BaseView {
 
 	/** happens after an input error */
 	playerError = () => {
-
-		// don't play too many error sounds
-		const now = +new Date;
-		if (now < this.lastErrorSound || 0) return;
-		this.lastErrorSound = now + RACE_SOUND_ERROR_MAX_INTERVAL;
-
-		// play the sound
 		const selected = Math.ceil(Math.random() * 4);
 		const err = audio.create('sfx', 'common', `error_${selected}`);
+
+		// select the correct volume
+		const volume = [
+			VOLUME_ERROR_1,
+			VOLUME_ERROR_2,
+			VOLUME_ERROR_3,
+			VOLUME_ERROR_4
+		][ selected - 1 ] || VOLUME_ERROR_DEFAULT;
+
+		// set the volume
+		err.volume(volume);
 		err.play();
 	}
 
@@ -281,25 +322,23 @@ export default class TrackView extends BaseView {
 		
 		// create the sounds
 		const announcer = audio.create('sfx', 'common', 'countdown');
-		announcer.volume(VOLUME_COUNTDOWN_ANNOUNCER);
-		
-		// accelerate from the line
 		const acceleration = audio.create('sfx', 'common', 'acceleration');
-		acceleration.volume(VOLUME_START_ACCELERATION);
 		
 		// wait a moment before showing
 		setTimeout(async () => {
-
+			
 			// create the countdown
 			const countdown = await animator.create('/extras/countdown');
 			container.addChild(countdown);
 			
 			// start the sound effect
+			announcer.volume(VOLUME_COUNTDOWN_ANNOUNCER);
 			announcer.play();
 		}, 1000);
-
+		
 		// wait for the countdown
 		setTimeout(() => {
+			acceleration.volume(VOLUME_START_ACCELERATION);
 			acceleration.play();
 
 			// notify the race has begun
@@ -334,7 +373,7 @@ export default class TrackView extends BaseView {
 		// finish the race for this player, if done
 		if (player.isPlayer && !!completed && !isAnimatingFinishline) {
 			this.isAnimatingFinishline = true;
-			raceCompletedAnimation.play({ });
+			requestAnimationFrame(() => raceCompletedAnimation.play({ }));
 		}
 		// mark finish line progress
 		else if (player.isFinished) {
@@ -385,6 +424,9 @@ export default class TrackView extends BaseView {
 		// nothing left to do -- just continue to let them
 		// animate off the track
 		if (!player.isPlayer) return;
+
+		// stop background noises
+		this.ambient.stop();
 
 		// stop the track
 		state.animateTrackMovement = false;

@@ -1,25 +1,17 @@
+// TODO: refactor this file after introducing SSAA
 
 import * as PIXI from 'pixi.js';
-import { first, merge } from '../../utils';
+import { merge } from '../../utils';
 import { toRGBA } from '../../utils/color';
-import { createContext, getBoundsForRole, findDisplayObjectsOfRole } from 'nt-animator';
+import { createContext, getBoundsForRole } from 'nt-animator';
 import { LAYER_NAMECARD_OVERLAY } from '../../views/track/layers';
-import { NAMECARD_SCALE } from '../../config';
 import { scaleCanvas } from '../../utils/scaling';
 
 // preferred font for namecards
-const DEFAULT_NAMECARD_FONT = 'montserrat';
-const PREFERRED_NAME_FONT_SIZE = 52;
-// const PREFERRED_TEAM_FONT_SIZE = 42;
-
-// positioning for names
-const NAME_START = 0.5;
-const TEAM_MARGIN = 0.025;
-const LEFT_MARGIN = 0.07;
-
-// // handles rendering name cards once to prevent needing
-// // to call rendering functions the entire race
-const cardRenderer = createContext();
+const NAMECARD_ICON_SCALE = 0.35;
+const DEFAULT_NAMECARD_FONT_SIZE = 22;
+const DEFAULT_NAMECARD_FONT_NAME = 'montserrat';
+const DEFAULT_NAMECARD_FONT_WEIGHT = 500;
 
 // trailing namecard for a player
 export default class NameCard extends PIXI.Container {
@@ -137,7 +129,7 @@ export default class NameCard extends PIXI.Container {
 		// create a mask for the container
 		const left = 0 | -((container.width * scaleY) * 0.465);
 		const mask = new PIXI.Sprite(PIXI.Texture.WHITE);
-		const width = container.width * scaleY * 0.9;
+		const width = container.width * scaleY * 0.825;
 		const height = container.height * scaleY * 0.9;
 		mask.width = 0 | width;
 		mask.height = 0 | height;
@@ -161,9 +153,9 @@ export default class NameCard extends PIXI.Container {
 		
 			// draw the text/shadow
 			const text = new PIXI.Text(displayName, {
-				fontSize: 22 * scaleY,
-				fontFamily: 'Montserrat',
-				fontWeight: 500,
+				fontSize: DEFAULT_NAMECARD_FONT_SIZE * scaleY,
+				fontFamily: DEFAULT_NAMECARD_FONT_NAME,
+				fontWeight: DEFAULT_NAMECARD_FONT_WEIGHT,
 				fill: style.color
 			});
 	
@@ -190,15 +182,16 @@ export default class NameCard extends PIXI.Container {
 		drawIcons(surface.ctx, ids, scaleY);
 
 		// scale the icons down - try to use a sharper scaling
-		const resample = scaleY * 0.6;
-		scaleCanvas(surface.canvas, 0 | (500 * resample), 0 | (tallest * resample), true);
+		// const resample = scaleY * 0.6;
+		// scaleCanvas(surface.canvas, 0 | (500 * resample), 0 | (tallest * resample), true);
 		
 		// create the new texture
 		const texture = PIXI.Texture.from(surface.canvas);
-		const banner = new PIXI.Sprite(texture)
+		const banner = new PIXI.Sprite(texture);
+		banner.scale.x = banner.scale.y = NAMECARD_ICON_SCALE;
 		
 		// add the banner to the view
-		banner.y = 0 | -(banner.getBounds().height * 0.9);
+		banner.y = 0 | -(banner.getBounds().height * 0.95);
 		banner.x = left + 3;
 		overlay.addChild(banner);
 	}

@@ -28,7 +28,6 @@ export class BaseView extends EventEmitter {
 		// and hide the launch message
 		this.renderer = new PIXI.Renderer({
 			// antialias: true, // doesn't appear to improve anything
-			resolution: 1,
 			view: target,
 			backgroundColor: options.backgroundColor || 0x282d3f
 		});
@@ -80,22 +79,31 @@ export class BaseView extends EventEmitter {
 
 	/** resizes to match the container element */
 	resize = () => {
-		const { parent, target: surface, view, renderer } = this;
+		const { parent, target: surface, view, renderer, options } = this;
+		const ssaa = options.ssaa !== false;
 
 		// get the updated bounds
 		const bounds = parent.getBoundingClientRect();
-		const width = bounds.right - bounds.left;
-		const height = bounds.bottom - bounds.top;
+		const width = (bounds.right - bounds.left) * (ssaa ? 2 : 1);
+		const height = (bounds.bottom - bounds.top) * (ssaa ? 2 : 1);
 		
 		// resize the view
 		this.width = surface.width = width;
 		this.height = surface.height = height;
 		this.cx = width / 2;
 		this.cy = height / 2;
-		
-		// update the responsive view size
-		view.resize(width, height);
 
+		// update the sizing
+		view.resize(width, height);
+		
+		// update anti-aliasing
+		if (ssaa) {
+			this.renderer.view.style.width = `${width}px`;
+			this.renderer.view.style.height = `${height}px`;
+			this.renderer.view.style.transformOrigin = '0 0';
+			this.renderer.view.style.transform = 'scale(0.5, 0.5)';
+		}
+		
 		// notify of the resize
 		const { cx, cy } = this;
 		this.emit('resize', { width, height, cx, cy });

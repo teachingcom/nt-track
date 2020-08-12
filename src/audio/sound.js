@@ -27,7 +27,6 @@ export class Sound {
 		// check the default state
 		this.isMusic = type === 'music';
 		this.isSfx = !this.isMusic;
-		this._enabled = this.isMusic ? Sound.musicEnabled : Sound.sfxEnabled;
 	}
 
 	/** checks the last time this sound instance was played */
@@ -49,8 +48,13 @@ export class Sound {
 	}
 
 	/** checks if able to be played */
-	get enabled() {
-		return this._enabled;
+	get isEnabled() {
+		return this._isEnabled !== false;
+	}
+
+	/** checks if this can be played */
+	get isAllowed() {
+		return this.isMusic ? Sound.musicEnabled : Sound.sfxEnabled;
 	}
 
 	get preferredVolumeLevel() {
@@ -58,8 +62,8 @@ export class Sound {
 	}
 
 	// enables or disables sound
-	set enabled(enabled) {
-		this._enabled = !!enabled;
+	set isEnabled(enabled) {
+		this._isEnabled = !!enabled;
 		this.volume(enabled ? this.preferredVolumeLevel : 0);
 	}
 
@@ -100,6 +104,21 @@ export class Sound {
 		this.source.fade(from, to, duration, id);
 	}
 	
+	/** set the rate */
+	fadeOut = (duration) => {
+		this.fade(this._preferredVolumeLevel, 0, duration);
+	}
+	
+	/** set the rate */
+	fadeIn = (duration) => {
+		this.fade(0, this._preferredVolumeLevel, duration);
+	}
+
+	reset = () => {
+		const { id } = this;
+		this.source.seek(0, id);
+	}
+	
 	/** stop the audio */
 	stop = () => {
 		const { id } = this;
@@ -114,17 +133,16 @@ export class Sound {
 	
 	/** play the audio */
 	play = () => {
-		
-		// don't play sound if it's not allowed.
-		if (!Sound.isAllowed) return;
 
-		const { enabled, id } = this;
+		const { isAllowed, isEnabled, id } = this;
 		this.lastInstancePlay = +new Date;
 
 		// TODO: this might have different behaviors
 		// when it's music
-		if (!enabled) return;
+		if (!(isEnabled || isAllowed)) return;
 
+		// set the volume
+		this.source.volume(this._preferredVolumeLevel, id);
 		this.source.seek(0, id);
 		this.source.play(id);
 	}

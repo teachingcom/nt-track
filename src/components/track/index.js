@@ -3,7 +3,7 @@ import { PIXI as AnimatorPIXI, getBoundsForRole } from 'nt-animator';
 import Random from '../../rng';
 import { TRACK_HEIGHT, TRACK_TOP } from '../../views/track/scaling';
 import { TRACK_MAXIMUM_SCROLL_SPEED, TRACK_STARTING_LINE_POSITION } from '../../config';
-import { isArray, isNumber, noop } from '../../utils';
+import { isArray, isNumber } from '../../utils';
 import Segment from './segment';
 import createCrowd from '../../plugins/crowd';
 
@@ -388,7 +388,7 @@ export default class Track {
 			startingLine.addX(diff);
 
 			// check if time to remove the starting line
-			if (startingLine.getBounds().right < offscreen) {
+			if (startingLine.getBounds(false).right < offscreen) {
 				this.removeStartingLine();
 			}
 		}

@@ -25,8 +25,7 @@ import {
 	NITRO_BLUR_DEFAULT_OFFSET_X,
 	CAR_SHAKE_NITRO_BONUS,
 	CAR_SHAKE_SHADOW_REDUCTION,
-	CAR_404_STATIC_VERSION,
-	CAR_404_ENHANCED_VERSION
+	CAR_404_STATIC_VERSION
 } from '../../config';
 
 // animations
@@ -258,13 +257,13 @@ export default class Car extends PIXI.Container {
 		const color = this.matrix = new PIXI.filters.ColorMatrixFilter();
 		color.hue(hue);
 
-		// setup some anti-aliasing
-		// NOTE: this doesn't really look all that great
-		const aa = this.aa = new PIXI.filters.FXAAFilter();
-		aa.resolution = 1;
+		// // setup some anti-aliasing
+		// // NOTE: this doesn't really look all that great
+		// const aa = this.aa = new PIXI.filters.FXAAFilter();
+		// aa.resolution = 1;
 		
 		// apply filters
-		this.car.filters = [ color, aa ];
+		this.car.filters = [ color ];
 	}
 
 
