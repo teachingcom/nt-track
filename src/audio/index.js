@@ -35,24 +35,24 @@ export function configureSFX(config) {
 	}
 }
 	
-/** changes the music state */
+/*The* changes the music state */
 export function configureMusic(config) {
-	// // change enabled state
-	// if ('enabled' in config) {
-	// 	const enabled = Sound.musicEnabled = !!config.enabled;
-	// 	for (const song of MUSIC) {
-	// 		song.enabled = enabled;
+	// change enabled state
+	if ('enabled' in config) {
+		const enabled = Sound.musicEnabled = !!config.enabled;
+		for (const song of MUSIC) {
+			song.enabled = enabled;
 
-	// 		// activate or deactivate
-	// 		if (!enabled) song.stop();
-	// 		else song.play();
-	// 	}
-	// }
+			// activate or deactivate
+			if (!enabled) song.stop();
+			else song.play();
+		}
+	}
 
-	// // change volume state
-	// if ('volume' in config) {
-	// 	Sound.musicVolume = config.volume;
-	// }
+	// change volume state
+	if ('volume' in config) {
+		Sound.musicVolume = config.volume;
+	}
 }
 
 /** changes the root url to load audio from */

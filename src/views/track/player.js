@@ -1,4 +1,5 @@
 
+import * as PIXI from 'pixi.js';
 import { PIXI as AnimatorPIXI, removeDisplayObject } from 'nt-animator';
 
 import { LANES, SCALED_CAR_HEIGHT, SCALED_NAMECARD_HEIGHT } from './scaling';
@@ -149,6 +150,11 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 
 		// include extra components
 		car.attachMods({ trail, nitro });
+
+		// create debugging text
+		this.debug = new PIXI.Text('', { fill: 0xffffff, fontSize: 22, fontWeight: 'bold', align: 'center' });
+		car.addChild(this.debug);
+		this.debug.x = -300;
 		
 		// include the trail, if any
 		if (trail) {
@@ -215,6 +221,11 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 
 	/** handles updating the car */
 	render(...args) {
+
+		const p1 = 0 | ((this.relativeX || 0) * 100);
+		const p2 = 0 | (this.progress || 0);
+		const place = this.place ? `: ${this.place}` : '';
+		this.debug.text = `${p1}% / ${p2}% ${place}`;
 		
 		// perform updates
 		const { car, track, namecard } = this;

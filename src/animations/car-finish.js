@@ -28,6 +28,10 @@ export default class CarFinishLineAnimation extends Animation {
 		if (player.hasShownFinishLineAnimation) return;
 		player.hasShownFinishLineAnimation = true;
 
+		// check for instant animations
+		if (elapsed > RACE_FINISH_CAR_STOPPING_TIME)
+			isInstant = true;
+
 		// if this car is entering
 		if (!isInstant) {
 			const stop = audio.create('sfx', 'common', 'car_stopping');

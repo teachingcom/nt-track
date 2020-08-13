@@ -10,13 +10,11 @@ import { VOLUME_FINISH_LINE_CROWD } from '../audio/volume';
 
 export default class RaceCompletedAnimation extends Animation {
 
-	constructor({ track, activePlayerId, player, allPlayers, finishedPlayers }) {
+	constructor({ track, players}) {
 		super();
 		
 		this.track = track;
-		this.allPlayers = allPlayers;
-		this.finishedPlayers = finishedPlayers;
-		this.activePlayerId = activePlayerId;
+		this.players = players;
 
 		// play the finish sound
 		const finish = audio.create('sfx', 'common', 'finish_crowd');
@@ -27,88 +25,169 @@ export default class RaceCompletedAnimation extends Animation {
 		this.activateFlash();
 
 		// reset all car positions
-		for (const p of allPlayers) {
+		for (const p of players) {
 			p.relativeX = -0.15;
 			p.stopProgressAnimation();
 		}
 	}
 
 	// adready animated cars
-	onTrack = { };
-
-	/** finds the winner for the race */
-	getWinner = () => {
-		const { track } = this;
-		const { players } = track;
-
-		// check each finished timestamp
-		let winner;
-		for (let i = 0; i < players.length; i++) {
-			const player = players[i];
-			const ts = player.completedAt || Number.MAX_SAFE_INTEGER;
-			const compare = (winner && winner.completedAt) || Number.MAX_SAFE_INTEGER;
-			if (ts < compare) winner = player;
-		}
-
-		return winner;
-	}
+	onTrack = { }
+	place = 0
 
 	// shows the player animation
-	addPlayer = (player, isInstant) => {
-		const { track, activePlayerId, finishedPlayers } = this;
-		const { stage, players, activePlayer } = track;
-		
-		// add to the track
+	addPlayer = (player, params) => {
+		const { track } = this;
+		const { stage } = track;
+
+		// add the player to the track - this shouldn't
+		// happen more than once
 		if (this.onTrack[player.id]) return;
 		this.onTrack[player.id] = true;
-		
-		// racing params
-		let delay = 0;
-		const elapsed = 0;
-		const place = 0;
-		
-		// determine who won
-		const winner = this.getWinner();
-		const isActivePlayer = player.id === activePlayerId;
-
-		// set positions
-		if (!isInstant && !!winner) {
-			const diff = (player.completedAt - winner.completedAt);
-			const modifier = getModifier(diff);
-			delay = diff * modifier;
-
-			// if this is an excessive delay, just round it down
-			if (!isActivePlayer && delay > RACE_FINISH_CAR_STOPPING_TIME)
-				delay %= RACE_FINISH_CAR_STOPPING_TIME;
-		}
 
 		// animate the result
-		const animate = new CarFinishLineAnimation({ player, track, isActivePlayer, place, stage });
+		const { isInstant = false, delay = 0, elapsed = 0, place = Number.MAX_SAFE_INTEGER } = params;
+
+		// TEMP: tracking place
+		player.place = place;
+		
+		// update the plauer and ending, if any
+		player.car.onFinishRace({ isRaceFinished: true, place });	
+
+		// create the animation
+		const animate = new CarFinishLineAnimation({ player, track, place, stage });
 		animate.play({ isInstant, delay, elapsed });
+	}
+
+	// get the current order of finished players
+	getFinished = () => {
+		const { players } = this;
+
+		// get the current list of finished players
+		const finished = [ ];
+		for (const player of players)
+			if (player.isFinished) 
+				finished.push(player);
+
+		// sort by quickest
+		finished.sort((a, b) => a.completedAt - b.completedAt);
+
+		return finished;
+	}
+
+
+	calculateDelay = (at, compareTo) => {
+		const diff = compareTo - at;
+		const mod = getModifier(diff);
+		return diff * mod;
 	}
 
 	// starts the animation
 	play({ update = noop, complete = noop }) {
-		const { allPlayers, finishedPlayers, track } = this;
+		const { track } = this;
 		const { activePlayer } = track;
 
-		// start by putting the players on the ending line
-		for (let player of allPlayers) {
-			const isFinished = !!~finishedPlayers.indexOf(player.id);
-			
-			// if finished, add to the view
-			if (isFinished)
-				this.addPlayer(player);
+		// the active player must be finished before this happens
+		if (!activePlayer.completedAt) return;
 
-			// otherwise, move off screen
+		// if the active player is already on the track, then
+		// the animation has started and we just need to add
+		// the new player
+		if (this.onTrack[activePlayer.id]) {
+			this.animateLateFinishes();
+		} 
+		else {
+			this.animatePlayerFinish();
+		}
+		
+	}
+
+	// display the animation for the player to finish
+	animatePlayerFinish = () => {
+		const { track } = this;
+		const { activePlayer } = track;
+
+		// get all current finishes
+		const finished = this.getFinished();
+
+		// tracking all animations to apply
+		const animations = [ ];
+		
+		// since this is the active player, we need to figure out
+		// some timing data first
+		let fastest = 0;
+		for (const player of finished) {
+			const place = finished.indexOf(player) + 1;
+
+			// skip the player for now
+			if (player.isPlayer) continue;
+
+			// calculate the diff
+			const diff = player.completedAt - activePlayer.completedAt;
+
+			// this has been here for a while now
+			if (diff < -(RACE_FINISH_CAR_STOPPING_TIME * 2)) {
+				animations.push({ isInstant: true, place, player });
+			}
+			// they're ahead, but only by a bit
+			else if (diff < 0) {
+				animations.push({ delay: -diff, player, place });
+				fastest = Math.max(-diff, place, fastest);
+			}
+			// they finished after the player on the same cycle
+			// I'm not sure if this can actually happen
 			else {
-				player.relativeX = -1; // place offscreen
-				player.visible = false;
+				animations.push({ late: diff, player, place });
 			}
 		}
 
-		// mark this animation as active
-		this.raceCompletedAt = activePlayer.completedAt;
+		// add the player animation delayed by the fastest finish
+		// at the starting line now
+		const place = finished.indexOf(activePlayer) + 1;
+		this.addPlayer(activePlayer, { delay: fastest, place });
+
+		// not play back other animations but reduce their delays
+		// by the fastest finish so that they are delayed by an
+		// amount relative to when the player will animate in
+		for (const animation of animations) {
+
+			// adjust the delay based on the player position
+			animation.delay = animation.late ? animation.late + fastest
+				: Math.max(0, fastest - (animation.delay || 0));
+
+			// if there's a problem, just make sure the animation
+			// still plays
+			if (isNaN(animation.delay))
+				animation.delay = animation.player.completedAt % 1000;
+
+			// add the animation
+			this.addPlayer(animation.player, animation);
+		}
+	}
+
+	// playback animations that happen after the player finishes
+	animateLateFinishes = () => {
+
+		// get the current state for the finishline
+		const finished = this.getFinished();
+
+		// animate each new arriving player
+		for (const player of finished) {
+
+			// make sure not already added
+			if (this.onTrack[player.id]) continue;
+
+			// check against the previous racer
+			const index = finished.indexOf(player);
+			const place = index + 1;
+			
+			// add a slight delay based on the
+			// the finish - since this should show up
+			// at intervals, their rounded time should be
+			// good enough to stagger close races
+			const delay = player.completedAt % 1000;
+			this.addPlayer(player, { place, delay })
+		}
 	}
 
 	// perform the flash animation

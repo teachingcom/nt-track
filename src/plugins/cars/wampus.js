@@ -1,4 +1,4 @@
-import { findDisplayObjectsOfRole } from 'nt-animator';
+import { findDisplayObjectsOfRole, action } from 'nt-animator';
 import * as audio from '../../audio';
 
 /** additional wampus behavior */
@@ -42,7 +42,8 @@ export async function extend({ animator, player, car, track }) {
 		if (animation) animation.stop();
 
 		// update the winning animation
-		if (!isRaceFinished) {
+		const { activePlayer } = track;
+		if (place > activePlayer.place || Number.MAX_SAFE_INTEGER) {
 			laughEffect.visible = true;
 			head.visible = false;
 			headWinner.visible = true;

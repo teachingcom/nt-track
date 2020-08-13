@@ -59,9 +59,6 @@ export default class TrackView extends BaseView {
 	players = [ ]
 	namecards = [ ]
 
-	// racers that are done
-	finishedPlayers = [ ]
-
 	// sound effects being used
 	sfx = { }
 
@@ -352,10 +349,11 @@ export default class TrackView extends BaseView {
 
 	/** changes the progress for a player */
 	setProgress = (id, { progress, finished, typed, typingSpeedModifier, completed }) => {
-		const { isAnimatingFinishline, raceCompletedAnimation, state } = this;
+		const { state, raceCompletedAnimation } = this;
 		
 		// update the player
 		const player = this.getPlayerById(id);
+		const hasCompletedTimestamp = !!completed;
 		player.progress = progress;
 		player.completedAt = completed;
 		player.isFinished = finished;
@@ -369,15 +367,15 @@ export default class TrackView extends BaseView {
 			state.typingSpeedModifier = typingSpeedModifier * rate;
 			state.typingSpeedModifierShift = (state.typingSpeedModifier - (state.activeTypingSpeedModifier || 0)) * 0.01;
 		}
-		
-		// finish the race for this player, if done
-		if (player.isPlayer && !!completed && !isAnimatingFinishline) {
-			this.isAnimatingFinishline = true;
-			requestAnimationFrame(() => raceCompletedAnimation.play({ }));
+
+		// this was the end of the race
+		if (player.isPlayer && hasCompletedTimestamp) {
+			requestAnimationFrame(this.finalizeRace);
 		}
-		// mark finish line progress
-		else if (player.isFinished) {
-			this.finishRace(player);
+		// this player finished and the track is currently
+		// playing the ending animation
+		else if (!player.isPlayer && raceCompletedAnimation && hasCompletedTimestamp) {
+			requestAnimationFrame(() => raceCompletedAnimation.play({ }));
 		}
 	}
 
@@ -399,31 +397,27 @@ export default class TrackView extends BaseView {
 		this.animationRate = options.animationRateWhenRacing;
 	}
 
+	// performs the ending
+	finalizeRace = () => {
+		const { raceCompletedAnimation } = this;
+
+		// if the completion animation hasn't started
+		if (!raceCompletedAnimation)
+			this.finishRace();
+
+		// finalize the result
+		raceCompletedAnimation.play({ });
+	}
+
 	/** activates the finished race state */
-	finishRace = ({ id } = { }) => {
-		const { track, state, players, activePlayer, finishedPlayers, options } = this;
-		const isRaceFinished = state.isFinished;
+	finishRace = () => {
 
-		// already added to finish
-		if (!!~finishedPlayers.indexOf(id)) return;
-		finishedPlayers.push(id);
+		// the race has been marked as finished, show the completion
+		// until the player is marked ready
+		const { players, track, raceCompletedAnimation, state, options } = this;
 		
-		// update the plauer and ending, if any
-		const place = finishedPlayers.length - 1;
-		const player = this.getPlayerById(id);
-		player.car.onFinishRace({ isRaceFinished, place });
-
-		// if the animation has already begun, add them
-		// to the animation
-		if (this.raceCompletedAnimation) {
-			this.raceCompletedAnimation.addPlayer(player);
-			return;
-		}
-
-		// if this is not the active player, then there's
-		// nothing left to do -- just continue to let them
-		// animate off the track
-		if (!player.isPlayer) return;
+		// already playing (this shouldn't happen)
+		if (raceCompletedAnimation) return;
 
 		// stop background noises
 		this.ambient.stop();
@@ -442,13 +436,7 @@ export default class TrackView extends BaseView {
 		this.raceProgressAnimation.stop();
 
 		// play the final animation
-		this.raceCompletedAnimation = new RaceCompletedAnimation({
-			track: this,
-			player,
-			activePlayer,
-			allPlayers: players,
-			finishedPlayers
-		});		
+		this.raceCompletedAnimation = new RaceCompletedAnimation({ track: this, players });	
 	}
 
 	// handle rendering the track in the requested state
