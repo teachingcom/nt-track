@@ -51,7 +51,7 @@ export default class CarFinishLineAnimation extends Animation {
 		}
 
 		// starting and ending points
-		const entryOrigin = { playerX: -0.15 };
+		const entryOrigin = { playerX: -0.1 };
 		const entryDestination = { playerX: 0.975 };
 		
 		// handle updating the entry animation

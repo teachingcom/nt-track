@@ -96,16 +96,8 @@ export default class RaceCompletedAnimation extends Animation {
 		// the active player must be finished before this happens
 		if (!activePlayer.completedAt) return;
 
-		// if the active player is already on the track, then
-		// the animation has started and we just need to add
-		// the new player
-		if (this.onTrack[activePlayer.id]) {
-			this.animateLateFinishes();
-		} 
-		else {
-			this.animatePlayerFinish();
-		}
-		
+		// animate any new cars
+		this.animateRecentFinishes();
 	}
 
 	// calculate all player finishes that have been done for
@@ -133,96 +125,43 @@ export default class RaceCompletedAnimation extends Animation {
 	}
 
 	// display the animation for the player to finish
-	animatePlayerFinish = () => {
+	animateRecentFinishes = () => {
 		const { track, onTrack } = this;
-		const { activePlayer } = track;
 
 		// get all current finishes
 		const finished = this.getFinished();
 
-		// tracking all animations to apply
-		const animations = [ ];
-		
-		// since this is the active player, we need to figure out
-		// some timing data first
-		let fastest = 0;
+		// check for newly finished racers
+		const recent = [ ];
 		for (const player of finished) {
-			const place = finished.indexOf(player) + 1;
-
-			// skip the player or people that are on the track
-			if (player.isPlayer || onTrack[player.id]) continue;
-
-			// calculate the diff
-			let diff = player.completedAt - activePlayer.completedAt;
-
-			// they're ahead, but only by a bit
-			if (diff < 0) {
-				
-				// adjust based on the modifier
-				diff *= getModifier(-diff);
-
-				// save the animation
-				animations.push({ delay: -diff, player, place });
-				fastest = Math.max(-diff, place, fastest);
-			}
-			// they finished after the player on the same cycle
-			// I'm not sure if this can actually happen
-			else {
-				animations.push({ late: diff, player, place });
-			}
-		}
-
-		// add the player animation delayed by the fastest finish
-		// at the starting line now
-		const place = finished.indexOf(activePlayer) + 1;
-		this.addPlayer(activePlayer, { delay: fastest, place });
-
-		// not play back other animations but reduce their delays
-		// by the fastest finish so that they are delayed by an
-		// amount relative to when the player will animate in
-		for (const animation of animations) {
-
-			// adjust delays based on fastest time
-			if (!animation.isInstant) {
-
-				// adjust the delay based on the player position
-				animation.delay = animation.late ? animation.late + fastest
-					: Math.max(0, fastest - (animation.delay || 0));
-				
-				// if there's a problem, just make sure the animation
-				// still plays
-				if (isNaN(animation.delay))
-					animation.delay = animation.player.completedAt % 1000;
-			}
-
-			// add the animation
-			this.addPlayer(animation.player, animation);
-		}
-	}
-
-	// playback animations that happen after the player finishes
-	animateLateFinishes = () => {
-		const { onTrack } = this;
-
-		// get the current state for the finishline
-		const finished = this.getFinished();
-
-		// animate each new arriving player
-		for (const player of finished) {
-
-			// make sure not already added
 			if (onTrack[player.id]) continue;
+			recent.push(player);
+		}
 
-			// check against the previous racer
-			const index = finished.indexOf(player);
-			const place = index + 1;
-			
-			// add a slight delay based on the
-			// the finish - since this should show up
-			// at intervals, their rounded time should be
-			// good enough to stagger close races
-			const delay = place * 250;
-			this.addPlayer(player, { place, delay })
+		// if there are no recent finished, just skip
+		if (!recent.length) return;
+
+		// find the first finisher
+		let firstTimestamp = Number.MAX_SAFE_INTEGER;
+		let lastTimestamp = -Number.MAX_SAFE_INTEGER;
+		for (const player of recent) {
+			firstTimestamp = Math.min(firstTimestamp, player.completedAt);
+			lastTimestamp = Math.max(lastTimestamp, player.completedAt);
+		}
+	
+		// calculate the modifier to to use based on the diff
+		const mod = getModifier(lastTimestamp - firstTimestamp);
+		
+		// queue up each animation
+		console.log();
+		console.log(`race ending interval with ${recent.length} players`);
+		console.log(`firstTs: ${firstTimestamp} - lastTs: ${lastTimestamp}`);
+		console.log(`diff: ${lastTimestamp - firstTimestamp} - mod: ${mod}`);
+		for (const player of recent) {
+			const diff = player.completedAt - firstTimestamp;
+			const place = finished.indexOf(player) + 1;
+			console.log(`${player.options.playerName} diff: ${diff} - delay: ${diff * mod} - place: ${place}`);
+			this.addPlayer(player, { delay: diff * mod, place });
 		}
 	}
 

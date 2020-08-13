@@ -257,11 +257,6 @@ export default class Car extends PIXI.Container {
 		const color = this.matrix = new PIXI.filters.ColorMatrixFilter();
 		color.hue(hue);
 
-		// // setup some anti-aliasing
-		// // NOTE: this doesn't really look all that great
-		// const aa = this.aa = new PIXI.filters.FXAAFilter();
-		// aa.resolution = 1;
-		
 		// apply filters
 		this.car.filters = [ color ];
 	}

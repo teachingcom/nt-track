@@ -211,8 +211,7 @@ export default class Track {
 
 		// add the finishing line
 		const comp = await view.animator.compose({ compose: finish }, path, manifest);
-		const segment = this.finishLine = new Segment(this, comp);
-		// segment.visible = false;
+		this.finishLine = new Segment(this, comp);
 	}
 
 	// creates a background, if needed
@@ -410,7 +409,8 @@ export default class Track {
 			startingLine.addX(diff);
 
 			// check if time to remove the starting line
-			if (startingLine.getBounds(false).right < offscreen) {
+			if ((startingLine.bottom.x + startingLine.bounds.width) < offscreen) {
+				console.log('removed start');
 				this.removeStartingLine();
 			}
 		}
