@@ -6,7 +6,7 @@ export const VOLUME_COUNTDOWN_ANNOUNCER = 0.8;
 export const VOLUME_NITRO = 0.7;
 export const VOLUME_FINISH_LINE_CROWD = 0.8;
 export const VOLUME_FINISH_LINE_STOP = 0.8;
-export const VOLUME_CROWD_AMBIENCE = 0.075;
+export const VOLUME_AMBIENT_AUDIO = 0.125;
 
 export const VOLUME_ERROR_DEFAULT = 0.2;
 export const VOLUME_ERROR_1 = 0.2;

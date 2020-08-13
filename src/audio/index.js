@@ -16,43 +16,17 @@ Sound.musicEnabled = false;
 
 /** changes the sound effect state */
 export function configureSFX(config) {
-	console.log('new config');
 
 	// change enabled state
 	if ('enabled' in config) {
-		const enabled = Sound.sfxEnabled = !!config.enabled;
-		for (const sound of SFX) {
-			sound.enabled = enabled;
-
-			// stop, if needed
-			if (!enabled) sound.stop();
-		}
+		const enabled = !!config.enabled;
+		Howler.volume(enabled ? 1 : 0);
 	}
 
-	// change volume state
-	if ('volume' in config) {
-		Sound.sfxVolume = config.volume;
-	}
 }
 	
-/*The* changes the music state */
+// unused
 export function configureMusic(config) {
-	// change enabled state
-	if ('enabled' in config) {
-		const enabled = Sound.musicEnabled = !!config.enabled;
-		for (const song of MUSIC) {
-			song.enabled = enabled;
-
-			// activate or deactivate
-			if (!enabled) song.stop();
-			else song.play();
-		}
-	}
-
-	// change volume state
-	if ('volume' in config) {
-		Sound.musicVolume = config.volume;
-	}
 }
 
 /** changes the root url to load audio from */

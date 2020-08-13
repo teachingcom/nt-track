@@ -4,7 +4,7 @@ import { Howler } from 'howler';
 export class Sound {
 
 	/** checks if sound can be played at all */
-	static get isAllowed() {
+	static get isAudioContextAvailable() {
 		return Howler.ctx.state === 'running';
 	}
 
@@ -47,24 +47,9 @@ export class Sound {
 		this.source.playing(id);
 	}
 
-	/** checks if able to be played */
-	get isEnabled() {
-		return this._isEnabled !== false;
-	}
-
-	/** checks if this can be played */
-	get isAllowed() {
-		return this.isMusic ? Sound.musicEnabled : Sound.sfxEnabled;
-	}
-
+	/** gets the volume level assigned to this audio */
 	get preferredVolumeLevel() {
 		return isNaN(this._preferredVolumeLevel) ? 0.5 : this._preferredVolumeLevel;
-	}
-
-	// enables or disables sound
-	set isEnabled(enabled) {
-		this._isEnabled = !!enabled;
-		this.volume(enabled ? this.preferredVolumeLevel : 0);
 	}
 
 	// // event handling -- not sure if needed
@@ -134,17 +119,16 @@ export class Sound {
 	/** play the audio */
 	play = () => {
 
-		const { isAllowed, isEnabled, id } = this;
+		// if there's no audio context, don't bother
+		if (!Sound.isAudioContextAvailable) return;
+		
+		// play the sound
+		const { id } = this;
 		this.lastInstancePlay = +new Date;
-
-		// TODO: this might have different behaviors
-		// when it's music
-		if (!(isEnabled || isAllowed)) return;
-
-		// set the volume
 		this.source.volume(this._preferredVolumeLevel, id);
 		this.source.seek(0, id);
 		this.source.play(id);
+
 	}
 	
 	/** pause the audio */

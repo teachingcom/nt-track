@@ -3,7 +3,7 @@ import * as audio from '../audio';
 import Animation from './base';
 import CarFinishLineAnimation from "./car-finish";
 
-import { noop } from "../utils";
+import { noop, isNumber } from "../utils";
 import { tween, easing } from 'popmotion';
 import { RACE_FINISH_FLASH_FADE_TIME, RACE_FINISH_CAR_STOPPING_TIME } from '../config';
 import { VOLUME_FINISH_LINE_CROWD } from '../audio/volume';
@@ -123,14 +123,19 @@ export default class RaceCompletedAnimation extends Animation {
 			if (player.isPlayer) continue;
 
 			// calculate the diff
-			const diff = player.completedAt - activePlayer.completedAt;
-
+			let diff = player.completedAt - activePlayer.completedAt;
+			
 			// this has been here for a while now
-			if (diff < -(RACE_FINISH_CAR_STOPPING_TIME * 2)) {
+			if (diff < -RACE_FINISH_CAR_STOPPING_TIME) {
 				animations.push({ isInstant: true, place, player });
 			}
 			// they're ahead, but only by a bit
 			else if (diff < 0) {
+				
+				// adjust based on the modifier
+				diff *= getModifier(-diff);
+
+				// save the animation
 				animations.push({ delay: -diff, player, place });
 				fastest = Math.max(-diff, place, fastest);
 			}
@@ -151,14 +156,18 @@ export default class RaceCompletedAnimation extends Animation {
 		// amount relative to when the player will animate in
 		for (const animation of animations) {
 
-			// adjust the delay based on the player position
-			animation.delay = animation.late ? animation.late + fastest
-				: Math.max(0, fastest - (animation.delay || 0));
+			// adjust delays based on fastest time
+			if (!animation.isInstant) {
 
-			// if there's a problem, just make sure the animation
-			// still plays
-			if (isNaN(animation.delay))
-				animation.delay = animation.player.completedAt % 1000;
+				// adjust the delay based on the player position
+				animation.delay = animation.late ? animation.late + fastest
+					: Math.max(0, fastest - (animation.delay || 0));
+				
+				// if there's a problem, just make sure the animation
+				// still plays
+				if (isNaN(animation.delay))
+					animation.delay = animation.player.completedAt % 1000;
+			}
 
 			// add the animation
 			this.addPlayer(animation.player, animation);
@@ -185,7 +194,7 @@ export default class RaceCompletedAnimation extends Animation {
 			// the finish - since this should show up
 			// at intervals, their rounded time should be
 			// good enough to stagger close races
-			const delay = player.completedAt % 1000;
+			const delay = place * 250;
 			this.addPlayer(player, { place, delay })
 		}
 	}

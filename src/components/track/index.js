@@ -6,6 +6,7 @@ import { TRACK_MAXIMUM_SCROLL_SPEED, TRACK_STARTING_LINE_POSITION } from '../../
 import { isArray, isNumber } from '../../utils';
 import Segment from './segment';
 import createCrowd from '../../plugins/crowd';
+import AmbientAudio from '../../audio/ambient';
 
 // total number of road slices to create
 // consider making this calculated as needed
@@ -42,6 +43,7 @@ export default class Track {
 		await instance._createRoad();
 		await instance._createStartingLine();
 		await instance._createFinishLine();
+		await instance._createAmbience();
 		// await instance._createForeground();
 		// await instance._createBackground();
 
@@ -98,6 +100,26 @@ export default class Track {
 		this.path = `tracks/${trackId}/${variantId}`;
 		this.zone = zone;
 		this.manifest = manifest;
+	}
+
+	// creates ambient audio
+	async _createAmbience() {
+		const { ambience } = this.manifest;
+		if (!ambience) return;
+
+		// depending on the source, we need to load in sounds
+		// TODO: load in alternate sources
+
+		// create the ambient noise
+		try {
+			this.ambience = new AmbientAudio(ambience);
+			this.ambience.start();
+		}
+		// notify of this failure
+		catch (ex) {
+			console.error(`failed to create ambient audio`);
+			console.error(ex);
+		}
 	}
 
 	// creates the road tiles

@@ -7,7 +7,6 @@ import * as audio from '../../audio';
 import { BaseView } from '../base';
 import Player from './player';
 import Track from '../../components/track';
-import AmbientAudio from '../../audio/ambient';
 
 // sizing, layers, positions
 import * as scaling from './scaling';
@@ -35,8 +34,7 @@ import {
 	VOLUME_ERROR_2,
 	VOLUME_ERROR_3,
 	VOLUME_ERROR_4,
-	VOLUME_ERROR_DEFAULT,
-	VOLUME_CROWD_AMBIENCE
+	VOLUME_ERROR_DEFAULT
 } from '../../audio/volume';
 
 // animations
@@ -216,18 +214,6 @@ export default class TrackView extends BaseView {
 		track.overlay.zIndex = LAYER_TRACK_OVERLAY;
 		track.overlay.relativeX = 0.5;
 		
-		// TODO: support other ambient track audio types
-		const c1 = audio.create('sfx', 'common', 'cheering_short');
-		const c2 = audio.create('sfx', 'common', 'cheering_short');
-		
-		// set volumes
-		c1.volume(VOLUME_CROWD_AMBIENCE);
-		c2.volume(VOLUME_CROWD_AMBIENCE);
-		
-		// start the ambient sound player
-		this.ambient = new AmbientAudio([ c1, c2 ]);
-		this.ambient.start();
-
 		// sort the layers
 		stage.sortChildren();
 	}
@@ -420,7 +406,8 @@ export default class TrackView extends BaseView {
 		if (raceCompletedAnimation) return;
 
 		// stop background noises
-		this.ambient.stop();
+		if (track.ambience)
+			track.ambience.stop();
 
 		// stop the track
 		state.animateTrackMovement = false;

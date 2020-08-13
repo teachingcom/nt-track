@@ -1,12 +1,25 @@
+import * as audio from '../audio';
+import { VOLUME_AMBIENT_AUDIO } from './volume';
 
-// TODO: support different timings - this timing is based
-// on using the default ambient crowd noises
-
+// creates looping ambient noise
 export default class AmbientAudio {
 
-	constructor(sounds) {
-		this.sounds = sounds;
+	constructor(options) {
+		const { order, sounds, source } = options;
+
+		this.options = options;
+		this.order = order;
+		
+		// set the starting point
 		this.index = 0;
+		
+		// create each audio clip
+		this.sounds = [ ];
+		for (const key of sounds) {
+			const sound = audio.create('sfx', source, key);
+			sound.volume(VOLUME_AMBIENT_AUDIO);
+			this.sounds.push(sound);
+		}
 	}
 
 	/** activates ambient audio */
@@ -16,36 +29,38 @@ export default class AmbientAudio {
 
 	/** stops all ambient noise */
 	stop = () => {
+		this.isStopped = true;
+
+		// disable all sounds
 		for (const sound of this.sounds)
 			sound.fadeOut(1000);
 	}
 
 	// plays the next sequence in ambient audio
 	next = () => {
-		// TODO: I have no idea why this is happening but this
-		// works until the race starts then breaks - one of the
-		// two will play -- figure out later
-		this.sounds[0].loop(true);
-		this.sounds[0].play();
+		if (this.isStopped) return;
 
-		// // start fading the active sound
-		// if (this.index > 0) {
-		// 	this.sounds[this.index % this.sounds.length].fadeOut(2000);
-		// 	console.log('fade out');
-		// }
+		// start fading the active sound
+		if (this.index > 0) {
+			const at = this.index % this.sounds.length;
+			const current = this.sounds[at];
 
-		// // increment to the next sound
-		// // TODO: support for random orders?
-		// const sound = this.sounds[++this.index % this.sounds.length];
+			// fade out the current sound
+			current.source.fade(VOLUME_AMBIENT_AUDIO, 0, 2000, current.id);
+		}
 
-		// // reset this segment and fade in
-		// sound.reset();
-		// sound.play();
-		// sound.fadeIn(3000);
-		// console.log('fade in', this.index, sound.preferredVolumeLevel);
+		// increment to the next sound
+		// TODO: support for random orders?
+		const next = ++this.index % this.sounds.length;
+		const sound = this.sounds[next];
 
-		// // active the next section
-		// setTimeout(this.next, 7000);
+		// fade in the next
+		sound.source.seek(0, sound.id);
+		sound.source.play(sound.id);
+		sound.source.fade(0, VOLUME_AMBIENT_AUDIO, 2000, sound.id);
+
+		// active the next section
+		setTimeout(this.next, 7000);
 	}
 
 }
