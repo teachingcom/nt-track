@@ -336,9 +336,12 @@ export default class TrackView extends BaseView {
 	/** changes the progress for a player */
 	setProgress = (id, { progress, finished, typed, typingSpeedModifier, completed }) => {
 		const { state, raceCompletedAnimation } = this;
+		const player = this.getPlayerById(id);
+		
+		// nothing to do
+		if (player.isFinished) return;
 		
 		// update the player
-		const player = this.getPlayerById(id);
 		const hasCompletedTimestamp = !!completed;
 		player.progress = progress;
 		player.completedAt = completed;

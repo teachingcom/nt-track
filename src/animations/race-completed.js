@@ -29,30 +29,43 @@ export default class RaceCompletedAnimation extends Animation {
 			p.relativeX = -0.15;
 			p.stopProgressAnimation();
 		}
+
+		// animate the immediate finishes, if any
+		requestAnimationFrame(this.animateImmediateFinishes);
 	}
 
 	// adready animated cars
 	onTrack = { }
+	finishingPlaces = { }
 	place = 0
 
 	// shows the player animation
 	addPlayer = (player, params) => {
-		const { track } = this;
-		const { stage } = track;
+		const { track, onTrack, finishingPlaces } = this;
+		const { stage, activePlayer } = track;
 
 		// add the player to the track - this shouldn't
 		// happen more than once
-		if (this.onTrack[player.id]) return;
-		this.onTrack[player.id] = true;
+		if (onTrack[player.id]) return;
+		onTrack[player.id] = true;
 
 		// animate the result
 		const { isInstant = false, delay = 0, elapsed = 0, place = Number.MAX_SAFE_INTEGER } = params;
-
+		finishingPlaces[player.id] = place;
+		
 		// TEMP: tracking place
 		player.place = place;
+
+		// did they beat the player
+		const playerFinishPlace = finishingPlaces[activePlayer.id] || Number.MAX_SAFE_INTEGER;
+		const finishedBeforePlayer = place < playerFinishPlace;
 		
 		// update the plauer and ending, if any
-		player.car.onFinishRace({ isRaceFinished: true, place });	
+		player.car.onFinishRace({
+			isRaceFinished: true,
+			finishedBeforePlayer,
+			place
+		});	
 
 		// create the animation
 		const animate = new CarFinishLineAnimation({ player, track, place, stage });
@@ -75,13 +88,6 @@ export default class RaceCompletedAnimation extends Animation {
 		return finished;
 	}
 
-
-	calculateDelay = (at, compareTo) => {
-		const diff = compareTo - at;
-		const mod = getModifier(diff);
-		return diff * mod;
-	}
-
 	// starts the animation
 	play({ update = noop, complete = noop }) {
 		const { track } = this;
@@ -102,9 +108,33 @@ export default class RaceCompletedAnimation extends Animation {
 		
 	}
 
+	// calculate all player finishes that have been done for
+	// an extended period of time - since we don't know the actual
+	// player finish time, we just base this on an extend time since
+	// their last update
+	animateImmediateFinishes = () => {
+		const now = +new Date;
+
+		// get everyone that's marked as finished
+		const finished = this.getFinished();
+		for (const player of finished) {
+
+			// never include the player character (shouldn't happen)
+			if (player.isPlayer) continue;
+
+			// compare the time
+			const diff = now - player.lastUpdate;
+			if (diff > RACE_FINISH_CAR_STOPPING_TIME) {
+				const place = finished.indexOf(player);
+				this.addPlayer(player, { isInstant: true, place })
+			}
+		}
+
+	}
+
 	// display the animation for the player to finish
 	animatePlayerFinish = () => {
-		const { track } = this;
+		const { track, onTrack } = this;
 		const { activePlayer } = track;
 
 		// get all current finishes
@@ -119,18 +149,14 @@ export default class RaceCompletedAnimation extends Animation {
 		for (const player of finished) {
 			const place = finished.indexOf(player) + 1;
 
-			// skip the player for now
-			if (player.isPlayer) continue;
+			// skip the player or people that are on the track
+			if (player.isPlayer || onTrack[player.id]) continue;
 
 			// calculate the diff
 			let diff = player.completedAt - activePlayer.completedAt;
-			
-			// this has been here for a while now
-			if (diff < -RACE_FINISH_CAR_STOPPING_TIME) {
-				animations.push({ isInstant: true, place, player });
-			}
+
 			// they're ahead, but only by a bit
-			else if (diff < 0) {
+			if (diff < 0) {
 				
 				// adjust based on the modifier
 				diff *= getModifier(-diff);
@@ -176,6 +202,7 @@ export default class RaceCompletedAnimation extends Animation {
 
 	// playback animations that happen after the player finishes
 	animateLateFinishes = () => {
+		const { onTrack } = this;
 
 		// get the current state for the finishline
 		const finished = this.getFinished();
@@ -184,7 +211,7 @@ export default class RaceCompletedAnimation extends Animation {
 		for (const player of finished) {
 
 			// make sure not already added
-			if (this.onTrack[player.id]) continue;
+			if (onTrack[player.id]) continue;
 
 			// check against the previous racer
 			const index = finished.indexOf(player);
