@@ -44,8 +44,9 @@ export default class Segment {
 
 	// perform culling if out of view
 	cull = () => {
-		const { bottom, track } = this;
-		const { x, width } = bottom;
+		const { bottom, bounds, track } = this;
+		const { x } = bottom;
+		const { width } = bounds;
 		const overflow = track.view.width * 1.5;
 		this.visible = x < overflow && x > -(width + overflow);
 	}

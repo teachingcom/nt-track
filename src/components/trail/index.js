@@ -40,19 +40,19 @@ export default class Trail extends AnimatorPIXI.DetatchedContainer {
 			return;
 		}
 
-		// save the config
-		const config = this.config = await view.animator.lookup(path);
+		// // save the config
+		// const config = this.config = await view.animator.lookup(path);
 
-		// use a color filter, if any
-		if (isNumber(config.hue)) {
-			const color = this.colorFilter = new PIXI.filters.ColorMatrixFilter();
-			color.hue(config.hue || 0);
+		// // use a color filter, if any
+		// if (isNumber(config.hue)) {
+		// 	const color = this.colorFilter = new PIXI.filters.ColorMatrixFilter();
+		// 	color.hue(config.hue || 0);
 			
-			// create a color matrix
-			for (const child of trail.children) {
-				child.filters = [ color ];
-			}
-		}
+		// 	// create a color matrix
+		// 	for (const child of trail.children) {
+		// 		child.filters = [ color ];
+		// 	}
+		// }
 
 		// save the trail instance
 		this.parts = trail.children.slice();

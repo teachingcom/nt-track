@@ -150,8 +150,9 @@ export default class RaceCompletedAnimation extends Animation {
 		}
 	
 		// calculate the modifier to to use based on the diff
+		// calculate the modifier to to use based on the diff
 		const mod = getModifier(lastTimestamp - firstTimestamp);
-		
+
 		// queue up each animation
 		console.log();
 		console.log(`race ending interval with ${recent.length} players`);

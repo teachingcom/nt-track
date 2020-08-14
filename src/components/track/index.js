@@ -410,7 +410,6 @@ export default class Track {
 
 			// check if time to remove the starting line
 			if ((startingLine.bottom.x + startingLine.bounds.width) < offscreen) {
-				console.log('removed start');
 				this.removeStartingLine();
 			}
 		}
