@@ -9,8 +9,6 @@ import {
 	TRACK_STARTING_LINE_POSITION,
 	RACE_PROGRESS_TWEEN_TIMING
 } from "../config";
-import * as debug from '../debug';
-
 
 export default class RaceProgressAnimation extends Animation {
 
@@ -137,18 +135,9 @@ export default class RaceProgressAnimation extends Animation {
 		// update timestamps
 		const lastTimestamp = timestamps[player.id] || now;
 		timestamps[player.id] = now;
-		
-		// save some progress
-		const diff = now - lastTimestamp;
-		debug.addProgress({
-			id: player.id,
-			isPlayer: player.isPlayer,
-			ts: diff,
-			mod: player.raceProgressModifier || 0,
-			progress: player.preferredX
-		});
-		
+
 		// start the new tween
+		const diff = now - lastTimestamp;
 		const duration = Math.min(Math.max(RACE_PROGRESS_TWEEN_TIMING, diff), RACE_PROGRESS_TWEEN_TIMING * 1.05);
 		tweens[player.id] = tween({
 			ease: easing.linear,

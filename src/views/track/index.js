@@ -382,8 +382,11 @@ export default class TrackView extends BaseView {
 		state.animateTrackMovement = true;
 		state.trackMovementAmount = TRACK_ACCELERATION_RATE;
 		state.isStarted = true;
-
+		
+		// improve performance while racing
+		this.ssaa = false;
 		this.animationRate = options.animationRateWhenRacing;
+		this.resize();
 	}
 
 	// performs the ending
@@ -427,10 +430,14 @@ export default class TrackView extends BaseView {
 
 		// play the final animation
 		this.raceCompletedAnimation = new RaceCompletedAnimation({ track: this, players });	
+
+		// reactivate ssaa
+		this.ssaa = true;
+		this.resize();
 	}
 
 	// handle rendering the track in the requested state
-	render = () => {
+	render() {
 
 		// increment the frame counter
 		this.frame++;
@@ -465,9 +472,12 @@ export default class TrackView extends BaseView {
 		// TODO: replace with new views
 		// this is temporary check until
 		// garage and preview modes are done
-		this.track.update(state);
-		if (isRaceActive)
-			this.raceProgressAnimation.update();
+		if (this.track) {
+			this.track.update(state);
+
+			if (isRaceActive)
+				this.raceProgressAnimation.update();
+		}
 
 		// if throttling
 		if (frame % animationRate !== 0) return;

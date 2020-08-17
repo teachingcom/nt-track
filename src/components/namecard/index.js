@@ -127,6 +127,8 @@ export default class NameCard extends PIXI.Container {
 		overlay.removeChildren();
 
 		// create a mask for the container
+		// TODO: render this without a mask
+		// by just using a trimmed canvas
 		const left = 0 | -((container.width * scaleY) * 0.465);
 		const mask = new PIXI.Sprite(PIXI.Texture.WHITE);
 		const width = container.width * scaleY * 0.825;
@@ -160,8 +162,8 @@ export default class NameCard extends PIXI.Container {
 			});
 	
 			// align
-			text.x = left;
-			text.y = style.y * scaleY;
+			text.x = 0 | (left);
+			text.y = 0 | (style.y * scaleY);
 			text.mask = mask;
 	
 			// add to the view

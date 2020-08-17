@@ -3,7 +3,7 @@
 export const STATIC_CAR_ROTATION_FIX =  Math.PI;
 
 // animation speeds
-export const ANIMATION_RATE_WHILE_RACING = 1;
+export const ANIMATION_RATE_WHILE_RACING = 2;
 export const ANIMATION_RATE_WHILE_IDLE = 1;
 
 // tracks

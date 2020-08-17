@@ -2,6 +2,15 @@ import * as PIXI from 'pixi.js';
 import { BASE_HEIGHT, TRACK_HEIGHT } from '../../views/track/scaling';
 import { getBoundsForRole } from 'nt-animator';
 
+function cache(obj, name) {
+	const original = obj[name];
+	obj[name] = (...args) => {
+		const result = original.apply(obj, args)
+		obj[name] = () => result;
+		return result;
+	};
+}
+
 export default class Segment {
 
 	constructor(track, composition) {
@@ -16,7 +25,7 @@ export default class Segment {
 			const target = child.zIndex > 0 ? top : bottom;
 			target.addChildAt(child, 0);
 		}
-		
+
 		// use the base layers to determine the track bounds
 		// as the scale for the top and bottom layers
 		const bounds = this.bounds = this.getBounds();

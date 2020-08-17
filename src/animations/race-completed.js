@@ -154,14 +154,9 @@ export default class RaceCompletedAnimation extends Animation {
 		const mod = getModifier(lastTimestamp - firstTimestamp);
 
 		// queue up each animation
-		console.log();
-		console.log(`race ending interval with ${recent.length} players`);
-		console.log(`firstTs: ${firstTimestamp} - lastTs: ${lastTimestamp}`);
-		console.log(`diff: ${lastTimestamp - firstTimestamp} - mod: ${mod}`);
 		for (const player of recent) {
 			const diff = player.completedAt - firstTimestamp;
 			const place = finished.indexOf(player) + 1;
-			console.log(`${player.options.playerName} diff: ${diff} - delay: ${diff * mod} - place: ${place}`);
 			this.addPlayer(player, { delay: diff * mod, place });
 		}
 	}

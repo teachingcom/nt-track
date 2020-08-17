@@ -54,6 +54,11 @@ export default function generateTextures(source, options) {
 	const { parent } = source;
 	const { includeNitroBlur, includeShadow, isDarkCar, nitroBlurHue = 0 } = options;
 
+	return { 
+		shadow: new PIXI.Container(),
+		nitroBlur: new PIXI.Container(),
+	}
+
 	// get the position of the
 	// source in it's container so it
 	// can be added back when finished

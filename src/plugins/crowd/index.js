@@ -59,7 +59,6 @@ export default async function createCrowd(animator, controller, path, layer, dat
 		// TODO: does not support animations, but would be easy to add
 
 		// assemble each of the layers
-		const character = { };
 		for (const layer of layers) {
 			const meta = LAYERS[layer.sprite];
 
@@ -129,6 +128,7 @@ export default async function createCrowd(animator, controller, path, layer, dat
 		container.scale.x *= Math.random() > 0.5 ? -1 : 1;
 		
 		// assign the main container positions
+		// return { displayObject: new PIXI.Container(), update: noop, dispose: noop };
 		return { displayObject: container, update: noop, dispose };
 
 	}
@@ -177,6 +177,7 @@ async function attachExtra(animator, relativeTo, spritesheet, target, actor, att
 
 
 // adds a shadow to a sprite
+// seems not needed
 async function attachShadow(animator, container, relativeTo) {
 	// const shadow = await animator.getSprite('crowd', 'shadow');
 	// container.addChildAt(shadow, 0);

@@ -107,9 +107,6 @@ export default class Track {
 		const { ambience } = this.manifest;
 		if (!ambience) return;
 
-		// depending on the source, we need to load in sounds
-		// TODO: load in alternate sources
-
 		// create the ambient noise
 		try {
 			this.ambience = new AmbientAudio(ambience);

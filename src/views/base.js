@@ -1,3 +1,5 @@
+import * as debug from '../debug';
+
 import * as PIXI from 'pixi.js';
 import { Animator, EventEmitter, PIXI as AnimatorPIXI } from 'nt-animator';
 import { noop } from '../utils';
@@ -13,6 +15,7 @@ export class BaseView extends EventEmitter {
 		this.options = options;
 		this.scale = options.scale;
 		this.target = options.target;
+		this.ssaa = options.ssaa !== false;
 
 		// get the container the rendering surface is in
 		this.parent = options.container || options.target.parentNode;
@@ -27,10 +30,16 @@ export class BaseView extends EventEmitter {
 		// create a PIXI renderer for the provided canvas
 		// and hide the launch message
 		this.renderer = new PIXI.Renderer({
-			// antialias: true, // doesn't appear to improve anything
+			antialias: false, // doesn't appear to improve anything
+			legacy: true,
 			view: target,
+			preserveDrawingBuffer: true,
 			backgroundColor: options.backgroundColor || 0x282d3f
 		});
+
+		// no interactions
+		PIXI.Ticker.shared.stop();
+		this.renderer.plugins.interaction.destroy();
 
 		// idenitfy which scaled edges to use
 		const axes = { };
@@ -71,45 +80,43 @@ export class BaseView extends EventEmitter {
 		onLoadProgress(this.loadingProgress);
 	}
 
+
 	/** renders the current state of the view */
 	render() {
 		const { renderer, view } = this;
-		renderer.render(view);
+		return renderer.render(view);
 	}
 
 	/** resizes to match the container element */
 	resize = () => {
-		const { parent, target: surface, view, renderer, options } = this;
-		const ssaa = options.ssaa !== false;
+		const { parent, target: surface, view } = this;
+		const ssaa = true;
 
 		// get the updated bounds
 		const bounds = parent.getBoundingClientRect();
 		const width = (bounds.right - bounds.left) * (ssaa ? 2 : 1);
 		const height = (bounds.bottom - bounds.top) * (ssaa ? 2 : 1);
+		const scale = ssaa ? 0.5 : 1;
+
+		// update the sizing
+		view.resize(width, height);
 		
 		// resize the view
 		this.width = surface.width = width;
 		this.height = surface.height = height;
 		this.cx = width / 2;
 		this.cy = height / 2;
+		
+		// update the DOM element
+		this.renderer.view.style.width = `${width * scale}px`;
+		this.renderer.view.style.height = `${height * scale}px`;
 
-		// update the sizing
-		view.resize(width, height);
-		
-		// update anti-aliasing
-		if (ssaa) {
-			this.renderer.view.style.width = `${width}px`;
-			this.renderer.view.style.height = `${height}px`;
-			this.renderer.view.style.transformOrigin = '0 0';
-			this.renderer.view.style.transform = 'scale(0.5, 0.5)';
-		}
-		
 		// notify of the resize
 		const { cx, cy } = this;
 		this.emit('resize', { width, height, cx, cy });
 
 		// perform a render
-		renderer.render(view);
+		this.render();
 	}
 
 }

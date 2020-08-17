@@ -10,6 +10,9 @@ import Trail from '../../components/trail';
 import NameCard from '../../components/namecard';
 import Nitro from '../../components/nitro';
 
+// debugging helper
+const DEBUG_PLAYER_PROGRESS = false;
+
 export default class Player extends AnimatorPIXI.ResponsiveContainer {
 
 	// keeping track of game state
@@ -152,9 +155,11 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 		car.attachMods({ trail, nitro });
 
 		// create debugging text
-		this.debug = new PIXI.Text('', { fill: 0xffffff, fontSize: 22, fontWeight: 'bold', align: 'center' });
-		car.addChild(this.debug);
-		this.debug.x = -300;
+		if (DEBUG_PLAYER_PROGRESS) {
+			this.debug = new PIXI.Text('', { fill: 0xffffff, fontSize: 22, fontWeight: 'bold', align: 'center' });
+			car.addChild(this.debug);
+			this.debug.x = -300;
+		}
 		
 		// include the trail, if any
 		if (trail) {
@@ -222,10 +227,13 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 	/** handles updating the car */
 	render(...args) {
 
-		const p1 = 0 | ((this.relativeX || 0) * 100);
-		const p2 = 0 | (this.progress || 0);
-		const place = this.place ? `: ${this.place}` : '';
-		this.debug.text = `${p1}% / ${p2}% ${place}`;
+		// tracking progress
+		if (DEBUG_PLAYER_PROGRESS) {
+			const screenX = 0 | ((this.relativeX || 0) * 100);
+			const percentProgress = 0 | (this.progress || 0);
+			const place = this.place ? `: ${this.place}` : '';
+			this.debug.text = `${screenX}% / ${percentProgress}% ${place}`;
+		}
 		
 		// perform updates
 		const { car, track, namecard } = this;
