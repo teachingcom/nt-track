@@ -7,7 +7,7 @@ import { isArray, isNumber } from '../../utils';
 import Segment from './segment';
 import createCrowd from '../../plugins/crowd';
 import createConfetti from '../../plugins/confetti';
-import AmbientAudio from '../../audio/ambient';;
+import AmbientAudio from '../../audio/ambient';
 
 // total number of road slices to create
 // consider making this calculated as needed

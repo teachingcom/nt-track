@@ -1,14 +1,11 @@
-import * as PIXI from 'pixi.js';
 import { noop } from '../../utils';
 import FastConfetti from './generator';
 
 // handles creating a confetti effect instance
 export default async function createConfetti(animator, controller, path, layer, data) {
-	// const { track } = layer.params;
-	// const instance = await FastConfetti.create(animator, track);
-	// const { dispose } = instance;
-
-	return [{ displayObject: new PIXI.Container(), update: noop, dispose: noop }];
+	const { track } = layer.params;
+	const instance = await FastConfetti.create(animator, track);
+	const { dispose } = instance;
 
 	// not all properties are supported
 	const { props = { } } = data;

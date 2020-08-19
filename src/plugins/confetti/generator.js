@@ -1,6 +1,7 @@
 import * as PIXI from 'pixi.js';
 import { createContext } from 'nt-animator';
 import { LAYER_TRACK_OVERLAY } from '../../views/track/layers';
+import { ANIMATION_RATE_WHILE_IDLE } from '../../config';
 
 const PARTICLE_COUNT = 125;
 const DEFAULT_PARTICLE_SIZE = 11;
@@ -74,15 +75,19 @@ export default class FastConfetti {
 
 	// handles updating confetti effects
 	update = () => {
-		
+
 		// check if this should continue to update
 		if (this.isDisposed) return;
-		
+
 		// queue the next update
 		requestAnimationFrame(this.update);
 		
-		// calculate the new size
 		const { sprite, context, view, particles, track } = this;
+		
+		// if throttling
+		if (track.frame % ANIMATION_RATE_WHILE_IDLE !== 0) return;
+		
+		// calculate the new size
 		const { ctx, canvas } = context;
 		const { width, height, scaleX } = view;
 		const { delta } = track.state;
