@@ -23,6 +23,7 @@ export default class Segment {
 		for (let i = composition.children.length; i-- > 0;) {
 			const child = composition.children[i];
 			const target = child.zIndex > 0 ? top : bottom;
+			child.batch = 'track';
 			target.addChildAt(child, 0);
 		}
 

@@ -4,12 +4,14 @@ import { CROWD_DEFAULT_SCALE } from '../../config';
 import generateAnimationFrames from './generate-animatons';
 import * as palettes from './palettes';
 import LAYERS from './layers';
+import { createContext } from 'nt-animator';
 
 // shared crowd animators
 let ANIMATORS;
 
 // cached list of sprites in a crowd spritesheet
 const SPRITES = { };
+let framesdd;
 
 // shuffled palette colors mapped to properties
 const PALETTES = {
@@ -20,8 +22,120 @@ const PALETTES = {
 	secondary: shuffle(palettes.SECONDARY_COLORS)
 }
 
-
 export default async function createCrowd(animator, controller, path, layer, data) {
+
+
+	if (!framesdd) {
+		
+		// reusable renderer for assets
+		const animationRenderer = new PIXI.Renderer({ transparent: true });
+
+		// const frame = createContext(800, 100);
+		const frames = createContext();
+
+		const members = [ ];
+
+		let left = 0;
+		let max = 0;
+		const crowd = new PIXI.Container();
+		for (let i = 0; i < 8; i++) {
+			const member = await createCrowdMember(animator, controller, path, layer, data);
+			crowd.addChild(member.displayObject);
+			members.push(member);
+
+			const bounds = member.displayObject.getBounds();
+			const { width, height, bottom, top } = bounds;
+			member.displayObject.x = width + left;
+			member.displayObject.y = height;
+			left += width;
+			max = Math.max(bottom - top, max);
+		}
+
+		frames.canvas.width = left * 1.5;
+		frames.canvas.height = max * 8;
+		animationRenderer.resize(left * 1.5, max);
+		
+		let canv;
+		async function bump(prog) {
+			return new Promise(resolve => {
+				setTimeout(() => {
+
+					// for (const member of members) {
+					// 	member.playback.seek(prog);
+					// }
+					
+					animationRenderer.render(crowd);
+					const aa = animationRenderer.plugins.extract.canvas();
+					
+					// document.body.appendChild(aa);
+					// aa.className = 'debug';
+					
+					resolve(PIXI.Texture.from(aa));
+
+					if (prog >= 0.9) {
+
+						for (const member of members)
+						member.playback.stop();
+					}
+					
+				}, prog * 1000)
+			})
+		}
+
+
+
+		// const canvas1 = animationRenderer.plugins.extract.canvas();
+		// const canvas = animationRenderer.plugins.extract.canvas();
+		// frames.ctx.drawImage(canvas, 0, 0);
+
+		framesdd = await Promise.all([
+			bump(0),
+			bump(0.1),
+			bump(0.2),
+			bump(0.3),
+			bump(0.4),
+			bump(0.5),
+			bump(0.6),
+			bump(0.7),
+			bump(0.8),
+			bump(0.9),
+		]);
+
+	}
+
+	// frames.ctx.drawImage(canvas, 0, max * 1);
+	// frames.ctx.drawImage(canvas, 0, max * 2);
+	// frames.ctx.drawImage(canvas, 0, max * 3);
+	// frames.ctx.drawImage(canvas, 0, max * 4);
+	// frames.ctx.drawImage(canvas, 0, max * 5);
+	// frames.ctx.drawImage(canvas, 0, max * 6);
+	// frames.ctx.drawImage(canvas, 0, max * 7);
+
+	
+	// document.body.appendChild(canv);
+	// canv.className = 'debug';
+	// return member;
+
+	const sprite = new PIXI.AnimatedSprite(framesdd)
+	sprite.animationSpeed = 0.25;
+	sprite.gotoAndPlay(0 | (Math.random() * sprite.totalFrames));
+	sprite.scale.x = sprite.scale.y = CROWD_DEFAULT_SCALE;
+	sprite.play();
+
+
+		// not all properties are supported
+		const { props = { } } = data;
+		if ('x' in props)
+			sprite.x = animator.evaluateExpression(props.x);
+
+		if ('y' in props)
+			sprite.y = animator.evaluateExpression(props.y);
+
+	return [{ displayObject: sprite, update: noop, dispose: noop }]
+
+}
+
+async function createCrowdMember(animator, controller, path, layer, data) {
 	try {
 		let dispose = noop;
 			
@@ -41,6 +155,23 @@ export default async function createCrowd(animator, controller, path, layer, dat
 
 		// create the container for the actor
 		const container = new PIXI.Container();
+
+		function mem(obj, name) {
+			const orig = obj[name];
+			obj[name] = function (...args) {
+				const res = orig.apply(this, args);
+				obj[name] = () => res;
+				return res;
+			};
+		}
+
+		// container.cacheAsBitmap = true;
+		// mem(container, 'calculateVertices');
+		// mem(container, 'calculateTrimmedVertices');
+		// mem(container, 'calculateBounds');
+		// mem(container, 'updateTransform');
+		// sprite.cacheAsBitmap = true;
+		
 		
 		// random selections for type, animation, and palette
 		const actor = choose(data.actor);
@@ -75,6 +206,7 @@ export default async function createCrowd(animator, controller, path, layer, dat
 			// create the sprite
 			const sprite = obj = await animator.getSprite('crowd', key);
 			sprite.tint = palette[layer.sprite];
+			sprite.batch = 'crowd';
 
 			// save the legs since it'll be used for
 			// placement of the shadow later
@@ -103,6 +235,7 @@ export default async function createCrowd(animator, controller, path, layer, dat
 
 			// adjust the scale
 			container.addChildAt(obj, 0);
+			container.batch = 'crowd';
 			
 			// pivot from the correct joint positions
 			obj.pivot.x = sprite.width * 0.5;
@@ -110,7 +243,7 @@ export default async function createCrowd(animator, controller, path, layer, dat
 			obj.scale.x *= meta.flipX ? -1 : 1;
 
 			// attach this to the shared animator
-			playback.register(layer.sprite, obj);
+			playback.register(layer.sprite, obj, data.animate !== false);
 
 			// create a cleanup function
 			dispose = appendFunc(dispose, () => playback.unregister(layer.sprite, obj));
@@ -120,8 +253,8 @@ export default async function createCrowd(animator, controller, path, layer, dat
 		await attachShadow(animator, container, legs);
 
 		// scale
-		container.scale.x = CROWD_DEFAULT_SCALE;
-		container.scale.x *= (0.9 + (0.2 * Math.random()));
+		// container.scale.x = CROWD_DEFAULT_SCALE;
+		container.scale.x = (0.9 + (0.2 * Math.random()));
 		container.scale.y = container.scale.x;
 
 		// randomly flip
@@ -129,7 +262,7 @@ export default async function createCrowd(animator, controller, path, layer, dat
 		
 		// assign the main container positions
 		// return { displayObject: new PIXI.Container(), update: noop, dispose: noop };
-		return { displayObject: container, update: noop, dispose };
+		return { displayObject: container, update: noop, dispose, playback };
 
 	}
 	catch (ex) {
@@ -168,6 +301,7 @@ async function attachExtra(animator, relativeTo, spritesheet, target, actor, att
 	sprite.pivot.x = sprite.width / 2;
 	sprite.x = relativeTo.width / 2;
 	sprite.y += offsetY || 0;
+	sprite.batch = 'crowd';
 
 	// add to the view
 	target.addChildAt(sprite, 0);

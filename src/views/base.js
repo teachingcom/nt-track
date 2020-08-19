@@ -60,6 +60,39 @@ export class BaseView extends EventEmitter {
 	totalTasks = 0
 	loadingProgress = 0
 
+	timing = { 
+		elapsed: 0,
+		current: 0
+	}
+
+	getDeltaTime = relativeTo => {
+		
+		
+		const now = +new Date;
+		const elapsedMS = now - relativeTo;
+
+		// cap the milliseconds elapsed used for deltaTime
+		// if (elapsedMS > this._maxElapsedMS) {
+		// 		elapsedMS = this._maxElapsedMS;
+		// }
+
+		// elapsedMS *= this.speed;
+
+		// If not enough time has passed, exit the function.
+		// Get ready for next frame by setting _lastFrame, but based on _minElapsedMS
+		// adjustment to ensure a relatively stable interval.
+		// if (this._minElapsedMS) {
+		// 		const delta = currentTime - this._lastFrame | 0;
+		// 		if (delta < this._minElapsedMS) {
+		// 				return;
+		// 		}
+		// 		this._lastFrame = currentTime - (delta % this._minElapsedMS);
+		// }
+
+		// this.deltaMS = elapsedMS;
+		return elapsedMS * PIXI.settings.TARGET_FPMS;
+	}
+
 	/** includes a new task */
 	addTasks(...tasks) {
 		const { activeTasks } = this;
@@ -94,9 +127,13 @@ export class BaseView extends EventEmitter {
 
 		// get the updated bounds
 		const bounds = parent.getBoundingClientRect();
-		const width = (bounds.right - bounds.left) * (ssaa ? 2 : 1);
-		const height = (bounds.bottom - bounds.top) * (ssaa ? 2 : 1);
-		const scale = ssaa ? 0.5 : 1;
+		const preferred = bounds.width;
+		const upscale = 1.5;
+
+		// scale as required
+		const width = (bounds.right - bounds.left) * (ssaa ? upscale : 1);
+		const height = (bounds.bottom - bounds.top) * (ssaa ? upscale : 1);
+		const scale = ssaa ? (preferred / width) : 1;
 
 		// update the sizing
 		view.resize(width, height);

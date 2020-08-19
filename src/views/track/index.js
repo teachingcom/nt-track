@@ -432,24 +432,33 @@ export default class TrackView extends BaseView {
 		this.raceCompletedAnimation = new RaceCompletedAnimation({ track: this, players });	
 
 		// reactivate ssaa
-		this.ssaa = true;
-		this.resize();
+		// this.ssaa = true;
+		// this.resize();
 	}
+
+	lastUpdate = +new Date;
 
 	// handle rendering the track in the requested state
 	render() {
 
 		// increment the frame counter
 		this.frame++;
-
-		// gather some data
 		const { state, frame, animationRate } = this;
+
+		// if throttling
+		if (frame % animationRate !== 0) return;
+
+		// calculate the delta
+		state.delta = this.getDeltaTime(this.lastUpdate);
+		this.lastUpdate = +new Date;
+		
+		// gather some data
 		const { animateTrackMovement, trackMovementAmount } = state;
 		const isRaceActive = state.isStarted && !state.isFinished;
 
 		// speeding up the view
 		state.speed = animateTrackMovement
-			? Math.max(0, Math.min(TRACK_MAXIMUM_SPEED, state.speed + trackMovementAmount))
+			? Math.max(0, Math.min(TRACK_MAXIMUM_SPEED, state.speed + (trackMovementAmount * state.delta)))
 			: 0;
 
 		// increase the track movement by the speed bonus
@@ -466,7 +475,7 @@ export default class TrackView extends BaseView {
 			else state.activeTypingSpeedModifier = 0;
 
 			// set the racing speed with modifiers
-			state.speed = Math.max(state.speed, state.speed + state.activeTypingSpeedModifier);
+			state.speed = Math.max(state.speed, state.speed + (state.activeTypingSpeedModifier * state.delta));
 		}
 
 		// TODO: replace with new views
@@ -478,9 +487,6 @@ export default class TrackView extends BaseView {
 			if (isRaceActive)
 				this.raceProgressAnimation.update();
 		}
-
-		// if throttling
-		if (frame % animationRate !== 0) return;
 
 		// redraw		
 		super.render();

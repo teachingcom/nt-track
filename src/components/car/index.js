@@ -258,7 +258,7 @@ export default class Car extends PIXI.Container {
 		color.hue(hue);
 
 		// apply filters
-		// this.car.filters = [ color ];
+		this.car.filters = [ color ];
 	}
 
 

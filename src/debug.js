@@ -10,12 +10,12 @@
 
 // window.NT_RACE = NT_RACE;
 
-const all = [ ];
-export function add(obj) {
-	all.push(obj);
-}
+// const all = [ ];
+// export function add(obj) {
+// 	all.push(obj);
+// }
 
-export function render(renderer) {
-	for (const obj of all)
-		renderer.render(obj);
-}
+// export function render(renderer) {
+// 	for (const obj of all)
+// 		renderer.render(obj);
+// }

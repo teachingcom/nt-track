@@ -137,7 +137,7 @@ export default class NameCard extends PIXI.Container {
 		mask.height = 0 | height;
 		mask.x = left - 1;
 		mask.y = 0 | -(height * 0.5);
-		overlay.addChild(mask);
+		// overlay.addChild(mask);
 		
 		// get colors to use for text
 		let textColor = 0xffffff;
@@ -164,7 +164,7 @@ export default class NameCard extends PIXI.Container {
 			// align
 			text.x = 0 | (left);
 			text.y = 0 | (style.y * scaleY);
-			text.mask = mask;
+			// text.mask = mask;
 	
 			// add to the view
 			overlay.addChild(text);

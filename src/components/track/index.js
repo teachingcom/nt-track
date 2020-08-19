@@ -6,6 +6,7 @@ import { TRACK_MAXIMUM_SCROLL_SPEED, TRACK_STARTING_LINE_POSITION } from '../../
 import { isArray, isNumber } from '../../utils';
 import Segment from './segment';
 import createCrowd from '../../plugins/crowd';
+import createConfetti from '../../plugins/confetti';
 import AmbientAudio from '../../audio/ambient';
 
 // total number of road slices to create
@@ -20,14 +21,15 @@ export default class Track {
 	static async create(options) {
 		const { view, seed } = options;
 
-		// custom crowd type
-		view.animator.install('crowd', createCrowd);
-
 		// create the new track
 		const instance = new Track();
 		instance.options = options;
 		instance.view = view;
 		instance.container = new PIXI.Container();
+
+		// include special plugins
+		view.animator.install('crowd', createCrowd);
+		view.animator.install('confetti', createConfetti, { track: view });
 
 		// assign the seed, if needed
 		view.animator.rng.activate(seed);
@@ -254,7 +256,7 @@ export default class Track {
 
 	// positional update 
 	update = state => {
-		const distance = state.speed * -TRACK_MAXIMUM_SCROLL_SPEED;
+		const distance = (state.speed * -TRACK_MAXIMUM_SCROLL_SPEED) * state.delta;
 		this._cycleTrack(distance);
 	}
 

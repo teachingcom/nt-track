@@ -25,7 +25,7 @@ export default class CrowdAnimator {
 				this.animators[id] = keyframes({
 					loop: Infinity,
 					ease: easing.linear,
-					duration,
+					duration: 1000,
 					elapsed,
 					values: frames
 				})
@@ -39,6 +39,11 @@ export default class CrowdAnimator {
 		}
 
 
+	}
+
+	stop = () => {
+		for (const id in this.animators)
+			this.animators[id].stop();
 	}
 
 	// references to all shared pixi objects
@@ -58,7 +63,7 @@ export default class CrowdAnimator {
 	}
 
 	// registers a layer to receive updates
-	register(key, obj) {
+	register(key, obj, animate) {
 
 		// set starting position
 		const { isFlipped, frames } = this.layers[key];
@@ -69,6 +74,9 @@ export default class CrowdAnimator {
 
 		if (isFlipped)
 			obj.scale.x *= -1;
+
+		// check for animations
+		if (!animate) return;
 
 		// check for an animator
 		const parts = this.refs[key];
