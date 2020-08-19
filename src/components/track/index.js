@@ -7,7 +7,7 @@ import { isArray, isNumber } from '../../utils';
 import Segment from './segment';
 import createCrowd from '../../plugins/crowd';
 import createConfetti from '../../plugins/confetti';
-import AmbientAudio from '../../audio/ambient';
+import AmbientAudio from '../../audio/ambient';;
 
 // total number of road slices to create
 // consider making this calculated as needed
@@ -269,12 +269,7 @@ export default class Track {
 
 		// reset all
 		this._resetTrackSegments();
-
-		// add the overlay section
-		overlay.addChild(finishLine.top);
-		ground.addChild(finishLine.bottom);
-		finishLine.visible = true;
-
+		
 		// TODO: calculate this value
 		this._cycleTrack(-2500);
 		
@@ -283,6 +278,14 @@ export default class Track {
 		
 		// shift to the start of the area
 		this._cycleToSegmentLine(null, view.width * 0.5);
+
+		// add the overlay section
+		// remove everything
+		overlay.removeChildren();
+		ground.removeChildren();
+		overlay.addChild(finishLine.top);
+		ground.addChild(finishLine.bottom);
+		finishLine.visible = true;
 	}
 
 	/** removes the starting line block */

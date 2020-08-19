@@ -1,21 +1,22 @@
-
+import * as PIXI from 'pixi.js';
 import { noop } from '../../utils';
 import FastConfetti from './generator';
 
 // handles creating a confetti effect instance
 export default async function createConfetti(animator, controller, path, layer, data) {
-	const { track } = layer.params;
-	const instance = await FastConfetti.create(animator, track);
-	const { dispose } = instance;
+	// const { track } = layer.params;
+	// const instance = await FastConfetti.create(animator, track);
+	// const { dispose } = instance;
 
+	return [{ displayObject: new PIXI.Container(), update: noop, dispose: noop }];
 
-		// not all properties are supported
-		const { props = { } } = data;
-		if ('x' in props)
-			instance.sprite.x = animator.evaluateExpression(props.x);
+	// not all properties are supported
+	const { props = { } } = data;
+	if ('x' in props)
+		instance.sprite.x = animator.evaluateExpression(props.x);
 
-		if ('y' in props)
-			instance.sprite.y = animator.evaluateExpression(props.y);
+	if ('y' in props)
+		instance.sprite.y = animator.evaluateExpression(props.y);
 	
 	// return for use
 	return [{ displayObject: instance.sprite, update: noop, dispose }]

@@ -36,6 +36,15 @@ export default class Segment {
 		// alignment takes place on the left edges
 		top.pivot.x = bottom.pivot.x = bounds.left;
 
+
+		const tops = getAll(top);
+		const bottoms = getAll(bottom);
+		// top.removeChildren();
+		// bottom.removeChildren();
+
+		// top.addChild(...tops);
+		// bottom.addChild(...bottoms);
+
 		// sort by z-index
 		top.sortChildren();
 		bottom.sortChildren();
@@ -104,4 +113,88 @@ export default class Segment {
 		this.composition.dispose();
 	}
 
+}
+
+
+function getAll(view) {
+	return;
+
+	let check = [ view ];
+	const keep = [ ];
+
+	let i = 0;
+
+	// recursive collect
+	while (true) {
+
+		// const next = render.shift();
+		// const next = render[i++];
+		const next = check.shift();
+		if (!next) break;
+
+		if (next.children.length)
+			check.unshift.apply(check, next.children);
+
+		else {
+			if (next.parent) {
+
+				mem(next.parent, 'updateTransform')
+				mem(next, 'updateTransform')
+			}
+			// keep.push(next);
+		}	
+	}
+
+	return keep;
+}
+
+function mem(obj, func) {
+	const og = obj[func];
+	obj[func] = (...args) => {
+		og.apply(obj, args);
+		obj[func] = arg => {
+			if (arg)
+			fastTransform.apply(obj, arg);
+		}
+	}
+
+}
+
+function fastTransform(parentTransform) {
+		const lt = this.localTransform;
+
+		if (this._localID !== this._currentLocalID)
+		{
+				// get the matrix values of the displayobject based on its transform properties..
+				// lt.a = this._cx * this.scale.x;
+				// lt.b = this._sx * this.scale.x;
+				// lt.c = this._cy * this.scale.y;
+				// lt.d = this._sy * this.scale.y;
+
+				lt.tx = this.position.x - ((this.pivot.x * lt.a) + (this.pivot.y * lt.c));
+				lt.ty = this.position.y - ((this.pivot.x * lt.b) + (this.pivot.y * lt.d));
+				this._currentLocalID = this._localID;
+
+				// force an update..
+				this._parentID = -1;
+		}
+
+		if (this._parentID !== parentTransform._worldID)
+		{
+				// concat the parent matrix with the objects transform.
+				const pt = parentTransform.worldTransform;
+				const wt = this.worldTransform;
+
+				// wt.a = (lt.a * pt.a) + (lt.b * pt.c);
+				// wt.b = (lt.a * pt.b) + (lt.b * pt.d);
+				// wt.c = (lt.c * pt.a) + (lt.d * pt.c);
+				// wt.d = (lt.c * pt.b) + (lt.d * pt.d);
+				wt.tx = (lt.tx * pt.a) + (lt.ty * pt.c) + pt.tx;
+				wt.ty = (lt.tx * pt.b) + (lt.ty * pt.d) + pt.ty;
+
+				this._parentID = parentTransform._worldID;
+
+				// update the id of the transform..
+				this._worldID++;
+		}
 }

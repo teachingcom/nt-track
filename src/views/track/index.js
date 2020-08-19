@@ -301,7 +301,6 @@ export default class TrackView extends BaseView {
 		container.relativeX = 0.5;
 		container.relativeY = 0.5;
 		stage.addChild(container);
-
 		
 		// create the sounds
 		const announcer = audio.create('sfx', 'common', 'countdown');
@@ -327,6 +326,12 @@ export default class TrackView extends BaseView {
 			// notify the race has begun
 			this.emit('start');
 		}, 4000);
+		
+		// wait for the countdown
+		setTimeout(() => {
+			const index = stage.getChildIndex(container);
+			stage.removeChildAt(index);
+		}, 6000);
 	}
 
 	// set the music state

@@ -1,6 +1,5 @@
 import * as PIXI from 'pixi.js';
 import { createContext } from 'nt-animator';
-import { everyFrame } from 'popmotion';
 import { LAYER_TRACK_OVERLAY } from '../../views/track/layers';
 
 const PARTICLE_COUNT = 125;
@@ -74,21 +73,19 @@ export default class FastConfetti {
 	}
 
 	// handles updating confetti effects
-	update = (/* delta = 1 */) => {
-		const delta = 1;
+	update = () => {
 		
 		// check if this should continue to update
-		if (this.isDisposed) {
-			// this.animator.stop();
-			return;
-		}
+		if (this.isDisposed) return;
 		
+		// queue the next update
 		requestAnimationFrame(this.update);
 		
 		// calculate the new size
-		const { sprite, context, view, particles } = this;
+		const { sprite, context, view, particles, track } = this;
 		const { ctx, canvas } = context;
 		const { width, height, scaleX } = view;
+		const { delta } = track.state;
 
 		// pre-calculate a few values
 		const size = scaleX * DEFAULT_PARTICLE_SIZE;
