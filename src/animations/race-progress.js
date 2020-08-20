@@ -1,7 +1,6 @@
 import Animation from './base';
 
-import { tween, easing } from 'popmotion';
-import { getBoundsForRole } from "nt-animator";
+import { getBoundsForRole, animate } from "nt-animator";
 import {
 	RACE_ENDING_ANIMATION_THRESHOLD,
 	RACE_PLAYER_DISTANCE_MODIFIER,
@@ -139,14 +138,17 @@ export default class RaceProgressAnimation extends Animation {
 		// start the new tween
 		const diff = now - lastTimestamp;
 		const duration = Math.min(Math.max(RACE_PROGRESS_TWEEN_TIMING, diff), RACE_PROGRESS_TWEEN_TIMING * 1.05);
-		tweens[player.id] = tween({
-			ease: easing.linear,
-			from: player.relativeX,
-			to: player.preferredX,
-			duration
-		})
-		.start({ update: v => player.relativeX = v });
 		
+		// perform the animation
+		tweens[player.id] = animate({
+			from: { x: player.relativeX },
+			to: { x: player.preferredX },
+			ease: 'linear',
+			duration,
+			loop: false,
+			update: props => player.relativeX = props.x
+		});
+
 	}
 	
 	// NOTE: this animation is depended on race progress so it's 

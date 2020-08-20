@@ -4,7 +4,8 @@ import { CROWD_DEFAULT_SCALE } from '../../config';
 import generateAnimationFrames from './generate-animatons';
 import * as palettes from './palettes';
 import LAYERS from './layers';
-import { createContext } from 'nt-animator';
+import { createContext, animate } from 'nt-animator';
+import CrowdAnimator from './crowd-animator';
 
 // shared crowd animators
 let ANIMATORS;
@@ -22,129 +23,95 @@ const PALETTES = {
 	secondary: shuffle(palettes.SECONDARY_COLORS)
 }
 
+let frames;
+
 export default async function createCrowd(animator, controller, path, layer, data) {
 
-
-	if (!framesdd) {
-		
-		// reusable renderer for assets
-		const animationRenderer = new PIXI.Renderer({ transparent: true });
-
-		// const frame = createContext(800, 100);
-		const frames = createContext();
-
-		const members = [ ];
-
-		let left = 0;
-		let max = 0;
-		const crowd = new PIXI.Container();
-		for (let i = 0; i < 8; i++) {
-			const member = await createCrowdMember(animator, controller, path, layer, data);
-			crowd.addChild(member.displayObject);
-			members.push(member);
-
-			const bounds = member.displayObject.getBounds();
-			const { width, height, bottom, top } = bounds;
-			member.displayObject.x = width + left;
-			member.displayObject.y = height;
-			left += width;
-			max = Math.max(bottom - top, max);
-		}
-
-		frames.canvas.width = left * 1.5;
-		frames.canvas.height = max * 8;
-		animationRenderer.resize(left * 1.5, max);
-		
-		let canv;
-		async function bump(prog) {
-			return new Promise(resolve => {
-				setTimeout(() => {
-
-					// for (const member of members) {
-					// 	member.playback.seek(prog);
-					// }
-					
-					animationRenderer.render(crowd);
-					const aa = animationRenderer.plugins.extract.canvas();
-					
-					// document.body.appendChild(aa);
-					// aa.className = 'debug';
-					
-					resolve(PIXI.Texture.from(aa));
-
-					if (prog >= 0.9) {
-
-						for (const member of members)
-						member.playback.stop();
-					}
-					
-				}, prog * 1000)
-			})
-		}
-
-
-
-		// const canvas1 = animationRenderer.plugins.extract.canvas();
-		// const canvas = animationRenderer.plugins.extract.canvas();
-		// frames.ctx.drawImage(canvas, 0, 0);
-
-		framesdd = await Promise.all([
-			bump(0),
-			bump(0.1),
-			bump(0.2),
-			bump(0.3),
-			bump(0.4),
-			bump(0.5),
-			bump(0.6),
-			bump(0.7),
-			bump(0.8),
-			bump(0.9),
-		]);
-
+	// setup animations so this doesn't have to be done
+	// multiple times
+	if (!ANIMATORS) {
+		const generated = generateAnimationFrames(animator.manifest.crowd);
+		ANIMATORS = generated.animators;
 	}
 
-	// frames.ctx.drawImage(canvas, 0, max * 1);
-	// frames.ctx.drawImage(canvas, 0, max * 2);
-	// frames.ctx.drawImage(canvas, 0, max * 3);
-	// frames.ctx.drawImage(canvas, 0, max * 4);
-	// frames.ctx.drawImage(canvas, 0, max * 5);
-	// frames.ctx.drawImage(canvas, 0, max * 6);
-	// frames.ctx.drawImage(canvas, 0, max * 7);
+	// check for cached frames
+	if (!frames) {
+		frames = await generateCrowd(animator, controller, path, layer, data);
+	}
 
-	
-	// document.body.appendChild(canv);
-	// canv.className = 'debug';
-	// return member;
-
-	const sprite = new PIXI.AnimatedSprite(framesdd)
-	sprite.animationSpeed = 0.25;
+	// create the crowd
+	const sprite = new PIXI.AnimatedSprite(frames)
+	sprite.animationSpeed = 0.2 + (Math.random() * 0.1);
 	sprite.gotoAndPlay(0 | (Math.random() * sprite.totalFrames));
 	sprite.scale.x = sprite.scale.y = CROWD_DEFAULT_SCALE;
+	sprite.pivot.y = sprite.height;
 	sprite.play();
 
+	// not all properties are supported
+	const { props = { } } = data;
+	if ('x' in props)
+		sprite.x = animator.evaluateExpression(props.x);
 
-		// not all properties are supported
-		const { props = { } } = data;
-		if ('x' in props)
-			sprite.x = animator.evaluateExpression(props.x);
-
-		if ('y' in props)
-			sprite.y = animator.evaluateExpression(props.y);
+	if ('y' in props)
+		sprite.y = animator.evaluateExpression(props.y);
 
 	return [{ displayObject: sprite, update: noop, dispose: noop }]
 
 }
 
+async function generateCrowd(animator, controller, path, layer, data) {
+
+	// reusable renderer for assets
+	const animationRenderer = new PIXI.Renderer({ transparent: true });
+
+	const members = [ ];
+
+	let left = 0;
+	let max = 0;
+	const crowd = new PIXI.Container();
+
+	// create a few people
+	for (let i = 0; i < 10; i++) {
+		
+		// create each person
+		const member = await createCrowdMember(animator, controller, path, layer, data);
+		crowd.addChild(member);
+	
+		members.push(member);
+		// const ani = animate(animation);
+
+		// fit to the view
+		const bounds = member.getBounds();
+		const { width, height, bottom, top } = bounds;
+		member.x = width + left;
+		member.y = height;
+		left += width;
+		max = Math.max(bottom - top, max);
+	}
+
+	const contain = crowd.getBounds();
+	animationRenderer.resize(0 | (contain.width * 1.2), contain.height);
+
+	frames = [ ];
+	for (let i = 0; i < 11; i++) {
+
+		for (const cr of ANIMATORS) {
+			cr.seek(i * 100);
+		}
+
+		// generate the frame
+		animationRenderer.render(crowd);
+
+		// save the texture
+		const frame = animationRenderer.plugins.extract.canvas();
+		frames.push(PIXI.Texture.from(frame));
+	}
+
+	return frames;
+}
+
 async function createCrowdMember(animator, controller, path, layer, data) {
 	try {
-		let dispose = noop;
-			
-		// setup animations so this doesn't have to be done
-		// multiple times
-		if (!ANIMATORS) {
-			const generated = generateAnimationFrames(animator.manifest.crowd);
-			ANIMATORS = generated.animators;
-		}
 
 		// legs are used to set the shadow position
 		let legs;
@@ -156,26 +123,9 @@ async function createCrowdMember(animator, controller, path, layer, data) {
 		// create the container for the actor
 		const container = new PIXI.Container();
 
-		function mem(obj, name) {
-			const orig = obj[name];
-			obj[name] = function (...args) {
-				const res = orig.apply(this, args);
-				obj[name] = () => res;
-				return res;
-			};
-		}
-
-		// container.cacheAsBitmap = true;
-		// mem(container, 'calculateVertices');
-		// mem(container, 'calculateTrimmedVertices');
-		// mem(container, 'calculateBounds');
-		// mem(container, 'updateTransform');
-		// sprite.cacheAsBitmap = true;
-		
-		
 		// random selections for type, animation, and palette
 		const actor = choose(data.actor);
-		const playback = choose(ANIMATORS);
+		const animation = choose(ANIMATORS);
 		const palette = getNextPalette();
 
 		// not all properties are supported
@@ -243,32 +193,28 @@ async function createCrowdMember(animator, controller, path, layer, data) {
 			obj.scale.x *= meta.flipX ? -1 : 1;
 
 			// attach this to the shared animator
-			playback.register(layer.sprite, obj, data.animate !== false);
-
-			// create a cleanup function
-			dispose = appendFunc(dispose, () => playback.unregister(layer.sprite, obj));
+			animation.register(layer.sprite, obj);
 		}
 
 		// add the shadow
 		await attachShadow(animator, container, legs);
 
 		// scale
-		// container.scale.x = CROWD_DEFAULT_SCALE;
 		container.scale.x = (0.9 + (0.2 * Math.random()));
 		container.scale.y = container.scale.x;
 
 		// randomly flip
 		container.scale.x *= Math.random() > 0.5 ? -1 : 1;
 		
-		// assign the main container positions
-		// return { displayObject: new PIXI.Container(), update: noop, dispose: noop };
-		return { displayObject: container, update: noop, dispose, playback };
+		// return { displayObject: container, animation };
+		return container;
 
 	}
 	catch (ex) {
 		console.error('Failed to create crowd member');
 		console.error(ex);
-		return { displayObject: new PIXI.Container(), update: noop, dispose: noop };
+		return new PIXI.Container();
+		// return { displayObject: new PIXI.Container(), update: noop, dispose: noop };
 	}
 
 }
@@ -313,16 +259,16 @@ async function attachExtra(animator, relativeTo, spritesheet, target, actor, att
 // adds a shadow to a sprite
 // seems not needed
 async function attachShadow(animator, container, relativeTo) {
-	// const shadow = await animator.getSprite('crowd', 'shadow');
-	// container.addChildAt(shadow, 0);
+	const shadow = await animator.getSprite('crowd', 'shadow');
+	container.addChildAt(shadow, 0);
 
-	// // position the shadow at the bottom
-	// shadow.pivot.y = shadow.height * 0.75;
-	// shadow.pivot.x = shadow.width * 0.5;
-	// shadow.y = relativeTo.y + relativeTo.height;
-	// shadow.x = relativeTo.x;
-	// shadow.scale.x = shadow.scale.y = (relativeTo.width / shadow.width) * 2;
-	// shadow.alpha = 0.75;
+	// position the shadow at the bottom
+	shadow.pivot.y = shadow.height * 0.75;
+	shadow.pivot.x = shadow.width * 0.5;
+	shadow.y = relativeTo.y + relativeTo.height;
+	shadow.x = relativeTo.x;
+	shadow.scale.x = shadow.scale.y = (relativeTo.width / shadow.width) * 2;
+	shadow.alpha = 0.75;
 }
 
 

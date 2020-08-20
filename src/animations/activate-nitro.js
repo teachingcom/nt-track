@@ -1,11 +1,11 @@
 import Animation from './base';
 
-import { keyframes, easing } from 'popmotion';
 import { noop } from '../utils';
 import { NITRO_ACTIVATED_TRAIL_OPACITY } from '../config';
+import { animate } from 'nt-animator';
 
 const DURATION = 1200;
-const EASINGS = [ easing.easeOut, easing.linear, easing.bounceOut ]
+const EASINGS = [ 'easeOutQuad', 'linear', 'easeOutBounce' ]
 const TIMINGS = [ 0, 0.115, 0.75, 1 ];
 
 /** standard animation for a car performing a skip problem nitro */
@@ -101,10 +101,11 @@ export default class ActivateNitroAnimation extends Animation {
 		}
 
 		// activate the sequence
-		const sequence = keyframes({
+		const config = {
 			duration: DURATION,
 			times: TIMINGS,
 			easings: EASINGS,
+			loop: false,
 			values: [
 				Object.assign({ }, origin, {
 					nitroEffectAlpha: nitroEffectStartingAlpha,
@@ -118,21 +119,20 @@ export default class ActivateNitroAnimation extends Animation {
 				Object.assign({ }, origin, {
 					nitroEffectAlpha: nitroEffectEndingAlpha
 				}),
-			]
-		});
+			],
 
-		// begin the animation sequence
-		const playback = sequence.start({
+			// ending
+			complete,
+
+			// update function
 			update: props => {
 				update(props);
 				this.update(props);
-			},
-			complete
-		});
+			}
+		};
 
-		// save the controllers
-		this.sequence = sequence;
-		this.playback = playback;
+		// save the animation
+		this.animation = animate(config);
 	}
 
 	/** handles updating values per frame */
@@ -180,7 +180,7 @@ export default class ActivateNitroAnimation extends Animation {
 		}
 
 		// stop the animation
-		this.sequence.stop();
+		this.animation.stop();
 	}
 
 }

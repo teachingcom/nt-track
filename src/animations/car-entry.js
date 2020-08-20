@@ -1,10 +1,11 @@
 import * as audio from '../audio';
 import Animation from './base';
 
+
 import { noop } from "../utils";
-import { tween, easing } from "popmotion";
 import { TRACK_STARTING_LINE_POSITION, RACE_START_CAR_ENTRY_TIME, RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT } from "../config";
 import { VOLUME_CAR_ENTRY } from '../audio/volume';
+import { animate } from 'nt-animator';
 
 export default class CarEntryAnimation extends Animation {
 
@@ -49,14 +50,13 @@ export default class CarEntryAnimation extends Animation {
 		player.relativeX = entryOrigin.playerX;
 		
 		// animate the player entry
-		tween({
-			duration: RACE_START_CAR_ENTRY_TIME,
-			ease: easing.easeOut,
+		animate({
 			from: entryOrigin,
-			to: entryDestination
-		})
-		.start({
-			update: updateEntry,
+			to: entryDestination,
+			ease: 'easeOutQuad',
+			duration: RACE_START_CAR_ENTRY_TIME,
+			loop: false,
+			update: props => updateEntry(props),
 			complete
 		});
 

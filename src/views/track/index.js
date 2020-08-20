@@ -311,6 +311,7 @@ export default class TrackView extends BaseView {
 			
 			// create the countdown
 			const countdown = await animator.create('/extras/countdown');
+			console.log('adding a countdown');
 			container.addChild(countdown);
 			
 			// start the sound effect

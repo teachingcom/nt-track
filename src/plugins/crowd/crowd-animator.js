@@ -1,4 +1,5 @@
 import { keyframes, easing } from 'popmotion';
+import { animate } from 'nt-animator';
 
 // handles creating a shared animator for crowd keyframe animations
 export default class CrowdAnimator {
@@ -22,28 +23,50 @@ export default class CrowdAnimator {
 
 			// create the animator
 			if (frames?.length > 1)
-				this.animators[id] = keyframes({
-					loop: Infinity,
-					ease: easing.linear,
+				this.animators[id] = animate({
+					loop: true,
+					ease: 'linear',
 					duration: 1000,
-					elapsed,
-					values: frames
-				})
-				// start the animation
-				.start({
-					update: v => {
-						for (let i = parts.length; i-- > 0;)
-							updatePart(parts[i], v);
-					}
+					values: frames,
+					autoplay: false,
+					// update: v => {
+					// 	// console.log(v);
+					// 	// console.log('did update');
+					// 	if (id === 'head') {
+					// 		console.log(v);
+					// 	}
+
+					// 	for (let i = parts.length; i-- > 0;)
+					// 		updatePart(parts[i], v);
+					// }
 				});
 		}
 
-
 	}
 
-	stop = () => {
-		for (const id in this.animators)
-			this.animators[id].stop();
+	// move to a point
+	seek = step => {
+		for (const id in this.animators) {
+			// console.log(this.animators[id]);
+
+			// console.log('seek', step);
+			// this.animators[id].animation.pause();
+			// this.animators[id].animation.play();
+			this.animators[id].animation.seek(step);
+			const parts = this.refs[id];
+			for (let i = parts.length; i-- > 0;) {
+				updatePart(parts[i], this.animators[id].animation.animatables[0].target);
+			}
+
+			// console.log(`tt`, 0 | (1000 * step));
+			// this.animators[id].animation.tick(0 | (1000 * step));
+			// console.log(this.animators[id].animation.animatables[0].target);
+			// this.animators[id].animation.pause();
+			// console.log(this.animators[id].animation)
+			// console.log(`seek to`, step)
+			// this.animators[id].animation.seek(step);
+			// this.animators[id].animation.restart();
+		}
 	}
 
 	// references to all shared pixi objects
@@ -76,7 +99,7 @@ export default class CrowdAnimator {
 			obj.scale.x *= -1;
 
 		// check for animations
-		if (!animate) return;
+		// if (!animate) return;
 
 		// check for an animator
 		const parts = this.refs[key];

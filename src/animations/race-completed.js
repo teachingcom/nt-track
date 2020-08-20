@@ -3,10 +3,10 @@ import * as audio from '../audio';
 import Animation from './base';
 import CarFinishLineAnimation from "./car-finish";
 
-import { noop, isNumber } from "../utils";
-import { tween, easing } from 'popmotion';
+import { noop } from "../utils";
 import { RACE_FINISH_FLASH_FADE_TIME, RACE_FINISH_CAR_STOPPING_TIME } from '../config';
 import { VOLUME_FINISH_LINE_CROWD } from '../audio/volume';
+import { animate } from 'nt-animator';
 
 export default class RaceCompletedAnimation extends Animation {
 
@@ -176,27 +176,25 @@ export default class RaceCompletedAnimation extends Animation {
 		// add it to the race
 		track.view.addChild(flash);
 
-		// fade the flash effect
-		setTimeout(() => 
-			tween({ 
-				from: 1,
-				to: 0,
-				ease: easing.circIn,
-				duration: RACE_FINISH_FLASH_FADE_TIME
-			})
-			.start({
-				update: v => {
+		// fade in the flash
+		animate({
+			delay: 250,
+			from: { alpha: 1 },
+			to: { alpha: 0 },
+			ease: 'easeInCirc',
+			duration: RACE_FINISH_FLASH_FADE_TIME,
+			loop: false,
+			complete: () => this.hasFinishedFlashAnimation = true,
+			update: props => {
+				
+				// match the size in case the view changes
+				flash.width = track.width;
+				flash.height = track.height;
 
-					// match the size in case the view changes
-					flash.width = track.width;
-					flash.height = track.height;
-
-					// fade the effect
-					flash.alpha = v;
-				},
-				// notify when the view is ready
-				complete: () => this.hasFinishedFlashAnimation = true
-			}), 250);
+				// fade the effect
+				flash.alpha = props.alpha;
+			}
+		});
 
 	}
 

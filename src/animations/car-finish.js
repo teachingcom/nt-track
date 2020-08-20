@@ -2,9 +2,9 @@ import Animation from "./base";
 
 import { noop } from "../utils";
 import * as audio from '../audio';
-import { tween, easing } from 'popmotion';
 import { RACE_FINISH_CAR_STOPPING_TIME, RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL } from "../config";
 import { VOLUME_FINISH_LINE_STOP } from "../audio/volume";
+import { animate } from "nt-animator";
 
 export default class CarFinishLineAnimation extends Animation {
 
@@ -74,17 +74,17 @@ export default class CarFinishLineAnimation extends Animation {
 		// set starting positions
 		updateEntryProps(entryOrigin);
 
-		// start the entry animation
-		setTimeout(() => {
-			tween({
-				duration: RACE_FINISH_CAR_STOPPING_TIME,
-				elapsed: Math.min(elapsed, RACE_FINISH_CAR_STOPPING_TIME),
-				ease: easing.circOut,
-				from: entryOrigin,
-				to: entryDestination
-			})
-			.start({ update: updateEntryProps });
-		}, delay);
+		// start the ending animation
+		animate({
+			delay,
+			duration: RACE_FINISH_CAR_STOPPING_TIME,
+			elapsed: Math.min(elapsed, RACE_FINISH_CAR_STOPPING_TIME),
+			ease: 'easeOutCirc',
+			from: entryOrigin,
+			to: entryDestination,
+			update: updateEntryProps,
+			loop: false
+		});
 
 	}
 
