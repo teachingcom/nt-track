@@ -39,6 +39,8 @@ export const RACE_FINISH_FLASH_FADE_TIME = 300;
 // crowds
 export const CROWD_DEFAULT_SCALE = 0.4;
 export const CROWD_ANIMATION_VARIATIONS = 5;
+export const CROWD_ANIMATION_FRAME_COUNT = 10;
+export const CROWD_ANIMATION_DURATION = 1000;
 
 // namecards
 export const NAMECARD_SCALE = 0.8;

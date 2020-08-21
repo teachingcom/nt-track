@@ -3,6 +3,7 @@ import * as debug from '../debug';
 import * as PIXI from 'pixi.js';
 import { Animator, EventEmitter, PIXI as AnimatorPIXI } from 'nt-animator';
 import { noop } from '../utils';
+import { ANIMATION_RATE_WHILE_RACING } from '../config';
 
 /** creates a track instance */
 export class BaseView extends EventEmitter {
@@ -65,31 +66,11 @@ export class BaseView extends EventEmitter {
 		current: 0
 	}
 
+	/** calculates preferred times */
+	// TODO: make sure this is correct on 
 	getDeltaTime = relativeTo => {
-		
-		
 		const now = +new Date;
 		const elapsedMS = now - relativeTo;
-
-		// cap the milliseconds elapsed used for deltaTime
-		// if (elapsedMS > this._maxElapsedMS) {
-		// 		elapsedMS = this._maxElapsedMS;
-		// }
-
-		// elapsedMS *= this.speed;
-
-		// If not enough time has passed, exit the function.
-		// Get ready for next frame by setting _lastFrame, but based on _minElapsedMS
-		// adjustment to ensure a relatively stable interval.
-		// if (this._minElapsedMS) {
-		// 		const delta = currentTime - this._lastFrame | 0;
-		// 		if (delta < this._minElapsedMS) {
-		// 				return;
-		// 		}
-		// 		this._lastFrame = currentTime - (delta % this._minElapsedMS);
-		// }
-
-		// this.deltaMS = elapsedMS;
 		return elapsedMS * PIXI.settings.TARGET_FPMS;
 	}
 
@@ -98,6 +79,11 @@ export class BaseView extends EventEmitter {
 		const { activeTasks } = this;
 		activeTasks.push(...tasks);
 		this.totalTasks += tasks.length;
+	}
+
+	/** check if this task is still pending */
+	waitingForTask(task) {
+		return !!~this.activeTasks.indexOf(task);
 	}
 
 	/** resolves an item and moves progress forward */

@@ -5,7 +5,6 @@ import { merge } from '../../utils';
 import { toRGBA } from '../../utils/color';
 import { createContext, getBoundsForRole } from 'nt-animator';
 import { LAYER_NAMECARD_OVERLAY } from '../../views/track/layers';
-import { scaleCanvas } from '../../utils/scaling';
 
 // preferred font for namecards
 const NAMECARD_ICON_SCALE = 0.35;
@@ -130,15 +129,9 @@ export default class NameCard extends PIXI.Container {
 		// TODO: render this without a mask
 		// by just using a trimmed canvas
 		const left = 0 | -((container.width * scaleY) * 0.465);
-		const mask = new PIXI.Sprite(PIXI.Texture.WHITE);
-		const width = container.width * scaleY * 0.825;
-		const height = container.height * scaleY * 0.9;
-		mask.width = 0 | width;
-		mask.height = 0 | height;
-		mask.x = left - 1;
-		mask.y = 0 | -(height * 0.5);
-		// overlay.addChild(mask);
-		
+		// const width = container.width * scaleY * 0.825;
+		// const height = container.height * scaleY * 0.9;
+
 		// get colors to use for text
 		let textColor = 0xffffff;
 		let shadowColor = 0x000000;
@@ -154,17 +147,17 @@ export default class NameCard extends PIXI.Container {
 		]) {
 		
 			// draw the text/shadow
+
 			const text = new PIXI.Text(displayName, {
 				fontSize: DEFAULT_NAMECARD_FONT_SIZE * scaleY,
 				fontFamily: DEFAULT_NAMECARD_FONT_NAME,
 				fontWeight: DEFAULT_NAMECARD_FONT_WEIGHT,
 				fill: style.color
 			});
-	
+
 			// align
 			text.x = 0 | (left);
 			text.y = 0 | (style.y * scaleY);
-			// text.mask = mask;
 	
 			// add to the view
 			overlay.addChild(text);
@@ -178,12 +171,12 @@ export default class NameCard extends PIXI.Container {
 		const surface = createContext();
 
 		// create the icon strip
-		surface.resize(500, tallest);
+		surface.resize(0 | (500 * scaleY), 0 | (tallest * scaleY));
 		surface.ctx.setTransform(1, 0, 0, 1, 0, 0);
-		surface.ctx.translate(0, 0 | (tallest / 2));
+		surface.ctx.translate(0, 0 | ((tallest * scaleY) / 2));
 		drawIcons(surface.ctx, ids, scaleY);
 
-		// scale the icons down - try to use a sharper scaling
+		// // scale the icons down - try to use a sharper scaling
 		// const resample = scaleY * 0.6;
 		// scaleCanvas(surface.canvas, 0 | (500 * resample), 0 | (tallest * resample), true);
 		
@@ -193,7 +186,7 @@ export default class NameCard extends PIXI.Container {
 		banner.scale.x = banner.scale.y = NAMECARD_ICON_SCALE;
 		
 		// add the banner to the view
-		banner.y = 0 | -(banner.getBounds().height * 0.95);
+		banner.y = 0 | -(banner.getBounds().height * 1.05);
 		banner.x = left + 3;
 		overlay.addChild(banner);
 	}
@@ -210,8 +203,12 @@ export default class NameCard extends PIXI.Container {
 
 		// get info to show
 		const { options } = this;
-		const { name = 'Guest Racer', team, isTop3, isGold, isFriend } = options;
-		this.displayName = [ team && `[${team}]`, name ].join(' ');
+		const { name = '12345678901234567890', team, isTop3, isGold, isFriend } = options;
+		const full = [ team && `[${team}]`, name ].join(' ');
+		
+		// set the display name
+		let displayName = full.substr(0, 17);
+		this.displayName = displayName;
 
 		// check for icons
 		let tallest = 0;

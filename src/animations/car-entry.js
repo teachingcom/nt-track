@@ -21,9 +21,6 @@ export default class CarEntryAnimation extends Animation {
 	play = ({ isInstant = false, update = noop, complete = noop }) => {
 		const { player, enterSound } = this;
 		
-		// load the sound
-		this.rev = audio.create('sfx', 'common', `entry_${enterSound}`);
-		
 		// offscreen starting position
 		const entryOrigin = {
 			playerX: -0.1
@@ -60,13 +57,15 @@ export default class CarEntryAnimation extends Animation {
 			complete
 		});
 
+		
 		// play the entry sound, if possible
-		const { rev } = this;
-		const canPlayTimestamp = rev.lastInstancePlay + RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT;
-			
 		// don't play duplicate sounds too close together
-		const now = +new Date;
 		try {
+			const rev = audio.create('sfx', 'common', `entry_${enterSound}`);
+			const now = +new Date;
+			const canPlayTimestamp = rev.lastInstancePlay + RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT;
+
+			// try and play
 			if (rev && now > canPlayTimestamp) {
 				rev.volume(VOLUME_CAR_ENTRY)
 				rev.loop(false);

@@ -5,7 +5,7 @@ import { NITRO_ACTIVATED_TRAIL_OPACITY } from '../config';
 import { animate } from 'nt-animator';
 
 const DURATION = 1200;
-const EASINGS = [ 'easeOutQuad', 'linear', 'easeOutBounce' ]
+const EASINGS = [ 'linear', 'easeOutQuad', 'linear', 'easeOutBounce' ]
 const TIMINGS = [ 0, 0.115, 0.75, 1 ];
 
 /** standard animation for a car performing a skip problem nitro */

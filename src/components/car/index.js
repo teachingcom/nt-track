@@ -5,8 +5,6 @@
 import * as PIXI from 'pixi.js';
 import { findDisplayObjectsOfRole } from 'nt-animator';
 import { merge, isNumber, noop } from '../../utils';
-
-import generateTextures from './texture-generator';
 import { createStaticCar } from './create-static-car';
 
 // get special car extensions
@@ -100,7 +98,7 @@ export default class Car extends PIXI.Container {
 		this.plugin = carPlugins[type];
 
 		// load any textures
-		this._initTextures(imageSource, includeShadow, includeNormalMap);
+		await this._initTextures(imageSource, includeShadow, includeNormalMap);
 
 		// add the car to the view
 		this.addChild(car);
@@ -263,19 +261,13 @@ export default class Car extends PIXI.Container {
 
 
 	// handles generating dynamic textures
-	_initTextures(imageSource, includeShadow, includeNormalMap) {
-		const { options, config, car } = this;
-		const { hue = 0, hasNitro = false } = options;
+	async _initTextures(imageSource, includeShadow, includeNormalMap) {
+		const { car, view } = this;
 		const scale = car.scale.x;
 
 		// create textures for this vehicle
-		const { normalMap, nitroBlur, shadow } = generateTextures(imageSource, {
-			includeNormalMap,
-			includeShadow,
-			includeNitroBlur: hasNitro,
-			nitroBlurHue: hue,
-			isDarkCar: !!(config?.dark || config?.isDarkCar)
-		});
+		const shadow = await view.animator.getSprite('images', 'car_shadow');
+		const nitroBlur = await view.animator.getSprite('images', 'nitro_blur');
 
 		// apply each, if possible
 		if (shadow) {
@@ -304,15 +296,15 @@ export default class Car extends PIXI.Container {
 
 			// adjust
 			nitroBlur.blendMode = PIXI.BLEND_MODES.ADD;
-			nitroBlur.pivot.x = nitroBlur.width / 2;
-			nitroBlur.pivot.y = nitroBlur.height / 2;
+			nitroBlur.pivot.x = nitroBlur.width * 0.66;
+			nitroBlur.pivot.y = nitroBlur.height * 0.6;
 
 			// match the car scale
 			nitroBlur.scale.x = nitroBlur.scale.y = scale;
 		}
 		
 		// the normal map, if any
-		this.normalMap = normalMap;
+		// this.normalMap = normalMap;
 	}
 
 	/** returns the scaling for the car */

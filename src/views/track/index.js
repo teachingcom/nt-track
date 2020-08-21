@@ -42,6 +42,7 @@ import CarEntryAnimation from '../../animations/car-entry';
 import RaceCompletedAnimation from '../../animations/race-completed';
 import RaceProgressAnimation from '../../animations/race-progress';
 import FpsMonitor from '../../fps';
+import CountdownAnimation from '../../animations/countdown';
 
 /** creates a track view that supports multiple cars for racing */
 export default class TrackView extends BaseView {
@@ -95,8 +96,9 @@ export default class TrackView extends BaseView {
 		this.resolveTask('load_audio');
 		
 		// preload the countdown animation images
-		const { animator } = this;
-		await animator.getSpritesheet('extras/countdown');
+		const { animator, stage } = this;
+		this.countdown = new CountdownAnimation({ track: this, stage, animator });
+		await this.countdown.init();
 		this.resolveTask('load_extras');
 
 		// tracking race position progress
@@ -107,6 +109,7 @@ export default class TrackView extends BaseView {
 
 		// attach the effects filter
 		// this.stage.filters = [ this.colorFilter ];
+		this.stage.alpha = 0;
 
 		// after initialized, start tracking
 		this.fps.activate();
@@ -190,6 +193,12 @@ export default class TrackView extends BaseView {
 		// add to the view
 		stage.addChild(player);
 		stage.sortChildren();
+
+		// if this the current player then mark
+		// the track as ready to show
+		if (data.isPlayer) {
+			state.playerHasEntered = true;
+		}
 	}
 
 	// manually changes the scroll value
@@ -294,45 +303,7 @@ export default class TrackView extends BaseView {
 
 	/** starts the game countdown */
 	startCountdown = async () => {
-		const { animator, stage } = this;
-
-		// create the main container
-		const container = new AnimatorPIXI.ResponsiveContainer();
-		container.relativeX = 0.5;
-		container.relativeY = 0.5;
-		stage.addChild(container);
-		
-		// create the sounds
-		const announcer = audio.create('sfx', 'common', 'countdown');
-		const acceleration = audio.create('sfx', 'common', 'acceleration');
-		
-		// wait a moment before showing
-		setTimeout(async () => {
-			
-			// create the countdown
-			const countdown = await animator.create('/extras/countdown');
-			console.log('adding a countdown');
-			container.addChild(countdown);
-			
-			// start the sound effect
-			announcer.volume(VOLUME_COUNTDOWN_ANNOUNCER);
-			announcer.play();
-		}, 1000);
-		
-		// wait for the countdown
-		setTimeout(() => {
-			acceleration.volume(VOLUME_START_ACCELERATION);
-			acceleration.play();
-
-			// notify the race has begun
-			this.emit('start');
-		}, 4000);
-		
-		// wait for the countdown
-		setTimeout(() => {
-			const index = stage.getChildIndex(container);
-			stage.removeChildAt(index);
-		}, 6000);
+		this.countdown.start();
 	}
 
 	// set the music state
@@ -343,6 +314,9 @@ export default class TrackView extends BaseView {
 	setProgress = (id, { progress, finished, typed, typingSpeedModifier, completed }) => {
 		const { state, raceCompletedAnimation } = this;
 		const player = this.getPlayerById(id);
+		
+		// don't crash if the player wasn't found
+		if (!player) return;
 		
 		// nothing to do
 		if (player.isFinished) return;
@@ -384,15 +358,20 @@ export default class TrackView extends BaseView {
 
 	// begins the race
 	startRace = () => {
-		const { options, state } = this;
+		const { options, state, countdown } = this;
+
+		// finalize the go
+		countdown.finish();
+
+		// start movement
 		state.animateTrackMovement = true;
 		state.trackMovementAmount = TRACK_ACCELERATION_RATE;
 		state.isStarted = true;
 		
 		// improve performance while racing
-		this.ssaa = false;
 		this.animationRate = options.animationRateWhenRacing;
-		this.resize();
+		// this.ssaa = false;
+		// this.resize();
 	}
 
 	// performs the ending
@@ -445,18 +424,23 @@ export default class TrackView extends BaseView {
 	lastUpdate = +new Date;
 
 	// handle rendering the track in the requested state
-	render() {
+	render(force) {
 
 		// increment the frame counter
 		this.frame++;
-		const { state, frame, animationRate } = this;
+		const { state, stage, frame, animationRate } = this;
 
 		// if throttling
-		if (frame % animationRate !== 0) return;
+		if (!force && frame % animationRate !== 0) return;
 
 		// calculate the delta
 		state.delta = this.getDeltaTime(this.lastUpdate);
 		this.lastUpdate = +new Date;
+
+		// fade in the stage
+		if (state.playerHasEntered) {
+			stage.alpha = Math.min(1, stage.alpha + 0.1 * state.delta);
+		}
 		
 		// gather some data
 		const { animateTrackMovement, trackMovementAmount } = state;
