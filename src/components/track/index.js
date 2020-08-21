@@ -6,7 +6,6 @@ import { TRACK_MAXIMUM_SCROLL_SPEED, TRACK_STARTING_LINE_POSITION } from '../../
 import { isArray, isNumber } from '../../utils';
 import Segment from './segment';
 import createCrowd from '../../plugins/crowd';
-import createConfetti from '../../plugins/confetti';
 import AmbientAudio from '../../audio/ambient';
 
 // total number of road slices to create
@@ -29,7 +28,6 @@ export default class Track {
 
 		// include special plugins
 		view.animator.install('crowd', createCrowd);
-		view.animator.install('confetti', createConfetti, { track: view });
 
 		// assign the seed, if needed
 		view.animator.rng.activate(seed);

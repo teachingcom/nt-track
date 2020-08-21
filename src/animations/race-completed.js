@@ -6,7 +6,8 @@ import CarFinishLineAnimation from "./car-finish";
 import { noop } from "../utils";
 import { RACE_FINISH_FLASH_FADE_TIME, RACE_FINISH_CAR_STOPPING_TIME } from '../config';
 import { VOLUME_FINISH_LINE_CROWD } from '../audio/volume';
-import { animate } from 'nt-animator';
+import { animate, Animator } from 'nt-animator';
+import createConfetti from '../plugins/confetti';
 
 export default class RaceCompletedAnimation extends Animation {
 
@@ -162,9 +163,14 @@ export default class RaceCompletedAnimation extends Animation {
 	}
 
 	// perform the flash animation
-	activateFlash = () => {
+	activateFlash = async () => {
 		const { track } = this;
-
+		const { animator } = track;
+		
+		// add some confetti
+		const confetti = await createConfetti(animator, track);
+		track.view.addChild(confetti);		
+		
 		// create the flash of white
 		const flash = new PIXI.Sprite(PIXI.Texture.WHITE);
 
@@ -172,7 +178,7 @@ export default class RaceCompletedAnimation extends Animation {
 		flash.width = track.width;
 		flash.height = track.height;
 		flash.zIndex = Number.MAX_SAFE_INTEGER;
-
+		
 		// add it to the race
 		track.view.addChild(flash);
 

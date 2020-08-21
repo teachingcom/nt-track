@@ -28,8 +28,6 @@ import {
 
 import {
 	VOLUME_DISQUALIFY,
-	VOLUME_START_ACCELERATION,
-	VOLUME_COUNTDOWN_ANNOUNCER,
 	VOLUME_ERROR_1,
 	VOLUME_ERROR_2,
 	VOLUME_ERROR_3,
@@ -92,14 +90,26 @@ export default class TrackView extends BaseView {
 		audio.configureMusic({ enabled: !!options.music });
 		
 		// preload common sounds
-		await audio.register('common', options.manifest.sounds);
-		this.resolveTask('load_audio');
+		try {
+			await audio.register('common', options.manifest.sounds);
+			this.resolveTask('load_audio');
+		}
+		// unable to load sounds
+		catch (ex) {
+			console.warn('failed to load audio');
+		}
 		
 		// preload the countdown animation images
-		const { animator, stage } = this;
-		this.countdown = new CountdownAnimation({ track: this, stage, animator });
-		await this.countdown.init();
-		this.resolveTask('load_extras');
+		try {
+			const { animator, stage } = this;
+			this.countdown = new CountdownAnimation({ track: this, stage, animator });
+			await this.countdown.init();
+			this.resolveTask('load_extras');
+		}
+		// unable to load the countdown
+		catch(ex) {
+			console.warn('failed to load countdown');
+		}
 
 		// tracking race position progress
 		this.progress = options.manifest.progress;
@@ -109,7 +119,6 @@ export default class TrackView extends BaseView {
 
 		// attach the effects filter
 		// this.stage.filters = [ this.colorFilter ];
-		this.stage.alpha = 0;
 
 		// after initialized, start tracking
 		this.fps.activate();
@@ -136,6 +145,10 @@ export default class TrackView extends BaseView {
 	/** adds a new car to the track */
 	addPlayer = async (data, isInstant) => {
 		const { state, stage } = this;
+
+		// make sure this isn't a mistake
+		const existing = this.getPlayerById(data.id);
+		if (existing) return;
 
 		// increase the expected players
 		state.totalPlayers++;
@@ -303,7 +316,8 @@ export default class TrackView extends BaseView {
 
 	/** starts the game countdown */
 	startCountdown = async () => {
-		this.countdown.start();
+		if (this.countdown)
+			this.countdown.start();
 	}
 
 	// set the music state
@@ -361,7 +375,8 @@ export default class TrackView extends BaseView {
 		const { options, state, countdown } = this;
 
 		// finalize the go
-		countdown.finish();
+		if (countdown)
+			countdown.finish();
 
 		// start movement
 		state.animateTrackMovement = true;
@@ -370,8 +385,6 @@ export default class TrackView extends BaseView {
 		
 		// improve performance while racing
 		this.animationRate = options.animationRateWhenRacing;
-		// this.ssaa = false;
-		// this.resize();
 	}
 
 	// performs the ending
@@ -415,10 +428,6 @@ export default class TrackView extends BaseView {
 
 		// play the final animation
 		this.raceCompletedAnimation = new RaceCompletedAnimation({ track: this, players });	
-
-		// reactivate ssaa
-		// this.ssaa = true;
-		// this.resize();
 	}
 
 	lastUpdate = +new Date;
@@ -436,11 +445,6 @@ export default class TrackView extends BaseView {
 		// calculate the delta
 		state.delta = this.getDeltaTime(this.lastUpdate);
 		this.lastUpdate = +new Date;
-
-		// fade in the stage
-		if (state.playerHasEntered) {
-			stage.alpha = Math.min(1, stage.alpha + 0.1 * state.delta);
-		}
 		
 		// gather some data
 		const { animateTrackMovement, trackMovementAmount } = state;

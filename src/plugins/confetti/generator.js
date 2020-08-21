@@ -34,13 +34,9 @@ export default class FastConfetti {
 	constructor(track) {
 		this.track = track;
 		this.view = track.view;
-		const { width, height } = this.view;
-		
 		this.context = createContext(1000, 1000);
 		this.texture = PIXI.Texture.from(this.context.canvas);
 		this.sprite = new PIXI.Sprite(this.texture);
-		this.sprite.x = width * -0.5;
-		this.sprite.y = height * -0.5;
 		this.sprite.zIndex = LAYER_TRACK_OVERLAY;
 	}
 
@@ -49,9 +45,6 @@ export default class FastConfetti {
 	// kick off the effect
 	start = () => {
 		this.update();
-		// manage the animation
-		// this.animator = everyFrame()
-		// 	.start(this.update);
 	}
 
 	dispose = () => {
@@ -97,6 +90,7 @@ export default class FastConfetti {
 		const offscreen = height + 5;
 
 		// match size
+		ctx.setTransform(1, 0, 0, 1, 0, 0);
 		sprite.width = canvas.width = width;
 		sprite.height = canvas.height = height;
 
@@ -119,6 +113,10 @@ export default class FastConfetti {
 			// reset the particle
 			if (y > offscreen) particle[INDEX_LIFE] = 0;
 
+			// doesn't look as good, but faster on chromebooks
+			ctx.drawImage(particle[INDEX_SPRITE], x, y, size, size);
+			
+			// looks better but is slower
 			// create a slight drifing effect
 			// const drift = (Math.sin(particle[INDEX_LIFE]) * 0.01) * -50;
 
@@ -129,8 +127,6 @@ export default class FastConfetti {
 			// ctx.drawImage(particle[INDEX_SPRITE], 0, 0, size, size);
 			// ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-			// doesn't look as good, but faster on chromebooks
-			ctx.drawImage(particle[INDEX_SPRITE], x, y, size, size);
 		}
 
 		// refresh the texture

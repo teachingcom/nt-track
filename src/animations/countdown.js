@@ -73,9 +73,9 @@ export default class CountdownAnimation extends Animation {
 
 		// set timeouts to favor being done a little early
 		// since it'll add to the suspense for the "GO" call
-		setTimeout(this.show3, 1000);
-		setTimeout(this.show2, 1900);
-		setTimeout(this.show1, 2800);
+		setTimeout(this.show3, 800);
+		setTimeout(this.show2, 1850);
+		setTimeout(this.show1, 2750);
 	}
 
 	// display 3

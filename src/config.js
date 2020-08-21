@@ -7,10 +7,10 @@ export const ANIMATION_RATE_WHILE_RACING = 2;
 export const ANIMATION_RATE_WHILE_IDLE = 2;
 
 // tracks
-export const TRACK_MAXIMUM_SCROLL_SPEED = 45;
-export const TRACK_MAXIMUM_SPEED_BOOST_RATE = 0.40;
+export const TRACK_MAXIMUM_SCROLL_SPEED = 35;
+export const TRACK_MAXIMUM_SPEED_BOOST_RATE = 0.33;
 export const TRACK_MAXIMUM_SPEED_DRAG_RATE = 0.5;
-export const TRACK_MAXIMUM_SPEED = 0.66;
+export const TRACK_MAXIMUM_SPEED = 0.55;
 export const TRACK_ACCELERATION_RATE = 0.0025;
 export const TRACK_TOP_SCALE = 0.125;
 export const TRACK_BOTTOM_SCALE = 0.015;
