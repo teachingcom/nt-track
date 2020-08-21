@@ -54,19 +54,17 @@ export default class CountdownAnimation extends Animation {
 		// containers - the first child should be the sprite 
 		// to apply the tint to
 		for (const item of this.colors) {
-			const [ sprite ] = item.children;
-			sprite.tint = value;
+			item.tint = value;
 		}
 	}
 
 	// replaces the current digit
 	setDigit = count => {
 		const { numbers } = this;
-		const [ digit ] = numbers.children;
 
 		// set the digit
-		digit.gotoAndStop(3 - count);
-		pop(digit);
+		numbers.gotoAndStop(3 - count);
+		pop(numbers);
 	}
 	
 	// begins the animation - does not
