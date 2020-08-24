@@ -17,6 +17,7 @@ import {
 	CAR_SHAKE_DISTANCE,
 	CAR_BODY_OFFSET_Y,
 	CAR_SHADOW_OFFSET_Y,
+	CAR_SHADOW_SCALE_ADJUST,
 	STATIC_CAR_ROTATION_FIX,
 	NITRO_BLUR_OFFSET_Y,
 	CAR_DEFAULT_FRONT_BACK_OFFSET_X,
@@ -28,6 +29,7 @@ import {
 
 // animations
 import ActivateNitroAnimation from '../../animations/activate-nitro';
+import generateTextures from './texture-generator';
 
 
 export default class Car extends PIXI.Container {
@@ -266,7 +268,7 @@ export default class Car extends PIXI.Container {
 		const scale = car.scale.x;
 
 		// create textures for this vehicle
-		const shadow = await view.animator.getSprite('images', 'car_shadow');
+		const { shadow } = await generateTextures(imageSource, { includeShadow: true });
 		const nitroBlur = await view.animator.getSprite('images', 'nitro_blur');
 
 		// apply each, if possible
@@ -279,10 +281,9 @@ export default class Car extends PIXI.Container {
 			shadow.pivot.y = shadow.height / 2;
 			shadow.alpha = CAR_SHADOW_OPACITY;
 			shadow.x = -this.pivot.x;
-			
-			// match the car scale
-			shadow.width = car.width;
-			shadow.height = car.height;
+
+			// match scale
+			shadow.scale.x = shadow.scale.y = scale * CAR_SHADOW_SCALE_ADJUST;
 		}
 
 		// nitro blurs should be put into another container

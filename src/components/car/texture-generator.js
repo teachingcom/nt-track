@@ -2,7 +2,10 @@
 
 import * as PIXI from 'pixi.js';
 import { createContext } from "nt-animator";
-import { CAR_SHADOW_PADDING, NITRO_BLUR_REALTIVE_SIZE_SCALING, CAR_SHADOW_BLUR } from '../../config';
+import { NITRO_BLUR_REALTIVE_SIZE_SCALING, CAR_SHADOW_BLUR } from '../../config';
+
+// extra padding for the rendered shadows
+const CAR_SHADOW_PADDING = 100;
 
 // reusable renderer for assets
 const spriteRenderer = new PIXI.Renderer({ transparent: true });
@@ -39,7 +42,7 @@ const shadowContainer = (() => {
 	// to make all pixels completely black
 	// instead there's a second canvas that does this
 	const blur = new PIXI.filters.BlurFilter();
-	blur.quality = 100;
+	blur.quality = 2;
 	blur.blur = CAR_SHADOW_BLUR;
 	container.filters = [ blur ];
 	return container;
@@ -50,34 +53,23 @@ const shadowContainer = (() => {
 // const normalMapBuilder = createContext();
 
 // handles generating expensive textures
-export default function generateTextures(source, options) {
+export default async function generateTextures(source, options) {
 	const { parent } = source;
 	const { includeNitroBlur, includeShadow, isDarkCar, nitroBlurHue = 0 } = options;
 
-	return { 
-		shadow: new PIXI.Container(),
-		nitroBlur: new PIXI.Container(),
-	}
+	// track origin since it's borrowed for rendering
+	const index = parent && parent.getChildIndex(source);
 
-	// get the position of the
-	// source in it's container so it
-	// can be added back when finished
-	let index;
-	if (parent) {
-		index = parent.getChildIndex(source);
-	}
-
-	// create each pregenerated texture
-	const nitroBlur = includeNitroBlur && createNitroBlur(source, nitroBlurHue, isDarkCar);
-	const shadow = includeShadow && createShadow(source);
-	// const normalMap = includeNormalMap && createNormalMap(source);
-
+	// generate the shadow
+	const shadow = await createShadow(source);
+	
 	// put the child back where it came from, if needed
 	if (parent) {
 		parent.addChildAt(source, index);
 	}
 
-	return { shadow, nitroBlur }
+	// give back the shadow
+	return { shadow };
 }
 
 
@@ -114,39 +106,61 @@ function createNitroBlur(source, hue, isDarkCar) {
 
 
 // generates a car shadow
-function createShadow(source) {
-	const width = source.width + CAR_SHADOW_PADDING;
-	const height = source.height + CAR_SHADOW_PADDING;
-	
-	// next, render the car shadow
-	shadowContainer.addChild(source);
-	
-	// center into the view
-	shadowContainer.x = width / 2;
-	shadowContainer.y = height / 2;
-	
-	// render the blurred version of the car
-	spriteRenderer.resize(width, height);
-	spriteRenderer.render(shadowContainer);
-	
-	// next 'stencil' out the canvas using the blurred car
-	const shadowImage = spriteRenderer.plugins.extract.canvas();
-	const shadow = createContext();
+async function createShadow(source) {
+	return new Promise(resolve => {
+		try {
+			const width = source.width + CAR_SHADOW_PADDING;
+			const height = source.height + CAR_SHADOW_PADDING;
+			
+			// next, render the car shadow
+			shadowContainer.addChild(source);
+			
+			// center into the view
+			shadowContainer.x = width / 2;
+			shadowContainer.y = height / 2;
+			
+			// render the blurred version of the car
+			spriteRenderer.resize(width, height);
+			spriteRenderer.render(shadowContainer);
+			
+			// next 'stencil' out the canvas using the blurred car
+			const shadowImage = spriteRenderer.plugins.extract.canvas();
 
-	// match the size	
-	shadow.canvas.width = width;
-	shadow.canvas.height = height;
+				// do this a moment later
+			requestAnimationFrame(() => {
+				try {
 
-	// draw the car
-	shadow.ctx.drawImage(shadowImage, 0, 0);
-
-	// then fill over with black
-	shadow.ctx.globalCompositeOperation = 'source-in';
-	shadow.ctx.fillStyle = 'black';
-	shadow.ctx.fillRect(0, 0, width, height);
-
-	// return the canvas
-	return new PIXI.Sprite.from(shadow.canvas);
+					const shadow = createContext();
+					
+					// match the size	
+					shadow.canvas.width = width;
+					shadow.canvas.height = height;
+					
+					// draw the car
+					shadow.ctx.drawImage(shadowImage, 0, 0);
+					
+					// then fill over with black
+					shadow.ctx.globalCompositeOperation = 'source-in';
+					shadow.ctx.fillStyle = 'black';
+					shadow.ctx.fillRect(0, 0, width, height);
+					
+					// return the canvas
+					const result = new PIXI.Sprite.from(shadow.canvas);
+					resolve(result);
+				}
+				// don't crash for this
+				catch (ex) {
+					console.warn('failed to generate shadow texture');
+					resolve();
+				}
+			});
+		}
+		// don't crash for this
+		catch (ex) {
+			console.warn('failed to generate shadow texture');
+			resolve();
+		}
+	});
 }
 
 

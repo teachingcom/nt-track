@@ -49,8 +49,8 @@ export const NAMECARD_TETHER_DISTANCE = 700;
 // cars
 export const CAR_DEFAULT_SHAKE_LEVEL = 0; // 0.25;
 export const CAR_SHADOW_BLUR = 25;
-export const CAR_SHADOW_PADDING = 10;
-export const CAR_SHADOW_OPACITY = 0.5;
+export const CAR_SHADOW_OPACITY = 0.8;
+export const CAR_SHADOW_SCALE_ADJUST = 0.8;
 export const CAR_SHADOW_OFFSET_Y = 3;
 export const CAR_BODY_OFFSET_Y = -4;
 export const CAR_DEFAULT_FRONT_BACK_OFFSET_X = 0.495;

@@ -16,8 +16,7 @@ Sound.musicEnabled = false;
 
 /** changes the sound effect state */
 export function configureSFX(config) {
-	console.log('config');
-	
+
 	// change enabled state
 	if ('enabled' in config) {
 		const enabled = !!config.enabled;
@@ -32,13 +31,11 @@ export function configureMusic(config) {
 
 /** changes the root url to load audio from */
 export function setBaseUrl(url) {
-	console.log('change url');
 	baseUrl = url;
 }
 
 /** includes a sound to be played */
 export async function register(key, sprites) {
-	console.log('register');
 	return new Promise((resolve, reject) => {
 
 		// handle sound loading errors
@@ -70,7 +67,6 @@ export async function register(key, sprites) {
 
 // creates a new sound instance
 export function create(type, key, sprite) {
-	console.log('create', type, key, sprite);
 	const sound = AUDIO[key];
 	
 	// no sound was found
