@@ -17,7 +17,16 @@ export default class AmbientAudio {
 		this.sounds = [ ];
 		for (const key of sounds) {
 			const sound = audio.create('sfx', source, key);
-			sound.volume(VOLUME_AMBIENT_AUDIO);
+			
+			// leave running
+			sound.play();
+			sound.loop(true);
+			
+			// start silent - the first pass will
+			// cause it to fade in
+			sound.volume(0);
+
+			// save for later
 			this.sounds.push(sound);
 		}
 	}
@@ -46,7 +55,7 @@ export default class AmbientAudio {
 			const current = this.sounds[at];
 
 			// fade out the current sound
-			current.source.fade(VOLUME_AMBIENT_AUDIO, 0, 2000, current.id);
+			current.fade(VOLUME_AMBIENT_AUDIO, 0, 250);
 		}
 
 		// increment to the next sound
@@ -56,11 +65,10 @@ export default class AmbientAudio {
 
 		// fade in the next
 		sound.source.seek(0, sound.id);
-		sound.source.play(sound.id);
-		sound.source.fade(0, VOLUME_AMBIENT_AUDIO, 2000, sound.id);
+		sound.fade(0, VOLUME_AMBIENT_AUDIO, 250);
 
 		// active the next section
-		setTimeout(this.next, 7000);
+		setTimeout(this.next, 8000);
 	}
 
 }

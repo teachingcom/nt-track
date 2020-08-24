@@ -118,7 +118,7 @@ export default class TrackView extends BaseView {
 		this.raceProgressAnimation = new RaceProgressAnimation({ track: this });
 
 		// attach the effects filter
-		// this.stage.filters = [ this.colorFilter ];
+		this.stage.filters = [ this.colorFilter ];
 
 		// after initialized, start tracking
 		this.fps.activate();
@@ -235,7 +235,7 @@ export default class TrackView extends BaseView {
 		stage.addChild(track.overlay);
 		track.overlay.zIndex = LAYER_TRACK_OVERLAY;
 		track.overlay.relativeX = 0.5;
-		
+
 		// sort the layers
 		stage.sortChildren();
 	}

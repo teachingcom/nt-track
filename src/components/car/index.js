@@ -278,10 +278,11 @@ export default class Car extends PIXI.Container {
 			shadow.pivot.x = shadow.width / 2;
 			shadow.pivot.y = shadow.height / 2;
 			shadow.alpha = CAR_SHADOW_OPACITY;
+			shadow.x = -this.pivot.x;
 			
 			// match the car scale
-			shadow.scale.x = shadow.scale.y = scale;
-			shadow.x = -this.pivot.x;
+			shadow.width = car.width;
+			shadow.height = car.height;
 		}
 
 		// nitro blurs should be put into another container
@@ -294,13 +295,15 @@ export default class Car extends PIXI.Container {
 			// add to the container
 			nitroBlurContainer.addChild(nitroBlur);
 
-			// adjust
+			// align
 			nitroBlur.blendMode = PIXI.BLEND_MODES.ADD;
 			nitroBlur.pivot.x = nitroBlur.width * 0.66;
 			nitroBlur.pivot.y = nitroBlur.height * 0.6;
 
-			// match the car scale
-			nitroBlur.scale.x = nitroBlur.scale.y = scale;
+			// scale
+			const ratio = car.height / nitroBlur.height;
+			nitroBlur.height = car.height * 0.85;
+			nitroBlur.width *= ratio;
 		}
 		
 		// the normal map, if any

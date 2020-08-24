@@ -362,8 +362,6 @@ export default class Track {
 	// changes the location of the repeating track
 	_cycleTrack(diff) {
 		const { segments, startingLine, finishLine } = this;
-		const halfScreen = screen.width / 2;
-
 		this.trackPosition += diff;
 
 		// keep track of segments that need
