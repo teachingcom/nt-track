@@ -203,7 +203,7 @@ export default class NameCard extends PIXI.Container {
 
 		// get info to show
 		const { options } = this;
-		const { name = '12345678901234567890', team, isTop3, isGold, isFriend } = options;
+		const { name = 'Guest Racer', team, isTop3, isGold, isFriend } = options;
 		const full = [ team && `[${team}]`, name ].join(' ');
 		
 		// set the display name

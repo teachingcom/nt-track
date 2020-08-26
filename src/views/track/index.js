@@ -41,6 +41,7 @@ import RaceCompletedAnimation from '../../animations/race-completed';
 import RaceProgressAnimation from '../../animations/race-progress';
 import FpsMonitor from '../../fps';
 import CountdownAnimation from '../../animations/countdown';
+import RainEffect from '../../plugins/effects/rain';
 
 /** creates a track view that supports multiple cars for racing */
 export default class TrackView extends BaseView {
@@ -83,6 +84,7 @@ export default class TrackView extends BaseView {
 		await super.init(options);
 
 		// identify loading tasks
+		// this.addTasks('load_track', 'load_extras', 'load_audio', 'load_player');
 		this.addTasks('load_track', 'load_extras', 'load_audio');
 		
 		// set default audio state
@@ -97,6 +99,7 @@ export default class TrackView extends BaseView {
 		// unable to load sounds
 		catch (ex) {
 			console.warn('failed to load audio');
+			throw new MissingAssetException();
 		}
 		
 		// preload the countdown animation images
@@ -124,6 +127,16 @@ export default class TrackView extends BaseView {
 		this.fps.activate();
 	}
 
+	/** changes internal configurations */
+	setConfig = options => {
+
+		// ignores resource loading errors
+		if ('ignoreResourceLoadingErrors' in options) {
+			this.animator.ignoreImageLoadErrors = this.ignoreImageLoadErrors = !!options.ignoreResourceLoadingErrors;
+		}
+
+	}
+
 	/** returns the FPS cache values */
 	getFpsCache() {
 		return this.fps.flush();
@@ -145,32 +158,40 @@ export default class TrackView extends BaseView {
 	/** adds a new car to the track */
 	addPlayer = async (data, isInstant) => {
 		const { state, stage } = this;
+		const playerOptions = merge({ view: this }, data);
+		const { isPlayer, id } = playerOptions;
 
 		// make sure this isn't a mistake
 		const existing = this.getPlayerById(data.id);
 		if (existing) return;
 
+		// manage resource loading depending
+		// on if this is the actual player or not
+		// for others, just load placeholders if
+		// there is a problem
+		this.setConfig({ 
+			ignoreImageLoadErrors: !isPlayer
+		});
+		
 		// increase the expected players
 		state.totalPlayers++;
-
+		
 		// create the player instance
-		const playerOptions = merge({ view: this }, data);
 		const player = await Player.create(playerOptions);
 		player.track = this;
+		
+		// set the active player, if needed
+		if (isPlayer) {
+			this.activePlayerId = id;
+			this.activePlayer = player;
+			player.isPlayer = true;
+		}
 
 		// check for a plugin with special car rules
 		const { animator } = this;
 		const { car } = player;
 		if (car.plugin?.extend)
 			await car.plugin.extend({ animator, car, player, track: this });
-
-		// set the active player, if needed
-		const { isPlayer, id } = playerOptions;
-		if (isPlayer) {
-			this.activePlayerId = id;
-			this.activePlayer = player;
-			player.isPlayer = true;
-		}
 		
 		// with the player, include their namecard
 		const { namecard } = player.layers;
@@ -211,6 +232,7 @@ export default class TrackView extends BaseView {
 		// the track as ready to show
 		if (data.isPlayer) {
 			state.playerHasEntered = true;
+			// this.resolveTask('load_player');
 		}
 	}
 
@@ -487,3 +509,6 @@ export default class TrackView extends BaseView {
 	}
 
 }
+
+
+function MissingAssetException() { }

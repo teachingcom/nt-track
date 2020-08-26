@@ -57,7 +57,7 @@ async function initializeCrowd(animator, controller, path, layer, data) {
 	// establish the rendering area
 	crowd.sortChildren();
 	const contain = crowd.getBounds();
-	renderer.resize(0 | (contain.width * 1.1), contain.height);
+	renderer.resize(0 | (contain.width * 1.2), contain.height);
 
 	// async generation
 	return new Promise((resolve, reject) => {

@@ -1,5 +1,6 @@
 import { findDisplayObjectsOfRole, action } from 'nt-animator';
 import * as audio from '../../audio';
+import { VOLUME_WAMPUS_LAUGH } from '../../audio/volume';
 
 /** additional wampus behavior */
 export async function extend({ animator, player, car, track }) {
@@ -27,12 +28,14 @@ export async function extend({ animator, player, car, track }) {
 	// keep track if this is the winner or not
 	let isWinner = false;
 
+	// play the laughing entry
+	setTimeout(() => {
+		laughSound.volume(VOLUME_WAMPUS_LAUGH);
+		laughSound.play();
+	}, 750);
+
 	// get the head animation
-	// TODO: I don't like that this has knowledge about
-	// the inner workings of nt-animator - consider 
-	// making a utility function in nt-animator for this
-	const animation = head.children[0] && head.children[0].animation;
-	setTimeout(laughSound.play, 1000);
+	const animation = head && head.animation;
 
 	// handle raceplace
 	car.onFinishRace = ({ finishedBeforePlayer, isRaceFinished }) => {

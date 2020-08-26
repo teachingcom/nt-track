@@ -126,10 +126,12 @@ export default class RaceProgressAnimation extends Animation {
 
 			return;
 		}
-		
+
 		// start the tween
-		if (tweens[player.id])
+		if (tweens[player.id]) {
+			console.log('stop', tweens[player.id]);
 			tweens[player.id].stop();
+		}
 			
 		// update timestamps
 		const lastTimestamp = timestamps[player.id] || now;
@@ -138,13 +140,11 @@ export default class RaceProgressAnimation extends Animation {
 		// start the new tween
 		const diff = now - lastTimestamp;
 		const duration = Math.min(Math.max(RACE_PROGRESS_TWEEN_TIMING, diff), RACE_PROGRESS_TWEEN_TIMING * 1.05);
-		
-		// perform the animation
 		tweens[player.id] = animate({
 			from: { x: player.relativeX },
 			to: { x: player.preferredX },
 			ease: 'linear',
-			duration,
+			duration: 0 | (duration * 1.1),
 			loop: false,
 			update: props => player.relativeX = props.x
 		});

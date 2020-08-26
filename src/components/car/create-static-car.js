@@ -17,7 +17,7 @@ export async function createStaticCar(baseUrl, type) {
 	}
 	// needs to use a fallback?
 	catch (ex) {
-		console.error(`Failed to load ${url}`);
-		console.error(ex);
+		console.error(`Failed to load car ${url}`);
+		throw ex;
 	}
 }

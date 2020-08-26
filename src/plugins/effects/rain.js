@@ -1,4 +1,5 @@
 import * as PIXI from 'pixi.js';
+import { TRACK_MAXIMUM_SCROLL_SPEED } from '../../config';
 
 export default class RainEffect {
 
@@ -22,8 +23,11 @@ export default class RainEffect {
 		const splash_3 = await animator.getImage('extras/rain', 'splash_3');
 
 		const reflect = new PIXI.TilingSprite(PIXI.Texture.from(bg));
+		const reflect2 = new PIXI.TilingSprite(PIXI.Texture.from(bg));
 		reflect.width = track.width;
-		reflect.height = 570;
+		reflect.height = 573;
+		reflect2.width = track.width;
+		reflect2.height = 573;
 
 		const textures = [
 			PIXI.Texture.from(splash_2),
@@ -34,9 +38,13 @@ export default class RainEffect {
 
 		function move() {
 			requestAnimationFrame(move);
-			reflect.tilePosition.x -= Math.min(1.5, 0.25 + (track.state.speed * 0.5));
+			const distance = ((track.state.speed * -TRACK_MAXIMUM_SCROLL_SPEED) * track.state.delta);
+			reflect.tilePosition.x -= Math.min(1.5, 0.25 + (track.state.speed * 0.5)) - (distance * 0.015);
+			reflect2.tilePosition.x -= (Math.min(1.5, 0.25 + (track.state.speed * 0.5))) * 0.5;
+			// reflect2.tilePosition.x += Math.min(1.5, 0.25 + (track.state.speed * 0.5));
+
 			for (const drip of drips) {
-				drip.x -= track.state.speed;
+				drip.x += distance * 0.5;
 			}
 		}
 
@@ -64,12 +72,19 @@ export default class RainEffect {
 		
 		// this.bg = bg;
 		track.track.overlay.addChild(reflect);
+		track.track.overlay.addChild(reflect2);
 		// const texture = PIXI.Texture.from(bg);
 		// this.bg = new PIXI.Sprite(texture)
 		reflect.blendMode = PIXI.BLEND_MODES.SCREEN;
 		reflect.y = -320;
-		reflect.alpha = 0.5
+		reflect.alpha = 0.2
 		reflect.x = track.view.width / -2;
+		
+		reflect2.blendMode = PIXI.BLEND_MODES.ADD;
+		reflect2.y = -320;
+		reflect2.alpha = 0.3
+		reflect2.x = track.view.width / 2;
+		reflect2.scale.x *= -1;
 		// track.track.overlay.addChild(this.bg);
 
 

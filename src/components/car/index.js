@@ -3,7 +3,7 @@
 // multiple versions that are pre-scaled using canvas
 
 import * as PIXI from 'pixi.js';
-import { findDisplayObjectsOfRole } from 'nt-animator';
+import { findDisplayObjectsOfRole, createPlaceholderImage } from 'nt-animator';
 import { merge, isNumber, noop } from '../../utils';
 import { createStaticCar } from './create-static-car';
 
@@ -135,20 +135,22 @@ export default class Car extends PIXI.Container {
 	// a car image - at this point use a backup
 	_createGeneratedCar = () => {
 		const car = new PIXI.Container();
-		const sprite = new PIXI.Sprite(PIXI.Texture.WHITE);
+		const height = 250;
+		const width = 500;
+		const placeholder = createPlaceholderImage({ width, height });
+		const texture = PIXI.Texture.from(placeholder);
+		const sprite = new PIXI.Sprite(texture);
 		
 		// this is all very temporary
-		sprite.width = 500;
-		sprite.height = 250;
-		sprite.pivot.x = (500 / 2) / sprite.scale.x;
-		sprite.pivot.y = (250 / 2) / sprite.scale.y;
+		sprite.pivot.x = 0 | ((width / 2) / sprite.scale.x);
+		sprite.pivot.y = 0 | ((height / 2) / sprite.scale.y);
 		car.addChild(sprite);
 
 		// give back required data
 		return {
 			car,
 			imageSource: sprite,
-			height: sprite.height,
+			height,
 			bounds: sprite.getBounds()
 		};
 	}

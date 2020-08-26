@@ -49,13 +49,9 @@ export default class CountdownAnimation extends Animation {
 	/** replaces the color shade */
 	setColor = value => {
 
-		// NOTE: this was hastily put together
-		// the target elements should be sprites with
-		// containers - the first child should be the sprite 
-		// to apply the tint to
-		for (const item of this.colors) {
+		// switches the tint - would be nice to tween this
+		for (const item of this.colors)
 			item.tint = value;
-		}
 	}
 
 	// replaces the current digit
