@@ -115,7 +115,6 @@ export class BaseView extends EventEmitter {
 		const bounds = parent.getBoundingClientRect();
 		const preferred = bounds.width;
 		const upscale = 1.5;
-		
 
 		// scale as required
 		const width = (bounds.right - bounds.left) * (ssaa ? upscale : 1);

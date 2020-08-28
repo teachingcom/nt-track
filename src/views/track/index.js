@@ -139,7 +139,8 @@ export default class TrackView extends BaseView {
 
 	/** returns the FPS cache values */
 	getFpsCache() {
-		return this.fps.flush();
+		const { pixiCache, phaserCache } = this.fps.flush();
+		return { fps: pixiCache, fps2: phaserCache };
 	}
 
 	/** get the viewport size */
@@ -497,11 +498,9 @@ export default class TrackView extends BaseView {
 		// TODO: replace with new views
 		// this is temporary check until
 		// garage and preview modes are done
-		if (this.track) {
+		if (this.track && isRaceActive) {
 			this.track.update(state);
-
-			if (isRaceActive)
-				this.raceProgressAnimation.update();
+			this.raceProgressAnimation.update();
 		}
 
 		// redraw		

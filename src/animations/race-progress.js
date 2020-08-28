@@ -128,10 +128,8 @@ export default class RaceProgressAnimation extends Animation {
 		}
 
 		// start the tween
-		if (tweens[player.id]) {
-			console.log('stop', tweens[player.id]);
+		if (tweens[player.id])
 			tweens[player.id].stop();
-		}
 			
 		// update timestamps
 		const lastTimestamp = timestamps[player.id] || now;

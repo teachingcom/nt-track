@@ -7,7 +7,6 @@ export default class CrowdAnimator {
 	// creates a new crowd animator
 	constructor(animations, type, duration) {
 		const layers = animations[type];
-		const elapsed = 0 | (duration * Math.random());
 
 		// create a keyframe animator for each
 		// of the animations for this type
@@ -29,16 +28,6 @@ export default class CrowdAnimator {
 					duration: 1000,
 					values: frames,
 					autoplay: false,
-					// update: v => {
-					// 	// console.log(v);
-					// 	// console.log('did update');
-					// 	if (id === 'head') {
-					// 		console.log(v);
-					// 	}
-
-					// 	for (let i = parts.length; i-- > 0;)
-					// 		updatePart(parts[i], v);
-					// }
 				});
 		}
 
@@ -47,25 +36,15 @@ export default class CrowdAnimator {
 	// move to a point
 	seek = step => {
 		for (const id in this.animators) {
-			// console.log(this.animators[id]);
 
-			// console.log('seek', step);
-			// this.animators[id].animation.pause();
-			// this.animators[id].animation.play();
+			// move to the correct point
 			this.animators[id].animation.seek(step);
-			const parts = this.refs[id];
-			for (let i = parts.length; i-- > 0;) {
-				updatePart(parts[i], this.animators[id].animation.animatables[0].target);
-			}
 
-			// console.log(`tt`, 0 | (1000 * step));
-			// this.animators[id].animation.tick(0 | (1000 * step));
-			// console.log(this.animators[id].animation.animatables[0].target);
-			// this.animators[id].animation.pause();
-			// console.log(this.animators[id].animation)
-			// console.log(`seek to`, step)
-			// this.animators[id].animation.seek(step);
-			// this.animators[id].animation.restart();
+			// update each part
+			const parts = this.refs[id];
+			for (let i = parts.length; i-- > 0;)
+				// HACK: this is a very unfortunate way to access this data
+				updatePart(parts[i], this.animators[id].animation.animatables[0].target);
 		}
 	}
 
@@ -97,9 +76,6 @@ export default class CrowdAnimator {
 
 		if (isFlipped)
 			obj.scale.x *= -1;
-
-		// check for animations
-		// if (!animate) return;
 
 		// check for an animator
 		const parts = this.refs[key];

@@ -11,7 +11,7 @@ import AmbientAudio from '../../audio/ambient';
 // total number of road slices to create
 // consider making this calculated as needed
 // meaning, add more tiles if the view expands
-const TOTAL_ROAD_SEGMENTS = 14;
+const TOTAL_ROAD_SEGMENTS = 10;
 
 // creates a default track
 export default class Track {
@@ -370,20 +370,20 @@ export default class Track {
 		let max;
 
 		// check for off screen
-		// TODO: make this better
-		const offscreen = -window.innerWidth * 2;
+		const offscreen = (this.view.width / this.view.view.scaleX) * -0.5;
 
 		// update each segment
 		diff = Math.floor(diff);
+		let at = 0;
 		for (const segment of segments) {
 
 			// apply the diff
 			segment.addX(diff);
-			segment.cull();
 
 			// if this has gone off screen, it's time
 			// to reset it -- maximum one per frame
-			if (segment.bottom.x + segment.bounds.width < offscreen) {
+			const right = segment.bottom.x + segment.bounds.width;
+			if (right < offscreen) {
 				if (!reset || segment.bottom.x < reset.bottom.x)
 					reset = segment;
 			}
@@ -392,6 +392,9 @@ export default class Track {
 			if (!max || segment.bottom.x > max.bottom.x) {
 				max = segment;
 			}
+
+			// manage visibility
+			segment.visible = segment.bottom.x < -offscreen;
 		}
 
 		// if this tile needs to return to the
