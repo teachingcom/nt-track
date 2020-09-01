@@ -11,7 +11,7 @@ import AmbientAudio from '../../audio/ambient';
 // total number of road slices to create
 // consider making this calculated as needed
 // meaning, add more tiles if the view expands
-const TOTAL_ROAD_SEGMENTS = 10;
+const TOTAL_ROAD_SEGMENTS = 5;
 
 // creates a default track
 export default class Track {
@@ -292,7 +292,8 @@ export default class Track {
 		if (!startingLine) return;
 
 		// clean up
-		startingLine.dispose();
+		startingLine.visible = false;
+		// startingLine.dispose();
 		this.startingLine = undefined;
 	}
 
@@ -374,7 +375,6 @@ export default class Track {
 
 		// update each segment
 		diff = Math.floor(diff);
-		let at = 0;
 		for (const segment of segments) {
 
 			// apply the diff

@@ -7,8 +7,9 @@ import { createContext, getBoundsForRole } from 'nt-animator';
 import { LAYER_NAMECARD_OVERLAY } from '../../views/track/layers';
 
 // preferred font for namecards
-const NAMECARD_ICON_SCALE = 0.35;
-const DEFAULT_NAMECARD_FONT_SIZE = 22;
+const NAMECARD_ICON_SCALE = 0.8;
+const NAMECARD_ICON_GAP = 10;
+const DEFAULT_NAMECARD_FONT_SIZE = 58;
 const DEFAULT_NAMECARD_FONT_NAME = 'montserrat';
 const DEFAULT_NAMECARD_FONT_WEIGHT = 500;
 
@@ -90,47 +91,21 @@ export default class NameCard extends PIXI.Container {
 	}
 
 	/** changes the visibility for a namecard */
-	setVisibility = visible => {
-		this.visible = visible;
-		if (this.overlay)
-			this.overlay.visible = visible;
-	}
+	setVisibility = visible => this.visible = visible;
 
 	/** changes the position and makes the namecard visible */
-	setPosition = x => {
-		this.x = x;
+	setPosition = x => this.x = x;
 
-		// nothing to render
-		if (!this.hasOverlay) 
-			return;
-
-		// redraw, if needed
-		this.redraw();
-
-		// match the position
-		this.getGlobalPosition(this.overlay, true);
-		this.overlay.x = 0 | this.overlay.x;
-		this.overlay.y = 0 | this.overlay.y;
-	}
-
-	/** redraws the namecard container */
-	redraw = () => {
-		const { lastScale, view, displayName, icons, container, overlay, config, hasOverlay } = this;
-		const { scaleY } = view.view;
+	// generates the overlay content
+	_renderOverlay = () => {
+		const { displayName, icons, container, config, overlay, hasOverlay } = this;
 		
 		// no need to resize
-		if (!hasOverlay || scaleY === lastScale) return;
-		this.lastScale = scaleY;
+		if (!hasOverlay) return;
 
-		// remove previous values
-		overlay.removeChildren();
-
-		// create a mask for the container
-		// TODO: render this without a mask
-		// by just using a trimmed canvas
-		const left = 0 | -((container.width * scaleY) * 0.465);
-		// const width = container.width * scaleY * 0.825;
-		// const height = container.height * scaleY * 0.9;
+		// pick the left edge
+		// TODO: why does this number work?
+		const left = 0 | -(container.width * 1.15);
 
 		// get colors to use for text
 		let textColor = 0xffffff;
@@ -142,69 +117,66 @@ export default class NameCard extends PIXI.Container {
 
 		// render each line
 		for (const style of [
-			{ color: shadowColor, y: 2 },
+			{ color: shadowColor, y: 4 },
 			{ color: textColor, y: 0 }
 		]) {
 		
 			// draw the text/shadow
-
 			const text = new PIXI.Text(displayName, {
-				fontSize: DEFAULT_NAMECARD_FONT_SIZE * scaleY,
+				fontSize: DEFAULT_NAMECARD_FONT_SIZE,
 				fontFamily: DEFAULT_NAMECARD_FONT_NAME,
 				fontWeight: DEFAULT_NAMECARD_FONT_WEIGHT,
 				fill: style.color
 			});
 
 			// align
-			text.x = 0 | (left);
-			text.y = 0 | (style.y * scaleY);
+			text.x = 0 | left;
+			text.y = 0 | style.y;
 	
 			// add to the view
 			overlay.addChild(text);
 		}
 
 		// no icons to render
-		if (!icons) return;
+		if (!!icons) {
+	
+			// render the icon block
+			const { tallest, ids } = icons;
+			const surface = createContext();
+			
+			// create the icon strip
+			surface.resize(500, 0 | tallest);
+			surface.ctx.setTransform(1, 0, 0, 1, 0, 0);
+			surface.ctx.translate(0, 0 | (tallest / 2));
+			drawIcons(surface.ctx, ids);
+			
+			// create the new texture
+			const texture = PIXI.Texture.from(surface.canvas);
+			const banner = new PIXI.Sprite(texture);
+			banner.scale.x = banner.scale.y = NAMECARD_ICON_SCALE;
+			
+			// add the banner to the view
+			banner.y = 0 | -(banner.getBounds().height * 1.05);
+			banner.x = left + 3;
+			overlay.addChild(banner);
+		}
 
-		// render the icon block
-		const { tallest, ids } = icons;
-		const surface = createContext();
-
-		// create the icon strip
-		surface.resize(0 | (500 * scaleY), 0 | (tallest * scaleY));
-		surface.ctx.setTransform(1, 0, 0, 1, 0, 0);
-		surface.ctx.translate(0, 0 | ((tallest * scaleY) / 2));
-		drawIcons(surface.ctx, ids, scaleY);
-
-		// // scale the icons down - try to use a sharper scaling
-		// const resample = scaleY * 0.6;
-		// scaleCanvas(surface.canvas, 0 | (500 * resample), 0 | (tallest * resample), true);
-		
-		// create the new texture
-		const texture = PIXI.Texture.from(surface.canvas);
-		const banner = new PIXI.Sprite(texture);
-		banner.scale.x = banner.scale.y = NAMECARD_ICON_SCALE;
-		
-		// add the banner to the view
-		banner.y = 0 | -(banner.getBounds().height * 1.05);
-		banner.x = left + 3;
-		overlay.addChild(banner);
 	}
 
 	// create the text labels
 	_initOverlay() {
 		const { ICONS } = NameCard;
-		const isGoldNameCard = !!this.isGold;
-
-		// prepare the floating overlay container
-		this.overlay = new PIXI.Container();
-		this.overlay.zIndex = LAYER_NAMECARD_OVERLAY;
-		this.overlay.visible = false;
-
+		
 		// get info to show
-		const { options } = this;
-		const { name = 'Guest Racer', team, isTop3, isGold, isFriend } = options;
+		const { options, container } = this;
+		const { name = '12345678901234567890', team, isTop3, isGold, isFriend } = options;
+		const isGoldNameCard = !!isGold;
 		const full = [ team && `[${team}]`, name ].join(' ');
+		
+		// overlays won't change
+		this.overlay = new PIXI.Container();
+		this.overlay.cacheAsBitmap = true;
+		container.addChild(this.overlay);
 		
 		// set the display name
 		let displayName = full.substr(0, 17);
@@ -229,32 +201,30 @@ export default class NameCard extends PIXI.Container {
 		}
 
 		// if there are no icons
-		if (ids.length === 0) return;
+		if (ids.length > 0)
+			// save icon rendering
+			this.icons = {
+				surface: createContext(),
+				tallest,
+				ids
+			};
 
-		// save icon rendering
-		this.icons = {
-			surface: createContext(),
-			tallest,
-			ids
-		};
 
+		// render the view
+		this._renderOverlay();
 	}
 
 }
 
 // renders the player icons onto a single canvas
-function drawIcons(ctx, icons, scale) {
-	const GAP = 0 | (10 * scale);
+function drawIcons(ctx, icons) {	
 	let x = 0;
 	for (const id of icons) {
 		const icon = NameCard.ICONS[id];
 		let { width, height } = icon;
 
-		width = ((width * 1) * scale);
-		height = ((height * 1) * scale);
-
 		// render onto the view
-		ctx.drawImage(icon, x, 0 | (height * -0.5), width, height);
-		x += 0 | (width + GAP);
+		ctx.drawTexture(icon, x, 0 | (height * -0.5), width, height);
+		x += 0 | (width + NAMECARD_ICON_GAP);
 	}
 }

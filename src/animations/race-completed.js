@@ -151,7 +151,6 @@ export default class RaceCompletedAnimation extends Animation {
 		}
 	
 		// calculate the modifier to to use based on the diff
-		// calculate the modifier to to use based on the diff
 		const mod = getModifier(lastTimestamp - firstTimestamp);
 
 		// queue up each animation
@@ -169,7 +168,7 @@ export default class RaceCompletedAnimation extends Animation {
 		
 		// add some confetti
 		const confetti = await createConfetti(animator, track);
-		track.view.addChild(confetti);		
+		track.view.addChild(confetti);
 		
 		// create the flash of white
 		const flash = new PIXI.Sprite(PIXI.Texture.WHITE);

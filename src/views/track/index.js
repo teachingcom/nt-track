@@ -41,7 +41,8 @@ import RaceCompletedAnimation from '../../animations/race-completed';
 import RaceProgressAnimation from '../../animations/race-progress';
 import FpsMonitor from '../../fps';
 import CountdownAnimation from '../../animations/countdown';
-import RainEffect from '../../plugins/effects/rain';
+import createConfetti from '../../plugins/confetti';
+// import RainEffect from '../../plugins/effects/rain';
 
 /** creates a track view that supports multiple cars for racing */
 export default class TrackView extends BaseView {
@@ -89,7 +90,7 @@ export default class TrackView extends BaseView {
 		
 		// set default audio state
 		audio.configureSFX({ enabled: !!options.sfx });
-		audio.configureMusic({ enabled: !!options.music });
+		audio.configureMusic({ enabled: !!options.music });	
 		
 		// preload common sounds
 		try {
@@ -204,11 +205,6 @@ export default class TrackView extends BaseView {
 
 			// add to the view
 			stage.addChild(container);
-
-			// also include the text layer that
-			// should ignore scaling and be treated separately
-			if (namecard.hasOverlay)
-				stage.addChild(namecard.overlay);
 
 			// match positions to the car
 			container.zIndex = LAYER_NAMECARD;

@@ -19,6 +19,7 @@ const INDEX_ROTATION = 6;
 export default class FastConfetti {
 
 	static async create(animator, track) {
+		
 		const instance = new FastConfetti(track);
 		instance.c1 = await animator.getImage('particles', 'confetti_1');
 		instance.c2 = await animator.getImage('particles', 'confetti_2');
@@ -26,7 +27,7 @@ export default class FastConfetti {
 		instance.c4 = await animator.getImage('particles', 'confetti_4');
 
 		// start animating
-		instance.start();
+		// instance.start();
 
 		return instance;
 	}
@@ -44,6 +45,8 @@ export default class FastConfetti {
 
 	// kick off the effect
 	start = () => {
+		if (this.isStarted) return;
+		this.isStarted = true;
 		this.update();
 	}
 
@@ -114,7 +117,7 @@ export default class FastConfetti {
 			if (y > offscreen) particle[INDEX_LIFE] = 0;
 
 			// doesn't look as good, but faster on chromebooks
-			ctx.drawImage(particle[INDEX_SPRITE], x, y, size, size);
+			ctx.drawTexture(particle[INDEX_SPRITE], x, y, size, size);
 			
 			// looks better but is slower
 			// create a slight drifing effect

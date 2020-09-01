@@ -48,20 +48,17 @@ const shadowContainer = (() => {
 	return container;
 })();
 
-// contexts for creating reused textures
-// const shadowBuilder = createContext();
-// const normalMapBuilder = createContext();
 
 // handles generating expensive textures
 export default async function generateTextures(source, options) {
 	const { parent } = source;
-	const { includeNitroBlur, includeShadow, isDarkCar, nitroBlurHue = 0 } = options;
+	// const { includeNitroBlur, includeShadow, isDarkCar, nitroBlurHue = 0 } = options;
 
 	// track origin since it's borrowed for rendering
 	const index = parent && parent.getChildIndex(source);
 
 	// generate the shadow
-	const shadow = await createShadow(source);
+	const shadow = new PIXI.Container(); //  await createShadow(source);
 	
 	// put the child back where it came from, if needed
 	if (parent) {

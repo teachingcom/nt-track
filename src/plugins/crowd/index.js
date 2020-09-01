@@ -5,6 +5,11 @@ import generateAnimationFrames from './generate-animatons';
 import * as palettes from './palettes';
 import LAYERS from './layers';
 
+const CROWD_TOTAL_MEMBERS = 10;
+const CROWD_FRAME_WIDTH = 600;
+const CROWD_FRAME_HEIGHT = 150;
+const CROWD_TIME_PER_STEP = CROWD_ANIMATION_DURATION / CROWD_ANIMATION_FRAME_COUNT;
+
 // shared crowd animators
 let ANIMATORS;
 
@@ -35,55 +40,55 @@ async function initializeCrowd(animator, controller, path, layer, data) {
 	ANIMATORS = generated.animators;
 
 	// create a offscreen renderer for the crowd
-	const renderer = new PIXI.Renderer({ transparent: true });
+	const renderer = new PIXI.Renderer({
+		transparent: true,
+		clearBeforeRender: false,
+		width: CROWD_FRAME_WIDTH,
+		height: CROWD_FRAME_HEIGHT * CROWD_ANIMATION_FRAME_COUNT
+	});
 
 	// generate all of the people for the crowd
 	const crowd = new PIXI.Container();
+	crowd.y = CROWD_FRAME_HEIGHT * 0.66;
 
 	// create a few people
-	for (let i = 0; i < 10; i++) {
+	for (let i = 0; i < CROWD_TOTAL_MEMBERS; i++) {
 		
 		// create each person
 		const member = await createCrowdMember(animator, controller, path, layer, data);
 		crowd.addChild(member);
 
-		// TODO: this is hardcoded, but should change
-		// depending on the crowd type
-		member.zIndex = i % 2 === 0 ? 1 : 0;
-		member.x = 200 + (i * 120);
-		member.y += 200 + (Math.sin(i) * 10);
+		// add to the view
+		const shift = Math.sin(i) * 10;
+		member.x = 150 +  (i * 100);
+		member.y += shift;		
+		member.zIndex = 0 | shift;
 	}
 
-	// establish the rendering area
+	// match the default scaling
+	crowd.scale.x = crowd.scale.y = 0.5;
 	crowd.sortChildren();
-	const contain = crowd.getBounds();
-	renderer.resize(0 | (contain.width * 1.2), contain.height);
 
 	// async generation
+	let frameNumber = -1;
 	return new Promise((resolve, reject) => {
-		const timePerStep = CROWD_ANIMATION_DURATION / CROWD_ANIMATION_FRAME_COUNT;
-		let frameNumber = -1;
+		
 		function next() {
 
 			// finished rendering
-			if (frameNumber++ >= CROWD_ANIMATION_FRAME_COUNT)
-				return resolve();
+			if (frameNumber++ >= CROWD_ANIMATION_FRAME_COUNT) {
+				const img = renderer.plugins.extract.image();
+				document.body.appendChild(img);
+				img.className = 'debug';
+			}
 	
 			// update the sequence
 			for (const playback of ANIMATORS)
-				playback.seek(frameNumber * timePerStep);
+				playback.seek((frameNumber * CROWD_TIME_PER_STEP) / 2);
 	
 			// generate the frame
 			renderer.render(crowd);
-	
-			// save the texture
-			const frame = renderer.plugins.extract.canvas();
-			const texture = PIXI.Texture.from(frame);
-			FRAMES.push(texture);
-
-			// Helpful if you want to see what was rasterized
-			// document.body.appendChild(frame);
-			// frame.className = 'debug';
+			crowd.y += CROWD_FRAME_HEIGHT;
 	
 			// queue up the next
 			requestAnimationFrame(next);
@@ -97,17 +102,36 @@ async function initializeCrowd(animator, controller, path, layer, data) {
 
 /** handles creating a small crowd */
 export default async function createCrowd(animator, controller, path, layer, data) {
+	
+	// // crowd generation
+	// TODO: move this out of the track as a separate process
+	// await initializeCrowd(animator, controller, path, layer, data);
+	// return [{ displayObject: new PIXI.Container(), update: noop, dispose: noop }];
 
-	// prepare the crowd for use
-	await initializeCrowd(animator, controller, path, layer, data);
+	if (!FRAMES.length) {
+		const selected = Math.ceil(Math.random() * 4);
+		const img = await animator.getImage(`rendered/crowd_${selected}.png`);
+		const base = PIXI.Texture.from(img);
+		
+		const totalFrames = CROWD_ANIMATION_FRAME_COUNT * 2;
+		for (let i = 0; i < totalFrames; i++) {
+			const y = i < CROWD_ANIMATION_FRAME_COUNT ? i : (CROWD_ANIMATION_FRAME_COUNT - (i - CROWD_ANIMATION_FRAME_COUNT)) - 1;
+			const texture = new PIXI.Texture(base);
+			texture.frame = new PIXI.Rectangle(0, y * 150, 600, 150);
+			FRAMES.push(texture);
+		}
+
+	}
+
+
 
 	// create the crowd
 	const sprite = new PIXI.AnimatedSprite(FRAMES)
 	sprite.animationSpeed = 0.2 + (Math.random() * 0.1);
-	sprite.gotoAndPlay(0 | (Math.random() * sprite.totalFrames));
 	sprite.scale.x = sprite.scale.y = CROWD_DEFAULT_SCALE;
-	sprite.pivot.y = sprite.height;
-	sprite.play();
+	sprite.pivot.y = sprite.height * 0.375;
+	sprite.gotoAndPlay(0 | (Math.random() * sprite.totalFrames));
+
 
 	// randomize direction?
 	// doesn't work great because when flipped, two identical people
@@ -123,7 +147,7 @@ export default async function createCrowd(animator, controller, path, layer, dat
 	if ('y' in props)
 		sprite.y = animator.evaluateExpression(props.y);
 
-	return [{ displayObject: sprite, update: noop, dispose: noop }]
+	return [{ displayObject: sprite, update: noop, dispose: noop }];
 
 }
 

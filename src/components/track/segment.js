@@ -19,7 +19,8 @@ export default class Segment {
 		
 		// use the base layers to determine the track bounds
 		// as the scale for the top and bottom layers
-		const bounds = this.bounds = this.getBounds();
+		const { width, height, left, right } = this.getBounds();
+		const bounds = this.bounds = { width, height, left, right };
 		const scale = this.scale = (BASE_HEIGHT * TRACK_HEIGHT) / bounds.height;
 		top.scale.x = top.scale.y = bottom.scale.x = bottom.scale.y = scale;
 		
