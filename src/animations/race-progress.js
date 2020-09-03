@@ -6,7 +6,7 @@ import {
 	RACE_PLAYER_DISTANCE_MODIFIER,
 	RACE_OFF_SCREEN_FINISH_DISTANCE,
 	TRACK_STARTING_LINE_POSITION,
-	RACE_PROGRESS_TWEEN_TIMING
+	ANIMATION_RATE_WHILE_RACING
 } from "../config";
 
 export default class RaceProgressAnimation extends Animation {
@@ -109,6 +109,10 @@ export default class RaceProgressAnimation extends Animation {
 			return;
 		}
 
+		// move
+		if (this.tweens[player.id])
+			player.relativeX += this.tweens[player.id];
+
 		// check if already updated
 		if (lastUpdate[player.id] === player.lastUpdate) return;
 		lastUpdate[player.id] = player.lastUpdate;
@@ -127,37 +131,25 @@ export default class RaceProgressAnimation extends Animation {
 			return;
 		}
 
-		// start the tween
-		if (tweens[player.id])
-			tweens[player.id].stop();
-			
 		// update timestamps
 		const lastTimestamp = timestamps[player.id] || now;
 		timestamps[player.id] = now;
 
 		// start the new tween
-		const diff = now - lastTimestamp;
-		const duration = Math.min(Math.max(RACE_PROGRESS_TWEEN_TIMING, diff), RACE_PROGRESS_TWEEN_TIMING * 1.05);
-		tweens[player.id] = animate({
-			from: { x: player.relativeX },
-			to: { x: player.preferredX },
-			ease: 'linear',
-			duration: 0 | (duration * 1.1),
-			loop: false,
-			update: props => {
-				player.relativeX = props.x;
-				if (!player.isFinished) {
-					player.screenPercentX = props.x;
-				}
-			}
-		});
-
+		const diff = ((now - lastTimestamp) * 1.05) / (16 * (ANIMATION_RATE_WHILE_RACING));
+		const distance = player.preferredX - player.relativeX;
+		const movement = (diff > 0 && distance !== 0) ? distance / diff : 0;
+		this.tweens[player.id] = movement;
 	}
 	
 	// NOTE: this animation is depended on race progress so it's 
 	// not updated using typical means
 	/** activate the animation */
 	update = () => {
+
+		// stopped animating
+		if (this.isStopped) return;
+
 		this.now = +new Date;
 		const { track } = this;
 		const { activePlayer, players } = track;
@@ -179,9 +171,7 @@ export default class RaceProgressAnimation extends Animation {
 
 	/** stops all tween animations */
 	stop = () => {
-		const { tweens } = this;
-		for (const id in tweens)
-			tweens[id].stop();
+		this.isStopped = true;
 	}
 
 }

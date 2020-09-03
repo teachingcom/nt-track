@@ -70,7 +70,6 @@ export default class CountdownAnimation extends Animation {
 		// set timeouts to favor being done a little early
 		// since it'll add to the suspense for the "GO" call
 		const offset = 250;
-		
 		setTimeout(this.show3, 1000 - offset);
 		setTimeout(this.show2, 2000 - offset);
 		setTimeout(this.show1, 3000 - offset);
