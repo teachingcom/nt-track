@@ -11,7 +11,7 @@ import NameCard from '../../components/namecard';
 import Nitro from '../../components/nitro';
 
 // debugging helper
-const DEBUG_PLAYER_PROGRESS = true;
+const DEBUG_PLAYER_PROGRESS = false;
 
 export default class Player extends AnimatorPIXI.ResponsiveContainer {
 

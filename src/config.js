@@ -1,9 +1,12 @@
 
+// the amount to upscale for SSAA
+export const SSAA_SCALING_AMOUNT = 1.25;
+
 // a rotation to apply to all legacy cars
 export const STATIC_CAR_ROTATION_FIX =  Math.PI;
 
 // animation speeds
-export const ANIMATION_RATE_STARTING_LINE = 1;
+export const ANIMATION_RATE_STARTING_LINE = 2;
 export const ANIMATION_RATE_WHILE_RACING = 2;
 export const ANIMATION_RATE_FINISH_LINE = 2;
 
@@ -27,7 +30,7 @@ export const TRACK_OFFSCREEN_CAR_FINISH = 0.2;
 export const RACE_ENDING_ANIMATION_THRESHOLD = 0.66;
 export const RACE_PLAYER_DISTANCE_MODIFIER = 5;
 export const RACE_OFF_SCREEN_FINISH_DISTANCE = 1.15;
-export const RACE_AUTO_PROGRESS_DISTANCE = 0; // 0.00015;
+export const RACE_AUTO_PROGRESS_DISTANCE = 0;
 export const RACE_START_CAR_ENTRY_TIME = 1600;
 export const RACE_START_NAMECARD_ENTRY_TIME = 1000;
 export const RACE_START_NAMECARD_DELAY_TIME = 1200;
@@ -62,9 +65,14 @@ export const CAR_SHAKE_SHADOW_REDUCTION = 0.33;
 export const CAR_NITRO_ADVANCEMENT_DISTANCE = 0.125;
 export const CAR_404_STATIC_VERSION = '9_large_11';
 export const CAR_404_ENHANCED_VERSION = '/cars/missing';
+
+// special transforms for cars depending on their sprites
 export const CAR_SPRITE_MODIFICATIONS = {
-	'192' /* Frosted Roller */: { flipY: true },
-	'175' /* NT-Gold */: { rotation: -Math.PI }
+	// Frosted Roller
+	'192' : { flipY: true },
+	
+	//NT-Gold 
+	'175' : { rotation: -Math.PI }
 };
 
 // trails

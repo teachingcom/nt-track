@@ -3,6 +3,7 @@ import * as debug from '../debug';
 import * as PIXI from 'pixi.js';
 import { Animator, EventEmitter, PIXI as AnimatorPIXI } from 'nt-animator';
 import { noop } from '../utils';
+import { SSAA_SCALING_AMOUNT } from '../config';
 
 /** creates a track instance */
 export class BaseView extends EventEmitter {
@@ -122,7 +123,7 @@ export class BaseView extends EventEmitter {
 		// get the updated bounds
 		const bounds = parent.getBoundingClientRect();
 		const preferred = bounds.width;
-		const upscale = 2;
+		const upscale = SSAA_SCALING_AMOUNT;
 
 		// scale as required
 		const width = (bounds.right - bounds.left) * (ssaa ? upscale : 1);

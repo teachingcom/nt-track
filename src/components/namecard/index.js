@@ -4,10 +4,9 @@ import * as PIXI from 'pixi.js';
 import { merge } from '../../utils';
 import { toRGBA } from '../../utils/color';
 import { createContext, getBoundsForRole } from 'nt-animator';
-import { LAYER_NAMECARD_OVERLAY } from '../../views/track/layers';
 
 // preferred font for namecards
-const NAMECARD_MAX_NAME_LENGTH = 16;
+const NAMECARD_MAX_NAME_LENGTH = 15;
 const NAMECARD_ICON_SCALE = 0.8;
 const NAMECARD_ICON_GAP = 10;
 const DEFAULT_NAMECARD_FONT_SIZE = 58;
