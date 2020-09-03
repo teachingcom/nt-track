@@ -43,7 +43,8 @@ export default class FpsMonitor {
 			this.pixiCache.push(fps)
 
 			// copy phaser FPS
-			this.phaserCache.push(this.phaserFPS.actualFps);
+			const fps2 = Math.round(this.phaserFPS.actualFps);
+			this.phaserCache.push(fps2);
 		}, 1000);
 
 	}

@@ -49,7 +49,7 @@ export default class RaceProgressAnimation extends Animation {
 	}
 
 	/** animates everyone except for the current player */
-	animateOther = player => {
+	updateOther = player => {
 		const { track } = this;
 		const { activePlayer } = track;
 
@@ -61,11 +61,11 @@ export default class RaceProgressAnimation extends Animation {
 
 		// save the position
 		player.raceProgressModifier = diff;
-		player.preferredX = activePlayer.relativeX + diff;
+		player.preferredX = (activePlayer.preferredX || activePlayer.relativeX) + diff;
 	}
 
 	/** animates the player */
-	animatePlayer = player => {
+	updateActivePlayer = player => {
 		const { now, timestamps } = this;
 		const percent = player.progress / 100;
 
@@ -114,8 +114,8 @@ export default class RaceProgressAnimation extends Animation {
 		lastUpdate[player.id] = player.lastUpdate;
 
 		// perform the update
-		if (player.isPlayer) this.animatePlayer(player);
-		else this.animateOther(player);
+		if (player.isPlayer) this.updateActivePlayer(player);
+		else this.updateOther(player);
 				
 		// cannot animate yet
 		if (isNaN(player.preferredX)) {
@@ -144,7 +144,12 @@ export default class RaceProgressAnimation extends Animation {
 			ease: 'linear',
 			duration: 0 | (duration * 1.1),
 			loop: false,
-			update: props => player.relativeX = props.x
+			update: props => {
+				player.relativeX = props.x;
+				if (!player.isFinished) {
+					player.screenPercentX = props.x;
+				}
+			}
 		});
 
 	}

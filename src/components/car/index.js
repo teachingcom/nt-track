@@ -24,7 +24,8 @@ import {
 	NITRO_BLUR_DEFAULT_OFFSET_X,
 	CAR_SHAKE_NITRO_BONUS,
 	CAR_SHAKE_SHADOW_REDUCTION,
-	CAR_404_STATIC_VERSION
+	CAR_404_STATIC_VERSION,
+	CAR_SPRITE_MODIFICATIONS
 } from '../../config';
 
 // animations
@@ -160,6 +161,10 @@ export default class Car extends PIXI.Container {
 		const { view } = this;
 		const { staticUrl } = view.options;
 		const car = new PIXI.Container();
+
+		// check fpr special instructions
+		const id = 0 | type.match(/^\d+/)[0];
+		const mods = CAR_SPRITE_MODIFICATIONS[id];
 			
 		// get the sprite to render
 		let sprite;
@@ -185,6 +190,13 @@ export default class Car extends PIXI.Container {
 
 		// static cars face the opposite direction
 		sprite.rotation = STATIC_CAR_ROTATION_FIX;
+		
+		// adjust as required
+		if (mods) {
+			sprite.rotation += mods.rotation || 0;
+			sprite.scale.x *= mods.flipX ? -1 : 1;
+			sprite.scale.y *= mods.flipY ? -1 : 1;
+		}
 
 		// adjust the center point
 		sprite.pivot.x = sprite.width / 2;

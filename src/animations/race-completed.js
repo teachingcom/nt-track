@@ -11,7 +11,7 @@ import createConfetti from '../plugins/confetti';
 
 export default class RaceCompletedAnimation extends Animation {
 
-	constructor({ track, players}) {
+ 	constructor({ track, players }) {
 		super();
 		
 		this.track = track;

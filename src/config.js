@@ -3,14 +3,16 @@
 export const STATIC_CAR_ROTATION_FIX =  Math.PI;
 
 // animation speeds
+export const ANIMATION_RATE_STARTING_LINE = 1;
 export const ANIMATION_RATE_WHILE_RACING = 2;
-export const ANIMATION_RATE_WHILE_IDLE = 2;
+export const ANIMATION_RATE_FINISH_LINE = 2;
 
 // tracks
 export const TRACK_MAXIMUM_SCROLL_SPEED = 35;
 export const TRACK_MAXIMUM_SPEED_BOOST_RATE = 0.33;
 export const TRACK_MAXIMUM_SPEED_DRAG_RATE = 0.5;
 export const TRACK_MAXIMUM_SPEED = 0.55;
+export const TRACK_MAXIMUM_TRAVEL_DISTANCE = TRACK_MAXIMUM_SCROLL_SPEED * 5;
 export const TRACK_ACCELERATION_RATE = 0.0025;
 export const TRACK_TOP_SCALE = 0.15;
 export const TRACK_BOTTOM_SCALE = 0;
@@ -60,6 +62,10 @@ export const CAR_SHAKE_SHADOW_REDUCTION = 0.33;
 export const CAR_NITRO_ADVANCEMENT_DISTANCE = 0.125;
 export const CAR_404_STATIC_VERSION = '9_large_11';
 export const CAR_404_ENHANCED_VERSION = '/cars/missing';
+export const CAR_SPRITE_MODIFICATIONS = {
+	'192' /* Frosted Roller */: { flipY: true },
+	'175' /* NT-Gold */: { rotation: -Math.PI }
+};
 
 // trails
 export const TRAIL_SCALE = 0.55;

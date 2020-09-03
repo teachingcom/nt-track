@@ -14,7 +14,8 @@ import {
 	TRACK_MAXIMUM_SPEED,
 	TRACK_ACCELERATION_RATE,
 	CAR_DEFAULT_SHAKE_LEVEL,
-	ANIMATION_RATE_WHILE_IDLE,
+	ANIMATION_RATE_STARTING_LINE,
+	ANIMATION_RATE_FINISH_LINE,
 	ANIMATION_RATE_WHILE_RACING,
 	TRACK_MAXIMUM_SPEED_BOOST_RATE,
 	TRACK_MAXIMUM_SPEED_DRAG_RATE
@@ -76,8 +77,9 @@ export default class TrackView extends BaseView {
 	// handle remaining setup
 	async init(options) {
 		options = merge({
+			animationRateWhenStartLine: ANIMATION_RATE_STARTING_LINE,
+			animationRateWhenFinishLine: ANIMATION_RATE_FINISH_LINE,
 			animationRateWhenRacing: ANIMATION_RATE_WHILE_RACING,
-			animationRateWhenIdle: ANIMATION_RATE_WHILE_IDLE,
 			scale: { height: scaling.BASE_HEIGHT }
 		}, options);
 		
@@ -118,7 +120,7 @@ export default class TrackView extends BaseView {
 		// tracking race position progress
 		this.progress = options.manifest.progress;
 		this.pendingPlayers = options.expectedPlayerCount;
-		this.animationRate = options.animationRateWhenIdle;
+		this.animationRate = options.animationRateWhenStartLine;
 		this.raceProgressAnimation = new RaceProgressAnimation({ track: this });
 
 		// attach the effects filter
@@ -347,6 +349,9 @@ export default class TrackView extends BaseView {
 	setProgress = (id, { progress, finished, typed, typingSpeedModifier, completed }) => {
 		const { state, raceCompletedAnimation } = this;
 		const player = this.getPlayerById(id);
+
+		// tracking values
+		player.progressUpdateCount = (player.progressUpdateCount || 0) + 1;
 		
 		// don't crash if the player wasn't found
 		if (!player) return;
@@ -362,6 +367,11 @@ export default class TrackView extends BaseView {
 		player.totalTyped = typed;
 		player.lastUpdate = +new Date;
 
+		// save the server progress
+		if (!finished) {
+			player.serverProgress = progress;
+		}
+
 		// cause the track to scroll faster if the player
 		// is typing quickly or slowly
 		if (player.isPlayer) {
@@ -372,12 +382,12 @@ export default class TrackView extends BaseView {
 
 		// this was the end of the race
 		if (player.isPlayer && hasCompletedTimestamp) {
-			requestAnimationFrame(this.finalizeRace);
+			setTimeout(this.finalizeRace);
 		}
 		// this player finished and the track is currently
 		// playing the ending animation
 		else if (!player.isPlayer && raceCompletedAnimation && hasCompletedTimestamp) {
-			requestAnimationFrame(() => raceCompletedAnimation.play({ }));
+			setTimeout(() => raceCompletedAnimation.play({ }));
 		}
 	}
 
@@ -440,7 +450,7 @@ export default class TrackView extends BaseView {
 		track.showFinishLine();
 
 		// return to idle animation speed
-		this.animationRate = options.animationRateWhenIdle;
+		this.animationRate = options.animationRateWhenFinishLine;
 
 		// stop animating progress
 		this.raceProgressAnimation.stop();

@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js';
 import { createContext } from 'nt-animator';
 import { LAYER_TRACK_OVERLAY } from '../../views/track/layers';
-import { ANIMATION_RATE_WHILE_IDLE } from '../../config';
+import { ANIMATION_RATE_STARTING_LINE } from '../../config';
 
 const PARTICLE_COUNT = 125;
 const DEFAULT_PARTICLE_SIZE = 11;
@@ -81,7 +81,7 @@ export default class FastConfetti {
 		const { sprite, context, view, particles, track } = this;
 		
 		// if throttling
-		if (track.frame % ANIMATION_RATE_WHILE_IDLE !== 0) return;
+		if (track.frame % ANIMATION_RATE_STARTING_LINE !== 0) return;
 		
 		// calculate the new size
 		const { ctx, canvas } = context;

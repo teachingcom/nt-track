@@ -1,8 +1,8 @@
 import * as PIXI from 'pixi.js';
-import { PIXI as AnimatorPIXI, getBoundsForRole } from 'nt-animator';
+import dist, { PIXI as AnimatorPIXI, getBoundsForRole } from 'nt-animator';
 import Random from '../../rng';
 import { TRACK_HEIGHT, TRACK_TOP } from '../../views/track/scaling';
-import { TRACK_MAXIMUM_SCROLL_SPEED, TRACK_STARTING_LINE_POSITION } from '../../config';
+import { TRACK_MAXIMUM_TRAVEL_DISTANCE, TRACK_MAXIMUM_SCROLL_SPEED, TRACK_STARTING_LINE_POSITION } from '../../config';
 import { isArray, isNumber } from '../../utils';
 import Segment from './segment';
 import createCrowd from '../../plugins/crowd';
@@ -19,7 +19,7 @@ export default class Track {
 	/** creates a new track instance */
 	static async create(options) {
 		const { view, seed } = options;
-
+		
 		// create the new track
 		const instance = new Track();
 		instance.options = options;
@@ -254,7 +254,13 @@ export default class Track {
 
 	// positional update 
 	update = state => {
-		const distance = (state.speed * -TRACK_MAXIMUM_SCROLL_SPEED) * state.delta;
+
+		// cap the maximum scroll speed
+		const distance = Math.max(
+			(state.speed * -TRACK_MAXIMUM_SCROLL_SPEED) * state.delta,
+			-TRACK_MAXIMUM_TRAVEL_DISTANCE
+		);
+
 		this._cycleTrack(distance);
 	}
 

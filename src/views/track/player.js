@@ -11,7 +11,7 @@ import NameCard from '../../components/namecard';
 import Nitro from '../../components/nitro';
 
 // debugging helper
-const DEBUG_PLAYER_PROGRESS = false;
+const DEBUG_PLAYER_PROGRESS = true;
 
 export default class Player extends AnimatorPIXI.ResponsiveContainer {
 
@@ -156,9 +156,10 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 
 		// create debugging text
 		if (DEBUG_PLAYER_PROGRESS) {
-			this.debug = new PIXI.Text('', { fill: 0xffffff, fontSize: 22, fontWeight: 'bold', align: 'center' });
+			this.debug = new PIXI.Text('', { fontFamily: 'monospace', fill: 0xffffff, fontSize: 22, fontWeight: 'bold', align: 'left' });
 			car.addChild(this.debug);
-			this.debug.x = -300;
+			this.debug.x = -330;
+			this.debug.y = -50;
 		}
 		
 		// include the trail, if any
@@ -216,12 +217,27 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 
 	/** handle removing all resources */
 	dispose = () => {
-		const { car, namecard, shadow } = this;
+		const { car, namecard, shadow, trail } = this;
 
 		// remove emitters, animations, and objects
-		removeDisplayObject(car);
-		removeDisplayObject(namecard);
-		removeDisplayObject(shadow);
+		let phase;
+		try {
+			phase = 'removing car';
+			removeDisplayObject(car);
+
+			phase = 'removing namecard';
+			removeDisplayObject(namecard);
+			
+			phase = 'removing shadow';
+			removeDisplayObject(shadow);
+
+			phase = 'removing trail';
+			trail.each(part => removeDisplayObject(part));
+		}
+		// do not crash for this
+		catch (ex) {
+			console.warn(`Failed at disposing player object: Error while ${phase}`);
+		}
 	}
 
 	/** handles updating the car */
@@ -229,10 +245,13 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 
 		// tracking progress
 		if (DEBUG_PLAYER_PROGRESS) {
-			const screenX = 0 | ((this.relativeX || 0) * 100);
-			const percentProgress = 0 | (this.progress || 0);
-			const place = this.place ? `: ${this.place}` : '';
-			this.debug.text = `${screenX}% / ${percentProgress}% ${place}`;
+			const screenX = 0 | ((this.screenPercentX || 0) * 100);
+			const percentProgress = 0 | (this.serverProgress || 0);
+			const place = this.place ? `
+end : ${this.place}` : '';
+			this.debug.text = `up  : ${this.progressUpdateCount || 0}
+srv : ${percentProgress}%
+x   : ${screenX}%${place}`;
 		}
 		
 		// perform updates

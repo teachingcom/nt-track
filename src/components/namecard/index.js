@@ -7,11 +7,12 @@ import { createContext, getBoundsForRole } from 'nt-animator';
 import { LAYER_NAMECARD_OVERLAY } from '../../views/track/layers';
 
 // preferred font for namecards
+const NAMECARD_MAX_NAME_LENGTH = 16;
 const NAMECARD_ICON_SCALE = 0.8;
 const NAMECARD_ICON_GAP = 10;
 const DEFAULT_NAMECARD_FONT_SIZE = 58;
 const DEFAULT_NAMECARD_FONT_NAME = 'montserrat';
-const DEFAULT_NAMECARD_FONT_WEIGHT = 500;
+const DEFAULT_NAMECARD_FONT_WEIGHT = 600;
 
 // trailing namecard for a player
 export default class NameCard extends PIXI.Container {
@@ -179,7 +180,7 @@ export default class NameCard extends PIXI.Container {
 		container.addChild(this.overlay);
 		
 		// set the display name
-		let displayName = full.substr(0, 17);
+		let displayName = full.substr(0, NAMECARD_MAX_NAME_LENGTH);
 		this.displayName = displayName;
 
 		// check for icons

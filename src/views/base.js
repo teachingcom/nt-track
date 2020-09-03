@@ -3,7 +3,6 @@ import * as debug from '../debug';
 import * as PIXI from 'pixi.js';
 import { Animator, EventEmitter, PIXI as AnimatorPIXI } from 'nt-animator';
 import { noop } from '../utils';
-import { ANIMATION_RATE_WHILE_RACING } from '../config';
 
 /** creates a track instance */
 export class BaseView extends EventEmitter {
@@ -11,6 +10,10 @@ export class BaseView extends EventEmitter {
 	/** handles initial setup of the rendering area */
 	async init(options) {
 		const { target, scale } = options;
+
+		// monitor visibility changes
+		document.addEventListener('visibilitychange', this.setWindowVisibilityState);
+		this.setWindowVisibilityState();
 
 		// save some options
 		this.options = options;
@@ -99,9 +102,14 @@ export class BaseView extends EventEmitter {
 		onLoadProgress(this.loadingProgress);
 	}
 
+	// handles changes for the window visibility
+	setWindowVisibilityState = () => {
+		this.isViewActive = document.visibilityState !== 'hidden';
+	}
 
 	/** renders the current state of the view */
 	render() {
+		if (!this.isViewActive) return;
 		const { renderer, view } = this;
 		return renderer.render(view);
 	}
