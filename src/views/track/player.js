@@ -232,7 +232,8 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 			removeDisplayObject(shadow);
 
 			phase = 'removing trail';
-			trail.each(part => removeDisplayObject(part));
+			if (trail)
+				trail.each(part => removeDisplayObject(part));
 		}
 		// do not crash for this
 		catch (ex) {

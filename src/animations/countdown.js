@@ -69,10 +69,18 @@ export default class CountdownAnimation extends Animation {
 
 		// set timeouts to favor being done a little early
 		// since it'll add to the suspense for the "GO" call
-		const offset = 250;
-		setTimeout(this.show3, 1000 - offset);
-		setTimeout(this.show2, 2000 - offset);
-		setTimeout(this.show1, 3000 - offset);
+		let step = 4;
+		this.countdownInterval = setInterval(() => {
+
+			// increment the counter
+			if (--step <= 0)
+				clearInterval(this.countdownInterval)
+
+			// start counting the steps down
+			if (step === 3) this.show3();
+			else if (step === 2) this.show2();
+			else if (step === 1) this.show1();
+		}, 1000);
 	}
 
 	// display 3
@@ -107,7 +115,9 @@ export default class CountdownAnimation extends Animation {
 	}
 
 	// display 1
-	show1 = () => this.setDigit(1)
+	show1 = () => {
+		this.setDigit(1);
+	}
 
 	// hides the view
 	hideCountdown = () => {
@@ -124,7 +134,11 @@ export default class CountdownAnimation extends Animation {
 
 	// activates the final animation
 	finish = () => {
-		const { numbers, go, countdown, flash } = this;
+		const { numbers, go, countdown, flash, countdownInterval } = this;
+
+		// if for some reason the countdown hasn't finished
+		// then go ahead and stop it
+		clearInterval(countdownInterval);
 
 		// play the go audio clip
 		const start = audio.create('sfx', 'common', 'countdown_go');

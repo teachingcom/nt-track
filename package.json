@@ -12,8 +12,7 @@
   "peerDependencies": {
     "animejs": "^3.2.0",
     "nt-animator": "https://github.com/teachingcom/nt-animator",
-    "pixi-particles": "^4.2.0",
-    "pixi.js": "^5.2.3"
+    "pixi-particles": "^4.2.0"
   },
   "dependencies": {
     "animejs": "^3.2.0",
@@ -21,6 +20,8 @@
     "deep-defaults": "^1.0.5",
     "deep-get-set": "^1.1.0",
     "howler": "^2.2.0",
+    "pixi.js": "5.2.3",
+    "popmotion": "^8.7.5",
     "random-seed": "^0.3.0"
   },
   "devDependencies": {

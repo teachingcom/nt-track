@@ -6,12 +6,20 @@ import { toRGBA } from '../../utils/color';
 import { createContext, getBoundsForRole } from 'nt-animator';
 
 // preferred font for namecards
-const NAMECARD_MAX_NAME_LENGTH = 15;
+const NAMECARD_MAX_NAME_LENGTH = 20;
 const NAMECARD_ICON_SCALE = 0.8;
 const NAMECARD_ICON_GAP = 10;
 const DEFAULT_NAMECARD_FONT_SIZE = 58;
 const DEFAULT_NAMECARD_FONT_NAME = 'montserrat';
 const DEFAULT_NAMECARD_FONT_WEIGHT = 600;
+const NAMECARD_MAXIMUM_WIDTH = 550;
+const DEFAULT_NAMECARD_FONT = {
+	fontSize: DEFAULT_NAMECARD_FONT_SIZE,
+	fontFamily: DEFAULT_NAMECARD_FONT_NAME,
+	fontWeight: DEFAULT_NAMECARD_FONT_WEIGHT,
+};
+
+const NAMECARD_TEXT_STYLE = new PIXI.TextStyle(DEFAULT_NAMECARD_FONT);
 
 // trailing namecard for a player
 export default class NameCard extends PIXI.Container {
@@ -40,9 +48,10 @@ export default class NameCard extends PIXI.Container {
 		if (!config) return;
 
 		// save the properties
-		const isGold = type === 'gold';
+		const isGoldNamecard = /gold/i.test(type);
+		const isPlayerNamecard = /player/i.test(type);
 		const hasOverlay = config.overlay !== false;
-		merge(instance, { options, view, path, config, isGold, hasOverlay });
+		merge(instance, { options, view, path, config, isGoldNamecard, isPlayerNamecard, hasOverlay });
 
 		// create a container for all parts
 		instance.container = new PIXI.Container();
@@ -123,10 +132,8 @@ export default class NameCard extends PIXI.Container {
 		
 			// draw the text/shadow
 			const text = new PIXI.Text(displayName, {
-				fontSize: DEFAULT_NAMECARD_FONT_SIZE,
-				fontFamily: DEFAULT_NAMECARD_FONT_NAME,
-				fontWeight: DEFAULT_NAMECARD_FONT_WEIGHT,
-				fill: style.color
+				fill: style.color,
+				...DEFAULT_NAMECARD_FONT
 			});
 
 			// align
@@ -166,26 +173,43 @@ export default class NameCard extends PIXI.Container {
 	// create the text labels
 	_initOverlay() {
 		const { ICONS } = NameCard;
+
 		
 		// get info to show
-		const { options, container } = this;
-		const { name = '12345678901234567890', team, isTop3, isGold, isFriend } = options;
-		const isGoldNameCard = !!isGold;
-		const full = [ team && `[${team}]`, name ].join(' ');
+		const { options, container, isGoldNamecard } = this;
+		const { isTop3, isGold, isFriend } = options;
 		
+		// // debug
+		// options.name = 'In   vi   s ib\tle1......';
+		// options.team = ' TALK ';
+
+		// create the full name
+		const name = clean(options.name);
+		const team = clean(options.team);
+		let full = [ team && `[${team}]`, name ].join(' ');
+
+		// measure to fit
+		if (full.length > NAMECARD_MAX_NAME_LENGTH) {
+			let safety = 10;
+			while (--safety > 0) {
+				const size = PIXI.TextMetrics.measureText(full, NAMECARD_TEXT_STYLE);
+				if (size.width < NAMECARD_MAXIMUM_WIDTH) break;
+				full = full.substr(0, full.length - 1);
+			}
+		}
+
 		// overlays won't change
 		this.overlay = new PIXI.Container();
 		this.overlay.cacheAsBitmap = true;
 		container.addChild(this.overlay);
 		
 		// set the display name
-		let displayName = full.substr(0, NAMECARD_MAX_NAME_LENGTH);
-		this.displayName = displayName;
+		this.displayName = full;
 
 		// check for icons
 		let tallest = 0;
 		const ids = [ ];
-		if (isGold && !isGoldNameCard) {
+		if (isGold && !isGoldNamecard) {
 			tallest = Math.max(tallest, ICONS.gold.height);
 			ids.push('gold');
 		}
@@ -227,4 +251,11 @@ function drawIcons(ctx, icons) {
 		ctx.drawTexture(icon, x, 0 | (height * -0.5), width, height);
 		x += 0 | (width + NAMECARD_ICON_GAP);
 	}
+}
+
+// remove excess whitespace
+function clean(str) {
+	return (str || '').toString()
+		.replace(/^\s*|\s*$/g, '')
+		.replace(/\s+/, ' ');
 }

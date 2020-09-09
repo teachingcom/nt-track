@@ -66,7 +66,7 @@ export default class RaceCompletedAnimation extends Animation {
 			isRaceFinished: true,
 			finishedBeforePlayer,
 			place
-		});	
+		});
 
 		// create the animation
 		const animate = new CarFinishLineAnimation({ player, track, place, stage });
@@ -155,9 +155,23 @@ export default class RaceCompletedAnimation extends Animation {
 
 		// queue up each animation
 		for (const player of recent) {
-			const diff = player.completedAt - firstTimestamp;
+			const diff = Math.min(player.completedAt - firstTimestamp, 2000);
 			const place = finished.indexOf(player) + 1;
-			this.addPlayer(player, { delay: diff * mod, place });
+			
+			// calculate the delay
+			let delay = diff * mod;
+
+			// if the time is greater than a second, reduce the time
+			// a bit to avoid the player crossing the line after
+			// the results have been posted - this will be a guaranteed
+			// 1 second + 25% of the time over a second they would have
+			// finished, which should ensure they finish after faster, but
+			// before the stats appear
+			if (delay > 1000)
+				delay = 1000 + ((delay - 1000) * 0.25);
+
+			// add to the ending
+			this.addPlayer(player, { delay, place });
 		}
 	}
 

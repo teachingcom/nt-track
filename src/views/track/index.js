@@ -56,6 +56,7 @@ export default class TrackView extends BaseView {
 	frame = 0
 
 	// tracking players and their namecards
+	activePlayers = { }
 	players = [ ]
 	namecards = [ ]
 
@@ -161,13 +162,13 @@ export default class TrackView extends BaseView {
 
 	/** adds a new car to the track */
 	addPlayer = async (data, isInstant) => {
-		const { state, stage } = this;
+		const { activePlayers, state, stage } = this;
 		const playerOptions = merge({ view: this }, data);
 		const { isPlayer, id } = playerOptions;
 
 		// make sure this isn't a mistake
-		const existing = this.getPlayerById(data.id);
-		if (existing) return;
+		if (activePlayers[data.id]) return;
+		activePlayers[data.id] = true;
 
 		// manage resource loading depending
 		// on if this is the actual player or not
@@ -181,57 +182,70 @@ export default class TrackView extends BaseView {
 		state.totalPlayers++;
 		
 		// create the player instance
-		const player = await Player.create(playerOptions);
-		player.track = this;
-		
-		// set the active player, if needed
-		if (isPlayer) {
-			this.activePlayerId = id;
-			this.activePlayer = player;
-			player.isPlayer = true;
-		}
+		let player;
+		try {
+			player = await Player.create(playerOptions);
+			player.track = this;
+			
+			// set the active player, if needed
+			if (isPlayer) {
+				this.activePlayerId = id;
+				this.activePlayer = player;
+				player.isPlayer = true;
+			}
 
-		// check for a plugin with special car rules
-		const { animator } = this;
-		const { car } = player;
-		if (car.plugin?.extend)
-			await car.plugin.extend({ animator, car, player, track: this });
-		
-		// with the player, include their namecard
-		const { namecard } = player.layers;
-		if (namecard) {
+			// check for a plugin with special car rules
+			const { animator } = this;
+			const { car } = player;
+			if (car.plugin?.extend)
+				await car.plugin.extend({ animator, car, player, track: this });
+			
+			// with the player, include their namecard
+			const { namecard } = player.layers;
+			if (namecard) {
 
-			// wrap the container with a responsive container
-			const container = new AnimatorPIXI.ResponsiveContainer();
-			container.addChild(namecard);
+				// wrap the container with a responsive container
+				const container = new AnimatorPIXI.ResponsiveContainer();
+				container.addChild(namecard);
 
+				// add to the view
+				stage.addChild(container);
+
+				// match positions to the car
+				container.zIndex = LAYER_NAMECARD;
+				container.relativeY = player.relativeY;
+				container.relativeX = 0;
+				container.pivot.x = namecard.width * -0.5;
+			}
+
+			// animate onto the track
+			const { enterSound = 'sport' } = data.car || { };
+			const entry = new CarEntryAnimation({ player, namecard, enterSound, track: this });
+			entry.play({
+				isInstant,
+				complete: () => this.setPlayerReady(player)
+			});
+			
 			// add to the view
-			stage.addChild(container);
+			stage.addChild(player);
+			stage.sortChildren();
 
-			// match positions to the car
-			container.zIndex = LAYER_NAMECARD;
-			container.relativeY = player.relativeY;
-			container.relativeX = 0;
-			container.pivot.x = namecard.width * -0.5;
+			// if this the current player then mark
+			// the track as ready to show
+			if (data.isPlayer) {
+				state.playerHasEntered = true;
+			}
+
 		}
+		// in the event the player failed to load
+		catch (ex) {
+			delete activePlayers[data.id];
+			state.totalPlayers--;
 
-		// animate onto the track
-		const { enterSound = 'sport' } = data.car || { };
-		const entry = new CarEntryAnimation({ player, namecard, enterSound, track: this });
-		entry.play({
-			isInstant,
-			complete: () => this.setPlayerReady(player)
-		});
-		
-		// add to the view
-		stage.addChild(player);
-		stage.sortChildren();
-
-		// if this the current player then mark
-		// the track as ready to show
-		if (data.isPlayer) {
-			state.playerHasEntered = true;
-			// this.resolveTask('load_player');
+			// if the player was created, try and remove it
+			if (player) {
+				player.dispose();
+			}
 		}
 	}
 
@@ -278,7 +292,7 @@ export default class TrackView extends BaseView {
 
 	/** removes a player */
 	removePlayer = id => {
-		const { players, state } = this;
+		const { activePlayers, players, state } = this;
 		const player = this.getPlayerById(id);
 		const index = players.indexOf(player);
 
@@ -287,6 +301,7 @@ export default class TrackView extends BaseView {
 
 		// remove the entry
 		players.splice(index, 1);
+		delete activePlayers[id];
 
 		// remove from total players
 		state.totalPlayers--;
