@@ -159,7 +159,7 @@ export default class Car extends PIXI.Container {
 	// creates a car from a static resource
 	_createStaticCar = async type => {
 		const { view } = this;
-		const { staticUrl, staticCarUrl } = view.options;
+		const { staticUrl } = view.options;
 		const car = new PIXI.Container();
 
 		// check fpr special instructions
@@ -169,8 +169,7 @@ export default class Car extends PIXI.Container {
 		// get the sprite to render
 		let sprite;
 		try {
-			console.log('will create', staticCarUrl);
-			sprite = await createStaticCar(staticUrl, type, hue);
+			sprite = await createStaticCar(staticUrl, type);
 
 			// if this failed to load
 			if (!sprite) {

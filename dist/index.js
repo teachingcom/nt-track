@@ -85377,45 +85377,44 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "_createStaticCar", /*#__PURE__*/function () {
       var _ref2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(type) {
-        var _assertThisInitialize, view, _view$options, staticUrl, staticCarUrl, car, id, mods, sprite, height, imageSource, bounds;
+        var _assertThisInitialize, view, staticUrl, car, id, mods, sprite, height, imageSource, bounds;
 
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
                 _assertThisInitialize = (0, _assertThisInitialized2.default)(_this), view = _assertThisInitialize.view;
-                _view$options = view.options, staticUrl = _view$options.staticUrl, staticCarUrl = _view$options.staticCarUrl;
+                staticUrl = view.options.staticUrl;
                 car = new _ntAnimator.PIXI.Container(); // check fpr special instructions
 
                 id = 0 | type.match(/^\d+/)[0];
                 mods = _config.CAR_SPRITE_MODIFICATIONS[id]; // get the sprite to render
 
                 _context2.prev = 5;
-                console.log('will create', staticCarUrl);
-                _context2.next = 9;
-                return (0, _createStaticCar.createStaticCar)(staticUrl, type, hue);
+                _context2.next = 8;
+                return (0, _createStaticCar.createStaticCar)(staticUrl, type);
 
-              case 9:
+              case 8:
                 sprite = _context2.sent;
 
                 if (sprite) {
-                  _context2.next = 12;
+                  _context2.next = 11;
                   break;
                 }
 
                 return _context2.abrupt("return", _this._createMissingCar());
 
-              case 12:
-                _context2.next = 18;
+              case 11:
+                _context2.next = 17;
                 break;
 
-              case 14:
-                _context2.prev = 14;
+              case 13:
+                _context2.prev = 13;
                 _context2.t0 = _context2["catch"](5);
                 console.error("Failed to load ".concat(staticUrl));
                 return _context2.abrupt("return", _this._createMissingCar());
 
-              case 18:
+              case 17:
                 height = sprite.height;
                 imageSource = sprite; // place this car into a container
 
@@ -85440,12 +85439,12 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
                   height: height
                 });
 
-              case 27:
+              case 26:
               case "end":
                 return _context2.stop();
             }
           }
-        }, _callee2, null, [[5, 14]]);
+        }, _callee2, null, [[5, 13]]);
       }));
 
       return function (_x) {
