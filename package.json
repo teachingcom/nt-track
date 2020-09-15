@@ -20,7 +20,6 @@
     "deep-defaults": "^1.0.5",
     "deep-get-set": "^1.1.0",
     "howler": "^2.2.0",
-    "pixi.js": "5.2.3",
     "popmotion": "^8.7.5",
     "random-seed": "^0.3.0"
   },

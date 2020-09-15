@@ -1,5 +1,5 @@
 import Animation from "./base";
-import { PIXI as AnimatorPIXI, findDisplayObjectsOfRole, animate } from "nt-animator";
+import { PIXI, findDisplayObjectsOfRole, animate } from "nt-animator";
 import { VOLUME_COUNTDOWN_ANNOUNCER, VOLUME_START_ACCELERATION } from "../audio/volume";
 import * as audio from '../audio';
 
@@ -16,7 +16,7 @@ export default class CountdownAnimation extends Animation {
 
 	async init() {
 		const { animator } = this;
-
+		
 		// load resources
 		await animator.getSpritesheet('extras/countdown');
 		
@@ -28,7 +28,7 @@ export default class CountdownAnimation extends Animation {
 		const colors = findDisplayObjectsOfRole(countdown, 'color');
 
 		// include the main countdown area
-		const container = new AnimatorPIXI.ResponsiveContainer();
+		const container = new PIXI.ResponsiveContainer();
 		container.relativeX = 0.5;
 		container.relativeY = 0.5;
 		container.alpha = 0;
@@ -66,6 +66,9 @@ export default class CountdownAnimation extends Animation {
 	// begins the animation - does not
 	// finish until "go" is called
 	start = () => {
+
+		// has already started
+		if (!!this.countdownInterval) return;
 
 		// set timeouts to favor being done a little early
 		// since it'll add to the suspense for the "GO" call

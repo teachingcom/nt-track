@@ -71,3 +71,36 @@ export function appendFunc(baseFunction, includedFunction) {
 		? (...args) => { baseFunction(...args); includedFunction(...args); }
 		: baseFunction;
 }
+
+
+/** creates a simple web worker */
+export function createWorker(func) {
+	try {
+		const body = func.toString().replace(/^[^{]*{\s*/, '').replace(/\s*}[^}]*$/, '');
+		const blob = new Blob([ body ], { type: 'text/javascript' });
+		const url = URL.createObjectURL(blob);
+		return new Worker(url);
+	}
+	// create an async version
+	catch (ex) {
+		throw 'workers not supported';
+	}
+}
+
+
+/** finds all sprites inside of a container */
+export function getSprites(container, sprites = [ ]) {
+	if (!(container.children?.length > 0)) return sprites;
+
+	// find each sprite
+	for (const child of container.children) {
+		if (child.isSprite) sprites.push(child);
+
+		// search containers, exclude particles
+		// maybe do this
+		else if (child.children)
+			getSprites(child, sprites);
+	}
+
+	return sprites;
+}

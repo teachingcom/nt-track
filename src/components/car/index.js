@@ -2,8 +2,7 @@
 // TODO: anti aliasing isn't great - consider creating
 // multiple versions that are pre-scaled using canvas
 
-import * as PIXI from 'pixi.js';
-import { findDisplayObjectsOfRole, createPlaceholderImage } from 'nt-animator';
+import { PIXI, findDisplayObjectsOfRole, createPlaceholderImage } from 'nt-animator';
 import { merge, isNumber, noop } from '../../utils';
 import { createStaticCar } from './create-static-car';
 
@@ -31,6 +30,7 @@ import {
 // animations
 import ActivateNitroAnimation from '../../animations/activate-nitro';
 import generateTextures from './texture-generator';
+import hueShift from './hue-shift';
 
 
 export default class Car extends PIXI.Container {
@@ -55,7 +55,7 @@ export default class Car extends PIXI.Container {
 		
 		// initialize the car
 		await instance._initCar();
-		instance._initFilters();
+		await instance._initFilters();
 
 		// return the created car
 		return instance;
@@ -118,7 +118,7 @@ export default class Car extends PIXI.Container {
 		}
 		
 		// create the missing car instance
-		this.options.hue = 0 | Math.random() * 360;
+		this.options.hue = (0 | Math.random() * 36) * 10;
 		
 		// TODO: if the missing car needs to be animated, then
 		// use the enhanced car loader
@@ -159,7 +159,7 @@ export default class Car extends PIXI.Container {
 	// creates a car from a static resource
 	_createStaticCar = async type => {
 		const { view } = this;
-		const { staticUrl } = view.options;
+		const { staticUrl, staticCarUrl } = view.options;
 		const car = new PIXI.Container();
 
 		// check fpr special instructions
@@ -169,7 +169,8 @@ export default class Car extends PIXI.Container {
 		// get the sprite to render
 		let sprite;
 		try {
-			sprite = await createStaticCar(staticUrl, type);
+			console.log('will create', staticCarUrl);
+			sprite = await createStaticCar(staticUrl, type, hue);
 
 			// if this failed to load
 			if (!sprite) {
@@ -263,16 +264,20 @@ export default class Car extends PIXI.Container {
 
 
 	// setup visual filters
-	_initFilters = () => {
-		const { options } = this;
+	async _initFilters() {
+		const { options, car } = this;
 		const { hue = 0 } = options;
 
-		// create a color matrix
-		const color = this.matrix = new PIXI.filters.ColorMatrixFilter();
-		color.hue(hue);
+		// no shifting was required
+		if (!hue) return;
 
-		// apply filters
-		this.car.filters = [ color ];
+		// recolor as needed
+		try {
+			await hueShift(car, hue);
+		}
+		catch (ex) {
+			console.warn('failed', ex);
+		}
 	}
 
 
@@ -464,3 +469,5 @@ export default class Car extends PIXI.Container {
 	}
 
 }
+
+

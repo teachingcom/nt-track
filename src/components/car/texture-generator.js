@@ -1,7 +1,6 @@
 // TODO: this file needs to be optimized
 
-import * as PIXI from 'pixi.js';
-import { createContext } from "nt-animator";
+import { PIXI, createContext } from "nt-animator";
 import { NITRO_BLUR_REALTIVE_SIZE_SCALING, CAR_SHADOW_BLUR } from '../../config';
 
 // extra padding for the rendered shadows

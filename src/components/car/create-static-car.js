@@ -1,5 +1,4 @@
-import * as PIXI from 'pixi.js';
-import { loadImage } from 'nt-animator';
+import { PIXI, loadImage } from 'nt-animator';
 
 // handles loading a legacy car
 export async function createStaticCar(baseUrl, type) {

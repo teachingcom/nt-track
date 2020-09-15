@@ -1,6 +1,5 @@
 
-import * as PIXI from 'pixi.js';
-import { PIXI as AnimatorPIXI, removeDisplayObject } from 'nt-animator';
+import { PIXI, removeDisplayObject } from 'nt-animator';
 
 import { LANES, SCALED_CAR_HEIGHT, SCALED_NAMECARD_HEIGHT } from './scaling';
 import { NITRO_SCALE, NITRO_OFFSET_Y, TRAIL_SCALE, NAMECARD_TETHER_DISTANCE } from '../../config';
@@ -13,7 +12,7 @@ import Nitro from '../../components/nitro';
 // debugging helper
 const DEBUG_PLAYER_PROGRESS = false;
 
-export default class Player extends AnimatorPIXI.ResponsiveContainer {
+export default class Player extends PIXI.ResponsiveContainer {
 
 	// keeping track of game state
 	state = { }
@@ -242,7 +241,7 @@ export default class Player extends AnimatorPIXI.ResponsiveContainer {
 	}
 
 	/** handles updating the car */
-	render(...args) {
+	updateTransform(...args) {
 
 		// tracking progress
 		if (DEBUG_PLAYER_PROGRESS) {
@@ -273,7 +272,7 @@ x   : ${screenX}%${place}`;
 		}
 
 		// perform the normal render
-		super.render(...args);
+		super.updateTransform(...args);
 	}
 
 

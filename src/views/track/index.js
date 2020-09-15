@@ -1,6 +1,5 @@
-import * as PIXI from 'pixi.js';
 
-import { PIXI as AnimatorPIXI } from 'nt-animator';
+import { PIXI } from 'nt-animator';
 import { merge } from '../../utils';
 import * as audio from '../../audio';
 
@@ -42,8 +41,6 @@ import RaceCompletedAnimation from '../../animations/race-completed';
 import RaceProgressAnimation from '../../animations/race-progress';
 import FpsMonitor from '../../fps';
 import CountdownAnimation from '../../animations/countdown';
-import createConfetti from '../../plugins/confetti';
-// import RainEffect from '../../plugins/effects/rain';
 
 /** creates a track view that supports multiple cars for racing */
 export default class TrackView extends BaseView {
@@ -205,7 +202,7 @@ export default class TrackView extends BaseView {
 			if (namecard) {
 
 				// wrap the container with a responsive container
-				const container = new AnimatorPIXI.ResponsiveContainer();
+				const container = new PIXI.ResponsiveContainer();
 				container.addChild(namecard);
 
 				// add to the view

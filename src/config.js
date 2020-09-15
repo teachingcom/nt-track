@@ -1,16 +1,40 @@
 
+
+// internal testing flags
+let overrides;
+try {
+	overrides = JSON.parse(localStorage.getItem('nt:overrides')) || { };
+
+	// save a config helper
+	window.NT_CONFIG = new Proxy({ }, {
+		set(obj, str, val) {
+			if (val === undefined || val === null) delete overrides[str];
+			else overrides[str] = module.exports[str] = val;
+			localStorage.setItem('nt:overrides', JSON.stringify(overrides));
+		},
+	
+		get(obj, str) {
+			return module.exports[str];
+		}
+	});
+}
+// no crashing
+catch (ex) { }
+
+
 // the amount to upscale for SSAA
-export const SSAA_SCALING_AMOUNT = 1.25;
+export const SSAA_SCALING_AMOUNT = 1.5;
 
 // a rotation to apply to all legacy cars
 export const STATIC_CAR_ROTATION_FIX =  Math.PI;
 
 // animation speeds
-export const ANIMATION_RATE_STARTING_LINE = 2;
-export const ANIMATION_RATE_WHILE_RACING = 2;
-export const ANIMATION_RATE_FINISH_LINE = 2;
+export const ANIMATION_RATE_STARTING_LINE = 1;
+export const ANIMATION_RATE_WHILE_RACING = 1;
+export const ANIMATION_RATE_FINISH_LINE = 1;
 
 // tracks
+export const TRACK_FORCE_CANVAS = false;
 export const TRACK_MAXIMUM_SCROLL_SPEED = 35;
 export const TRACK_MAXIMUM_SPEED_BOOST_RATE = 0.33;
 export const TRACK_MAXIMUM_SPEED_DRAG_RATE = 0.5;
@@ -86,3 +110,12 @@ export const NITRO_ACTIVATED_TRAIL_OPACITY = 0.33;
 export const NITRO_BLUR_OFFSET_Y = -10;
 export const NITRO_BLUR_DEFAULT_OFFSET_X = 0.75;
 export const NITRO_BLUR_REALTIVE_SIZE_SCALING = 0.9;
+
+// try to replace
+try {
+	for (const key in overrides) {
+		console.log(`${key}: ${overrides[key]}`);
+		module.exports[key] = overrides[key];
+	}
+}
+catch (ex) { }

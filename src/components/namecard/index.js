@@ -1,18 +1,17 @@
 // TODO: refactor this file after introducing SSAA
 
-import * as PIXI from 'pixi.js';
 import { merge } from '../../utils';
 import { toRGBA } from '../../utils/color';
-import { createContext, getBoundsForRole } from 'nt-animator';
+import { PIXI, createContext, getBoundsForRole } from 'nt-animator';
 
 // preferred font for namecards
 const NAMECARD_MAX_NAME_LENGTH = 20;
 const NAMECARD_ICON_SCALE = 0.8;
 const NAMECARD_ICON_GAP = 10;
-const DEFAULT_NAMECARD_FONT_SIZE = 58;
+const NAMECARD_MAXIMUM_WIDTH = 550;
+const DEFAULT_NAMECARD_FONT_SIZE = 52;
 const DEFAULT_NAMECARD_FONT_NAME = 'montserrat';
 const DEFAULT_NAMECARD_FONT_WEIGHT = 600;
-const NAMECARD_MAXIMUM_WIDTH = 550;
 const DEFAULT_NAMECARD_FONT = {
 	fontSize: DEFAULT_NAMECARD_FONT_SIZE,
 	fontFamily: DEFAULT_NAMECARD_FONT_NAME,
@@ -138,7 +137,7 @@ export default class NameCard extends PIXI.Container {
 
 			// align
 			text.x = 0 | left;
-			text.y = 0 | style.y;
+			text.y = 5 + (0 | style.y);
 	
 			// add to the view
 			overlay.addChild(text);
@@ -163,7 +162,7 @@ export default class NameCard extends PIXI.Container {
 			banner.scale.x = banner.scale.y = NAMECARD_ICON_SCALE;
 			
 			// add the banner to the view
-			banner.y = 0 | -(banner.getBounds().height * 1.05);
+			banner.y = 0 | -(banner.getBounds().height * 1.1);
 			banner.x = left + 3;
 			overlay.addChild(banner);
 		}
@@ -174,7 +173,6 @@ export default class NameCard extends PIXI.Container {
 	_initOverlay() {
 		const { ICONS } = NameCard;
 
-		
 		// get info to show
 		const { options, container, isGoldNamecard } = this;
 		const { isTop3, isGold, isFriend } = options;

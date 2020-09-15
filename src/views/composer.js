@@ -1,5 +1,5 @@
 import { BaseView } from "./base";
-import { PIXI as AnimatorPIXI } from 'nt-animator';
+import { PIXI } from 'nt-animator';
 import { merge } from "../utils";
 import Player from "./track/player";
 import * as audio from '../audio';
@@ -28,7 +28,7 @@ export default class ComposerView extends BaseView {
 		const { stage } = this;
 
 		// create a container for the compositions
-		const view = new AnimatorPIXI.ResponsiveContainer();
+		const view = new PIXI.ResponsiveContainer();
 		view.relativeX = 0.5;
 		view.relativeY = 0.5;
 		stage.addChild(view);

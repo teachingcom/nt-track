@@ -1,5 +1,4 @@
-import * as PIXI from 'pixi.js';
-import dist, { PIXI as AnimatorPIXI, getBoundsForRole } from 'nt-animator';
+import { PIXI, getBoundsForRole } from 'nt-animator';
 import Random from '../../rng';
 import { TRACK_HEIGHT, TRACK_TOP } from '../../views/track/scaling';
 import { TRACK_MAXIMUM_TRAVEL_DISTANCE, TRACK_MAXIMUM_SCROLL_SPEED, TRACK_STARTING_LINE_POSITION } from '../../config';
@@ -11,7 +10,7 @@ import AmbientAudio from '../../audio/ambient';
 // total number of road slices to create
 // consider making this calculated as needed
 // meaning, add more tiles if the view expands
-const TOTAL_ROAD_SEGMENTS = 5;
+const TOTAL_ROAD_SEGMENTS = 10;
 
 // creates a default track
 export default class Track {
@@ -67,8 +66,8 @@ export default class Track {
 	segments = [ ]
 
 	// overlay and road segments
-	overlay = new AnimatorPIXI.ResponsiveContainer()
-	ground = new AnimatorPIXI.ResponsiveContainer()
+	overlay = new PIXI.ResponsiveContainer()
+	ground = new PIXI.ResponsiveContainer()
 
 	// handles selecting a track to use, either
 	// defined or random
@@ -245,7 +244,7 @@ export default class Track {
 
 			// create a a separate view - this will
 			// be placed over the cars layer
-			this.foreground = new AnimatorPIXI.ResponsiveContainer();
+			this.foreground = new PIXI.ResponsiveContainer();
 			this.foreground.addChild(layer);
 			this.foreground.relativeX = 0.5;
 			this.foreground.relativeY = this.relativeY;

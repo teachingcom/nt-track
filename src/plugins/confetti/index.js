@@ -4,5 +4,7 @@ import FastConfetti from './generator';
 export default async function createConfetti(animator, track) {
 	const instance = await FastConfetti.create(animator, track);
 	instance.start();
-	return instance.sprite;
+
+	// give back the stage object, if any
+	return instance.isDirectDraw ? null : instance.sprite;
 }

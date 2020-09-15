@@ -1,5 +1,5 @@
-import * as PIXI from 'pixi.js';
-import { getBoundsForRole } from 'nt-animator';
+
+import { PIXI, getBoundsForRole } from 'nt-animator';
 
 export default class Treadmill extends PIXI.Container {
 

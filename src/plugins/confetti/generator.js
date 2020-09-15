@@ -1,7 +1,6 @@
-import * as PIXI from 'pixi.js';
-import { createContext } from 'nt-animator';
+import { PIXI, createContext, drawPixiTexture } from 'nt-animator';
 import { LAYER_TRACK_OVERLAY } from '../../views/track/layers';
-import { ANIMATION_RATE_STARTING_LINE } from '../../config';
+import { ANIMATION_RATE_STARTING_LINE, ANIMATION_RATE_FINISH_LINE } from '../../config';
 
 const PARTICLE_COUNT = 125;
 const DEFAULT_PARTICLE_SIZE = 11;
@@ -26,19 +25,36 @@ export default class FastConfetti {
 		instance.c3 = await animator.getImage('particles', 'confetti_3');
 		instance.c4 = await animator.getImage('particles', 'confetti_4');
 
-		// start animating
-		// instance.start();
-
+		// use the build in canvas, if possible
 		return instance;
 	}
 
 	constructor(track) {
 		this.track = track;
 		this.view = track.view;
-		this.context = createContext(1000, 1000);
-		this.texture = PIXI.Texture.from(this.context.canvas);
-		this.sprite = new PIXI.Sprite(this.texture);
-		this.sprite.zIndex = LAYER_TRACK_OVERLAY;
+
+		// if this is using canvas, just draw
+		// directly onto the scene
+		if (this.track.isUsingCanvas) {
+			this.context = {
+				canvas: this.track.renderer.view,
+				ctx: this.track.renderer.context
+			};
+
+			// helper util function
+			this.context.ctx.drawTexture = drawPixiTexture;
+			this.isDirectDraw = true;
+			this.alpha = 0;
+		}
+		// if it's webGL then we need a texture
+		else {
+			this.context = createContext(1000, 1000);
+			this.texture = PIXI.Texture.from(this.context.canvas);
+			this.sprite = new PIXI.Sprite(this.texture);
+			this.sprite.zIndex = LAYER_TRACK_OVERLAY;
+			this.isDirectDraw = false;
+		}
+
 	}
 
 	particles = [ ]
@@ -78,10 +94,18 @@ export default class FastConfetti {
 		// queue the next update
 		requestAnimationFrame(this.update);
 		
-		const { sprite, context, view, particles, track } = this;
+		const {
+			sprite,
+			context,
+			view,
+			particles,
+			track,
+			texture,
+			isDirectDraw
+		} = this;
 		
-		// if throttling
-		if (track.frame % ANIMATION_RATE_STARTING_LINE !== 0) return;
+		// // if throttling
+		// if ((track.frame % ANIMATION_RATE_FINISH_LINE) !== 0) return;
 		
 		// calculate the new size
 		const { ctx, canvas } = context;
@@ -94,12 +118,23 @@ export default class FastConfetti {
 
 		// match size
 		ctx.setTransform(1, 0, 0, 1, 0, 0);
-		sprite.width = canvas.width = width;
-		sprite.height = canvas.height = height;
+
+		// is rendering directly to the canvas
+		if (isDirectDraw) {
+			// fade in the effect
+			ctx.globalAlpha = Math.min(1, this.alpha);
+			this.alpha += 0.01;
+		}
+		// is drawing to a texture
+		else {
+			// reset the canvas when using a texture
+			sprite.width = canvas.width = width;
+			sprite.height = canvas.height = height;
+		}
 
 		// update all particles
 		for (let i = PARTICLE_COUNT; i-- > 0;) {
-			let particle = this.particles[i];
+			let particle = particles[i];
 
 			// create a new particle
 			if (!particle) {
@@ -133,7 +168,8 @@ export default class FastConfetti {
 		}
 
 		// refresh the texture
-		this.texture.update();
+		if (texture)
+			texture.update();
 	}
 
 }

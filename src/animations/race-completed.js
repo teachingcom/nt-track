@@ -1,4 +1,4 @@
-import * as PIXI from 'pixi.js';
+import { PIXI } from 'nt-animator';
 import * as audio from '../audio';
 import Animation from './base';
 import CarFinishLineAnimation from "./car-finish";
@@ -182,7 +182,8 @@ export default class RaceCompletedAnimation extends Animation {
 		
 		// add some confetti
 		const confetti = await createConfetti(animator, track);
-		track.view.addChild(confetti);
+		if (!!confetti)
+			track.view.addChild(confetti);
 		
 		// create the flash of white
 		const flash = new PIXI.Sprite(PIXI.Texture.WHITE);

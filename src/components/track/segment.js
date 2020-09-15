@@ -1,6 +1,5 @@
-import * as PIXI from 'pixi.js';
 import { BASE_HEIGHT, TRACK_HEIGHT } from '../../views/track/scaling';
-import { getBoundsForRole } from 'nt-animator';
+import { PIXI, getBoundsForRole } from 'nt-animator';
 
 export default class Segment {
 

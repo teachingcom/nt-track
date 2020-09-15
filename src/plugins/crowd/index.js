@@ -1,4 +1,4 @@
-import * as PIXI from 'pixi.js';
+import { PIXI } from 'nt-animator';
 import { noop, choose, shuffle } from '../../utils';
 import { CROWD_DEFAULT_SCALE,CROWD_ANIMATION_FRAME_COUNT, CROWD_ANIMATION_DURATION } from '../../config';
 import generateAnimationFrames from './generate-animatons';

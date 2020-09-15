@@ -1,8 +1,7 @@
-import * as PIXI from 'pixi.js';
-import { PIXI as AnimatorPIXI } from 'nt-animator';
-import { merge, isNumber } from '../../utils';
+import { PIXI } from 'nt-animator';
+import { merge } from '../../utils';
 
-export default class Trail extends AnimatorPIXI.DetatchedContainer {
+export default class Trail extends PIXI.DetatchedContainer {
 
 	/** handles creating the new trail instance */
 	static async create(options) {
