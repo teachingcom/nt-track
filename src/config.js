@@ -34,7 +34,7 @@ export const ANIMATION_RATE_WHILE_RACING = 1;
 export const ANIMATION_RATE_FINISH_LINE = 1;
 
 // tracks
-export const TRACK_FORCE_CANVAS = false;
+export const TRACK_FORCE_CANVAS = Math.random() < 0.5;
 export const TRACK_MAXIMUM_SCROLL_SPEED = 35;
 export const TRACK_MAXIMUM_SPEED_BOOST_RATE = 0.33;
 export const TRACK_MAXIMUM_SPEED_DRAG_RATE = 0.5;
