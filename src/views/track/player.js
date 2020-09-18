@@ -45,6 +45,11 @@ export default class Player extends PIXI.ResponsiveContainer {
 		return this.layers.shadow;
 	}
 
+	/** checks for minimal assets to play the game */
+	get hasRequiredAssets() {
+		return !this.car?.isUsingMissingCar && !!this.namecard;
+	}
+
 	/** handles creating a new player instance */
 	static async create(options) {
 		const instance = new Player();

@@ -99,8 +99,8 @@ export default class TrackView extends BaseView {
 		}
 		// unable to load sounds
 		catch (ex) {
-			console.warn('failed to load audio');
-			throw new MissingAssetException();
+			console.error('Failed to load required audio files');
+			throw new AudioAssetError();
 		}
 		
 		// preload the countdown animation images
@@ -112,30 +112,22 @@ export default class TrackView extends BaseView {
 		}
 		// unable to load the countdown
 		catch(ex) {
-			console.warn('failed to load countdown');
+			console.error(`Failed to load required files for countdown animation`);
+			throw new CountdownAssetError();
 		}
 
 		// tracking race position progress
+		const { isQualifyingRace } = options;
 		this.progress = options.manifest.progress;
 		this.pendingPlayers = options.expectedPlayerCount;
 		this.animationRate = options.animationRateWhenStartLine;
-		this.raceProgressAnimation = new RaceProgressAnimation({ track: this });
+		this.raceProgressAnimation = new RaceProgressAnimation({ track: this, isQualifyingRace });
 
 		// attach the effects filter
-		this.stage.filters = [ this.colorFilter ];
+		// this.stage.filters = [ this.colorFilter ];
 
 		// after initialized, start tracking
 		this.fps.activate();
-	}
-
-	/** changes internal configurations */
-	setConfig = options => {
-
-		// ignores resource loading errors
-		if ('ignoreResourceLoadingErrors' in options) {
-			this.animator.ignoreImageLoadErrors = this.ignoreImageLoadErrors = !!options.ignoreResourceLoadingErrors;
-		}
-
 	}
 
 	/** returns the FPS cache values */
@@ -166,14 +158,6 @@ export default class TrackView extends BaseView {
 		// make sure this isn't a mistake
 		if (activePlayers[data.id]) return;
 		activePlayers[data.id] = true;
-
-		// manage resource loading depending
-		// on if this is the actual player or not
-		// for others, just load placeholders if
-		// there is a problem
-		this.setConfig({ 
-			ignoreImageLoadErrors: !isPlayer
-		});
 		
 		// increase the expected players
 		state.totalPlayers++;
@@ -183,6 +167,11 @@ export default class TrackView extends BaseView {
 		try {
 			player = await Player.create(playerOptions);
 			player.track = this;
+
+			// if this player failed to load, abandon the
+			// attempt
+			if (isPlayer && !player.hasRequiredAssets)
+				throw new PlayerAssetError();
 			
 			// set the active player, if needed
 			if (isPlayer) {
@@ -240,9 +229,11 @@ export default class TrackView extends BaseView {
 			state.totalPlayers--;
 
 			// if the player was created, try and remove it
-			if (player) {
-				player.dispose();
-			}
+			if (player) player.dispose();
+
+			// if this is the player, then this was
+			// a breaking exception
+			if (isPlayer) throw ex;
 		}
 	}
 
@@ -255,21 +246,29 @@ export default class TrackView extends BaseView {
 	setTrack = async options => {
 		const { stage } = this;
 		const trackOptions = merge({ view: this }, options);
-		const track = this.track = await Track.create(trackOptions);
-		this.resolveTask('load_track');
 
-		// add the scroling ground
-		stage.addChild(track.ground);
-		track.ground.zIndex = LAYER_TRACK_GROUND;
-		track.ground.relativeX = 0.5;
-
-		// add the scrolling overlay
-		stage.addChild(track.overlay);
-		track.overlay.zIndex = LAYER_TRACK_OVERLAY;
-		track.overlay.relativeX = 0.5;
-
-		// sort the layers
-		stage.sortChildren();
+		try {
+			const track = this.track = await Track.create(trackOptions);
+			this.resolveTask('load_track');
+			
+			// add the scroling ground
+			stage.addChild(track.ground);
+			track.ground.zIndex = LAYER_TRACK_GROUND;
+			track.ground.relativeX = 0.5;
+			
+			// add the scrolling overlay
+			stage.addChild(track.overlay);
+			track.overlay.zIndex = LAYER_TRACK_OVERLAY;
+			track.overlay.relativeX = 0.5;
+			
+			// sort the layers
+			stage.sortChildren();
+		}
+		// any failures
+		catch (ex) {
+			console.error(ex);
+			throw new TrackAssetError();
+		}
 	}
 
 	/** sets a player as ready to go */
@@ -528,4 +527,7 @@ export default class TrackView extends BaseView {
 }
 
 
-function MissingAssetException() { }
+function CountdownAssetError() { }
+function TrackAssetError() { }
+function AudioAssetError() { }
+function PlayerAssetError() { }

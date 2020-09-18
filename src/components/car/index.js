@@ -88,9 +88,8 @@ export default class Car extends PIXI.Container {
 		// shift everything to align to the front of the car
 		const front = positions.front;
 		this.pivot.x = front;
-		for (const id in positions) {
+		for (const id in positions)
 			positions[id] -= front;
-		}
 
 		// save the car and positions
 		this.positions = positions;
@@ -113,7 +112,7 @@ export default class Car extends PIXI.Container {
 		// prevent accidental recursive calls
 		// TODO: if this fails at loading the missing car
 		// then potentially use the canvas to draw something
-		if (this._isUsingMissingCarFallback) {
+		if (this.isUsingMissingCar) {
 			return this._createGeneratedCar();
 		}
 		
@@ -123,9 +122,8 @@ export default class Car extends PIXI.Container {
 		// TODO: if the missing car needs to be animated, then
 		// use the enhanced car loader
 		// return this._createEnhancedCar(CAR_404_ENHANCED_VERSION);
-		this._isUsingMissingCarFallback = true;
+		this.isUsingMissingCar = true;
 		return this._createStaticCar(CAR_404_STATIC_VERSION);
-		
 	}
 
 	// overrideable functions
@@ -165,7 +163,7 @@ export default class Car extends PIXI.Container {
 		// check fpr special instructions
 		const id = 0 | type.match(/^\d+/)[0];
 		const mods = CAR_SPRITE_MODIFICATIONS[id];
-			
+		
 		// get the sprite to render
 		let sprite;
 		try {
@@ -210,6 +208,7 @@ export default class Car extends PIXI.Container {
 	// creates a car that has enhanced effects
 	_createEnhancedCar = async path => {
 		const { view, config } = this;
+		this.isUsingMissingCar
 
 		// try and load a new car asset
 		let car;

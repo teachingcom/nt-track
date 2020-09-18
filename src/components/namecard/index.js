@@ -6,7 +6,9 @@ import { PIXI, createContext, getBoundsForRole } from 'nt-animator';
 
 // preferred font for namecards
 const NAMECARD_MAX_NAME_LENGTH = 20;
-const NAMECARD_ICON_SCALE = 0.8;
+const DEFAULT_CENTER_PADDING = 8;
+const DEFAULT_LEFT_MARGIN = 25;
+const DEFAULT_TOP_MARGIN = 10;
 const NAMECARD_ICON_GAP = 10;
 const NAMECARD_MAXIMUM_WIDTH = 550;
 const DEFAULT_NAMECARD_FONT_SIZE = 52;
@@ -52,17 +54,27 @@ export default class NameCard extends PIXI.Container {
 		const hasOverlay = config.overlay !== false;
 		merge(instance, { options, view, path, config, isGoldNamecard, isPlayerNamecard, hasOverlay });
 
-		// create a container for all parts
-		instance.container = new PIXI.Container();
-		instance.addChild(instance.container);
-		
-		// initialize all namecard parts
-		await instance._initNameCard();
-		await instance._initIcons();
+		// attempt to add a namecard
+		try {
+			// create a container for all parts
+			instance.container = new PIXI.Container();
+			instance.addChild(instance.container);
 
-		// check for an overlay to render
-		if (hasOverlay)
-			instance._initOverlay();
+			// initialize all namecard parts
+			await instance._initNameCard();
+			await instance._initIcons();
+
+			// check for an overlay to render
+			if (hasOverlay)
+				instance._initOverlay();
+		}
+		// failed to render the card and could
+		// potentially be a future issue - logthis
+		catch (ex) {
+			console.error(ex);
+			this.failedToLoadNamecard = true;
+			return null;
+		}
 
 		// return the created namecard
 		return instance;
@@ -106,67 +118,72 @@ export default class NameCard extends PIXI.Container {
 
 	// generates the overlay content
 	_renderOverlay = () => {
-		const { displayName, icons, container, config, overlay, hasOverlay } = this;
-		
+		const { displayName, icons, bounds, config, container, hasOverlay } = this;
+
 		// no need to resize
 		if (!hasOverlay) return;
 
-		// pick the left edge
-		// TODO: why does this number work?
-		const left = 0 | -(container.width * 1.15);
-
-		// get colors to use for text
-		let textColor = 0xffffff;
-		let shadowColor = 0x000000;
+		// create the bounds
+		const { width, height } = bounds;
+		const cx = 0 | width / 2;
+		const cy = 0 | height / 2;
+		
+		// create the layer to draw everything
+		const surface = createContext();
+		const { ctx, canvas } = surface;
+		surface.resize(0 | width * 0.875, 0 | height * 0.85);
+	
+		// get rendering params
+		let textColor = '#ffffff';
+		let shadowColor = '#000000';
+		let left = DEFAULT_LEFT_MARGIN;
+		let top = DEFAULT_TOP_MARGIN;
+		
+		// check for display text config
 		if (config.text) {
 			textColor = 'color' in config.text ? toRGBA(config.text.color, 1) : textColor;
 			shadowColor = 'shadow' in config.text ? toRGBA(config.text.shadow, 1) : shadowColor;
+			if (!isNaN(config.text.left)) left = config.text.left;
+			if (!isNaN(config.text.top)) top = config.text.top;
 		}
 
-		// render each line
+		// prepare to draw text
+		ctx.textBaseline = 'top';
+		ctx.textAlignment = 'left';
+		ctx.font = `${DEFAULT_NAMECARD_FONT_WEIGHT} ${DEFAULT_NAMECARD_FONT_SIZE}px ${DEFAULT_NAMECARD_FONT_NAME}`;
+
+		// render the text
+		ctx.translate(0, cy + DEFAULT_CENTER_PADDING);
 		for (const style of [
 			{ color: shadowColor, y: 4 },
 			{ color: textColor, y: 0 }
 		]) {
-		
-			// draw the text/shadow
-			const text = new PIXI.Text(displayName, {
-				fill: style.color,
-				...DEFAULT_NAMECARD_FONT
-			});
 
-			// align
-			text.x = 0 | left;
-			text.y = 5 + (0 | style.y);
-	
-			// add to the view
-			overlay.addChild(text);
+			// render each part
+			ctx.fillStyle = style.color;
+			ctx.fillText(displayName, 0, style.y);
 		}
 
-		// no icons to render
+		// check for icons to render
 		if (!!icons) {
 	
 			// render the icon block
 			const { tallest, ids } = icons;
-			const surface = createContext();
 			
 			// create the icon strip
-			surface.resize(500, 0 | tallest);
 			surface.ctx.setTransform(1, 0, 0, 1, 0, 0);
 			surface.ctx.translate(0, 0 | (tallest / 2));
 			drawIcons(surface.ctx, ids);
-			
-			// create the new texture
-			const texture = PIXI.Texture.from(surface.canvas);
-			const banner = new PIXI.Sprite(texture);
-			banner.scale.x = banner.scale.y = NAMECARD_ICON_SCALE;
-			
-			// add the banner to the view
-			banner.y = 0 | -(banner.getBounds().height * 1.1);
-			banner.x = left + 3;
-			overlay.addChild(banner);
 		}
 
+		// create the new texture
+		const texture = PIXI.Texture.from(canvas);
+		const display = new PIXI.Sprite(texture);
+
+		// add the banner to the view
+		display.y = -cy + top;
+		display.x = -cx + left;
+		container.addChild(display);
 	}
 
 	// create the text labels
@@ -174,11 +191,11 @@ export default class NameCard extends PIXI.Container {
 		const { ICONS } = NameCard;
 
 		// get info to show
-		const { options, container, isGoldNamecard } = this;
+		const { options, isGoldNamecard } = this;
 		const { isTop3, isGold, isFriend } = options;
 		
-		// // debug
-		// options.name = 'In   vi   s ib\tle1......';
+		// debug
+		// options.name = '|||||||ssssflskdfjlskdfj';
 		// options.team = ' TALK ';
 
 		// create the full name
@@ -195,11 +212,6 @@ export default class NameCard extends PIXI.Container {
 				full = full.substr(0, full.length - 1);
 			}
 		}
-
-		// overlays won't change
-		this.overlay = new PIXI.Container();
-		this.overlay.cacheAsBitmap = true;
-		container.addChild(this.overlay);
 		
 		// set the display name
 		this.displayName = full;

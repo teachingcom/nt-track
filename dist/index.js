@@ -74495,7 +74495,7 @@ function _loadSpritesheet() {
               break;
             }
 
-            if (!(!image && !animator.ignoreImageLoadErrors)) {
+            if (image) {
               _context.next = 7;
               break;
             }
@@ -83450,13 +83450,52 @@ function create(type, key, sprite) {
 function MissingSoundException() {}
 },{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","howler":"../node_modules/howler/dist/howler.js","./sound":"audio/sound.js"}],"debug.js":[function(require,module,exports) {
 
+},{}],"perf.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = getPerformanceScore;
+exports.HIGH = exports.MEDIUM = exports.LOW = void 0;
+var LOW = 0;
+exports.LOW = LOW;
+var MEDIUM = 1;
+exports.MEDIUM = MEDIUM;
+var HIGH = 2; // highly experimental
+
+exports.HIGH = HIGH;
+var LOW_SCORE = 340000;
+var MEDIUM_SCORE = 545000; // peforms a crude test to determine performance
+// potential for rendering
+
+function getPerformanceScore() {
+  var stopAt = +new Date() + 250; // determine how many cycles can be done in
+  // a quarter of a second
+
+  var cycles = 0;
+
+  while (true) {
+    cycles++;
+    if (+new Date() > stopAt) break;
+  } // return a simple score to determine which
+  // quality settings to use
+
+
+  return cycles < LOW_SCORE ? LOW : cycles < MEDIUM_SCORE ? MEDIUM : HIGH;
+}
 },{}],"config.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.NITRO_BLUR_REALTIVE_SIZE_SCALING = exports.NITRO_BLUR_DEFAULT_OFFSET_X = exports.NITRO_BLUR_OFFSET_Y = exports.NITRO_ACTIVATED_TRAIL_OPACITY = exports.NITRO_OFFSET_Y = exports.NITRO_OFFSET_X = exports.NITRO_SCALE = exports.TRAIL_SCALE = exports.CAR_SPRITE_MODIFICATIONS = exports.CAR_404_ENHANCED_VERSION = exports.CAR_404_STATIC_VERSION = exports.CAR_NITRO_ADVANCEMENT_DISTANCE = exports.CAR_SHAKE_SHADOW_REDUCTION = exports.CAR_SHAKE_NITRO_BONUS = exports.CAR_SHAKE_DISTANCE = exports.CAR_DEFAULT_FRONT_BACK_OFFSET_X = exports.CAR_BODY_OFFSET_Y = exports.CAR_SHADOW_OFFSET_Y = exports.CAR_SHADOW_SCALE_ADJUST = exports.CAR_SHADOW_OPACITY = exports.CAR_SHADOW_BLUR = exports.CAR_DEFAULT_SHAKE_LEVEL = exports.NAMECARD_TETHER_DISTANCE = exports.NAMECARD_SCALE = exports.CROWD_ANIMATION_DURATION = exports.CROWD_ANIMATION_FRAME_COUNT = exports.CROWD_ANIMATION_VARIATIONS = exports.CROWD_DEFAULT_SCALE = exports.RACE_FINISH_FLASH_FADE_TIME = exports.RACE_SOUND_ERROR_MAX_INTERVAL = exports.RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL = exports.RACE_PROGRESS_TWEEN_TIMING = exports.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT = exports.RACE_FINISH_CAR_STOPPING_TIME = exports.RACE_START_NAMECARD_DELAY_TIME = exports.RACE_START_NAMECARD_ENTRY_TIME = exports.RACE_START_CAR_ENTRY_TIME = exports.RACE_AUTO_PROGRESS_DISTANCE = exports.RACE_OFF_SCREEN_FINISH_DISTANCE = exports.RACE_PLAYER_DISTANCE_MODIFIER = exports.RACE_ENDING_ANIMATION_THRESHOLD = exports.TRACK_OFFSCREEN_CAR_FINISH = exports.TRACK_NAMECARD_EDGE_PADDING = exports.TRACK_STARTING_LINE_POSITION = exports.TRACK_CAR_LANE_CENTER_OFFSET = exports.TRACK_CAR_SIZE_RELATIVE_TO_LANE = exports.TRACK_SHOULDER_SCALE = exports.TRACK_BOTTOM_SCALE = exports.TRACK_TOP_SCALE = exports.TRACK_ACCELERATION_RATE = exports.TRACK_MAXIMUM_TRAVEL_DISTANCE = exports.TRACK_MAXIMUM_SPEED = exports.TRACK_MAXIMUM_SPEED_DRAG_RATE = exports.TRACK_MAXIMUM_SPEED_BOOST_RATE = exports.TRACK_MAXIMUM_SCROLL_SPEED = exports.TRACK_FORCE_CANVAS = exports.ANIMATION_RATE_FINISH_LINE = exports.ANIMATION_RATE_WHILE_RACING = exports.ANIMATION_RATE_STARTING_LINE = exports.STATIC_CAR_ROTATION_FIX = exports.SSAA_SCALING_AMOUNT = void 0;
+exports.NITRO_BLUR_REALTIVE_SIZE_SCALING = exports.NITRO_BLUR_DEFAULT_OFFSET_X = exports.NITRO_BLUR_OFFSET_Y = exports.NITRO_ACTIVATED_TRAIL_OPACITY = exports.NITRO_OFFSET_Y = exports.NITRO_OFFSET_X = exports.NITRO_SCALE = exports.TRAIL_SCALE = exports.CAR_SPRITE_MODIFICATIONS = exports.STATIC_CAR_ROTATION_FIX = exports.CAR_404_ENHANCED_VERSION = exports.CAR_404_STATIC_VERSION = exports.CAR_NITRO_ADVANCEMENT_DISTANCE = exports.CAR_SHAKE_SHADOW_REDUCTION = exports.CAR_SHAKE_NITRO_BONUS = exports.CAR_SHAKE_DISTANCE = exports.CAR_DEFAULT_FRONT_BACK_OFFSET_X = exports.CAR_BODY_OFFSET_Y = exports.CAR_SHADOW_OFFSET_Y = exports.CAR_SHADOW_SCALE_ADJUST = exports.CAR_SHADOW_OPACITY = exports.CAR_SHADOW_BLUR = exports.CAR_DEFAULT_SHAKE_LEVEL = exports.NAMECARD_TETHER_DISTANCE = exports.NAMECARD_SCALE = exports.CROWD_ANIMATION_DURATION = exports.CROWD_ANIMATION_FRAME_COUNT = exports.CROWD_ANIMATION_VARIATIONS = exports.CROWD_DEFAULT_SCALE = exports.RACE_FINISH_FLASH_FADE_TIME = exports.RACE_SOUND_ERROR_MAX_INTERVAL = exports.RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL = exports.RACE_PROGRESS_TWEEN_TIMING = exports.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT = exports.RACE_FINISH_CAR_STOPPING_TIME = exports.RACE_START_NAMECARD_DELAY_TIME = exports.RACE_START_NAMECARD_ENTRY_TIME = exports.RACE_START_CAR_ENTRY_TIME = exports.RACE_AUTO_PROGRESS_DISTANCE = exports.RACE_OFF_SCREEN_FINISH_DISTANCE = exports.RACE_PLAYER_DISTANCE_MODIFIER = exports.RACE_ENDING_ANIMATION_THRESHOLD = exports.TRACK_OFFSCREEN_CAR_FINISH = exports.TRACK_NAMECARD_EDGE_PADDING = exports.TRACK_STARTING_LINE_POSITION = exports.TRACK_CAR_LANE_CENTER_OFFSET = exports.TRACK_CAR_SIZE_RELATIVE_TO_LANE = exports.TRACK_SHOULDER_SCALE = exports.TRACK_BOTTOM_SCALE = exports.TRACK_TOP_SCALE = exports.TRACK_ACCELERATION_RATE = exports.TRACK_MAXIMUM_TRAVEL_DISTANCE = exports.TRACK_MAXIMUM_SPEED = exports.TRACK_MAXIMUM_SPEED_DRAG_RATE = exports.TRACK_MAXIMUM_SPEED_BOOST_RATE = exports.TRACK_MAXIMUM_SCROLL_SPEED = exports.TRACK_FORCE_CANVAS = exports.ANIMATION_RATE_FINISH_LINE = exports.ANIMATION_RATE_WHILE_RACING = exports.ANIMATION_RATE_STARTING_LINE = exports.SSAA_SCALING_AMOUNT = exports.PERFORMANCE_HIGH = exports.PERFORMANCE_MEDIUM = exports.PERFORMANCE_LOW = exports.PERFORMANCE_LEVEL = exports.PERFORMANCE_SCORE = void 0;
+
+var _perf = _interopRequireDefault(require("./perf"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 // internal testing flags
 var overrides;
 
@@ -83473,23 +83512,33 @@ try {
     }
   });
 } // no crashing
-catch (ex) {} // the amount to upscale for SSAA
+catch (ex) {} // performance related
+// export const PERFORMANCE_SCORE = 0; // 0 - low, 1 - medium, 2 - high
 
 
-var SSAA_SCALING_AMOUNT = 1.5; // a rotation to apply to all legacy cars
+var PERFORMANCE_SCORE = (0, _perf.default)();
+exports.PERFORMANCE_SCORE = PERFORMANCE_SCORE;
+var PERFORMANCE_LEVEL = ['low', 'medium', 'high'][PERFORMANCE_SCORE];
+exports.PERFORMANCE_LEVEL = PERFORMANCE_LEVEL;
+var PERFORMANCE_LOW = PERFORMANCE_SCORE === 0;
+exports.PERFORMANCE_LOW = PERFORMANCE_LOW;
+var PERFORMANCE_MEDIUM = PERFORMANCE_SCORE === 1;
+exports.PERFORMANCE_MEDIUM = PERFORMANCE_MEDIUM;
+var PERFORMANCE_HIGH = PERFORMANCE_SCORE === 2; // the amount to upscale for SSAA
+
+exports.PERFORMANCE_HIGH = PERFORMANCE_HIGH;
+var SSAA_SCALING_AMOUNT = [1, 1.5, 2][PERFORMANCE_SCORE]; // animation speeds
 
 exports.SSAA_SCALING_AMOUNT = SSAA_SCALING_AMOUNT;
-var STATIC_CAR_ROTATION_FIX = Math.PI; // animation speeds
-
-exports.STATIC_CAR_ROTATION_FIX = STATIC_CAR_ROTATION_FIX;
-var ANIMATION_RATE_STARTING_LINE = 1;
+var ANIMATION_RATE_STARTING_LINE = [2, 1, 1][PERFORMANCE_SCORE];
 exports.ANIMATION_RATE_STARTING_LINE = ANIMATION_RATE_STARTING_LINE;
-var ANIMATION_RATE_WHILE_RACING = 1;
+var ANIMATION_RATE_WHILE_RACING = [2, 2, 1][PERFORMANCE_SCORE];
 exports.ANIMATION_RATE_WHILE_RACING = ANIMATION_RATE_WHILE_RACING;
-var ANIMATION_RATE_FINISH_LINE = 1; // tracks
+var ANIMATION_RATE_FINISH_LINE = [2, 2, 1][PERFORMANCE_SCORE]; // renderer type
 
 exports.ANIMATION_RATE_FINISH_LINE = ANIMATION_RATE_FINISH_LINE;
-var TRACK_FORCE_CANVAS = Math.random() < 0.5;
+var TRACK_FORCE_CANVAS = [true, true, false][PERFORMANCE_SCORE]; // tracks
+
 exports.TRACK_FORCE_CANVAS = TRACK_FORCE_CANVAS;
 var TRACK_MAXIMUM_SCROLL_SPEED = 35;
 exports.TRACK_MAXIMUM_SCROLL_SPEED = TRACK_MAXIMUM_SCROLL_SPEED;
@@ -83586,9 +83635,12 @@ var CAR_NITRO_ADVANCEMENT_DISTANCE = 0.125;
 exports.CAR_NITRO_ADVANCEMENT_DISTANCE = CAR_NITRO_ADVANCEMENT_DISTANCE;
 var CAR_404_STATIC_VERSION = '9_large_11';
 exports.CAR_404_STATIC_VERSION = CAR_404_STATIC_VERSION;
-var CAR_404_ENHANCED_VERSION = '/cars/missing'; // special transforms for cars depending on their sprites
+var CAR_404_ENHANCED_VERSION = '/cars/missing'; // a rotation to apply to all legacy cars
 
 exports.CAR_404_ENHANCED_VERSION = CAR_404_ENHANCED_VERSION;
+var STATIC_CAR_ROTATION_FIX = Math.PI; // special transforms for cars depending on their sprites
+
+exports.STATIC_CAR_ROTATION_FIX = STATIC_CAR_ROTATION_FIX;
 var CAR_SPRITE_MODIFICATIONS = {
   // Frosted Roller
   '192': {
@@ -83621,12 +83673,15 @@ var NITRO_BLUR_REALTIVE_SIZE_SCALING = 0.9; // try to replace
 exports.NITRO_BLUR_REALTIVE_SIZE_SCALING = NITRO_BLUR_REALTIVE_SIZE_SCALING;
 
 try {
+  // debugging
+  window.NT_RENDER_QUALITY = PERFORMANCE_LEVEL; // set overrides, if any
+
   for (var key in overrides) {
     console.log("".concat(key, ": ").concat(overrides[key]));
     module.exports[key] = overrides[key];
   }
 } catch (ex) {}
-},{}],"views/base.js":[function(require,module,exports) {
+},{"./perf":"perf.js"}],"views/base.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -83700,6 +83755,9 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setWindowVisibilityState", function () {
       _this.isViewActive = document.visibilityState !== 'hidden';
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "getQuality", function () {
+      return _config.PERFORMANCE_LEVEL;
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "resize", function () {
       var _assertThisInitialize = (0, _assertThisInitialized2.default)(_this),
@@ -85326,7 +85384,7 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
         while (1) {
           switch (_context.prev = _context.next) {
             case 0:
-              if (!_this._isUsingMissingCarFallback) {
+              if (!_this.isUsingMissingCar) {
                 _context.next = 2;
                 break;
               }
@@ -85339,7 +85397,7 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
               // use the enhanced car loader
               // return this._createEnhancedCar(CAR_404_ENHANCED_VERSION);
 
-              _this._isUsingMissingCarFallback = true;
+              _this.isUsingMissingCar = true;
               return _context.abrupt("return", _this._createStaticCar(_config.CAR_404_STATIC_VERSION));
 
             case 5:
@@ -85459,41 +85517,42 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
-                _assertThisInitialize2 = (0, _assertThisInitialized2.default)(_this), view = _assertThisInitialize2.view, config = _assertThisInitialize2.config; // try and load a new car asset
+                _assertThisInitialize2 = (0, _assertThisInitialized2.default)(_this), view = _assertThisInitialize2.view, config = _assertThisInitialize2.config;
+                _this.isUsingMissingCar; // try and load a new car asset
 
-                _context3.prev = 1;
-                _context3.next = 4;
+                _context3.prev = 2;
+                _context3.next = 5;
                 return view.animator.create(path);
 
-              case 4:
+              case 5:
                 car = _context3.sent;
 
                 if (car) {
-                  _context3.next = 9;
+                  _context3.next = 10;
                   break;
                 }
 
-                _context3.next = 8;
+                _context3.next = 9;
                 return _this._createMissingCar();
 
-              case 8:
+              case 9:
                 car = _context3.sent;
 
-              case 9:
-                _context3.next = 17;
+              case 10:
+                _context3.next = 18;
                 break;
 
-              case 11:
-                _context3.prev = 11;
-                _context3.t0 = _context3["catch"](1);
+              case 12:
+                _context3.prev = 12;
+                _context3.t0 = _context3["catch"](2);
                 console.error("Failed to create ".concat(path));
-                _context3.next = 16;
+                _context3.next = 17;
                 return view.animator.create(path);
 
-              case 16:
+              case 17:
                 car = _context3.sent;
 
-              case 17:
+              case 18:
                 layers = (0, _ntAnimator.findDisplayObjectsOfRole)(car, 'base'); // bounds were defined in advance - special scenarios
 
                 if ((0, _utils.isNumber)(config.height)) {
@@ -85523,12 +85582,12 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
                   imageSource: imageSource
                 });
 
-              case 24:
+              case 25:
               case "end":
                 return _context3.stop();
             }
           }
-        }, _callee3, null, [[1, 11]]);
+        }, _callee3, null, [[2, 12]]);
       }));
 
       return function (_x2) {
@@ -86230,17 +86289,15 @@ function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o =
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
-
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
 // preferred font for namecards
 var NAMECARD_MAX_NAME_LENGTH = 20;
-var NAMECARD_ICON_SCALE = 0.8;
+var DEFAULT_CENTER_PADDING = 8;
+var DEFAULT_LEFT_MARGIN = 25;
+var DEFAULT_TOP_MARGIN = 10;
 var NAMECARD_ICON_GAP = 10;
 var NAMECARD_MAXIMUM_WIDTH = 550;
 var DEFAULT_NAMECARD_FONT_SIZE = 52;
@@ -86278,25 +86335,42 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
       var _assertThisInitialize = (0, _assertThisInitialized2.default)(_this),
           displayName = _assertThisInitialize.displayName,
           icons = _assertThisInitialize.icons,
-          container = _assertThisInitialize.container,
+          bounds = _assertThisInitialize.bounds,
           config = _assertThisInitialize.config,
-          overlay = _assertThisInitialize.overlay,
+          container = _assertThisInitialize.container,
           hasOverlay = _assertThisInitialize.hasOverlay; // no need to resize
 
 
-      if (!hasOverlay) return; // pick the left edge
-      // TODO: why does this number work?
+      if (!hasOverlay) return; // create the bounds
 
-      var left = 0 | -(container.width * 1.15); // get colors to use for text
+      var width = bounds.width,
+          height = bounds.height;
+      var cx = 0 | width / 2;
+      var cy = 0 | height / 2; // create the layer to draw everything
 
-      var textColor = 0xffffff;
-      var shadowColor = 0x000000;
+      var surface = (0, _ntAnimator.createContext)();
+      var ctx = surface.ctx,
+          canvas = surface.canvas;
+      surface.resize(0 | width * 0.875, 0 | height * 0.85); // get rendering params
+
+      var textColor = '#ffffff';
+      var shadowColor = '#000000';
+      var left = DEFAULT_LEFT_MARGIN;
+      var top = DEFAULT_TOP_MARGIN; // check for display text config
 
       if (config.text) {
         textColor = 'color' in config.text ? (0, _color.toRGBA)(config.text.color, 1) : textColor;
         shadowColor = 'shadow' in config.text ? (0, _color.toRGBA)(config.text.shadow, 1) : shadowColor;
-      } // render each line
+        if (!isNaN(config.text.left)) left = config.text.left;
+        if (!isNaN(config.text.top)) top = config.text.top;
+      } // prepare to draw text
 
+
+      ctx.textBaseline = 'top';
+      ctx.textAlignment = 'left';
+      ctx.font = "".concat(DEFAULT_NAMECARD_FONT_WEIGHT, " ").concat(DEFAULT_NAMECARD_FONT_SIZE, "px ").concat(DEFAULT_NAMECARD_FONT_NAME); // render the text
+
+      ctx.translate(0, cy + DEFAULT_CENTER_PADDING);
 
       for (var _i = 0, _arr = [{
         color: shadowColor,
@@ -86306,38 +86380,30 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
         y: 0
       }]; _i < _arr.length; _i++) {
         var style = _arr[_i];
-        // draw the text/shadow
-        var text = new _ntAnimator.PIXI.Text(displayName, _objectSpread({
-          fill: style.color
-        }, DEFAULT_NAMECARD_FONT)); // align
-
-        text.x = 0 | left;
-        text.y = 5 + (0 | style.y); // add to the view
-
-        overlay.addChild(text);
-      } // no icons to render
+        // render each part
+        ctx.fillStyle = style.color;
+        ctx.fillText(displayName, 0, style.y);
+      } // check for icons to render
 
 
       if (!!icons) {
         // render the icon block
         var tallest = icons.tallest,
-            ids = icons.ids;
-        var surface = (0, _ntAnimator.createContext)(); // create the icon strip
+            ids = icons.ids; // create the icon strip
 
-        surface.resize(500, 0 | tallest);
         surface.ctx.setTransform(1, 0, 0, 1, 0, 0);
         surface.ctx.translate(0, 0 | tallest / 2);
-        drawIcons(surface.ctx, ids); // create the new texture
+        drawIcons(surface.ctx, ids);
+      } // create the new texture
 
-        var texture = _ntAnimator.PIXI.Texture.from(surface.canvas);
 
-        var banner = new _ntAnimator.PIXI.Sprite(texture);
-        banner.scale.x = banner.scale.y = NAMECARD_ICON_SCALE; // add the banner to the view
+      var texture = _ntAnimator.PIXI.Texture.from(canvas);
 
-        banner.y = 0 | -(banner.getBounds().height * 1.1);
-        banner.x = left + 3;
-        overlay.addChild(banner);
-      }
+      var display = new _ntAnimator.PIXI.Sprite(texture); // add the banner to the view
+
+      display.y = -cy + top;
+      display.x = -cx + left;
+      container.addChild(display);
     });
     return _this;
   }
@@ -86446,12 +86512,11 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
       var ICONS = NameCard.ICONS; // get info to show
 
       var options = this.options,
-          container = this.container,
           isGoldNamecard = this.isGoldNamecard;
       var isTop3 = options.isTop3,
           isGold = options.isGold,
-          isFriend = options.isFriend; // // debug
-      // options.name = 'In   vi   s ib\tle1......';
+          isFriend = options.isFriend; // debug
+      // options.name = '|||||||ssssflskdfjlskdfj';
       // options.team = ' TALK ';
       // create the full name
 
@@ -86468,12 +86533,8 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
           if (size.width < NAMECARD_MAXIMUM_WIDTH) break;
           full = full.substr(0, full.length - 1);
         }
-      } // overlays won't change
+      } // set the display name
 
-
-      this.overlay = new _ntAnimator.PIXI.Container();
-      this.overlay.cacheAsBitmap = true;
-      container.addChild(this.overlay); // set the display name
 
       this.displayName = full; // check for icons
 
@@ -86552,30 +86613,42 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                   isGoldNamecard: isGoldNamecard,
                   isPlayerNamecard: isPlayerNamecard,
                   hasOverlay: hasOverlay
-                }); // create a container for all parts
+                }); // attempt to add a namecard
 
+                _context3.prev = 12;
+                // create a container for all parts
                 instance.container = new _ntAnimator.PIXI.Container();
                 instance.addChild(instance.container); // initialize all namecard parts
 
-                _context3.next = 16;
+                _context3.next = 17;
                 return instance._initNameCard();
 
-              case 16:
-                _context3.next = 18;
+              case 17:
+                _context3.next = 19;
                 return instance._initIcons();
 
-              case 18:
+              case 19:
                 // check for an overlay to render
-                if (hasOverlay) instance._initOverlay(); // return the created namecard
+                if (hasOverlay) instance._initOverlay();
+                _context3.next = 27;
+                break;
 
+              case 22:
+                _context3.prev = 22;
+                _context3.t0 = _context3["catch"](12);
+                console.error(_context3.t0);
+                this.failedToLoadNamecard = true;
+                return _context3.abrupt("return", null);
+
+              case 27:
                 return _context3.abrupt("return", instance);
 
-              case 20:
+              case 28:
               case "end":
                 return _context3.stop();
             }
           }
-        }, _callee3);
+        }, _callee3, this, [[12, 22]]);
       }));
 
       function create(_x) {
@@ -87323,6 +87396,15 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
     key: "shadow",
     get: function get() {
       return this.layers.shadow;
+    }
+    /** checks for minimal assets to play the game */
+
+  }, {
+    key: "hasRequiredAssets",
+    get: function get() {
+      var _this$car;
+
+      return !((_this$car = this.car) === null || _this$car === void 0 ? void 0 : _this$car.isUsingMissingCar) && !!this.namecard;
     }
     /** handles creating a new player instance */
 
@@ -93763,9 +93845,9 @@ var Track = /*#__PURE__*/function () {
                   this.ambience = new _ambient.default(ambience);
                   this.ambience.start();
                 } // notify of this failure
+                // probably not reason enough to fail
                 catch (ex) {
                   console.error("failed to create ambient audio");
-                  console.error(ex);
                 }
 
               case 4:
@@ -94271,6 +94353,8 @@ var getRightEdge = function getRightEdge(t) {
 var byRightEdge = function byRightEdge(a, b) {
   return getRightEdge(a) - getRightEdge(b);
 };
+
+function TrackGenerationException() {}
 },{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/readOnlyError":"../node_modules/@babel/runtime/helpers/readOnlyError.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../rng":"rng.js","../../views/track/scaling":"views/track/scaling.js","../../config":"config.js","../../utils":"utils/index.js","./segment":"components/track/segment.js","../../plugins/crowd":"plugins/crowd/index.js","../../audio/ambient":"audio/ambient.js"}],"animations/car-entry.js":[function(require,module,exports) {
 "use strict";
 
@@ -96457,12 +96541,6 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       typingSpeedModifierShift: 0,
       totalPlayers: 0
     });
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setConfig", function (options) {
-      // ignores resource loading errors
-      if ('ignoreResourceLoadingErrors' in options) {
-        _this.animator.ignoreImageLoadErrors = _this.ignoreImageLoadErrors = !!options.ignoreResourceLoadingErrors;
-      }
-    });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "getPlayerById", function (id) {
       var _iterator = _createForOfIteratorHelper(_this.players),
           _step;
@@ -96500,26 +96578,28 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 return _context.abrupt("return");
 
               case 5:
-                activePlayers[data.id] = true; // manage resource loading depending
-                // on if this is the actual player or not
-                // for others, just load placeholders if
-                // there is a problem
-
-                _this.setConfig({
-                  ignoreImageLoadErrors: !isPlayer
-                }); // increase the expected players
-
+                activePlayers[data.id] = true; // increase the expected players
 
                 state.totalPlayers++; // create the player instance
 
-                _context.prev = 8;
-                _context.next = 11;
+                _context.prev = 7;
+                _context.next = 10;
                 return _player2.default.create(playerOptions);
 
-              case 11:
+              case 10:
                 player = _context.sent;
-                player.track = (0, _assertThisInitialized2.default)(_this); // set the active player, if needed
+                player.track = (0, _assertThisInitialized2.default)(_this); // if this player failed to load, abandon the
+                // attempt
 
+                if (!(isPlayer && !player.hasRequiredAssets)) {
+                  _context.next = 14;
+                  break;
+                }
+
+                throw new PlayerAssetError();
+
+              case 14:
+                // set the active player, if needed
                 if (isPlayer) {
                   _this.activePlayerId = id;
                   _this.activePlayer = player;
@@ -96531,11 +96611,11 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 _player = player, car = _player.car;
 
                 if (!((_car$plugin = car.plugin) === null || _car$plugin === void 0 ? void 0 : _car$plugin.extend)) {
-                  _context.next = 19;
+                  _context.next = 20;
                   break;
                 }
 
-                _context.next = 19;
+                _context.next = 20;
                 return car.plugin.extend({
                   animator: animator,
                   car: car,
@@ -96543,7 +96623,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   track: (0, _assertThisInitialized2.default)(_this)
                 });
 
-              case 19:
+              case 20:
                 // with the player, include their namecard
                 namecard = player.layers.namecard;
 
@@ -96583,25 +96663,31 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   state.playerHasEntered = true;
                 }
 
-                _context.next = 34;
+                _context.next = 37;
                 break;
 
-              case 29:
-                _context.prev = 29;
-                _context.t0 = _context["catch"](8);
+              case 30:
+                _context.prev = 30;
+                _context.t0 = _context["catch"](7);
                 delete activePlayers[data.id];
                 state.totalPlayers--; // if the player was created, try and remove it
 
-                if (player) {
-                  player.dispose();
+                if (player) player.dispose(); // if this is the player, then this was
+                // a breaking exception
+
+                if (!isPlayer) {
+                  _context.next = 37;
+                  break;
                 }
 
-              case 34:
+                throw _context.t0;
+
+              case 37:
               case "end":
                 return _context.stop();
             }
           }
-        }, _callee, null, [[8, 29]]);
+        }, _callee, null, [[7, 30]]);
       }));
 
       return function (_x, _x2) {
@@ -96623,10 +96709,11 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 trackOptions = (0, _utils.merge)({
                   view: (0, _assertThisInitialized2.default)(_this)
                 }, options);
-                _context2.next = 4;
+                _context2.prev = 2;
+                _context2.next = 5;
                 return _track.default.create(trackOptions);
 
-              case 4:
+              case 5:
                 track = _this.track = _context2.sent;
 
                 _this.resolveTask('load_track'); // add the scroling ground
@@ -96641,13 +96728,21 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 track.overlay.relativeX = 0.5; // sort the layers
 
                 stage.sortChildren();
+                _context2.next = 20;
+                break;
 
-              case 13:
+              case 16:
+                _context2.prev = 16;
+                _context2.t0 = _context2["catch"](2);
+                console.error(_context2.t0);
+                throw new TrackAssetError();
+
+              case 20:
               case "end":
                 return _context2.stop();
             }
           }
-        }, _callee2);
+        }, _callee2, null, [[2, 16]]);
       }));
 
       return function (_x3) {
@@ -96853,7 +96948,8 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     // handle remaining setup
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(options) {
-        var animator, stage;
+        var animator, stage, _options, isQualifyingRace;
+
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
@@ -96894,8 +96990,8 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
               case 12:
                 _context4.prev = 12;
                 _context4.t0 = _context4["catch"](6);
-                console.warn('failed to load audio');
-                throw new MissingAssetException();
+                console.error('Failed to load required audio files');
+                throw new AudioAssetError();
 
               case 16:
                 _context4.prev = 16;
@@ -96910,28 +97006,31 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
               case 21:
                 this.resolveTask('load_extras');
-                _context4.next = 27;
+                _context4.next = 28;
                 break;
 
               case 24:
                 _context4.prev = 24;
                 _context4.t1 = _context4["catch"](16);
-                console.warn('failed to load countdown');
+                console.error("Failed to load required files for countdown animation");
+                throw new CountdownAssetError();
 
-              case 27:
+              case 28:
                 // tracking race position progress
+                _options = options, isQualifyingRace = _options.isQualifyingRace;
                 this.progress = options.manifest.progress;
                 this.pendingPlayers = options.expectedPlayerCount;
                 this.animationRate = options.animationRateWhenStartLine;
                 this.raceProgressAnimation = new _raceProgress.default({
-                  track: this
+                  track: this,
+                  isQualifyingRace: isQualifyingRace
                 }); // attach the effects filter
-
-                this.stage.filters = [this.colorFilter]; // after initialized, start tracking
+                // this.stage.filters = [ this.colorFilter ];
+                // after initialized, start tracking
 
                 this.fps.activate();
 
-              case 33:
+              case 34:
               case "end":
                 return _context4.stop();
             }
@@ -96945,12 +97044,10 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
       return init;
     }()
-    /** changes internal configurations */
+    /** returns the FPS cache values */
 
   }, {
     key: "getFpsCache",
-
-    /** returns the FPS cache values */
     value: function getFpsCache() {
       var _this$fps$flush = this.fps.flush(),
           pixiCache = _this$fps$flush.pixiCache,
@@ -97025,7 +97122,13 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
 exports.default = TrackView;
 
-function MissingAssetException() {}
+function CountdownAssetError() {}
+
+function TrackAssetError() {}
+
+function AudioAssetError() {}
+
+function PlayerAssetError() {}
 },{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","../../audio":"audio/index.js","../base":"views/base.js","./player":"views/track/player.js","../../components/track":"components/track/index.js","./scaling":"views/track/scaling.js","../../config":"config.js","./layers":"views/track/layers.js","../../audio/volume":"audio/volume.js","../../animations/car-entry":"animations/car-entry.js","../../animations/race-completed":"animations/race-completed.js","../../animations/race-progress":"animations/race-progress.js","../../fps":"fps.js","../../animations/countdown":"animations/countdown.js"}],"views/composer.js":[function(require,module,exports) {
 "use strict";
 

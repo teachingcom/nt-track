@@ -2,7 +2,7 @@ import * as debug from '../debug';
 
 import { Animator, EventEmitter, PIXI } from 'nt-animator';
 import { noop } from '../utils';
-import { SSAA_SCALING_AMOUNT, TRACK_FORCE_CANVAS } from '../config';
+import { PERFORMANCE_LEVEL, SSAA_SCALING_AMOUNT, TRACK_FORCE_CANVAS } from '../config';
 
 /** creates a track instance */
 export class BaseView extends EventEmitter {
@@ -122,6 +122,9 @@ export class BaseView extends EventEmitter {
 	setWindowVisibilityState = () => {
 		this.isViewActive = document.visibilityState !== 'hidden';
 	}
+
+	/** returns the used rendering level */
+	getQuality = () => PERFORMANCE_LEVEL
 
 	/** renders the current state of the view */
 	render() {

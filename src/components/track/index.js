@@ -112,9 +112,9 @@ export default class Track {
 			this.ambience.start();
 		}
 		// notify of this failure
+		// probably not reason enough to fail
 		catch (ex) {
 			console.error(`failed to create ambient audio`);
-			console.error(ex);
 		}
 	}
 
@@ -483,3 +483,5 @@ export default class Track {
 // helpers
 const getRightEdge = t => t.bottom.x + t.bounds.width;
 const byRightEdge = (a, b) => getRightEdge(a) - getRightEdge(b);
+
+function TrackGenerationException() { }
