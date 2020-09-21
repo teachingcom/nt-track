@@ -71096,7 +71096,8 @@ var MAPPINGS = [// transforms
   apply: function apply(t, v) {
     return t.tint = v;
   }
-}, // special RGBA tint -- the popmotion library
+}, // { prop: 'tint', apply: (t, v) => null },
+// special RGBA tint -- the popmotion library
 // converts this to rgba(###) unfortunately, so we need to
 // convert it back to decimal
 {
@@ -77887,7 +77888,9 @@ function _createEmitter() {
             if (emit.colors) {
               emit.color = emit.colors;
               emit.colors = undefined;
-            } // update each property
+            } // delete emit.colors;
+            // delete emit.color;
+            // update each property
 
 
             _loop = function _loop(prop) {
@@ -78215,12 +78218,11 @@ function _createGroup() {
 
             group.pivot.x = 0;
             group.pivot.y = 0; // bakes a layer to a single object
-
-            if (layer.merge) {
-              group.cacheAsBitmap = true;
-              group.batch = 'merged';
-            } // include this instance
-
+            // if (layer.merge) {
+            // 	group.cacheAsBitmap = true;
+            // 	group.batch = 'merged';
+            // }
+            // include this instance
 
             controller.register(container); // attach the update function
 
@@ -78231,18 +78233,18 @@ function _createGroup() {
               dispose: dispose
             }]);
 
-          case 38:
-            _context.prev = 38;
+          case 37:
+            _context.prev = 37;
             _context.t0 = _context["catch"](4);
             console.error("Failed to create group ".concat(path, " while ").concat(phase));
             throw _context.t0;
 
-          case 42:
+          case 41:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[4, 38]]);
+    }, _callee, null, [[4, 37]]);
   }));
   return _createGroup.apply(this, arguments);
 }
@@ -83465,18 +83467,29 @@ exports.MEDIUM = MEDIUM;
 var HIGH = 2; // highly experimental
 
 exports.HIGH = HIGH;
-var LOW_SCORE = 340000;
-var MEDIUM_SCORE = 545000; // peforms a crude test to determine performance
+var LOW_SCORE = 150000;
+var MEDIUM_SCORE = 400000; // peforms a crude test to determine performance
 // potential for rendering
 
 function getPerformanceScore() {
-  var stopAt = +new Date() + 250; // determine how many cycles can be done in
+  var stopAt = +new Date() + 250; // drawing surface
+
+  var canvas = document.createElement('canvas');
+  var ctx = canvas.getContext('2d');
+  ctx.fillStyle = 'white';
+  var width = canvas.width,
+      height = canvas.height;
+  document.body.appendChild(canvas);
+  canvas.className = 'debug'; // determine how many cycles can be done in
   // a quarter of a second
 
   var cycles = 0;
 
   while (true) {
     cycles++;
+    var x = 0 | width * Math.random();
+    var y = 0 | height * Math.random();
+    ctx.fillRect(x, y, 1, 1);
     if (+new Date() > stopAt) break;
   } // return a simple score to determine which
   // quality settings to use
@@ -85171,7 +85184,8 @@ function _hueShift() {
 
                 texture.getDrawableSource = function () {
                   return canvas;
-                }; // now, replace each sprite with the
+                }; // console.log(sprites);
+                // now, replace each sprite with the
                 // updated texture
 
 
@@ -85183,7 +85197,15 @@ function _hueShift() {
                     var sprite = _step.value;
                     sprite.texture = sprite.texture.clone();
                     sprite.texture.baseTexture = texture;
-                    sprite.texture.update();
+                    sprite.texture.update(); // animated sprites
+
+                    if (sprite.textures) {
+                      for (var i = sprite.textures.length; i-- > 0;) {
+                        sprite.textures[i] = sprite.textures[i].clone();
+                        sprite.textures[i].baseTexture = texture;
+                        sprite.textures[i].update();
+                      }
+                    }
                   } // all finished 
 
                 } catch (err) {
@@ -96202,7 +96224,8 @@ var CountdownAnimation = /*#__PURE__*/function (_Animation) {
 
     var _track = _ref.track,
         _stage = _ref.stage,
-        animator = _ref.animator;
+        animator = _ref.animator,
+        _onBeginRace = _ref.onBeginRace;
     (0, _classCallCheck2.default)(this, CountdownAnimation);
     _this = _super.call(this); // save references
 
@@ -96307,9 +96330,12 @@ var CountdownAnimation = /*#__PURE__*/function (_Animation) {
           go = _assertThisInitialize4.go,
           countdown = _assertThisInitialize4.countdown,
           flash = _assertThisInitialize4.flash,
-          countdownInterval = _assertThisInitialize4.countdownInterval; // if for some reason the countdown hasn't finished
-      // then go ahead and stop it
+          countdownInterval = _assertThisInitialize4.countdownInterval,
+          onBeginRace = _assertThisInitialize4.onBeginRace; // notify this has started
 
+
+      onBeginRace(); // if for some reason the countdown hasn't finished
+      // then go ahead and stop it
 
       clearInterval(countdownInterval); // play the go audio clip
 
@@ -96348,6 +96374,7 @@ var CountdownAnimation = /*#__PURE__*/function (_Animation) {
     _this.track = _track;
     _this.animator = animator;
     _this.stage = _stage;
+    _this.onBeginRace = _onBeginRace;
     return _this;
   }
 
@@ -96355,7 +96382,7 @@ var CountdownAnimation = /*#__PURE__*/function (_Animation) {
     key: "init",
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
-        var animator, resources, countdown, _findDisplayObjectsOf, _findDisplayObjectsOf2, go, _findDisplayObjectsOf3, _findDisplayObjectsOf4, numbers, _findDisplayObjectsOf5, _findDisplayObjectsOf6, flash, colors, container;
+        var animator, resources, countdown, _findDisplayObjectsOf, _findDisplayObjectsOf2, go, _findDisplayObjectsOf3, _findDisplayObjectsOf4, numbers, _findDisplayObjectsOf5, _findDisplayObjectsOf6, flash, colors, _findDisplayObjectsOf7, _findDisplayObjectsOf8, shadow, container;
 
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
@@ -96395,7 +96422,10 @@ var CountdownAnimation = /*#__PURE__*/function (_Animation) {
                 _findDisplayObjectsOf = (0, _ntAnimator.findDisplayObjectsOfRole)(countdown, 'go'), _findDisplayObjectsOf2 = (0, _slicedToArray2.default)(_findDisplayObjectsOf, 1), go = _findDisplayObjectsOf2[0];
                 _findDisplayObjectsOf3 = (0, _ntAnimator.findDisplayObjectsOfRole)(countdown, 'numbers'), _findDisplayObjectsOf4 = (0, _slicedToArray2.default)(_findDisplayObjectsOf3, 1), numbers = _findDisplayObjectsOf4[0];
                 _findDisplayObjectsOf5 = (0, _ntAnimator.findDisplayObjectsOfRole)(countdown, 'flash'), _findDisplayObjectsOf6 = (0, _slicedToArray2.default)(_findDisplayObjectsOf5, 1), flash = _findDisplayObjectsOf6[0];
-                colors = (0, _ntAnimator.findDisplayObjectsOfRole)(countdown, 'color'); // include the main countdown area
+                colors = (0, _ntAnimator.findDisplayObjectsOfRole)(countdown, 'color'); // force the shadow color
+
+                _findDisplayObjectsOf7 = (0, _ntAnimator.findDisplayObjectsOfRole)(countdown, 'shadow'), _findDisplayObjectsOf8 = (0, _slicedToArray2.default)(_findDisplayObjectsOf7, 1), shadow = _findDisplayObjectsOf8[0];
+                shadow.tint = 0x000000; // include the main countdown area
 
                 container = new _ntAnimator.PIXI.ResponsiveContainer();
                 container.relativeX = 0.5;
@@ -96412,8 +96442,9 @@ var CountdownAnimation = /*#__PURE__*/function (_Animation) {
                 this.isReady = true; // hide the go text
 
                 go.alpha = 0;
+                this.setColor(0xff0000);
 
-              case 28:
+              case 31:
               case "end":
                 return _context.stop();
             }
@@ -96562,6 +96593,9 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       typingSpeedModifierShift: 0,
       totalPlayers: 0
     });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "onBeginRace", function () {
+      _this.fps.activate();
+    });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "getPlayerById", function (id) {
       var _iterator = _createForOfIteratorHelper(_this.players),
           _step;
@@ -96597,6 +96631,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
         _iterator2.f();
       }
     });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "trailIndex", Math.floor(Math.random() * 10));
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "addPlayer", /*#__PURE__*/function () {
       var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(data, isInstant) {
         var _assertThisInitialize2, activePlayers, state, stage, playerOptions, isPlayer, id, lane, existing, player, _car$plugin, _assertThisInitialize3, animator, _player, car, namecard, container, _ref2, _ref2$enterSound, enterSound, entry;
@@ -96605,6 +96640,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
+                // car effect style
+                data.type = _this.isMildEffects ? 'missing' : _this.isNormalEffects ? 'police_cruiser' : 'grid';
+                data.hue = (data.lane || 0) * 64;
+                data.mods = data.mods || {};
+                data.mods.trail = ['frosty', 'stars', 'smoke', 'type', 'bits', 'hearts', 'fire', 'burnout', 'lightning'][++_this.trailIndex % 9];
+                data.mods.nitro = ['default', 'default', 'default', 'haha', 'burst'][Math.floor(Math.random() * 5)] || 'default';
                 _assertThisInitialize2 = (0, _assertThisInitialized2.default)(_this), activePlayers = _assertThisInitialize2.activePlayers, state = _assertThisInitialize2.state, stage = _assertThisInitialize2.stage;
                 playerOptions = (0, _utils.merge)({
                   view: (0, _assertThisInitialized2.default)(_this)
@@ -96615,34 +96656,34 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 if (existing) _this.removePlayer(existing.id); // make sure this isn't a mistake
 
                 if (!activePlayers[data.id]) {
-                  _context.next = 7;
+                  _context.next = 12;
                   break;
                 }
 
                 return _context.abrupt("return");
 
-              case 7:
+              case 12:
                 activePlayers[data.id] = true; // increase the expected players
 
                 state.totalPlayers++; // create the player instance
 
-                _context.prev = 9;
-                _context.next = 12;
+                _context.prev = 14;
+                _context.next = 17;
                 return _player2.default.create(playerOptions);
 
-              case 12:
+              case 17:
                 player = _context.sent;
                 player.track = (0, _assertThisInitialized2.default)(_this); // if this player failed to load, abandon the
                 // attempt
 
                 if (!(isPlayer && !player.hasRequiredAssets)) {
-                  _context.next = 16;
+                  _context.next = 21;
                   break;
                 }
 
                 throw new PlayerAssetError();
 
-              case 16:
+              case 21:
                 // set the active player, if needed
                 if (isPlayer) {
                   _this.activePlayerId = id;
@@ -96655,11 +96696,11 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 _player = player, car = _player.car;
 
                 if (!((_car$plugin = car.plugin) === null || _car$plugin === void 0 ? void 0 : _car$plugin.extend)) {
-                  _context.next = 22;
+                  _context.next = 27;
                   break;
                 }
 
-                _context.next = 22;
+                _context.next = 27;
                 return car.plugin.extend({
                   animator: animator,
                   car: car,
@@ -96667,7 +96708,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   track: (0, _assertThisInitialized2.default)(_this)
                 });
 
-              case 22:
+              case 27:
                 // with the player, include their namecard
                 namecard = player.layers.namecard;
 
@@ -96707,12 +96748,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   state.playerHasEntered = true;
                 }
 
-                _context.next = 39;
+                _context.next = 44;
                 break;
 
-              case 32:
-                _context.prev = 32;
-                _context.t0 = _context["catch"](9);
+              case 37:
+                _context.prev = 37;
+                _context.t0 = _context["catch"](14);
                 delete activePlayers[data.id];
                 state.totalPlayers--; // if the player was created, try and remove it
 
@@ -96720,18 +96761,18 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 // a breaking exception
 
                 if (!isPlayer) {
-                  _context.next = 39;
+                  _context.next = 44;
                   break;
                 }
 
                 throw _context.t0;
 
-              case 39:
+              case 44:
               case "end":
                 return _context.stop();
             }
           }
-        }, _callee, null, [[9, 32]]);
+        }, _callee, null, [[14, 37]]);
       }));
 
       return function (_x, _x2) {
@@ -97013,8 +97054,13 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 return (0, _get2.default)((0, _getPrototypeOf2.default)(TrackView.prototype), "init", this).call(this, options);
 
               case 3:
-                // identify loading tasks
+                // set the rendering style
+                this.effects = ['mild', 'normal', 'extreme'][Math.floor(Math.random() * 3)];
+                this.isMildEffects = this.effects === 'mild';
+                this.isNormalEffects = this.effects === 'normal';
+                this.isExtremeEffects = this.effects === 'extreme'; // identify loading tasks
                 // this.addTasks('load_track', 'load_extras', 'load_audio', 'load_player');
+
                 this.addTasks('load_track', 'load_extras', 'load_audio'); // set default audio state
 
                 audio.configureSFX({
@@ -97024,54 +97070,55 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   enabled: !!options.music
                 }); // preload common sounds
 
-                _context4.prev = 6;
-                _context4.next = 9;
+                _context4.prev = 10;
+                _context4.next = 13;
                 return audio.register('common', options.manifest.sounds);
 
-              case 9:
+              case 13:
                 this.resolveTask('load_audio');
-                _context4.next = 16;
+                _context4.next = 20;
                 break;
-
-              case 12:
-                _context4.prev = 12;
-                _context4.t0 = _context4["catch"](6);
-                console.error('Failed to load required audio files');
-                throw new AudioAssetError();
 
               case 16:
                 _context4.prev = 16;
+                _context4.t0 = _context4["catch"](10);
+                console.error('Failed to load required audio files');
+                throw new AudioAssetError();
+
+              case 20:
+                _context4.prev = 20;
                 animator = this.animator, stage = this.stage;
                 this.countdown = new _countdown.default({
                   track: this,
                   stage: stage,
-                  animator: animator
+                  animator: animator,
+                  onBeginRace: this.onBeginRace
                 });
-                _context4.next = 21;
+                _context4.next = 25;
                 return this.countdown.init();
 
-              case 21:
+              case 25:
                 this.resolveTask('load_extras');
-                _context4.next = 29;
+                _context4.next = 33;
                 break;
 
-              case 24:
-                _context4.prev = 24;
-                _context4.t1 = _context4["catch"](16);
+              case 28:
+                _context4.prev = 28;
+                _context4.t1 = _context4["catch"](20);
                 delete this.countdown;
                 console.error("Failed to load required files for countdown animation");
                 throw new CountdownAssetError();
 
-              case 29:
+              case 33:
                 if ((_this$countdown = this.countdown) === null || _this$countdown === void 0 ? void 0 : _this$countdown.isReady) {
-                  _context4.next = 32;
+                  _context4.next = 36;
                   break;
                 }
 
                 console.error("Countdown did not load successfully");
                 throw new CountdownAssetError();
 
-              case 32:
+              case 36:
                 // tracking race position progress
                 _options = options, isQualifyingRace = _options.isQualifyingRace;
                 this.progress = options.manifest.progress;
@@ -97082,16 +97129,13 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   isQualifyingRace: isQualifyingRace
                 }); // attach the effects filter
                 // this.stage.filters = [ this.colorFilter ];
-                // after initialized, start tracking
 
-                this.fps.activate();
-
-              case 38:
+              case 41:
               case "end":
                 return _context4.stop();
             }
           }
-        }, _callee4, this, [[6, 12], [16, 24]]);
+        }, _callee4, this, [[10, 16], [20, 28]]);
       }));
 
       function init(_x4) {
@@ -97099,11 +97143,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       }
 
       return init;
-    }()
-    /** returns the FPS cache values */
+    }() // race begins event
 
   }, {
     key: "getFpsCache",
+
+    /** returns the FPS cache values */
     value: function getFpsCache() {
       var _this$fps$flush = this.fps.flush(),
           pixiCache = _this$fps$flush.pixiCache,

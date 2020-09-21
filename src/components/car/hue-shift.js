@@ -55,12 +55,22 @@ export default async function hueShift(car, hue) {
 			// to the replacement texture solves the problem
 			texture.getDrawableSource = () => canvas;
 
+			// console.log(sprites);
 			// now, replace each sprite with the
 			// updated texture
 			for (const sprite of sprites) {
 				sprite.texture = sprite.texture.clone();
 				sprite.texture.baseTexture = texture;
 				sprite.texture.update();
+				
+				// animated sprites
+				if (sprite.textures) {
+					for (let i = sprite.textures.length; i-- > 0;) {
+						sprite.textures[i] = sprite.textures[i].clone();
+						sprite.textures[i].baseTexture = texture;
+						sprite.textures[i].update();
+					}
+				}
 			}
 
 			// all finished 

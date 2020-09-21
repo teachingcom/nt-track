@@ -5,13 +5,14 @@ import * as audio from '../audio';
 
 export default class CountdownAnimation extends Animation {
 
-	constructor({ track, stage, animator }) {
+	constructor({ track, stage, animator, onBeginRace }) {
 		super();
 
 		// save references
 		this.track = track;
 		this.animator = animator;
 		this.stage = stage;
+		this.onBeginRace = onBeginRace;
 	}
 
 	async init() {
@@ -30,6 +31,10 @@ export default class CountdownAnimation extends Animation {
 		const [ numbers ] = findDisplayObjectsOfRole(countdown, 'numbers');
 		const [ flash ] = findDisplayObjectsOfRole(countdown, 'flash');
 		const colors = findDisplayObjectsOfRole(countdown, 'color');
+		
+		// force the shadow color
+		const [ shadow ] = findDisplayObjectsOfRole(countdown, 'shadow');
+		shadow.tint = 0x000000;
 
 		// include the main countdown area
 		const container = new PIXI.ResponsiveContainer();
@@ -49,6 +54,7 @@ export default class CountdownAnimation extends Animation {
 
 		// hide the go text
 		go.alpha = 0;
+		this.setColor(0xff0000);
 	}
 
 	/** replaces the color shade */
@@ -142,7 +148,10 @@ export default class CountdownAnimation extends Animation {
 
 	// activates the final animation
 	finish = () => {
-		const { numbers, go, countdown, flash, countdownInterval } = this;
+		const { numbers, go, countdown, flash, countdownInterval, onBeginRace } = this;
+
+		// notify this has started
+		onBeginRace();
 
 		// if for some reason the countdown hasn't finished
 		// then go ahead and stop it

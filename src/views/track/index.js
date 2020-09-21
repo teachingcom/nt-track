@@ -1,5 +1,5 @@
 
-import { PIXI } from 'nt-animator';
+import { pick, PIXI } from 'nt-animator';
 import { merge } from '../../utils';
 import * as audio from '../../audio';
 
@@ -84,6 +84,12 @@ export default class TrackView extends BaseView {
 		// base class init
 		await super.init(options);
 
+		// set the rendering style
+		this.effects = ['mild', 'normal', 'extreme'][Math.floor(Math.random() * 3)];
+		this.isMildEffects = this.effects === 'mild';
+		this.isNormalEffects = this.effects === 'normal';
+		this.isExtremeEffects = this.effects === 'extreme';
+
 		// identify loading tasks
 		// this.addTasks('load_track', 'load_extras', 'load_audio', 'load_player');
 		this.addTasks('load_track', 'load_extras', 'load_audio');
@@ -106,7 +112,7 @@ export default class TrackView extends BaseView {
 		// preload the countdown animation images
 		try {
 			const { animator, stage } = this;
-			this.countdown = new CountdownAnimation({ track: this, stage, animator });
+			this.countdown = new CountdownAnimation({ track: this, stage, animator, onBeginRace: this.onBeginRace });
 			await this.countdown.init();
 			this.resolveTask('load_extras');
 		}
@@ -132,8 +138,10 @@ export default class TrackView extends BaseView {
 
 		// attach the effects filter
 		// this.stage.filters = [ this.colorFilter ];
+	}
 
-		// after initialized, start tracking
+	// race begins event
+	onBeginRace = () => {
 		this.fps.activate();
 	}
 
@@ -164,7 +172,19 @@ export default class TrackView extends BaseView {
 	}
 
 	/** adds a new car to the track */
+	trailIndex = Math.floor(Math.random() * 10)
 	addPlayer = async (data, isInstant) => {
+
+		// car effect style
+		data.type = this.isMildEffects ? 'missing'
+			: this.isNormalEffects ? 'police_cruiser'
+			: 'grid';
+
+		data.hue = (data.lane || 0) * 64;
+		data.mods = data.mods || { };
+		data.mods.trail = ['frosty', 'stars', 'smoke', 'type', 'bits', 'hearts', 'fire', 'burnout', 'lightning'][++this.trailIndex % 9];
+		data.mods.nitro = ['default', 'default', 'default', 'haha', 'burst'][Math.floor(Math.random() * 5)] || 'default';
+		
 		const { activePlayers, state, stage } = this;
 		const playerOptions = merge({ view: this }, data);
 		const { isPlayer, id, lane } = playerOptions;
