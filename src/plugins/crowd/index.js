@@ -123,15 +123,12 @@ export default async function createCrowd(animator, controller, path, layer, dat
 
 	}
 
-
-
 	// create the crowd
 	const sprite = new PIXI.AnimatedSprite(FRAMES)
 	sprite.animationSpeed = 0.2 + (Math.random() * 0.1);
 	sprite.scale.x = sprite.scale.y = CROWD_DEFAULT_SCALE;
 	sprite.pivot.y = sprite.height * 0.375;
 	sprite.gotoAndPlay(0 | (Math.random() * sprite.totalFrames));
-
 
 	// randomize direction?
 	// doesn't work great because when flipped, two identical people

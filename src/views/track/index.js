@@ -112,7 +112,14 @@ export default class TrackView extends BaseView {
 		}
 		// unable to load the countdown
 		catch(ex) {
+			delete this.countdown;
 			console.error(`Failed to load required files for countdown animation`);
+			throw new CountdownAssetError();
+		}
+
+		// verify the countdown loaded
+		if (!this.countdown?.isReady) {
+			console.error(`Countdown did not load successfully`);
 			throw new CountdownAssetError();
 		}
 
@@ -149,11 +156,22 @@ export default class TrackView extends BaseView {
 				return player;
 	}
 
+	getPlayerByLane = lane => {
+		const { players } = this;
+		for (const player of players)
+			if (player.options?.lane === lane)
+				return player;
+	}
+
 	/** adds a new car to the track */
 	addPlayer = async (data, isInstant) => {
 		const { activePlayers, state, stage } = this;
 		const playerOptions = merge({ view: this }, data);
-		const { isPlayer, id } = playerOptions;
+		const { isPlayer, id, lane } = playerOptions;
+
+		// check if a player already occupies the lane
+		const existing = this.getPlayerByLane(lane);
+		if (existing) this.removePlayer(existing.id);
 
 		// make sure this isn't a mistake
 		if (activePlayers[data.id]) return;
@@ -360,15 +378,15 @@ export default class TrackView extends BaseView {
 	setProgress = (id, { progress, finished, typed, typingSpeedModifier, completed }) => {
 		const { state, raceCompletedAnimation } = this;
 		const player = this.getPlayerById(id);
-
-		// tracking values
-		player.progressUpdateCount = (player.progressUpdateCount || 0) + 1;
 		
 		// don't crash if the player wasn't found
 		if (!player) return;
 		
 		// nothing to do
-		if (player.isFinished) return;
+		if (player?.isFinished) return;
+
+		// tracking values
+		player.progressUpdateCount = (player.progressUpdateCount || 0) + 1;
 		
 		// update the player
 		const hasCompletedTimestamp = !!completed;

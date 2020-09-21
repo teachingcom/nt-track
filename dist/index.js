@@ -96355,7 +96355,7 @@ var CountdownAnimation = /*#__PURE__*/function (_Animation) {
     key: "init",
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
-        var animator, countdown, _findDisplayObjectsOf, _findDisplayObjectsOf2, go, _findDisplayObjectsOf3, _findDisplayObjectsOf4, numbers, _findDisplayObjectsOf5, _findDisplayObjectsOf6, flash, colors, container;
+        var animator, resources, countdown, _findDisplayObjectsOf, _findDisplayObjectsOf2, go, _findDisplayObjectsOf3, _findDisplayObjectsOf4, numbers, _findDisplayObjectsOf5, _findDisplayObjectsOf6, flash, colors, container;
 
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
@@ -96367,11 +96367,31 @@ var CountdownAnimation = /*#__PURE__*/function (_Animation) {
                 return animator.getSpritesheet('extras/countdown');
 
               case 3:
-                _context.next = 5;
+                resources = _context.sent;
+
+                if (resources) {
+                  _context.next = 6;
+                  break;
+                }
+
+                throw new Error('Missing Countdown assets');
+
+              case 6:
+                _context.next = 8;
                 return animator.create('extras/countdown');
 
-              case 5:
+              case 8:
                 countdown = _context.sent;
+
+                if (countdown) {
+                  _context.next = 11;
+                  break;
+                }
+
+                throw new Error('Missing Countdown animation');
+
+              case 11:
+                // create the object
                 _findDisplayObjectsOf = (0, _ntAnimator.findDisplayObjectsOfRole)(countdown, 'go'), _findDisplayObjectsOf2 = (0, _slicedToArray2.default)(_findDisplayObjectsOf, 1), go = _findDisplayObjectsOf2[0];
                 _findDisplayObjectsOf3 = (0, _ntAnimator.findDisplayObjectsOfRole)(countdown, 'numbers'), _findDisplayObjectsOf4 = (0, _slicedToArray2.default)(_findDisplayObjectsOf3, 1), numbers = _findDisplayObjectsOf4[0];
                 _findDisplayObjectsOf5 = (0, _ntAnimator.findDisplayObjectsOfRole)(countdown, 'flash'), _findDisplayObjectsOf6 = (0, _slicedToArray2.default)(_findDisplayObjectsOf5, 1), flash = _findDisplayObjectsOf6[0];
@@ -96388,11 +96408,12 @@ var CountdownAnimation = /*#__PURE__*/function (_Animation) {
                 this.numbers = numbers;
                 this.flash = flash;
                 this.container = container;
-                this.colors = colors; // hide the go text
+                this.colors = colors;
+                this.isReady = true; // hide the go text
 
                 go.alpha = 0;
 
-              case 22:
+              case 28:
               case "end":
                 return _context.stop();
             }
@@ -96556,49 +96577,72 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
         _iterator.f();
       }
     });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "getPlayerByLane", function (lane) {
+      var _assertThisInitialize = (0, _assertThisInitialized2.default)(_this),
+          players = _assertThisInitialize.players;
+
+      var _iterator2 = _createForOfIteratorHelper(players),
+          _step2;
+
+      try {
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+          var _player$options;
+
+          var player = _step2.value;
+          if (((_player$options = player.options) === null || _player$options === void 0 ? void 0 : _player$options.lane) === lane) return player;
+        }
+      } catch (err) {
+        _iterator2.e(err);
+      } finally {
+        _iterator2.f();
+      }
+    });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "addPlayer", /*#__PURE__*/function () {
       var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(data, isInstant) {
-        var _assertThisInitialize, activePlayers, state, stage, playerOptions, isPlayer, id, player, _car$plugin, _assertThisInitialize2, animator, _player, car, namecard, container, _ref2, _ref2$enterSound, enterSound, entry;
+        var _assertThisInitialize2, activePlayers, state, stage, playerOptions, isPlayer, id, lane, existing, player, _car$plugin, _assertThisInitialize3, animator, _player, car, namecard, container, _ref2, _ref2$enterSound, enterSound, entry;
 
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                _assertThisInitialize = (0, _assertThisInitialized2.default)(_this), activePlayers = _assertThisInitialize.activePlayers, state = _assertThisInitialize.state, stage = _assertThisInitialize.stage;
+                _assertThisInitialize2 = (0, _assertThisInitialized2.default)(_this), activePlayers = _assertThisInitialize2.activePlayers, state = _assertThisInitialize2.state, stage = _assertThisInitialize2.stage;
                 playerOptions = (0, _utils.merge)({
                   view: (0, _assertThisInitialized2.default)(_this)
                 }, data);
-                isPlayer = playerOptions.isPlayer, id = playerOptions.id; // make sure this isn't a mistake
+                isPlayer = playerOptions.isPlayer, id = playerOptions.id, lane = playerOptions.lane; // check if a player already occupies the lane
+
+                existing = _this.getPlayerByLane(lane);
+                if (existing) _this.removePlayer(existing.id); // make sure this isn't a mistake
 
                 if (!activePlayers[data.id]) {
-                  _context.next = 5;
+                  _context.next = 7;
                   break;
                 }
 
                 return _context.abrupt("return");
 
-              case 5:
+              case 7:
                 activePlayers[data.id] = true; // increase the expected players
 
                 state.totalPlayers++; // create the player instance
 
-                _context.prev = 7;
-                _context.next = 10;
+                _context.prev = 9;
+                _context.next = 12;
                 return _player2.default.create(playerOptions);
 
-              case 10:
+              case 12:
                 player = _context.sent;
                 player.track = (0, _assertThisInitialized2.default)(_this); // if this player failed to load, abandon the
                 // attempt
 
                 if (!(isPlayer && !player.hasRequiredAssets)) {
-                  _context.next = 14;
+                  _context.next = 16;
                   break;
                 }
 
                 throw new PlayerAssetError();
 
-              case 14:
+              case 16:
                 // set the active player, if needed
                 if (isPlayer) {
                   _this.activePlayerId = id;
@@ -96607,15 +96651,15 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 } // check for a plugin with special car rules
 
 
-                _assertThisInitialize2 = (0, _assertThisInitialized2.default)(_this), animator = _assertThisInitialize2.animator;
+                _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this), animator = _assertThisInitialize3.animator;
                 _player = player, car = _player.car;
 
                 if (!((_car$plugin = car.plugin) === null || _car$plugin === void 0 ? void 0 : _car$plugin.extend)) {
-                  _context.next = 20;
+                  _context.next = 22;
                   break;
                 }
 
-                _context.next = 20;
+                _context.next = 22;
                 return car.plugin.extend({
                   animator: animator,
                   car: car,
@@ -96623,7 +96667,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   track: (0, _assertThisInitialized2.default)(_this)
                 });
 
-              case 20:
+              case 22:
                 // with the player, include their namecard
                 namecard = player.layers.namecard;
 
@@ -96663,12 +96707,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   state.playerHasEntered = true;
                 }
 
-                _context.next = 37;
+                _context.next = 39;
                 break;
 
-              case 30:
-                _context.prev = 30;
-                _context.t0 = _context["catch"](7);
+              case 32:
+                _context.prev = 32;
+                _context.t0 = _context["catch"](9);
                 delete activePlayers[data.id];
                 state.totalPlayers--; // if the player was created, try and remove it
 
@@ -96676,18 +96720,18 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 // a breaking exception
 
                 if (!isPlayer) {
-                  _context.next = 37;
+                  _context.next = 39;
                   break;
                 }
 
                 throw _context.t0;
 
-              case 37:
+              case 39:
               case "end":
                 return _context.stop();
             }
           }
-        }, _callee, null, [[7, 30]]);
+        }, _callee, null, [[9, 32]]);
       }));
 
       return function (_x, _x2) {
@@ -96699,13 +96743,13 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setTrack", /*#__PURE__*/function () {
       var _ref3 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(options) {
-        var _assertThisInitialize3, stage, trackOptions, track;
+        var _assertThisInitialize4, stage, trackOptions, track;
 
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this), stage = _assertThisInitialize3.stage;
+                _assertThisInitialize4 = (0, _assertThisInitialized2.default)(_this), stage = _assertThisInitialize4.stage;
                 trackOptions = (0, _utils.merge)({
                   view: (0, _assertThisInitialized2.default)(_this)
                 }, options);
@@ -96750,9 +96794,9 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       };
     }());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setPlayerReady", function (player) {
-      var _assertThisInitialize4 = (0, _assertThisInitialized2.default)(_this),
-          players = _assertThisInitialize4.players,
-          state = _assertThisInitialize4.state;
+      var _assertThisInitialize5 = (0, _assertThisInitialized2.default)(_this),
+          players = _assertThisInitialize5.players,
+          state = _assertThisInitialize5.state;
 
       var totalPlayers = state.totalPlayers; // add the player to the list
 
@@ -96764,10 +96808,10 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       }
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "removePlayer", function (id) {
-      var _assertThisInitialize5 = (0, _assertThisInitialized2.default)(_this),
-          activePlayers = _assertThisInitialize5.activePlayers,
-          players = _assertThisInitialize5.players,
-          state = _assertThisInitialize5.state;
+      var _assertThisInitialize6 = (0, _assertThisInitialized2.default)(_this),
+          activePlayers = _assertThisInitialize6.activePlayers,
+          players = _assertThisInitialize6.players,
+          state = _assertThisInitialize6.state;
 
       var player = _this.getPlayerById(id);
 
@@ -96783,8 +96827,8 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       player.dispose();
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "disqualifyPlayer", function (id) {
-      var _assertThisInitialize6 = (0, _assertThisInitialized2.default)(_this),
-          state = _assertThisInitialize6.state; // get the player
+      var _assertThisInitialize7 = (0, _assertThisInitialized2.default)(_this),
+          state = _assertThisInitialize7.state; // get the player
 
 
       var player = _this.getPlayerById(id);
@@ -96834,18 +96878,18 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
           typingSpeedModifier = _ref5.typingSpeedModifier,
           completed = _ref5.completed;
 
-      var _assertThisInitialize7 = (0, _assertThisInitialized2.default)(_this),
-          state = _assertThisInitialize7.state,
-          raceCompletedAnimation = _assertThisInitialize7.raceCompletedAnimation;
+      var _assertThisInitialize8 = (0, _assertThisInitialized2.default)(_this),
+          state = _assertThisInitialize8.state,
+          raceCompletedAnimation = _assertThisInitialize8.raceCompletedAnimation;
 
-      var player = _this.getPlayerById(id); // tracking values
+      var player = _this.getPlayerById(id); // don't crash if the player wasn't found
 
-
-      player.progressUpdateCount = (player.progressUpdateCount || 0) + 1; // don't crash if the player wasn't found
 
       if (!player) return; // nothing to do
 
-      if (player.isFinished) return; // update the player
+      if (player === null || player === void 0 ? void 0 : player.isFinished) return; // tracking values
+
+      player.progressUpdateCount = (player.progressUpdateCount || 0) + 1; // update the player
 
       var hasCompletedTimestamp = !!completed;
       player.progress = progress;
@@ -96885,10 +96929,10 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       }
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "startRace", function () {
-      var _assertThisInitialize8 = (0, _assertThisInitialized2.default)(_this),
-          options = _assertThisInitialize8.options,
-          state = _assertThisInitialize8.state,
-          countdown = _assertThisInitialize8.countdown; // finalize the go
+      var _assertThisInitialize9 = (0, _assertThisInitialized2.default)(_this),
+          options = _assertThisInitialize9.options,
+          state = _assertThisInitialize9.state,
+          countdown = _assertThisInitialize9.countdown; // finalize the go
 
 
       if (countdown) countdown.finish(); // start movement
@@ -96900,8 +96944,8 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       _this.animationRate = options.animationRateWhenRacing;
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "finalizeRace", function () {
-      var _assertThisInitialize9 = (0, _assertThisInitialized2.default)(_this),
-          raceCompletedAnimation = _assertThisInitialize9.raceCompletedAnimation; // if the completion animation hasn't started
+      var _assertThisInitialize10 = (0, _assertThisInitialized2.default)(_this),
+          raceCompletedAnimation = _assertThisInitialize10.raceCompletedAnimation; // if the completion animation hasn't started
 
 
       if (!raceCompletedAnimation) _this.finishRace(); // finalize the result
@@ -96911,12 +96955,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "finishRace", function () {
       // the race has been marked as finished, show the completion
       // until the player is marked ready
-      var _assertThisInitialize10 = (0, _assertThisInitialized2.default)(_this),
-          players = _assertThisInitialize10.players,
-          track = _assertThisInitialize10.track,
-          raceCompletedAnimation = _assertThisInitialize10.raceCompletedAnimation,
-          state = _assertThisInitialize10.state,
-          options = _assertThisInitialize10.options; // already playing (this shouldn't happen)
+      var _assertThisInitialize11 = (0, _assertThisInitialized2.default)(_this),
+          players = _assertThisInitialize11.players,
+          track = _assertThisInitialize11.track,
+          raceCompletedAnimation = _assertThisInitialize11.raceCompletedAnimation,
+          state = _assertThisInitialize11.state,
+          options = _assertThisInitialize11.options; // already playing (this shouldn't happen)
 
 
       if (raceCompletedAnimation) return; // stop background noises
@@ -96948,6 +96992,8 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     // handle remaining setup
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(options) {
+        var _this$countdown;
+
         var animator, stage, _options, isQualifyingRace;
 
         return _regenerator.default.wrap(function _callee4$(_context4) {
@@ -97006,16 +97052,26 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
               case 21:
                 this.resolveTask('load_extras');
-                _context4.next = 28;
+                _context4.next = 29;
                 break;
 
               case 24:
                 _context4.prev = 24;
                 _context4.t1 = _context4["catch"](16);
+                delete this.countdown;
                 console.error("Failed to load required files for countdown animation");
                 throw new CountdownAssetError();
 
-              case 28:
+              case 29:
+                if ((_this$countdown = this.countdown) === null || _this$countdown === void 0 ? void 0 : _this$countdown.isReady) {
+                  _context4.next = 32;
+                  break;
+                }
+
+                console.error("Countdown did not load successfully");
+                throw new CountdownAssetError();
+
+              case 32:
                 // tracking race position progress
                 _options = options, isQualifyingRace = _options.isQualifyingRace;
                 this.progress = options.manifest.progress;
@@ -97030,7 +97086,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
                 this.fps.activate();
 
-              case 34:
+              case 38:
               case "end":
                 return _context4.stop();
             }

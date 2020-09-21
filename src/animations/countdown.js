@@ -18,10 +18,14 @@ export default class CountdownAnimation extends Animation {
 		const { animator } = this;
 		
 		// load resources
-		await animator.getSpritesheet('extras/countdown');
+		const resources = await animator.getSpritesheet('extras/countdown');
+		if (!resources) throw new Error('Missing Countdown assets');
 		
 		// save references
 		const countdown = await animator.create('extras/countdown');
+		if (!countdown) throw new Error('Missing Countdown animation');
+
+		// create the object
 		const [ go ] = findDisplayObjectsOfRole(countdown, 'go');
 		const [ numbers ] = findDisplayObjectsOfRole(countdown, 'numbers');
 		const [ flash ] = findDisplayObjectsOfRole(countdown, 'flash');
@@ -41,6 +45,7 @@ export default class CountdownAnimation extends Animation {
 		this.flash = flash;
 		this.container = container;
 		this.colors = colors;
+		this.isReady = true;
 
 		// hide the go text
 		go.alpha = 0;
