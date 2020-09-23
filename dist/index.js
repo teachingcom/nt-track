@@ -71096,8 +71096,7 @@ var MAPPINGS = [// transforms
   apply: function apply(t, v) {
     return t.tint = v;
   }
-}, // { prop: 'tint', apply: (t, v) => null },
-// special RGBA tint -- the popmotion library
+}, // special RGBA tint -- the popmotion library
 // converts this to rgba(###) unfortunately, so we need to
 // convert it back to decimal
 {
@@ -73875,6 +73874,17 @@ var AnimationHandler = function AnimationHandler(config, props) {
   var _this = this;
 
   (0, _classCallCheck2.default)(this, AnimationHandler);
+  (0, _defineProperty2.default)(this, "lastTick", +new Date());
+  (0, _defineProperty2.default)(this, "currentFrame", 0);
+  (0, _defineProperty2.default)(this, "tick", function () {
+    // move the animation forward
+    var now = +new Date();
+    var delta = now - _this.lastTick;
+    _this.currentFrame += delta;
+    _this.lastTick = now; // update the position
+
+    _this.animation.tick(_this.currentFrame);
+  });
   (0, _defineProperty2.default)(this, "seek", function (value) {
     return _this.animation.seek(value);
   });
@@ -73884,8 +73894,62 @@ var AnimationHandler = function AnimationHandler(config, props) {
   this.config = config;
   this.props = props;
   this.animation = (0, _animeEs.default)(config);
-};
-},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","@babel/runtime/helpers/toArray":"../node_modules/@babel/runtime/helpers/toArray.js","animejs/lib/anime.es.js":"../node_modules/animejs/lib/anime.es.js","../utils":"utils/index.js"}],"animation/generators/animation.js":[function(require,module,exports) {
+} // local frame tracking
+;
+},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","@babel/runtime/helpers/toArray":"../node_modules/@babel/runtime/helpers/toArray.js","animejs/lib/anime.es.js":"../node_modules/animejs/lib/anime.es.js","../utils":"utils/index.js"}],"pixi/utils/throttled-updater.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = createThrottledUpdater;
+// shared animation loop
+var throttled = {
+  frame: 0,
+  elapsed: +new Date(),
+  updates: []
+}; // update all throttled animations
+
+function updateAll() {
+  requestAnimationFrame(updateAll);
+  throttled.frame++; // update the timing
+
+  var now = +new Date();
+  var delta = now - throttled.elapsed;
+  throttled.elapsed = now; // update each
+
+  for (var i = throttled.updates.length; i-- > 0;) {
+    try {
+      throttled.updates[i](throttled.frame, delta);
+    } catch (ex) {}
+  }
+} // kick off update loop
+
+
+updateAll(); // begin the updated
+
+function createThrottledUpdater(frequency, scale, action) {
+  // optional scaling parameter
+  if (isNaN(scale)) {
+    action = scale;
+    scale = 1;
+  } // update on the appropriate frames
+
+
+  var update = function update(frame, delta) {
+    if (frame % frequency !== 0) return;
+    action(delta * scale);
+  }; // add to the update queue
+
+
+  throttled.updates.push(update); // return a stopper
+
+  return function () {
+    var index = throttled.updates.indexOf(update);
+    throttled.updates.splice(index, 1);
+  };
+}
+},{}],"animation/generators/animation.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -73910,6 +73974,8 @@ var _expressions = require("../expressions");
 var _converters = require("../converters");
 
 var _animate = _interopRequireDefault(require("../../animate"));
+
+var _throttledUpdater = _interopRequireDefault(require("../../pixi/utils/throttled-updater"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -73938,123 +74004,135 @@ function createAnimation(animator, path, composition, layer, instance) {
 
   for (var i = 0; i < animations.length; i++) {
     try {
-      // unpack any variables
-      var animation = (0, _fastCopy.default)(animations[i]);
-      (0, _utils.inheritFrom)(animator, composition, animation, 'base'); // REFACTOR: don't create object just for array prop - 
-      // consider allowing the "prop" for unpack to be an array index
-      // unpack expects it to be part of the layer object
+      (function () {
+        // unpack any variables
+        var animation = (0, _fastCopy.default)(animations[i]);
+        (0, _utils.inheritFrom)(animator, composition, animation, 'base'); // REFACTOR: don't create object just for array prop - 
+        // consider allowing the "prop" for unpack to be an array index
+        // unpack expects it to be part of the layer object
 
-      (0, _utils.unpack)(animator, composition, {
-        animation: animation
-      }, 'animation'); // start creating the popmotion animation
+        (0, _utils.unpack)(animator, composition, {
+          animation: animation
+        }, 'animation'); // start creating the popmotion animation
 
-      var keyframes = animation.keyframes,
-          sequence = animation.sequence,
-          _animation$loop = animation.loop,
-          loop = _animation$loop === void 0 ? Infinity : _animation$loop,
-          _animation$flip = animation.flip,
-          flip = _animation$flip === void 0 ? 0 : _animation$flip,
-          _animation$elapsed = animation.elapsed,
-          elapsed = _animation$elapsed === void 0 ? 0 : _animation$elapsed,
-          _animation$yoyo = animation.yoyo,
-          yoyo = _animation$yoyo === void 0 ? 0 : _animation$yoyo,
-          _animation$duration = animation.duration,
-          duration = _animation$duration === void 0 ? 1000 : _animation$duration,
-          _animation$delay = animation.delay,
-          delay = _animation$delay === void 0 ? 0 : _animation$delay,
-          ease = animation.ease;
-      var easings = (0, _converters.toEasing)(ease); // check for how to repeat the animation - if it's a flip then
-      // we're just going to use the flip value
+        var keyframes = animation.keyframes,
+            sequence = animation.sequence,
+            _animation$loop = animation.loop,
+            loop = _animation$loop === void 0 ? Infinity : _animation$loop,
+            _animation$flip = animation.flip,
+            flip = _animation$flip === void 0 ? 0 : _animation$flip,
+            _animation$elapsed = animation.elapsed,
+            elapsed = _animation$elapsed === void 0 ? 0 : _animation$elapsed,
+            _animation$yoyo = animation.yoyo,
+            yoyo = _animation$yoyo === void 0 ? 0 : _animation$yoyo,
+            _animation$duration = animation.duration,
+            duration = _animation$duration === void 0 ? 1000 : _animation$duration,
+            _animation$delay = animation.delay,
+            delay = _animation$delay === void 0 ? 0 : _animation$delay,
+            ease = animation.ease;
+        var easings = (0, _converters.toEasing)(ease); // check for how to repeat the animation - if it's a flip then
+        // we're just going to use the flip value
 
-      var repeating = !!flip ? flip : loop;
-      var repeatType = flip === true
-      /* intentional */
-      ? 'flip' : 'loop';
-      var config = (0, _defineProperty2.default)({
-        times: [],
-        values: keyframes || sequence || [],
-        elapsed: (0, _expressions.evaluateExpression)(elapsed, duration) || 0,
-        easings: easings,
-        duration: duration
-      }, repeatType, (0, _utils2.isNumber)(repeating) ? repeating : Infinity); // check for a few special flags
+        var repeating = !!flip ? flip : loop;
+        var repeatType = flip === true
+        /* intentional */
+        ? 'flip' : 'loop';
+        var config = (0, _defineProperty2.default)({
+          times: [],
+          values: keyframes || sequence || [],
+          elapsed: (0, _expressions.evaluateExpression)(elapsed, duration) || 0,
+          easings: easings,
+          duration: duration
+        }, repeatType, (0, _utils2.isNumber)(repeating) ? repeating : Infinity); // check for a few special flags
 
-      if (loop === false) config.loop = false;
-      if (flip === false) config.flip = false;
-      if (yoyo === false) config.yoyo = false; // copy all default values for the starting frame
+        if (loop === false) config.loop = false;
+        if (flip === false) config.flip = false;
+        if (yoyo === false) config.yoyo = false; // copy all default values for the starting frame
 
-      var starting = {}; //TODO: create an update mapper to improve performance
-      // create a timings parameter
+        var starting = {}; //TODO: create an update mapper to improve performance
+        // create a timings parameter
 
-      for (var _i = 0; _i < config.values.length; _i++) {
-        var keyframe = config.values[_i]; // get the timing value, if any
+        for (var _i = 0; _i < config.values.length; _i++) {
+          var keyframe = config.values[_i]; // get the timing value, if any
 
-        var timing = (0, _utils2.isNumber)(keyframe.at) ? keyframe.at : _i / config.values.length;
-        config.times.push(timing); // remove any timing helpers, if any
+          var timing = (0, _utils2.isNumber)(keyframe.at) ? keyframe.at : _i / config.values.length;
+          config.times.push(timing); // remove any timing helpers, if any
 
-        delete keyframe.at; // copy all default values
+          delete keyframe.at; // copy all default values
 
-        for (var prop in keyframe) {
-          if (!(prop in starting)) {
-            // TODO: Colors have special rules
-            // using tint/hue shift/and Popmotion color tween rules
-            // TODO: this part is confusing -- special layer configurations
-            // can create animations using their prop name and sub property, but
-            // by default animations can simply use a property by their name
-            // for example, an emitter can change "emit.x" to tween a sub property
-            // however, rotation is simply "rotation" and not "props.rotation"
-            var isSubProperty = !!~prop.indexOf('.');
-            starting[prop] = isSubProperty ? (0, _deepGetSet.default)(layer, prop) : layer.props[prop]; // without a value, there might be an error
+          for (var prop in keyframe) {
+            if (!(prop in starting)) {
+              // TODO: Colors have special rules
+              // using tint/hue shift/and Popmotion color tween rules
+              // TODO: this part is confusing -- special layer configurations
+              // can create animations using their prop name and sub property, but
+              // by default animations can simply use a property by their name
+              // for example, an emitter can change "emit.x" to tween a sub property
+              // however, rotation is simply "rotation" and not "props.rotation"
+              var isSubProperty = !!~prop.indexOf('.');
+              starting[prop] = isSubProperty ? (0, _deepGetSet.default)(layer, prop) : layer.props[prop]; // without a value, there might be an error
 
-            if ((0, _utils2.isNil)(starting[prop])) {
-              console.warn("Missing starting animation prop for ".concat(prop, ". This might mean you're animating a property that doesn't have a known starting value"));
+              if ((0, _utils2.isNil)(starting[prop])) {
+                console.warn("Missing starting animation prop for ".concat(prop, ". This might mean you're animating a property that doesn't have a known starting value"));
+              }
+            } // evaluate any expressions
+
+
+            keyframe[prop] = (0, _expressions.evaluateExpression)(keyframe[prop], starting[prop]); // for tint, create new properties for the 
+            // transition and remove the keyframe prop. This
+            // will allow the animation keyframe update to 
+            // property animate the color change
+
+            if (prop === 'tint') {
+              keyframe.__animated_tint__ = decToHex(keyframe[prop]);
+              if (starting[prop]) starting.__animated_tint__ = decToHex(starting[prop]);
+              delete keyframe.tint;
+              delete starting.tint;
             }
-          } // evaluate any expressions
-
-
-          keyframe[prop] = (0, _expressions.evaluateExpression)(keyframe[prop], starting[prop]); // for tint, create new properties for the 
-          // transition and remove the keyframe prop. This
-          // will allow the animation keyframe update to 
-          // property animate the color change
-
-          if (prop === 'tint') {
-            keyframe.__animated_tint__ = decToHex(keyframe[prop]);
-            if (starting[prop]) starting.__animated_tint__ = decToHex(starting[prop]);
-            delete keyframe.tint;
-            delete starting.tint;
           }
-        }
-      } // include the starting frame of animation
-      // and also shift timings to account for
-      // the extra frame of animation
+        } // include the starting frame of animation
+        // and also shift timings to account for
+        // the extra frame of animation
 
 
-      config.values.unshift(starting); // this section is used to correct animation
-      // timing errors - this could grow unweildy so 
-      // consider throwing errors for future animation
-      // errors as opposed to fixing in code
+        config.values.unshift(starting); // this section is used to correct animation
+        // timing errors - this could grow unweildy so 
+        // consider throwing errors for future animation
+        // errors as opposed to fixing in code
 
-      if (config.times.length < config.values.length) {
-        var first = config.times[0]; // if the first value is not a zero, then we'll
-        // assume the animation is missing it's start time
+        if (config.times.length < config.values.length) {
+          var first = config.times[0]; // if the first value is not a zero, then we'll
+          // assume the animation is missing it's start time
 
-        if (first !== 0) {
-          config.times.unshift(0);
-        } // if it's already set to zero, but there
-        // doesn't appear to be an ending time
-        else if (first === 0) {
-            config.times.push(1);
-          }
-      } // set the config values
+          if (first !== 0) {
+            config.times.unshift(0);
+          } // if it's already set to zero, but there
+          // doesn't appear to be an ending time
+          else if (first === 0) {
+              config.times.push(1);
+            }
+        } // set the config values
 
 
-      config.update = function (props) {
-        return (0, _assign.assignDisplayObjectProps)(instance, props);
-      };
+        config.update = function (props) {
+          return (0, _assign.assignDisplayObjectProps)(instance, props);
+        };
 
-      config.delay = delay; // create the animation
+        var animationUpdateFrequency = animator.options.animationUpdateFrequency;
+        var isThrottled = (0, _utils2.isNumber)(animationUpdateFrequency);
+        config.autoplay = !isThrottled; // animation creation process
 
-      instance.hasAnimation = true;
-      instance.animation = (0, _animate.default)(config);
+        var create = function create() {
+          instance.animation = (0, _animate.default)(config); // if this is throttled
+
+          if (isThrottled) (0, _throttledUpdater.default)(animationUpdateFrequency, instance.animation.tick);
+        }; // create the animation
+
+
+        if ((0, _utils2.isNumber)(delay) && delay > 0) setTimeout(create, delay);else create(); // create the animation
+
+        instance.hasAnimation = true;
+      })();
     } // make it clear which animation failed
     catch (ex) {
       console.error("Failed to create animation ".concat(i));
@@ -74075,7 +74153,7 @@ function decToHex(dec) {
   var val = dec.toString(16);
   return ['#', "000000".substr(val.length), val].join('');
 }
-},{"@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","fast-copy":"../node_modules/fast-copy/dist/fast-copy.js","deep-get-set":"../node_modules/deep-get-set/index.js","../utils":"animation/utils.js","../../utils":"utils/index.js","../assign":"animation/assign.js","../expressions":"animation/expressions.js","../converters":"animation/converters.js","../../animate":"animate/index.js"}],"utils/graphics.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","fast-copy":"../node_modules/fast-copy/dist/fast-copy.js","deep-get-set":"../node_modules/deep-get-set/index.js","../utils":"animation/utils.js","../../utils":"utils/index.js","../assign":"animation/assign.js","../expressions":"animation/expressions.js","../converters":"animation/converters.js","../../animate":"animate/index.js","../../pixi/utils/throttled-updater":"pixi/utils/throttled-updater.js"}],"utils/graphics.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -77753,6 +77831,8 @@ var _collection = require("../../../utils/collection");
 
 var _bounds = _interopRequireDefault(require("./bounds"));
 
+var _throttledUpdater = _interopRequireDefault(require("../../../pixi/utils/throttled-updater"));
+
 require("./overrides");
 
 var _animation = _interopRequireDefault(require("../animation"));
@@ -77826,7 +77906,7 @@ function createEmitter(_x, _x2, _x3, _x4, _x5) {
 
 function _createEmitter() {
   _createEmitter = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(animator, controller, path, composition, layer) {
-    var container, generator, update, dispose, phase, textures, _layer$emit, emit, auto, config, _loop, prop, _ret, emitter;
+    var container, generator, update, dispose, phase, textures, _layer$emit, emit, auto, config, _loop, prop, _ret, autoplay, emitter, create;
 
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
@@ -77888,9 +77968,7 @@ function _createEmitter() {
             if (emit.colors) {
               emit.color = emit.colors;
               emit.colors = undefined;
-            } // delete emit.colors;
-            // delete emit.color;
-            // update each property
+            } // update each property
 
 
             _loop = function _loop(prop) {
@@ -77992,6 +78070,7 @@ function _createEmitter() {
               return t.blendMode = v;
             }); // boolean props
 
+            autoplay = emit.auto === false || emit.autoplay === false || emit.autoPlay === false;
             config.noRotation = !!emit.noRotation;
             config.atBack = !!emit.atBack;
             config.orderedArt = !!emit.orderedArt;
@@ -78040,19 +78119,30 @@ function _createEmitter() {
             generator.isEmitter = true; // fix property names to account for aliases
 
             (0, _normalize.normalizeProps)(layer.props);
-            (0, _normalize.normalizeEmit)(layer.emit); // check for a delay
+            (0, _normalize.normalizeEmit)(layer.emit); // create the emitter
 
-            if (emit.delay > 0) {
+            create = function create() {
+              // if there's a throttle
+              var emitterUpdateFrequency = animator.options.emitterUpdateFrequency;
+
+              if ((0, _utils.isNumber)(emitterUpdateFrequency)) {
+                emitter.autoUpdate = false;
+                emitter.emit = true;
+                (0, _throttledUpdater.default)(emitterUpdateFrequency, 0.001, function (delta) {
+                  return emitter.update(delta * emitterUpdateFrequency);
+                });
+              } // start normally
+              else emitter.emit = true;
+            }; // manual start
+
+
+            if (autoplay) {
+              emitter.autoUpdate = false;
+              emitter.activate = create;
               emitter.emit = false;
-              setTimeout(function () {
-                return emitter.emit = true;
-              }, emit.delay);
-            } // don't play right away
-
-
-            if (emit.autoplay === false) {
-              emitter.emit = false;
-            } // create dynamically rendered properties
+            } // delayed start
+            else if ((config.delay || 0) > 0) setTimeout(create, config.delay); // auto start
+              else create(); // create dynamically rendered properties
 
 
             phase = 'creating dynamic properties';
@@ -78075,22 +78165,22 @@ function _createEmitter() {
               dispose: dispose
             }]);
 
-          case 67:
-            _context.prev = 67;
+          case 68:
+            _context.prev = 68;
             _context.t2 = _context["catch"](7);
             console.error("Failed to create emitter ".concat(path, " while ").concat(phase));
             throw _context.t2;
 
-          case 71:
+          case 72:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[7, 67]]);
+    }, _callee, null, [[7, 68]]);
   }));
   return _createEmitter.apply(this, arguments);
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","../../../pixi/lib":"pixi/lib.js","pixi-particles":"../node_modules/pixi-particles/lib/pixi-particles.es.js","../../assign":"animation/assign.js","../../../utils":"utils/index.js","../../../utils/collection":"utils/collection.js","./bounds":"animation/generators/emitter/bounds.js","./overrides":"animation/generators/emitter/overrides.js","../animation":"animation/generators/animation.js","../../resources/resolveImages":"animation/resources/resolveImages.js","../../normalize":"animation/normalize.js","../../converters":"animation/converters.js","../../utils":"animation/utils.js"}],"animation/generators/group.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","../../../pixi/lib":"pixi/lib.js","pixi-particles":"../node_modules/pixi-particles/lib/pixi-particles.es.js","../../assign":"animation/assign.js","../../../utils":"utils/index.js","../../../utils/collection":"utils/collection.js","./bounds":"animation/generators/emitter/bounds.js","../../../pixi/utils/throttled-updater":"pixi/utils/throttled-updater.js","./overrides":"animation/generators/emitter/overrides.js","../animation":"animation/generators/animation.js","../../resources/resolveImages":"animation/resources/resolveImages.js","../../normalize":"animation/normalize.js","../../converters":"animation/converters.js","../../utils":"animation/utils.js"}],"animation/generators/group.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -83452,21 +83542,77 @@ function create(type, key, sprite) {
 function MissingSoundException() {}
 },{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","howler":"../node_modules/howler/dist/howler.js","./sound":"audio/sound.js"}],"debug.js":[function(require,module,exports) {
 
-},{}],"perf.js":[function(require,module,exports) {
+},{}],"utils/view.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.isViewActive = isViewActive;
+exports.onViewActiveStateChanged = onViewActiveStateChanged;
+
+var _ntAnimator = require("nt-animator");
+
+// state change listeners
+var listeners = []; // current visibility
+
+var isViewCurrentlyActive; // update the current state
+
+updateViewActiveState();
+/** checks for view visibilty */
+
+function isViewActive() {
+  return isViewCurrentlyActive;
+} // creates a listener for visibility state changes
+
+
+function onViewActiveStateChanged(listener) {
+  listeners.push(listener);
+  return function () {
+    return removeListener(listener);
+  };
+} // removes an active listener
+
+
+function removeListener(listener) {
+  var index = listeners.indexOf(listener);
+  listeners.splice(index, 1);
+} // updates state change
+
+
+function updateViewActiveState() {
+  isViewCurrentlyActive = document.visibilityState !== 'hidden';
+
+  for (var i = listeners.length; i-- > 0;) {
+    try {
+      listeners[i](isViewCurrentlyActive);
+    } // don't prevent other listener updates
+    catch (ex) {
+      console.error(ex);
+    }
+  }
+} // start monitoring for changes
+
+
+document.addEventListener('visibilitychange', updateViewActiveState);
+},{"nt-animator":"../node_modules/nt-animator/dist/index.js"}],"perf.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = getPerformanceScore;
-exports.HIGH = exports.MEDIUM = exports.LOW = void 0;
-var LOW = 0;
+exports.HIGH = exports.MEDIUM = exports.LOW = exports.MINIMAL = void 0;
+var MINIMAL = 0;
+exports.MINIMAL = MINIMAL;
+var LOW = 1;
 exports.LOW = LOW;
-var MEDIUM = 1;
+var MEDIUM = 2;
 exports.MEDIUM = MEDIUM;
-var HIGH = 2; // highly experimental
+var HIGH = 3; // highly experimental
 
 exports.HIGH = HIGH;
+var MINIMAL_SCORE = 80000;
 var LOW_SCORE = 150000;
 var MEDIUM_SCORE = 400000; // peforms a crude test to determine performance
 // potential for rendering
@@ -83478,9 +83624,7 @@ function getPerformanceScore() {
   var ctx = canvas.getContext('2d');
   ctx.fillStyle = 'white';
   var width = canvas.width,
-      height = canvas.height;
-  document.body.appendChild(canvas);
-  canvas.className = 'debug'; // determine how many cycles can be done in
+      height = canvas.height; // determine how many cycles can be done in
   // a quarter of a second
 
   var cycles = 0;
@@ -83495,7 +83639,8 @@ function getPerformanceScore() {
   // quality settings to use
 
 
-  return cycles < LOW_SCORE ? LOW : cycles < MEDIUM_SCORE ? MEDIUM : HIGH;
+  console.log('cycles:', cycles);
+  return cycles < MINIMAL_SCORE ? minimal : cycles < LOW_SCORE ? LOW : cycles < MEDIUM_SCORE ? MEDIUM : HIGH;
 }
 },{}],"config.js":[function(require,module,exports) {
 "use strict";
@@ -83503,56 +83648,61 @@ function getPerformanceScore() {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.NITRO_BLUR_REALTIVE_SIZE_SCALING = exports.NITRO_BLUR_DEFAULT_OFFSET_X = exports.NITRO_BLUR_OFFSET_Y = exports.NITRO_ACTIVATED_TRAIL_OPACITY = exports.NITRO_OFFSET_Y = exports.NITRO_OFFSET_X = exports.NITRO_SCALE = exports.TRAIL_SCALE = exports.CAR_SPRITE_MODIFICATIONS = exports.STATIC_CAR_ROTATION_FIX = exports.CAR_404_ENHANCED_VERSION = exports.CAR_404_STATIC_VERSION = exports.CAR_NITRO_ADVANCEMENT_DISTANCE = exports.CAR_SHAKE_SHADOW_REDUCTION = exports.CAR_SHAKE_NITRO_BONUS = exports.CAR_SHAKE_DISTANCE = exports.CAR_DEFAULT_FRONT_BACK_OFFSET_X = exports.CAR_BODY_OFFSET_Y = exports.CAR_SHADOW_OFFSET_Y = exports.CAR_SHADOW_SCALE_ADJUST = exports.CAR_SHADOW_OPACITY = exports.CAR_SHADOW_BLUR = exports.CAR_DEFAULT_SHAKE_LEVEL = exports.NAMECARD_TETHER_DISTANCE = exports.NAMECARD_SCALE = exports.CROWD_ANIMATION_DURATION = exports.CROWD_ANIMATION_FRAME_COUNT = exports.CROWD_ANIMATION_VARIATIONS = exports.CROWD_DEFAULT_SCALE = exports.RACE_FINISH_FLASH_FADE_TIME = exports.RACE_SOUND_ERROR_MAX_INTERVAL = exports.RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL = exports.RACE_PROGRESS_TWEEN_TIMING = exports.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT = exports.RACE_FINISH_CAR_STOPPING_TIME = exports.RACE_START_NAMECARD_DELAY_TIME = exports.RACE_START_NAMECARD_ENTRY_TIME = exports.RACE_START_CAR_ENTRY_TIME = exports.RACE_AUTO_PROGRESS_DISTANCE = exports.RACE_OFF_SCREEN_FINISH_DISTANCE = exports.RACE_PLAYER_DISTANCE_MODIFIER = exports.RACE_ENDING_ANIMATION_THRESHOLD = exports.TRACK_OFFSCREEN_CAR_FINISH = exports.TRACK_NAMECARD_EDGE_PADDING = exports.TRACK_STARTING_LINE_POSITION = exports.TRACK_CAR_LANE_CENTER_OFFSET = exports.TRACK_CAR_SIZE_RELATIVE_TO_LANE = exports.TRACK_SHOULDER_SCALE = exports.TRACK_BOTTOM_SCALE = exports.TRACK_TOP_SCALE = exports.TRACK_ACCELERATION_RATE = exports.TRACK_MAXIMUM_TRAVEL_DISTANCE = exports.TRACK_MAXIMUM_SPEED = exports.TRACK_MAXIMUM_SPEED_DRAG_RATE = exports.TRACK_MAXIMUM_SPEED_BOOST_RATE = exports.TRACK_MAXIMUM_SCROLL_SPEED = exports.TRACK_FORCE_CANVAS = exports.ANIMATION_RATE_FINISH_LINE = exports.ANIMATION_RATE_WHILE_RACING = exports.ANIMATION_RATE_STARTING_LINE = exports.SSAA_SCALING_AMOUNT = exports.PERFORMANCE_HIGH = exports.PERFORMANCE_MEDIUM = exports.PERFORMANCE_LOW = exports.PERFORMANCE_LEVEL = exports.PERFORMANCE_SCORE = void 0;
+exports.NITRO_BLUR_REALTIVE_SIZE_SCALING = exports.NITRO_BLUR_DEFAULT_OFFSET_X = exports.NITRO_BLUR_OFFSET_Y = exports.NITRO_ACTIVATED_TRAIL_OPACITY = exports.NITRO_OFFSET_Y = exports.NITRO_OFFSET_X = exports.NITRO_SCALE = exports.TRAIL_SCALE = exports.CAR_SPRITE_MODIFICATIONS = exports.STATIC_CAR_ROTATION_FIX = exports.CAR_404_ENHANCED_VERSION = exports.CAR_404_STATIC_VERSION = exports.CAR_NITRO_ADVANCEMENT_DISTANCE = exports.CAR_SHAKE_SHADOW_REDUCTION = exports.CAR_SHAKE_NITRO_BONUS = exports.CAR_SHAKE_DISTANCE = exports.CAR_DEFAULT_FRONT_BACK_OFFSET_X = exports.CAR_BODY_OFFSET_Y = exports.CAR_SHADOW_OFFSET_Y = exports.CAR_SHADOW_SCALE_ADJUST = exports.CAR_SHADOW_OPACITY = exports.CAR_SHADOW_BLUR = exports.CAR_DEFAULT_SHAKE_LEVEL = exports.NAMECARD_TETHER_DISTANCE = exports.NAMECARD_SCALE = exports.CROWD_ANIMATION_DURATION = exports.CROWD_ANIMATION_FRAME_COUNT = exports.CROWD_ANIMATION_VARIATIONS = exports.CROWD_DEFAULT_SCALE = exports.RACE_FINISH_FLASH_FADE_TIME = exports.RACE_SOUND_ERROR_MAX_INTERVAL = exports.RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL = exports.RACE_PROGRESS_TWEEN_TIMING = exports.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT = exports.RACE_FINISH_CAR_STOPPING_TIME = exports.RACE_START_NAMECARD_DELAY_TIME = exports.RACE_START_NAMECARD_ENTRY_TIME = exports.RACE_START_CAR_ENTRY_TIME = exports.RACE_AUTO_PROGRESS_DISTANCE = exports.RACE_OFF_SCREEN_FINISH_DISTANCE = exports.RACE_PLAYER_DISTANCE_MODIFIER = exports.RACE_ENDING_ANIMATION_THRESHOLD = exports.TRACK_OFFSCREEN_CAR_FINISH = exports.TRACK_NAMECARD_EDGE_PADDING = exports.TRACK_STARTING_LINE_POSITION = exports.TRACK_CAR_LANE_CENTER_OFFSET = exports.TRACK_CAR_SIZE_RELATIVE_TO_LANE = exports.TRACK_SHOULDER_SCALE = exports.TRACK_BOTTOM_SCALE = exports.TRACK_TOP_SCALE = exports.TRACK_ACCELERATION_RATE = exports.TRACK_MAXIMUM_TRAVEL_DISTANCE = exports.TRACK_MAXIMUM_SPEED = exports.TRACK_MAXIMUM_SPEED_DRAG_RATE = exports.TRACK_MAXIMUM_SPEED_BOOST_RATE = exports.TRACK_MAXIMUM_SCROLL_SPEED = exports.ANIMATION_ANIMATION_UPDATE_FREQUENCY = exports.ANIMATION_PARTICLE_UPDATE_FREQUENCY = exports.ANIMATION_RATE_FINISH_LINE = exports.ANIMATION_RATE_WHILE_RACING = exports.ANIMATION_RATE_STARTING_LINE = exports.SSAA_SCALING_AMOUNT = exports.PERFORMANCE_HIGH = exports.PERFORMANCE_MEDIUM = exports.PERFORMANCE_LOW = exports.PERFORMANCE_MINIMAL = exports.PERFORMANCE_LEVEL = exports.PERFORMANCE_SCORE = void 0;
 
 var _perf = _interopRequireDefault(require("./perf"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-// internal testing flags
-var overrides;
+// // internal testing flags
+// let overrides;
+// try {
+// 	overrides = JSON.parse(localStorage.getItem('nt:overrides')) || { };
+// 	// save a config helper
+// 	window.NT_CONFIG = new Proxy({ }, {
+// 		set(obj, str, val) {
+// 			if (val === undefined || val === null) delete overrides[str];
+// 			else overrides[str] = module.exports[str] = val;
+// 			localStorage.setItem('nt:overrides', JSON.stringify(overrides));
+// 		},
+// 		get(obj, str) {
+// 			return module.exports[str];
+// 		}
+// 	});
+// }
+// // no crashing
+// catch (ex) { }
+// performance related
+// 0 - minimal, 1 - low, 2 - medium, 3 - high
+var PERFORMANCE_SCORE = (0, _perf.default)(); // export const PERFORMANCE_SCORE = 2;
 
-try {
-  overrides = JSON.parse(localStorage.getItem('nt:overrides')) || {}; // save a config helper
-
-  window.NT_CONFIG = new Proxy({}, {
-    set: function set(obj, str, val) {
-      if (val === undefined || val === null) delete overrides[str];else overrides[str] = module.exports[str] = val;
-      localStorage.setItem('nt:overrides', JSON.stringify(overrides));
-    },
-    get: function get(obj, str) {
-      return module.exports[str];
-    }
-  });
-} // no crashing
-catch (ex) {} // performance related
-// export const PERFORMANCE_SCORE = 0; // 0 - low, 1 - medium, 2 - high
-
-
-var PERFORMANCE_SCORE = (0, _perf.default)();
 exports.PERFORMANCE_SCORE = PERFORMANCE_SCORE;
-var PERFORMANCE_LEVEL = ['low', 'medium', 'high'][PERFORMANCE_SCORE];
+var PERFORMANCE_LEVEL = ['minimal', 'low', 'medium', 'high'][PERFORMANCE_SCORE];
 exports.PERFORMANCE_LEVEL = PERFORMANCE_LEVEL;
-var PERFORMANCE_LOW = PERFORMANCE_SCORE === 0;
+var PERFORMANCE_MINIMAL = PERFORMANCE_SCORE === 0;
+exports.PERFORMANCE_MINIMAL = PERFORMANCE_MINIMAL;
+var PERFORMANCE_LOW = PERFORMANCE_SCORE === 1;
 exports.PERFORMANCE_LOW = PERFORMANCE_LOW;
-var PERFORMANCE_MEDIUM = PERFORMANCE_SCORE === 1;
+var PERFORMANCE_MEDIUM = PERFORMANCE_SCORE === 2;
 exports.PERFORMANCE_MEDIUM = PERFORMANCE_MEDIUM;
-var PERFORMANCE_HIGH = PERFORMANCE_SCORE === 2; // the amount to upscale for SSAA
-
+var PERFORMANCE_HIGH = PERFORMANCE_SCORE === 3;
 exports.PERFORMANCE_HIGH = PERFORMANCE_HIGH;
-var SSAA_SCALING_AMOUNT = [1, 1.5, 2][PERFORMANCE_SCORE]; // animation speeds
+console.log('perf  :', PERFORMANCE_LEVEL); // the amount to upscale for SSAA
+
+var SSAA_SCALING_AMOUNT = [1, 1.15, 1.5, 2][PERFORMANCE_SCORE]; // animation speeds
 
 exports.SSAA_SCALING_AMOUNT = SSAA_SCALING_AMOUNT;
-var ANIMATION_RATE_STARTING_LINE = [2, 1, 1][PERFORMANCE_SCORE];
+var ANIMATION_RATE_STARTING_LINE = [2, 2, 1, 1][PERFORMANCE_SCORE];
 exports.ANIMATION_RATE_STARTING_LINE = ANIMATION_RATE_STARTING_LINE;
-var ANIMATION_RATE_WHILE_RACING = [2, 2, 1][PERFORMANCE_SCORE];
+var ANIMATION_RATE_WHILE_RACING = [3, 2, 2, 1][PERFORMANCE_SCORE];
 exports.ANIMATION_RATE_WHILE_RACING = ANIMATION_RATE_WHILE_RACING;
-var ANIMATION_RATE_FINISH_LINE = [2, 2, 1][PERFORMANCE_SCORE]; // renderer type
-
+var ANIMATION_RATE_FINISH_LINE = [2, 2, 2, 1][PERFORMANCE_SCORE];
 exports.ANIMATION_RATE_FINISH_LINE = ANIMATION_RATE_FINISH_LINE;
-var TRACK_FORCE_CANVAS = [true, true, false][PERFORMANCE_SCORE]; // tracks
+var ANIMATION_PARTICLE_UPDATE_FREQUENCY = [4, 3, 2, 1][PERFORMANCE_SCORE];
+exports.ANIMATION_PARTICLE_UPDATE_FREQUENCY = ANIMATION_PARTICLE_UPDATE_FREQUENCY;
+var ANIMATION_ANIMATION_UPDATE_FREQUENCY = [4, 3, 2, 1][PERFORMANCE_SCORE]; // tracks
 
-exports.TRACK_FORCE_CANVAS = TRACK_FORCE_CANVAS;
+exports.ANIMATION_ANIMATION_UPDATE_FREQUENCY = ANIMATION_ANIMATION_UPDATE_FREQUENCY;
 var TRACK_MAXIMUM_SCROLL_SPEED = 35;
 exports.TRACK_MAXIMUM_SCROLL_SPEED = TRACK_MAXIMUM_SCROLL_SPEED;
 var TRACK_MAXIMUM_SPEED_BOOST_RATE = 0.33;
@@ -83687,12 +83837,11 @@ exports.NITRO_BLUR_REALTIVE_SIZE_SCALING = NITRO_BLUR_REALTIVE_SIZE_SCALING;
 
 try {
   // debugging
-  window.NT_RENDER_QUALITY = PERFORMANCE_LEVEL; // set overrides, if any
-
-  for (var key in overrides) {
-    console.log("".concat(key, ": ").concat(overrides[key]));
-    module.exports[key] = overrides[key];
-  }
+  window.NT_RENDER_QUALITY = PERFORMANCE_LEVEL; // // set overrides, if any
+  // for (const key in overrides) {
+  // 	console.log(`${key}: ${overrides[key]}`);
+  // 	module.exports[key] = overrides[key];
+  // }
 } catch (ex) {}
 },{"./perf":"perf.js"}],"views/base.js":[function(require,module,exports) {
 "use strict";
@@ -83721,6 +83870,8 @@ var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/ge
 var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
 
 var debug = _interopRequireWildcard(require("../debug"));
+
+var _view = require("../utils/view");
 
 var _ntAnimator = require("nt-animator");
 
@@ -83760,6 +83911,15 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "timing", {
       elapsed: 0,
       current: 0
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "pause", function () {
+      return _this.paused = true;
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "resume", function () {
+      return _this.paused = false;
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "onViewActiveStateChanged", function (active) {
+      return _this.isViewActive = active;
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "getDeltaTime", function (relativeTo) {
       var now = +new Date();
@@ -83821,25 +83981,29 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
     /** handles initial setup of the rendering area */
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(options) {
-        var target, scale, baseUrl, seed, manifest, config, axes;
+        var target, scale, animationUpdateFrequency, emitterUpdateFrequency, baseUrl, seed, manifest, config, axes;
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
                 target = options.target, scale = options.scale; // monitor visibility changes
 
-                document.addEventListener('visibilitychange', this.setWindowVisibilityState);
-                this.setWindowVisibilityState(); // save some options
+                this.isViewActive = (0, _view.isViewActive)();
+                (0, _view.onViewActiveStateChanged)(this.onViewActiveStateChanged); // save some options
 
                 this.options = options;
                 this.scale = options.scale;
                 this.target = options.target;
                 this.ssaa = options.ssaa !== false; // get the container the rendering surface is in
 
-                this.parent = options.container || options.target.parentNode; // create the animation creator
+                this.parent = options.container || options.target.parentNode;
+                animationUpdateFrequency = _config.ANIMATION_ANIMATION_UPDATE_FREQUENCY;
+                emitterUpdateFrequency = _config.ANIMATION_PARTICLE_UPDATE_FREQUENCY; // create the animation creator
 
                 baseUrl = options.baseUrl, seed = options.seed, manifest = options.manifest;
                 this.animator = new _ntAnimator.Animator(manifest, {
+                  animationUpdateFrequency: animationUpdateFrequency,
+                  emitterUpdateFrequency: emitterUpdateFrequency,
                   baseUrl: baseUrl,
                   seed: seed
                 }); // data used for the animator
@@ -83862,7 +84026,11 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
                 } // try to create WebGL
                 else {
                     try {
-                      createWebGLRenderer(this, config);
+                      createWebGLRenderer(this, config); // since this worked, track webgl context failures
+                      // and switch to canvas if it breaks
+                      // canvas.addEventListener('webglcontextlost', event => {
+                      // 	createCanvasRenderer(this, config);
+                      // }, false);
                     } // try and fallback to canvas
                     catch (ex) {
                       createCanvasRenderer(this, config);
@@ -83884,7 +84052,7 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
 
                 this.resize();
 
-              case 22:
+              case 24:
               case "end":
                 return _context.stop();
             }
@@ -83941,7 +84109,7 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
 
     /** renders the current state of the view */
     value: function render() {
-      if (!this.isViewActive) return;
+      if (!this.isViewActive || !!this.paused) return;
       var renderer = this.renderer,
           view = this.view;
       renderer.render(view); // const fast = new FastRenderer(this.renderer);
@@ -83957,13 +84125,17 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
 exports.BaseView = BaseView;
 
 function createWebGLRenderer(instance, config) {
+  // return createCanvasRenderer(instance, config);
   instance.renderer = new _ntAnimator.PIXI.Renderer(config);
   instance.isUsingWebGL = true;
+  instance.isUsingCanvas = false;
 } // create an basic canvas renderer
 
 
 function createCanvasRenderer(instance, config) {
+  // return createWebGLRenderer(instance, config);
   instance.renderer = new _ntAnimator.PIXI.CanvasRenderer(config);
+  instance.isUsingWebGL = false;
   instance.isUsingCanvas = true;
 } // experimental rendering process
 // class FastRenderer {
@@ -84106,7 +84278,7 @@ function createCanvasRenderer(instance, config) {
 // 		// }
 // 	}
 // }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../debug":"debug.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../utils":"utils/index.js","../config":"config.js"}],"../node_modules/@babel/runtime/helpers/arrayLikeToArray.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../debug":"debug.js","../utils/view":"utils/view.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../utils":"utils/index.js","../config":"config.js"}],"../node_modules/@babel/runtime/helpers/arrayLikeToArray.js":[function(require,module,exports) {
 function _arrayLikeToArray(arr, len) {
   if (len == null || len > arr.length) len = arr.length;
 
@@ -94738,15 +94910,6 @@ var FastConfetti = /*#__PURE__*/function () {
 
     (0, _classCallCheck2.default)(this, FastConfetti);
     (0, _defineProperty2.default)(this, "particles", []);
-    (0, _defineProperty2.default)(this, "start", function () {
-      if (_this.isStarted) return;
-      _this.isStarted = true;
-
-      _this.update();
-    });
-    (0, _defineProperty2.default)(this, "dispose", function () {
-      _this.isDisposed = true;
-    });
     (0, _defineProperty2.default)(this, "createParticle", function () {
       var pick = [_this.c1, _this.c2, _this.c3, _this.c4][0 | Math.random() * 4];
       var dir = Math.PI * 0.475 + Math.random() * (Math.PI * 0.33);
@@ -94762,19 +94925,13 @@ var FastConfetti = /*#__PURE__*/function () {
       return [pick, life, movementX, movementY, originX, originY, Math.random() * Math.PI];
     });
     (0, _defineProperty2.default)(this, "update", function () {
-      // check if this should continue to update
-      if (_this.isDisposed) return; // queue the next update
-
-      requestAnimationFrame(_this.update);
       var sprite = _this.sprite,
           context = _this.context,
           view = _this.view,
           particles = _this.particles,
           track = _this.track,
           texture = _this.texture,
-          isDirectDraw = _this.isDirectDraw; // // if throttling
-      // if ((track.frame % ANIMATION_RATE_FINISH_LINE) !== 0) return;
-      // calculate the new size
+          isDirectDraw = _this.isDirectDraw; // calculate the new size
 
       var ctx = context.ctx,
           canvas = context.canvas;
@@ -94890,11 +95047,9 @@ function _createConfetti() {
 
           case 2:
             instance = _context.sent;
-            instance.start(); // give back the stage object, if any
+            return _context.abrupt("return", instance);
 
-            return _context.abrupt("return", instance.isDirectDraw ? null : instance.sprite);
-
-          case 5:
+          case 4:
           case "end":
             return _context.stop();
         }
@@ -95141,23 +95296,40 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
         });
       }
     });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "update", function () {
+      var _assertThisInitialize4 = (0, _assertThisInitialized2.default)(_this),
+          confetti = _assertThisInitialize4.confetti;
+
+      if (confetti) confetti.update();
+    });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "activateFlash", /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
-      var _assertThisInitialize4, track, animator, confetti, flash;
+      var _assertThisInitialize5, track, animator, flash;
 
       return _regenerator.default.wrap(function _callee$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
             case 0:
-              _assertThisInitialize4 = (0, _assertThisInitialized2.default)(_this), track = _assertThisInitialize4.track;
+              _assertThisInitialize5 = (0, _assertThisInitialized2.default)(_this), track = _assertThisInitialize5.track;
               animator = track.animator; // add some confetti
 
-              _context.next = 4;
+              _context.prev = 2;
+              _context.next = 5;
               return (0, _confetti.default)(animator, track);
 
-            case 4:
-              confetti = _context.sent;
-              if (!!confetti) track.view.addChild(confetti); // create the flash of white
+            case 5:
+              _this.confetti = _context.sent;
+              if (_this.confetti && _this.confetti.sprite) track.view.addChild(_this.confetti.sprite);
+              _context.next = 13;
+              break;
 
+            case 9:
+              _context.prev = 9;
+              _context.t0 = _context["catch"](2);
+              console.error('failed to create confetti');
+              console.error(_context.t0);
+
+            case 13:
+              // create the flash of white
               flash = new _ntAnimator.PIXI.Sprite(_ntAnimator.PIXI.Texture.WHITE); // match the screen and place on the top
 
               flash.width = track.width;
@@ -95189,12 +95361,12 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
                 }
               });
 
-            case 12:
+            case 19:
             case "end":
               return _context.stop();
           }
         }
-      }, _callee);
+      }, _callee, null, [[2, 9]]);
     })));
     _this.track = _track;
     _this.players = _players; // play the finish sound
@@ -96353,7 +96525,7 @@ var CountdownAnimation = /*#__PURE__*/function (_Animation) {
       numbers.alpha = 0; // show "go"
 
       go.alpha = 1;
-      flash.emitter.emit = true;
+      flash.emitter.activate();
       pop(go); // pop the container out some
 
       pop(countdown, 150, 1, 1.1); // wait a moment then remove
@@ -96363,10 +96535,8 @@ var CountdownAnimation = /*#__PURE__*/function (_Animation) {
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "dispose", function () {
       var _assertThisInitialize5 = (0, _assertThisInitialized2.default)(_this),
           stage = _assertThisInitialize5.stage,
-          container = _assertThisInitialize5.container,
-          flash = _assertThisInitialize5.flash;
+          container = _assertThisInitialize5.container;
 
-      flash.emitter.emit = false;
       stage.removeChild(container); // extra cleanup
 
       container.children[0].controller.dispose();
@@ -96634,19 +96804,20 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "trailIndex", Math.floor(Math.random() * 10));
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "addPlayer", /*#__PURE__*/function () {
       var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(data, isInstant) {
-        var _assertThisInitialize2, activePlayers, state, stage, playerOptions, isPlayer, id, lane, existing, player, _car$plugin, _assertThisInitialize3, animator, _player, car, namecard, container, _ref2, _ref2$enterSound, enterSound, entry;
+        var _assertThisInitialize2, activePlayers, state, stage, isViewActive, animator, playerOptions, isPlayer, id, lane, existing, player, _car$plugin, _player, car, namecard, container, _ref2, _ref2$enterSound, enterSound, entry;
 
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
+                // PERFORMANCETEST
                 // car effect style
-                data.type = _this.isMildEffects ? 'missing' : _this.isNormalEffects ? 'police_cruiser' : 'grid';
+                data.type = _this.isMildEffects ? 'rainbow' : _this.isNormalEffects ? 'police_cruiser' : 'grid';
                 data.hue = (data.lane || 0) * 64;
                 data.mods = data.mods || {};
                 data.mods.trail = ['frosty', 'stars', 'smoke', 'type', 'bits', 'hearts', 'fire', 'burnout', 'lightning'][++_this.trailIndex % 9];
                 data.mods.nitro = ['default', 'default', 'default', 'haha', 'burst'][Math.floor(Math.random() * 5)] || 'default';
-                _assertThisInitialize2 = (0, _assertThisInitialized2.default)(_this), activePlayers = _assertThisInitialize2.activePlayers, state = _assertThisInitialize2.state, stage = _assertThisInitialize2.stage;
+                _assertThisInitialize2 = (0, _assertThisInitialized2.default)(_this), activePlayers = _assertThisInitialize2.activePlayers, state = _assertThisInitialize2.state, stage = _assertThisInitialize2.stage, isViewActive = _assertThisInitialize2.isViewActive, animator = _assertThisInitialize2.animator;
                 playerOptions = (0, _utils.merge)({
                   view: (0, _assertThisInitialized2.default)(_this)
                 }, data);
@@ -96692,15 +96863,14 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 } // check for a plugin with special car rules
 
 
-                _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this), animator = _assertThisInitialize3.animator;
                 _player = player, car = _player.car;
 
                 if (!((_car$plugin = car.plugin) === null || _car$plugin === void 0 ? void 0 : _car$plugin.extend)) {
-                  _context.next = 27;
+                  _context.next = 26;
                   break;
                 }
 
-                _context.next = 27;
+                _context.next = 26;
                 return car.plugin.extend({
                   animator: animator,
                   car: car,
@@ -96708,7 +96878,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   track: (0, _assertThisInitialized2.default)(_this)
                 });
 
-              case 27:
+              case 26:
                 // with the player, include their namecard
                 namecard = player.layers.namecard;
 
@@ -96723,8 +96893,11 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   container.relativeY = player.relativeY;
                   container.relativeX = 0;
                   container.pivot.x = namecard.width * -0.5;
-                } // animate onto the track
+                } // if the screen isn't focused, then tween animations
+                // won't play, so just make it instant
 
+
+                if (!isViewActive) isInstant = true; // animate onto the track
 
                 _ref2 = data.car || {}, _ref2$enterSound = _ref2.enterSound, enterSound = _ref2$enterSound === void 0 ? 'sport' : _ref2$enterSound;
                 entry = new _carEntry.default({
@@ -96784,13 +96957,13 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setTrack", /*#__PURE__*/function () {
       var _ref3 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(options) {
-        var _assertThisInitialize4, stage, trackOptions, track;
+        var _assertThisInitialize3, stage, trackOptions, track;
 
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                _assertThisInitialize4 = (0, _assertThisInitialized2.default)(_this), stage = _assertThisInitialize4.stage;
+                _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this), stage = _assertThisInitialize3.stage;
                 trackOptions = (0, _utils.merge)({
                   view: (0, _assertThisInitialized2.default)(_this)
                 }, options);
@@ -96800,10 +96973,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
               case 5:
                 track = _this.track = _context2.sent;
-
-                _this.resolveTask('load_track'); // add the scroling ground
-
-
+                // add the scroling ground
                 stage.addChild(track.ground);
                 track.ground.zIndex = _layers.LAYER_TRACK_GROUND;
                 track.ground.relativeX = 0.5; // add the scrolling overlay
@@ -96812,7 +96982,10 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 track.overlay.zIndex = _layers.LAYER_TRACK_OVERLAY;
                 track.overlay.relativeX = 0.5; // sort the layers
 
-                stage.sortChildren();
+                stage.sortChildren(); // track is ready to go
+
+                _this.resolveTask('load_track');
+
                 _context2.next = 20;
                 break;
 
@@ -96835,9 +97008,9 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       };
     }());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setPlayerReady", function (player) {
-      var _assertThisInitialize5 = (0, _assertThisInitialized2.default)(_this),
-          players = _assertThisInitialize5.players,
-          state = _assertThisInitialize5.state;
+      var _assertThisInitialize4 = (0, _assertThisInitialized2.default)(_this),
+          players = _assertThisInitialize4.players,
+          state = _assertThisInitialize4.state;
 
       var totalPlayers = state.totalPlayers; // add the player to the list
 
@@ -96849,10 +97022,10 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       }
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "removePlayer", function (id) {
-      var _assertThisInitialize6 = (0, _assertThisInitialized2.default)(_this),
-          activePlayers = _assertThisInitialize6.activePlayers,
-          players = _assertThisInitialize6.players,
-          state = _assertThisInitialize6.state;
+      var _assertThisInitialize5 = (0, _assertThisInitialized2.default)(_this),
+          activePlayers = _assertThisInitialize5.activePlayers,
+          players = _assertThisInitialize5.players,
+          state = _assertThisInitialize5.state;
 
       var player = _this.getPlayerById(id);
 
@@ -96868,8 +97041,8 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       player.dispose();
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "disqualifyPlayer", function (id) {
-      var _assertThisInitialize7 = (0, _assertThisInitialized2.default)(_this),
-          state = _assertThisInitialize7.state; // get the player
+      var _assertThisInitialize6 = (0, _assertThisInitialized2.default)(_this),
+          state = _assertThisInitialize6.state; // get the player
 
 
       var player = _this.getPlayerById(id);
@@ -96919,9 +97092,9 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
           typingSpeedModifier = _ref5.typingSpeedModifier,
           completed = _ref5.completed;
 
-      var _assertThisInitialize8 = (0, _assertThisInitialized2.default)(_this),
-          state = _assertThisInitialize8.state,
-          raceCompletedAnimation = _assertThisInitialize8.raceCompletedAnimation;
+      var _assertThisInitialize7 = (0, _assertThisInitialized2.default)(_this),
+          state = _assertThisInitialize7.state,
+          raceCompletedAnimation = _assertThisInitialize7.raceCompletedAnimation;
 
       var player = _this.getPlayerById(id); // don't crash if the player wasn't found
 
@@ -96970,10 +97143,10 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       }
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "startRace", function () {
-      var _assertThisInitialize9 = (0, _assertThisInitialized2.default)(_this),
-          options = _assertThisInitialize9.options,
-          state = _assertThisInitialize9.state,
-          countdown = _assertThisInitialize9.countdown; // finalize the go
+      var _assertThisInitialize8 = (0, _assertThisInitialized2.default)(_this),
+          options = _assertThisInitialize8.options,
+          state = _assertThisInitialize8.state,
+          countdown = _assertThisInitialize8.countdown; // finalize the go
 
 
       if (countdown) countdown.finish(); // start movement
@@ -96985,8 +97158,8 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       _this.animationRate = options.animationRateWhenRacing;
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "finalizeRace", function () {
-      var _assertThisInitialize10 = (0, _assertThisInitialized2.default)(_this),
-          raceCompletedAnimation = _assertThisInitialize10.raceCompletedAnimation; // if the completion animation hasn't started
+      var _assertThisInitialize9 = (0, _assertThisInitialized2.default)(_this),
+          raceCompletedAnimation = _assertThisInitialize9.raceCompletedAnimation; // if the completion animation hasn't started
 
 
       if (!raceCompletedAnimation) _this.finishRace(); // finalize the result
@@ -96996,12 +97169,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "finishRace", function () {
       // the race has been marked as finished, show the completion
       // until the player is marked ready
-      var _assertThisInitialize11 = (0, _assertThisInitialized2.default)(_this),
-          players = _assertThisInitialize11.players,
-          track = _assertThisInitialize11.track,
-          raceCompletedAnimation = _assertThisInitialize11.raceCompletedAnimation,
-          state = _assertThisInitialize11.state,
-          options = _assertThisInitialize11.options; // already playing (this shouldn't happen)
+      var _assertThisInitialize10 = (0, _assertThisInitialized2.default)(_this),
+          players = _assertThisInitialize10.players,
+          track = _assertThisInitialize10.track,
+          raceCompletedAnimation = _assertThisInitialize10.raceCompletedAnimation,
+          state = _assertThisInitialize10.state,
+          options = _assertThisInitialize10.options; // already playing (this shouldn't happen)
 
 
       if (raceCompletedAnimation) return; // stop background noises
@@ -97055,11 +97228,11 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
               case 3:
                 // set the rendering style
+                // PERFORMANCETEST
                 this.effects = ['mild', 'normal', 'extreme'][Math.floor(Math.random() * 3)];
                 this.isMildEffects = this.effects === 'mild';
                 this.isNormalEffects = this.effects === 'normal';
                 this.isExtremeEffects = this.effects === 'extreme'; // identify loading tasks
-                // this.addTasks('load_track', 'load_extras', 'load_audio', 'load_player');
 
                 this.addTasks('load_track', 'load_extras', 'load_audio'); // set default audio state
 
@@ -97099,26 +97272,26 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
               case 25:
                 this.resolveTask('load_extras');
-                _context4.next = 33;
+                _context4.next = 32;
                 break;
 
               case 28:
                 _context4.prev = 28;
                 _context4.t1 = _context4["catch"](20);
-                delete this.countdown;
+                // delete this.countdown;
                 console.error("Failed to load required files for countdown animation");
                 throw new CountdownAssetError();
 
-              case 33:
+              case 32:
                 if ((_this$countdown = this.countdown) === null || _this$countdown === void 0 ? void 0 : _this$countdown.isReady) {
-                  _context4.next = 36;
+                  _context4.next = 35;
                   break;
                 }
 
                 console.error("Countdown did not load successfully");
                 throw new CountdownAssetError();
 
-              case 36:
+              case 35:
                 // tracking race position progress
                 _options = options, isQualifyingRace = _options.isQualifyingRace;
                 this.progress = options.manifest.progress;
@@ -97130,7 +97303,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 }); // attach the effects filter
                 // this.stage.filters = [ this.colorFilter ];
 
-              case 41:
+              case 40:
               case "end":
                 return _context4.stop();
             }
@@ -97179,12 +97352,15 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     value: function render(force) {
       // increment the frame counter
       this.frame++;
-      var state = this.state,
-          stage = this.stage,
+      var paused = this.paused,
+          state = this.state,
           frame = this.frame,
-          animationRate = this.animationRate; // if throttling
+          track = this.track,
+          animationRate = this.animationRate,
+          raceProgressAnimation = this.raceProgressAnimation,
+          raceCompletedAnimation = this.raceCompletedAnimation; // if throttling
 
-      if (!force && frame % animationRate !== 0) return; // calculate the delta
+      if (!force && (frame % animationRate !== 0 || paused)) return; // calculate the delta
 
       state.delta = this.getDeltaTime(this.lastUpdate);
       this.lastUpdate = +new Date(); // gather some data
@@ -97209,13 +97385,15 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       // garage and preview modes are done
 
 
-      if (this.track && isRaceActive) {
-        this.track.update(state);
-        this.raceProgressAnimation.update();
+      if (track && isRaceActive) {
+        track.update(state);
+        raceProgressAnimation.update();
       } // redraw		
 
 
-      (0, _get2.default)((0, _getPrototypeOf2.default)(TrackView.prototype), "render", this).call(this);
+      (0, _get2.default)((0, _getPrototypeOf2.default)(TrackView.prototype), "render", this).call(this); // race is finished
+
+      if (raceCompletedAnimation) raceCompletedAnimation.update();
     }
   }]);
   return TrackView;

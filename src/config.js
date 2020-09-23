@@ -1,44 +1,46 @@
 import getPerformanceScore from "./perf";
 
-// internal testing flags
-let overrides;
-try {
-	overrides = JSON.parse(localStorage.getItem('nt:overrides')) || { };
+// // internal testing flags
+// let overrides;
+// try {
+// 	overrides = JSON.parse(localStorage.getItem('nt:overrides')) || { };
 
-	// save a config helper
-	window.NT_CONFIG = new Proxy({ }, {
-		set(obj, str, val) {
-			if (val === undefined || val === null) delete overrides[str];
-			else overrides[str] = module.exports[str] = val;
-			localStorage.setItem('nt:overrides', JSON.stringify(overrides));
-		},
+// 	// save a config helper
+// 	window.NT_CONFIG = new Proxy({ }, {
+// 		set(obj, str, val) {
+// 			if (val === undefined || val === null) delete overrides[str];
+// 			else overrides[str] = module.exports[str] = val;
+// 			localStorage.setItem('nt:overrides', JSON.stringify(overrides));
+// 		},
 	
-		get(obj, str) {
-			return module.exports[str];
-		}
-	});
-}
-// no crashing
-catch (ex) { }
+// 		get(obj, str) {
+// 			return module.exports[str];
+// 		}
+// 	});
+// }
+// // no crashing
+// catch (ex) { }
 
 // performance related
-// export const PERFORMANCE_SCORE = 0; // 0 - low, 1 - medium, 2 - high
+// 0 - minimal, 1 - low, 2 - medium, 3 - high
 export const PERFORMANCE_SCORE = getPerformanceScore();
-export const PERFORMANCE_LEVEL = ['low', 'medium', 'high'][PERFORMANCE_SCORE];
-export const PERFORMANCE_LOW = PERFORMANCE_SCORE === 0;
-export const PERFORMANCE_MEDIUM = PERFORMANCE_SCORE === 1;
-export const PERFORMANCE_HIGH = PERFORMANCE_SCORE === 2;
+// export const PERFORMANCE_SCORE = 2;
+export const PERFORMANCE_LEVEL = ['minimal', 'low', 'medium', 'high'][PERFORMANCE_SCORE];
+export const PERFORMANCE_MINIMAL = PERFORMANCE_SCORE === 0;
+export const PERFORMANCE_LOW = PERFORMANCE_SCORE === 1;
+export const PERFORMANCE_MEDIUM = PERFORMANCE_SCORE === 2;
+export const PERFORMANCE_HIGH = PERFORMANCE_SCORE === 3;
+console.log('perf  :', PERFORMANCE_LEVEL);
 
 // the amount to upscale for SSAA
-export const SSAA_SCALING_AMOUNT = [1, 1.5, 2][PERFORMANCE_SCORE];
+export const SSAA_SCALING_AMOUNT = [1, 1.15, 1.5, 2][PERFORMANCE_SCORE];
 
 // animation speeds
-export const ANIMATION_RATE_STARTING_LINE = [2, 1, 1][PERFORMANCE_SCORE];
-export const ANIMATION_RATE_WHILE_RACING = [2, 2, 1][PERFORMANCE_SCORE];
-export const ANIMATION_RATE_FINISH_LINE = [2, 2, 1][PERFORMANCE_SCORE];
-
-// renderer type
-export const TRACK_FORCE_CANVAS = [true, true, false][PERFORMANCE_SCORE];
+export const ANIMATION_RATE_STARTING_LINE = [2, 2, 1, 1][PERFORMANCE_SCORE];
+export const ANIMATION_RATE_WHILE_RACING = [3, 2, 2, 1][PERFORMANCE_SCORE];
+export const ANIMATION_RATE_FINISH_LINE = [2, 2, 2, 1][PERFORMANCE_SCORE];
+export const ANIMATION_PARTICLE_UPDATE_FREQUENCY = [4, 3, 2, 1][PERFORMANCE_SCORE];
+export const ANIMATION_ANIMATION_UPDATE_FREQUENCY = [4, 3, 2, 1][PERFORMANCE_SCORE];
 
 // tracks
 export const TRACK_MAXIMUM_SCROLL_SPEED = 35;
@@ -126,10 +128,10 @@ try {
 	// debugging
 	window.NT_RENDER_QUALITY = PERFORMANCE_LEVEL;
 
-	// set overrides, if any
-	for (const key in overrides) {
-		console.log(`${key}: ${overrides[key]}`);
-		module.exports[key] = overrides[key];
-	}
+	// // set overrides, if any
+	// for (const key in overrides) {
+	// 	console.log(`${key}: ${overrides[key]}`);
+	// 	module.exports[key] = overrides[key];
+	// }
 }
 catch (ex) { }

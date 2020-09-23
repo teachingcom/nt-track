@@ -1,5 +1,5 @@
 
-import { pick, PIXI } from 'nt-animator';
+import { PIXI } from 'nt-animator';
 import { merge } from '../../utils';
 import * as audio from '../../audio';
 
@@ -85,13 +85,13 @@ export default class TrackView extends BaseView {
 		await super.init(options);
 
 		// set the rendering style
+		// PERFORMANCETEST
 		this.effects = ['mild', 'normal', 'extreme'][Math.floor(Math.random() * 3)];
 		this.isMildEffects = this.effects === 'mild';
 		this.isNormalEffects = this.effects === 'normal';
 		this.isExtremeEffects = this.effects === 'extreme';
 
 		// identify loading tasks
-		// this.addTasks('load_track', 'load_extras', 'load_audio', 'load_player');
 		this.addTasks('load_track', 'load_extras', 'load_audio');
 		
 		// set default audio state
@@ -118,7 +118,7 @@ export default class TrackView extends BaseView {
 		}
 		// unable to load the countdown
 		catch(ex) {
-			delete this.countdown;
+			// delete this.countdown;
 			console.error(`Failed to load required files for countdown animation`);
 			throw new CountdownAssetError();
 		}
@@ -164,6 +164,7 @@ export default class TrackView extends BaseView {
 				return player;
 	}
 
+	/** finds a player based on the lane number */
 	getPlayerByLane = lane => {
 		const { players } = this;
 		for (const player of players)
@@ -175,8 +176,9 @@ export default class TrackView extends BaseView {
 	trailIndex = Math.floor(Math.random() * 10)
 	addPlayer = async (data, isInstant) => {
 
+		// PERFORMANCETEST
 		// car effect style
-		data.type = this.isMildEffects ? 'missing'
+		data.type = this.isMildEffects ? 'rainbow'
 			: this.isNormalEffects ? 'police_cruiser'
 			: 'grid';
 
@@ -185,7 +187,7 @@ export default class TrackView extends BaseView {
 		data.mods.trail = ['frosty', 'stars', 'smoke', 'type', 'bits', 'hearts', 'fire', 'burnout', 'lightning'][++this.trailIndex % 9];
 		data.mods.nitro = ['default', 'default', 'default', 'haha', 'burst'][Math.floor(Math.random() * 5)] || 'default';
 		
-		const { activePlayers, state, stage } = this;
+		const { activePlayers, state, stage, isViewActive, animator } = this;
 		const playerOptions = merge({ view: this }, data);
 		const { isPlayer, id, lane } = playerOptions;
 
@@ -219,7 +221,6 @@ export default class TrackView extends BaseView {
 			}
 
 			// check for a plugin with special car rules
-			const { animator } = this;
 			const { car } = player;
 			if (car.plugin?.extend)
 				await car.plugin.extend({ animator, car, player, track: this });
@@ -241,6 +242,11 @@ export default class TrackView extends BaseView {
 				container.relativeX = 0;
 				container.pivot.x = namecard.width * -0.5;
 			}
+
+			// if the screen isn't focused, then tween animations
+			// won't play, so just make it instant
+			if (!isViewActive) 
+				isInstant = true;
 
 			// animate onto the track
 			const { enterSound = 'sport' } = data.car || { };
@@ -287,7 +293,6 @@ export default class TrackView extends BaseView {
 
 		try {
 			const track = this.track = await Track.create(trackOptions);
-			this.resolveTask('load_track');
 			
 			// add the scroling ground
 			stage.addChild(track.ground);
@@ -301,6 +306,9 @@ export default class TrackView extends BaseView {
 			
 			// sort the layers
 			stage.sortChildren();
+
+			// track is ready to go
+			this.resolveTask('load_track');
 		}
 		// any failures
 		catch (ex) {
@@ -515,10 +523,18 @@ export default class TrackView extends BaseView {
 
 		// increment the frame counter
 		this.frame++;
-		const { state, stage, frame, animationRate } = this;
+		const {
+			paused,
+			state,
+			frame,
+			track,
+			animationRate,
+			raceProgressAnimation,
+			raceCompletedAnimation
+		} = this;
 
 		// if throttling
-		if (!force && frame % animationRate !== 0) return;
+		if (!force && (frame % animationRate !== 0 || paused)) return;
 
 		// calculate the delta
 		state.delta = this.getDeltaTime(this.lastUpdate);
@@ -553,13 +569,17 @@ export default class TrackView extends BaseView {
 		// TODO: replace with new views
 		// this is temporary check until
 		// garage and preview modes are done
-		if (this.track && isRaceActive) {
-			this.track.update(state);
-			this.raceProgressAnimation.update();
+		if (track && isRaceActive) {
+			track.update(state);
+			raceProgressAnimation.update();
 		}
-
+		
 		// redraw		
 		super.render();
+
+		// race is finished
+		if (raceCompletedAnimation)
+			raceCompletedAnimation.update();
 	}
 
 }

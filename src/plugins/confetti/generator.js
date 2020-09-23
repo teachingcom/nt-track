@@ -59,17 +59,6 @@ export default class FastConfetti {
 
 	particles = [ ]
 
-	// kick off the effect
-	start = () => {
-		if (this.isStarted) return;
-		this.isStarted = true;
-		this.update();
-	}
-
-	dispose = () => {
-		this.isDisposed = true;
-	}
-
 	// creates a new particle value
 	createParticle = () => {
 		const pick = [this.c1, this.c2, this.c3, this.c4][0 | (Math.random() * 4)];
@@ -87,13 +76,6 @@ export default class FastConfetti {
 
 	// handles updating confetti effects
 	update = () => {
-
-		// check if this should continue to update
-		if (this.isDisposed) return;
-
-		// queue the next update
-		requestAnimationFrame(this.update);
-		
 		const {
 			sprite,
 			context,
@@ -103,9 +85,6 @@ export default class FastConfetti {
 			texture,
 			isDirectDraw
 		} = this;
-		
-		// // if throttling
-		// if ((track.frame % ANIMATION_RATE_FINISH_LINE) !== 0) return;
 		
 		// calculate the new size
 		const { ctx, canvas } = context;

@@ -175,15 +175,28 @@ export default class RaceCompletedAnimation extends Animation {
 		}
 	}
 
+	// refresh confetti 
+	update = () => {
+		const { confetti } = this;
+		if (confetti) confetti.update();
+	}
+
 	// perform the flash animation
 	activateFlash = async () => {
 		const { track } = this;
 		const { animator } = track;
 		
 		// add some confetti
-		const confetti = await createConfetti(animator, track);
-		if (!!confetti)
-			track.view.addChild(confetti);
+		try {
+			this.confetti = await createConfetti(animator, track);
+			if (this.confetti && this.confetti.sprite)
+				track.view.addChild(this.confetti.sprite);
+		}
+		// never crash for this
+		catch (ex) {
+			console.error('failed to create confetti');
+			console.error(ex);
+		}
 		
 		// create the flash of white
 		const flash = new PIXI.Sprite(PIXI.Texture.WHITE);

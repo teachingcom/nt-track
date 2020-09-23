@@ -1,8 +1,9 @@
 import * as debug from '../debug';
 
+import { isViewActive, onViewActiveStateChanged } from '../utils/view';
 import { Animator, EventEmitter, PIXI } from 'nt-animator';
 import { noop } from '../utils';
-import { PERFORMANCE_LEVEL, SSAA_SCALING_AMOUNT, TRACK_FORCE_CANVAS } from '../config';
+import { ANIMATION_ANIMATION_UPDATE_FREQUENCY, ANIMATION_PARTICLE_UPDATE_FREQUENCY, PERFORMANCE_LEVEL, SSAA_SCALING_AMOUNT, TRACK_FORCE_CANVAS } from '../config';
 
 /** creates a track instance */
 export class BaseView extends EventEmitter {
@@ -12,8 +13,8 @@ export class BaseView extends EventEmitter {
 		const { target, scale } = options;
 
 		// monitor visibility changes
-		document.addEventListener('visibilitychange', this.setWindowVisibilityState);
-		this.setWindowVisibilityState();
+		this.isViewActive = isViewActive();
+		onViewActiveStateChanged(this.onViewActiveStateChanged);
 
 		// save some options
 		this.options = options;
@@ -24,9 +25,17 @@ export class BaseView extends EventEmitter {
 		// get the container the rendering surface is in
 		this.parent = options.container || options.target.parentNode;
 
+		const animationUpdateFrequency = ANIMATION_ANIMATION_UPDATE_FREQUENCY;
+		const emitterUpdateFrequency = ANIMATION_PARTICLE_UPDATE_FREQUENCY;
+
 		// create the animation creator
 		const { baseUrl, seed, manifest } = options;
-		this.animator = new Animator(manifest, { baseUrl, seed });
+		this.animator = new Animator(manifest, {
+			animationUpdateFrequency,
+			emitterUpdateFrequency,
+			baseUrl,
+			seed
+		});
 
 		// data used for the animator
 		this.data = options.data;
@@ -50,6 +59,13 @@ export class BaseView extends EventEmitter {
 		else {
 			try {
 				createWebGLRenderer(this, config);
+
+				// since this worked, track webgl context failures
+				// and switch to canvas if it breaks
+				// canvas.addEventListener('webglcontextlost', event => {
+				// 	createCanvasRenderer(this, config);
+				// }, false);
+
 			}
 			// try and fallback to canvas
 			catch (ex) {
@@ -84,6 +100,13 @@ export class BaseView extends EventEmitter {
 		elapsed: 0,
 		current: 0
 	}
+
+	// handle pausing the render
+	pause = () => this.paused = true
+	resume = () => this.paused = false
+
+	// update state info
+	onViewActiveStateChanged = active => this.isViewActive = active
 
 	/** calculates preferred times */
 	// TODO: make sure this is correct on 
@@ -128,7 +151,7 @@ export class BaseView extends EventEmitter {
 
 	/** renders the current state of the view */
 	render() {
-		if (!this.isViewActive) return;
+		if (!this.isViewActive || !!this.paused) return;
 		const { renderer, view } = this;
 		renderer.render(view);
 		// const fast = new FastRenderer(this.renderer);
@@ -175,13 +198,17 @@ export class BaseView extends EventEmitter {
 
 // create a webgl based renderer
 function createWebGLRenderer(instance, config) {
+	// return createCanvasRenderer(instance, config);
 	instance.renderer = new PIXI.Renderer(config);
 	instance.isUsingWebGL = true;
+	instance.isUsingCanvas = false;
 }
 
 // create an basic canvas renderer
 function createCanvasRenderer(instance, config) {
+	// return createWebGLRenderer(instance, config);
 	instance.renderer = new PIXI.CanvasRenderer(config);
+	instance.isUsingWebGL = false;
 	instance.isUsingCanvas = true;
 }
 

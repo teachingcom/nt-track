@@ -175,7 +175,7 @@ export default class CountdownAnimation extends Animation {
 
 		// show "go"
 		go.alpha = 1;
-		flash.emitter.emit = true;
+		flash.emitter.activate();
 		pop(go);
 
 		// pop the container out some
@@ -187,8 +187,7 @@ export default class CountdownAnimation extends Animation {
 
 	// clean up
 	dispose = () => {
-		const { stage, container, flash } = this;
-		flash.emitter.emit = false;
+		const { stage, container } = this;
 		stage.removeChild(container);
 
 		// extra cleanup
