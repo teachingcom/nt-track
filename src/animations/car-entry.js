@@ -1,11 +1,11 @@
 import * as audio from '../audio';
 import Animation from './base';
 
-
 import { noop } from "../utils";
 import { TRACK_STARTING_LINE_POSITION, RACE_START_CAR_ENTRY_TIME, RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT } from "../config";
 import { VOLUME_CAR_ENTRY } from '../audio/volume';
 import { animate } from 'nt-animator';
+import { onViewActiveStateChanged } from '../utils/view';
 
 export default class CarEntryAnimation extends Animation {
 
@@ -31,9 +31,14 @@ export default class CarEntryAnimation extends Animation {
 			playerX: TRACK_STARTING_LINE_POSITION
 		};
 
+		// keep track if focus is lost
+		const disposeViewStateWatcher = onViewActiveStateChanged(active => {
+			if (!active) player.relativeX = entryDestination.playerX;
+		});
+
 		// update the player position
 		const updateEntry = props => {
-			player.relativeX = props.playerX;
+			player.relativeX = Math.max(player.relativeX, props.playerX);
 		};
 
 		// apply positions immediately
@@ -54,7 +59,10 @@ export default class CarEntryAnimation extends Animation {
 			duration: RACE_START_CAR_ENTRY_TIME,
 			loop: false,
 			update: props => updateEntry(props),
-			complete
+			complete: () => {
+				disposeViewStateWatcher();
+				complete();
+			}
 		});
 
 		

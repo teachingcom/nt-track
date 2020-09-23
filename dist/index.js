@@ -94581,6 +94581,8 @@ var _volume = require("../audio/volume");
 
 var _ntAnimator = require("nt-animator");
 
+var _view = require("../utils/view");
+
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
@@ -94611,7 +94613,7 @@ var CarEntryAnimation = /*#__PURE__*/function (_Animation) {
           _ref2$update = _ref2.update,
           update = _ref2$update === void 0 ? _utils.noop : _ref2$update,
           _ref2$complete = _ref2.complete,
-          complete = _ref2$complete === void 0 ? _utils.noop : _ref2$complete;
+          _complete = _ref2$complete === void 0 ? _utils.noop : _ref2$complete;
 
       var _assertThisInitialize = (0, _assertThisInitialized2.default)(_this),
           player = _assertThisInitialize.player,
@@ -94624,16 +94626,20 @@ var CarEntryAnimation = /*#__PURE__*/function (_Animation) {
 
       var entryDestination = {
         playerX: _config.TRACK_STARTING_LINE_POSITION
-      }; // update the player position
+      }; // keep track if focus is lost
+
+      var disposeViewStateWatcher = (0, _view.onViewActiveStateChanged)(function (active) {
+        if (!active) player.relativeX = entryDestination.playerX;
+      }); // update the player position
 
       var updateEntry = function updateEntry(props) {
-        player.relativeX = props.playerX;
+        player.relativeX = Math.max(player.relativeX, props.playerX);
       }; // apply positions immediately
 
 
       if (isInstant) {
         updateEntry(entryDestination);
-        if (complete) complete();
+        if (_complete) _complete();
         return;
       } // starting positions
 
@@ -94649,7 +94655,11 @@ var CarEntryAnimation = /*#__PURE__*/function (_Animation) {
         update: function update(props) {
           return updateEntry(props);
         },
-        complete: complete
+        complete: function complete() {
+          disposeViewStateWatcher();
+
+          _complete();
+        }
       }); // play the entry sound, if possible
       // don't play duplicate sounds too close together
 
@@ -94678,7 +94688,7 @@ var CarEntryAnimation = /*#__PURE__*/function (_Animation) {
 }(_base.default);
 
 exports.default = CarEntryAnimation;
-},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../audio":"audio/index.js","./base":"animations/base.js","../utils":"utils/index.js","../config":"config.js","../audio/volume":"audio/volume.js","nt-animator":"../node_modules/nt-animator/dist/index.js"}],"animations/car-finish.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../audio":"audio/index.js","./base":"animations/base.js","../utils":"utils/index.js","../config":"config.js","../audio/volume":"audio/volume.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../utils/view":"utils/view.js"}],"animations/car-finish.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
