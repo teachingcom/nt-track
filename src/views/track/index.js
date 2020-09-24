@@ -1,7 +1,9 @@
 
 import { PIXI } from 'nt-animator';
-import { merge } from '../../utils';
+import { merge, waitWithTimeout } from '../../utils';
 import * as audio from '../../audio';
+
+const TRACK_CREATION_TIMEOUT = 5000;
 
 import { BaseView } from '../base';
 import Player from './player';
@@ -292,7 +294,15 @@ export default class TrackView extends BaseView {
 		const trackOptions = merge({ view: this }, options);
 
 		try {
-			const track = this.track = await Track.create(trackOptions);
+			const pending = Track.create(trackOptions);
+			let track
+			try {
+				track = this.track = await waitWithTimeout(pending, TRACK_CREATION_TIMEOUT);
+			}
+			// failed to create the track in a timely fashion
+			catch (ex) {
+				throw new Error(`Track stalled creation at ${Track.create.status || 'before setup'}`);
+			}
 			
 			// add the scroling ground
 			stage.addChild(track.ground);

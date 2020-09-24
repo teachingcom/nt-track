@@ -2,7 +2,7 @@ import { PIXI, getBoundsForRole } from 'nt-animator';
 import Random from '../../rng';
 import { TRACK_HEIGHT, TRACK_TOP } from '../../views/track/scaling';
 import { TRACK_MAXIMUM_TRAVEL_DISTANCE, TRACK_MAXIMUM_SCROLL_SPEED, TRACK_STARTING_LINE_POSITION } from '../../config';
-import { isArray, isNumber } from '../../utils';
+import { isArray, isNumber, wait } from '../../utils';
 import Segment from './segment';
 import createCrowd from '../../plugins/crowd';
 import AmbientAudio from '../../audio/ambient';
@@ -24,11 +24,13 @@ export default class Track {
 		instance.options = options;
 		instance.view = view;
 		instance.container = new PIXI.Container();
-
+		
 		// include special plugins
+		Track.create.status = 'installing plugings';
 		view.animator.install('crowd', createCrowd);
 
 		// assign the seed, if needed
+		Track.create.status = 'creating random number generator'
 		view.animator.rng.activate(seed);
 		instance.rng = new Random(seed);
 
@@ -36,13 +38,22 @@ export default class Track {
 		instance.relativeX = 0.5;
 		
 		// idenitfy the track to render
+		Track.create.status = 'selecting track';
 		instance._selectTrack();
 		
 		// setup each part
+		Track.create.status = 'creating road';
 		await instance._createRoad();
+		
+		Track.create.status = 'creating starting line';
 		await instance._createStartingLine();
+		
+		Track.create.status = 'creating finish line';
 		await instance._createFinishLine();
-		await instance._createAmbience();
+		
+		// ambience is nice, but not worth stalling over
+		Track.create.status = 'creating ambient sound';
+		instance._createAmbience();
 		// await instance._createForeground();
 		// await instance._createBackground();
 

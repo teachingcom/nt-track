@@ -79910,6 +79910,8 @@ exports.PIXI = PIXI;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.wait = wait;
+exports.waitWithTimeout = waitWithTimeout;
 exports.clamp = clamp;
 exports.first = first;
 exports.filter = filter;
@@ -79920,15 +79922,110 @@ exports.createWorker = createWorker;
 exports.getSprites = getSprites;
 exports.sample = exports.isNil = exports.isNumber = exports.isArray = exports.noop = exports.merge = void 0;
 
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
+
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
-var merge = Object.assign; // no-operation
+var merge = Object.assign;
+/** timeout with async pattern */
 
 exports.merge = merge;
+
+function wait(_x) {
+  return _wait.apply(this, arguments);
+}
+/** awaits an activity with a timeout */
+
+
+function _wait() {
+  _wait = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(time) {
+    return _regenerator.default.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            return _context.abrupt("return", new Promise(function (resolve) {
+              return setTimeout(resolve, time);
+            }));
+
+          case 1:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+  return _wait.apply(this, arguments);
+}
+
+function waitWithTimeout(_x2, _x3) {
+  return _waitWithTimeout.apply(this, arguments);
+} // no-operation
+
+
+function _waitWithTimeout() {
+  _waitWithTimeout = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(promise, timeout) {
+    return _regenerator.default.wrap(function _callee3$(_context3) {
+      while (1) {
+        switch (_context3.prev = _context3.next) {
+          case 0:
+            return _context3.abrupt("return", new Promise( /*#__PURE__*/function () {
+              var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(resolve, reject) {
+                var success, result;
+                return _regenerator.default.wrap(function _callee2$(_context2) {
+                  while (1) {
+                    switch (_context2.prev = _context2.next) {
+                      case 0:
+                        success = false;
+                        setTimeout(function () {
+                          if (success) return;
+                          reject();
+                        }, timeout);
+                        _context2.prev = 2;
+                        _context2.next = 5;
+                        return promise;
+
+                      case 5:
+                        result = _context2.sent;
+                        success = true;
+                        resolve(result);
+                        _context2.next = 13;
+                        break;
+
+                      case 10:
+                        _context2.prev = 10;
+                        _context2.t0 = _context2["catch"](2);
+                        reject(_context2.t0);
+
+                      case 13:
+                      case "end":
+                        return _context2.stop();
+                    }
+                  }
+                }, _callee2, null, [[2, 10]]);
+              }));
+
+              return function (_x4, _x5) {
+                return _ref.apply(this, arguments);
+              };
+            }()));
+
+          case 1:
+          case "end":
+            return _context3.stop();
+        }
+      }
+    }, _callee3);
+  }));
+  return _waitWithTimeout.apply(this, arguments);
+}
 
 var noop = function noop() {};
 
@@ -80067,7 +80164,7 @@ function getSprites(container) {
 
   return sprites;
 }
-},{}],"../node_modules/howler/dist/howler.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js"}],"../node_modules/howler/dist/howler.js":[function(require,module,exports) {
 var define;
 var global = arguments[3];
 /*!
@@ -83885,6 +83982,12 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
@@ -83912,6 +84015,34 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
       elapsed: 0,
       current: 0
     });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setRenderer", function (target) {
+      var _assertThisInitialize = (0, _assertThisInitialized2.default)(_this),
+          parent = _assertThisInitialize.parent;
+
+      _this.renderer = target.renderer; // remove all children
+
+      var _iterator = _createForOfIteratorHelper(parent.children),
+          _step;
+
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var child = _step.value;
+          parent.removeChild(child);
+        } // update the current use
+
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
+
+      _this.isUsingWebGL = target.isWebGL;
+      _this.isUsingCanvas = target.isCanvas; // add the view 
+
+      _this.parent.appendChild(target.view);
+
+      _this.resize();
+    });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "pause", function () {
       return _this.paused = true;
     });
@@ -83920,6 +84051,16 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "onViewActiveStateChanged", function (active) {
       return _this.isViewActive = active;
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "onWebGLContextLost", function () {
+      _this.webGLContextLost = true;
+
+      _this.setRenderer(_this.canvasRenderer);
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "onWebGLContextRestored", function () {
+      createWebGLRenderer((0, _assertThisInitialized2.default)(_this));
+
+      _this.resize();
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "getDeltaTime", function (relativeTo) {
       var now = +new Date();
@@ -83933,11 +84074,12 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
       return _config.PERFORMANCE_LEVEL;
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "resize", function () {
-      var _assertThisInitialize = (0, _assertThisInitialized2.default)(_this),
-          parent = _assertThisInitialize.parent,
-          surface = _assertThisInitialize.target,
-          view = _assertThisInitialize.view;
+      var _assertThisInitialize2 = (0, _assertThisInitialized2.default)(_this),
+          parent = _assertThisInitialize2.parent,
+          view = _assertThisInitialize2.view,
+          renderer = _assertThisInitialize2.renderer;
 
+      var surface = renderer.view;
       var ssaa = true; // get the updated bounds
 
       var bounds = parent.getBoundingClientRect();
@@ -83958,9 +84100,9 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
       _this.renderer.view.style.width = "".concat(width * scale, "px");
       _this.renderer.view.style.height = "".concat(height * scale, "px"); // notify of the resize
 
-      var _assertThisInitialize2 = (0, _assertThisInitialized2.default)(_this),
-          cx = _assertThisInitialize2.cx,
-          cy = _assertThisInitialize2.cy;
+      var _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this),
+          cx = _assertThisInitialize3.cx,
+          cy = _assertThisInitialize3.cy;
 
       _this.emit('resize', {
         width: width,
@@ -83981,26 +84123,25 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
     /** handles initial setup of the rendering area */
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(options) {
-        var target, scale, animationUpdateFrequency, emitterUpdateFrequency, baseUrl, seed, manifest, config, axes;
+        var scale, baseUrl, seed, manifest, animationUpdateFrequency, emitterUpdateFrequency, renderer, gl, axes;
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                target = options.target, scale = options.scale; // monitor visibility changes
+                scale = options.scale; // monitor visibility changes
 
                 this.isViewActive = (0, _view.isViewActive)();
                 (0, _view.onViewActiveStateChanged)(this.onViewActiveStateChanged); // save some options
 
                 this.options = options;
                 this.scale = options.scale;
-                this.target = options.target;
                 this.ssaa = options.ssaa !== false; // get the container the rendering surface is in
 
-                this.parent = options.container || options.target.parentNode;
-                animationUpdateFrequency = _config.ANIMATION_ANIMATION_UPDATE_FREQUENCY;
-                emitterUpdateFrequency = _config.ANIMATION_PARTICLE_UPDATE_FREQUENCY; // create the animation creator
+                this.parent = options.container; // create the animation creator
 
                 baseUrl = options.baseUrl, seed = options.seed, manifest = options.manifest;
+                animationUpdateFrequency = _config.ANIMATION_ANIMATION_UPDATE_FREQUENCY;
+                emitterUpdateFrequency = _config.ANIMATION_PARTICLE_UPDATE_FREQUENCY;
                 this.animator = new _ntAnimator.Animator(manifest, {
                   animationUpdateFrequency: animationUpdateFrequency,
                   emitterUpdateFrequency: emitterUpdateFrequency,
@@ -84010,37 +84151,39 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
 
                 this.data = options.data; // create the renderer config
 
-                config = {
+                this.config = {
                   antialias: false,
                   // doesn't appear to improve anything
                   legacy: true,
-                  view: target,
                   preserveDrawingBuffer: true,
                   clearBeforeRender: false,
                   smoothProperty: 'none',
                   backgroundColor: options.backgroundColor || 0x282d3f
-                }; // create a PIXI renderer for the provided canvas
+                }; // start with a canvas renderer
 
-                if (!!_config.TRACK_FORCE_CANVAS) {
-                  createCanvasRenderer(this, config);
-                } // try to create WebGL
-                else {
-                    try {
-                      createWebGLRenderer(this, config); // since this worked, track webgl context failures
-                      // and switch to canvas if it breaks
-                      // canvas.addEventListener('webglcontextlost', event => {
-                      // 	createCanvasRenderer(this, config);
-                      // }, false);
-                    } // try and fallback to canvas
-                    catch (ex) {
-                      createCanvasRenderer(this, config);
-                    }
-                  } // no interactions
+                createCanvasRenderer(this);
+                renderer = this.canvasRenderer; // create WebGL, if supported
+
+                if (_ntAnimator.PIXI.utils.isWebGLSupported()) {
+                  try {
+                    createWebGLRenderer(this); // if it was successful, we want to monitor for
+                    // any webGL context errors
+
+                    gl = this.webGLRenderer.renderer.gl;
+                    gl.canvas.addEventListener('webglcontextlost', this.onWebGLContextLost); // gl.canvas.addEventListener('webglcontextrestored', this.onWebGLContextRestored);
+                    // debugging failures
+                    // setTimeout(() => this.webGLRenderer.renderer.gl.getExtension('WEBGL_lose_context').loseContext(), 10000);
+                    // replace the renderer
+
+                    renderer = this.webGLRenderer;
+                  } catch (ex) {
+                    renderer = this.canvasRenderer;
+                  }
+                } // no common timer
 
 
-                _ntAnimator.PIXI.Ticker.shared.stop();
+                _ntAnimator.PIXI.Ticker.shared.stop(); // idenitfy which scaled edges to use
 
-                this.renderer.plugins.interaction.destroy(); // idenitfy which scaled edges to use
 
                 axes = {};
                 if (scale.height) axes.height = scale.height;
@@ -84048,9 +84191,9 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
 
                 this.view = new _ntAnimator.PIXI.ResponsiveStage(axes);
                 this.stage = new _ntAnimator.PIXI.Container();
-                this.view.addChild(this.stage); // match the size
+                this.view.addChild(this.stage); // set the correct renderer
 
-                this.resize();
+                this.setRenderer(renderer);
 
               case 24:
               case "end":
@@ -84124,19 +84267,29 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
 
 exports.BaseView = BaseView;
 
-function createWebGLRenderer(instance, config) {
-  // return createCanvasRenderer(instance, config);
-  instance.renderer = new _ntAnimator.PIXI.Renderer(config);
-  instance.isUsingWebGL = true;
-  instance.isUsingCanvas = false;
+function createWebGLRenderer(instance) {
+  var config = instance.config; // create the renderer
+
+  var renderer = new _ntAnimator.PIXI.Renderer(config);
+  renderer.plugins.interaction.destroy();
+  instance.webGLRenderer = {
+    isWebGL: true,
+    renderer: renderer,
+    view: renderer.view
+  };
 } // create an basic canvas renderer
 
 
-function createCanvasRenderer(instance, config) {
-  // return createWebGLRenderer(instance, config);
-  instance.renderer = new _ntAnimator.PIXI.CanvasRenderer(config);
-  instance.isUsingWebGL = false;
-  instance.isUsingCanvas = true;
+function createCanvasRenderer(instance) {
+  var config = instance.config; // create the renderer
+
+  var renderer = new _ntAnimator.PIXI.CanvasRenderer(config);
+  renderer.plugins.interaction.destroy();
+  instance.canvasRenderer = {
+    isCanvas: true,
+    renderer: renderer,
+    view: renderer.view
+  };
 } // experimental rendering process
 // class FastRenderer {
 // 	constructor(renderer) {
@@ -94482,35 +94635,43 @@ var Track = /*#__PURE__*/function () {
                 instance.view = view;
                 instance.container = new _ntAnimator.PIXI.Container(); // include special plugins
 
+                Track.create.status = 'installing plugings';
                 view.animator.install('crowd', _crowd.default); // assign the seed, if needed
 
+                Track.create.status = 'creating random number generator';
                 view.animator.rng.activate(seed);
                 instance.rng = new _rng.default(seed); // align to the center
 
                 instance.relativeX = 0.5; // idenitfy the track to render
 
+                Track.create.status = 'selecting track';
+
                 instance._selectTrack(); // setup each part
 
 
-                _context7.next = 12;
+                Track.create.status = 'creating road';
+                _context7.next = 16;
                 return instance._createRoad();
 
-              case 12:
-                _context7.next = 14;
+              case 16:
+                Track.create.status = 'creating starting line';
+                _context7.next = 19;
                 return instance._createStartingLine();
 
-              case 14:
-                _context7.next = 16;
+              case 19:
+                Track.create.status = 'creating finish line';
+                _context7.next = 22;
                 return instance._createFinishLine();
 
-              case 16:
-                _context7.next = 18;
-                return instance._createAmbience();
+              case 22:
+                // ambience is nice, but not worth stalling over
+                Track.create.status = 'creating ambient sound';
 
-              case 18:
-                // await instance._createForeground();
+                instance._createAmbience(); // await instance._createForeground();
                 // await instance._createBackground();
                 // set the y position
+
+
                 y = _scaling.TRACK_TOP + _scaling.TRACK_HEIGHT / 2;
                 instance.overlay.relativeY = y;
                 instance.ground.relativeY = y; // can render
@@ -94518,7 +94679,7 @@ var Track = /*#__PURE__*/function () {
                 instance.ready = true;
                 return _context7.abrupt("return", instance);
 
-              case 23:
+              case 29:
               case "end":
                 return _context7.stop();
             }
@@ -96740,6 +96901,8 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
+var TRACK_CREATION_TIMEOUT = 5000;
+
 /** creates a track view that supports multiple cars for racing */
 var TrackView = /*#__PURE__*/function (_BaseView) {
   (0, _inherits2.default)(TrackView, _BaseView);
@@ -96967,7 +97130,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setTrack", /*#__PURE__*/function () {
       var _ref3 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(options) {
-        var _assertThisInitialize3, stage, trackOptions, track;
+        var _assertThisInitialize3, stage, trackOptions, pending, track;
 
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
@@ -96978,11 +97141,22 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   view: (0, _assertThisInitialized2.default)(_this)
                 }, options);
                 _context2.prev = 2;
-                _context2.next = 5;
-                return _track.default.create(trackOptions);
+                pending = _track.default.create(trackOptions);
+                _context2.prev = 4;
+                _context2.next = 7;
+                return (0, _utils.waitWithTimeout)(pending, TRACK_CREATION_TIMEOUT);
 
-              case 5:
+              case 7:
                 track = _this.track = _context2.sent;
+                _context2.next = 13;
+                break;
+
+              case 10:
+                _context2.prev = 10;
+                _context2.t0 = _context2["catch"](4);
+                throw new Error("Track stalled creation at ".concat(_track.default.create.status || 'before setup'));
+
+              case 13:
                 // add the scroling ground
                 stage.addChild(track.ground);
                 track.ground.zIndex = _layers.LAYER_TRACK_GROUND;
@@ -96996,21 +97170,21 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
                 _this.resolveTask('load_track');
 
-                _context2.next = 20;
+                _context2.next = 27;
                 break;
 
-              case 16:
-                _context2.prev = 16;
-                _context2.t0 = _context2["catch"](2);
-                console.error(_context2.t0);
+              case 23:
+                _context2.prev = 23;
+                _context2.t1 = _context2["catch"](2);
+                console.error(_context2.t1);
                 throw new TrackAssetError();
 
-              case 20:
+              case 27:
               case "end":
                 return _context2.stop();
             }
           }
-        }, _callee2, null, [[2, 16]]);
+        }, _callee2, null, [[2, 23], [4, 10]]);
       }));
 
       return function (_x3) {

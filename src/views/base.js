@@ -3,14 +3,14 @@ import * as debug from '../debug';
 import { isViewActive, onViewActiveStateChanged } from '../utils/view';
 import { Animator, EventEmitter, PIXI } from 'nt-animator';
 import { noop } from '../utils';
-import { ANIMATION_ANIMATION_UPDATE_FREQUENCY, ANIMATION_PARTICLE_UPDATE_FREQUENCY, PERFORMANCE_LEVEL, SSAA_SCALING_AMOUNT, TRACK_FORCE_CANVAS } from '../config';
+import { ANIMATION_ANIMATION_UPDATE_FREQUENCY, ANIMATION_PARTICLE_UPDATE_FREQUENCY, PERFORMANCE_LEVEL, SSAA_SCALING_AMOUNT } from '../config';
 
 /** creates a track instance */
 export class BaseView extends EventEmitter {
 
 	/** handles initial setup of the rendering area */
 	async init(options) {
-		const { target, scale } = options;
+		const { scale } = options;
 
 		// monitor visibility changes
 		this.isViewActive = isViewActive();
@@ -19,17 +19,15 @@ export class BaseView extends EventEmitter {
 		// save some options
 		this.options = options;
 		this.scale = options.scale;
-		this.target = options.target;
 		this.ssaa = options.ssaa !== false;
 
 		// get the container the rendering surface is in
-		this.parent = options.container || options.target.parentNode;
-
-		const animationUpdateFrequency = ANIMATION_ANIMATION_UPDATE_FREQUENCY;
-		const emitterUpdateFrequency = ANIMATION_PARTICLE_UPDATE_FREQUENCY;
+		this.parent = options.container;
 
 		// create the animation creator
 		const { baseUrl, seed, manifest } = options;
+		const animationUpdateFrequency = ANIMATION_ANIMATION_UPDATE_FREQUENCY;
+		const emitterUpdateFrequency = ANIMATION_PARTICLE_UPDATE_FREQUENCY;
 		this.animator = new Animator(manifest, {
 			animationUpdateFrequency,
 			emitterUpdateFrequency,
@@ -41,41 +39,44 @@ export class BaseView extends EventEmitter {
 		this.data = options.data;
 
 		// create the renderer config
-		const config = {
+		this.config = {
 			antialias: false, // doesn't appear to improve anything
 			legacy: true,
-			view: target,
 			preserveDrawingBuffer: true,
 			clearBeforeRender: false,
 			smoothProperty: 'none',
 			backgroundColor: options.backgroundColor || 0x282d3f
 		};
 
-		// create a PIXI renderer for the provided canvas
-		if (!!TRACK_FORCE_CANVAS) {
-			createCanvasRenderer(this, config);
-		}
-		// try to create WebGL
-		else {
+
+		// start with a canvas renderer
+		createCanvasRenderer(this);
+		let renderer = this.canvasRenderer;
+
+		// create WebGL, if supported
+		if (PIXI.utils.isWebGLSupported()) {
 			try {
-				createWebGLRenderer(this, config);
+				createWebGLRenderer(this);
+				
+				// if it was successful, we want to monitor for
+				// any webGL context errors
+				const { gl } = this.webGLRenderer.renderer;
+				gl.canvas.addEventListener('webglcontextlost', this.onWebGLContextLost);
+				// gl.canvas.addEventListener('webglcontextrestored', this.onWebGLContextRestored);
 
-				// since this worked, track webgl context failures
-				// and switch to canvas if it breaks
-				// canvas.addEventListener('webglcontextlost', event => {
-				// 	createCanvasRenderer(this, config);
-				// }, false);
-
+				// debugging failures
+				// setTimeout(() => this.webGLRenderer.renderer.gl.getExtension('WEBGL_lose_context').loseContext(), 10000);
+				
+				// replace the renderer
+				renderer = this.webGLRenderer;
 			}
-			// try and fallback to canvas
 			catch (ex) {
-				createCanvasRenderer(this, config);
+				renderer = this.canvasRenderer;
 			}
 		}
 
-		// no interactions
+		// no common timer
 		PIXI.Ticker.shared.stop();
-		this.renderer.plugins.interaction.destroy();
 
 		// idenitfy which scaled edges to use
 		const axes = { };
@@ -87,8 +88,8 @@ export class BaseView extends EventEmitter {
 		this.stage = new PIXI.Container();
 		this.view.addChild(this.stage);
 		
-		// match the size
-		this.resize();
+		// set the correct renderer
+		this.setRenderer(renderer);
 	}
 	
 	/** keeping track of progress */
@@ -101,12 +102,41 @@ export class BaseView extends EventEmitter {
 		current: 0
 	}
 
+	setRenderer = target => {
+		const { parent } = this;
+		this.renderer = target.renderer;
+		
+		// remove all children
+		for (const child of parent.children)
+			parent.removeChild(child);
+
+		// update the current use
+		this.isUsingWebGL = target.isWebGL;
+		this.isUsingCanvas = target.isCanvas;
+
+		// add the view 
+		this.parent.appendChild(target.view);
+		this.resize();
+	}
+
 	// handle pausing the render
 	pause = () => this.paused = true
 	resume = () => this.paused = false
 
 	// update state info
 	onViewActiveStateChanged = active => this.isViewActive = active
+
+	// bail on webGL
+	onWebGLContextLost = () => {
+		this.webGLContextLost = true;
+		this.setRenderer(this.canvasRenderer);
+	}
+
+	// restore webGL
+	onWebGLContextRestored = () => {
+		createWebGLRenderer(this);
+		this.resize();
+	}
 
 	/** calculates preferred times */
 	// TODO: make sure this is correct on 
@@ -160,9 +190,10 @@ export class BaseView extends EventEmitter {
 
 	/** resizes to match the container element */
 	resize = () => {
-		const { parent, target: surface, view } = this;
+		const { parent, view, renderer } = this;
+		const { view: surface } = renderer;
 		const ssaa = true;
-
+		
 		// get the updated bounds
 		const bounds = parent.getBoundingClientRect();
 		const preferred = bounds.width;
@@ -197,19 +228,31 @@ export class BaseView extends EventEmitter {
 }
 
 // create a webgl based renderer
-function createWebGLRenderer(instance, config) {
-	// return createCanvasRenderer(instance, config);
-	instance.renderer = new PIXI.Renderer(config);
-	instance.isUsingWebGL = true;
-	instance.isUsingCanvas = false;
+function createWebGLRenderer(instance) {
+	const { config } = instance;
+
+	// create the renderer
+	const renderer = new PIXI.Renderer(config);
+	renderer.plugins.interaction.destroy();
+	instance.webGLRenderer = {
+		isWebGL: true,
+		renderer,
+		view: renderer.view
+	};
 }
 
 // create an basic canvas renderer
-function createCanvasRenderer(instance, config) {
-	// return createWebGLRenderer(instance, config);
-	instance.renderer = new PIXI.CanvasRenderer(config);
-	instance.isUsingWebGL = false;
-	instance.isUsingCanvas = true;
+function createCanvasRenderer(instance) {
+	const { config } = instance;
+
+	// create the renderer
+	const renderer = new PIXI.CanvasRenderer(config);
+	renderer.plugins.interaction.destroy();
+	instance.canvasRenderer = {
+		isCanvas: true,
+		renderer,
+		view: renderer.view
+	};
 }
 
 

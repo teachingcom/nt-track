@@ -1,5 +1,31 @@
 export const merge = Object.assign;
 
+/** timeout with async pattern */
+export async function wait(time) {
+	return new Promise(resolve => setTimeout(resolve, time));
+}
+
+/** awaits an activity with a timeout */
+export async function waitWithTimeout(promise, timeout) {
+	return new Promise(async (resolve, reject) => {
+		let success = false;
+		setTimeout(() => {
+			if (success) return;
+			reject();
+		}, timeout);
+
+		try {
+			const result = await promise;
+			success = true;
+			resolve(result);
+		}
+		catch (ex) {
+			reject(ex);
+		}
+
+	});
+}
+
 // no-operation
 export const noop = () => { };
 
