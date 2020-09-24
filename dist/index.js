@@ -83640,7 +83640,7 @@ function getPerformanceScore() {
 
 
   console.log('cycles:', cycles);
-  return cycles < MINIMAL_SCORE ? minimal : cycles < LOW_SCORE ? LOW : cycles < MEDIUM_SCORE ? MEDIUM : HIGH;
+  return cycles < MINIMAL_SCORE ? MINIMAL : cycles < LOW_SCORE ? LOW : cycles < MEDIUM_SCORE ? MEDIUM : HIGH;
 }
 },{}],"config.js":[function(require,module,exports) {
 "use strict";

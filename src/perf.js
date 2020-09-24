@@ -33,7 +33,7 @@ export default function getPerformanceScore() {
 	// return a simple score to determine which
 	// quality settings to use
 	console.log('cycles:', cycles);
-	return cycles < MINIMAL_SCORE ? minimal
+	return cycles < MINIMAL_SCORE ? MINIMAL
 		: cycles < LOW_SCORE ? LOW
 		: cycles < MEDIUM_SCORE ? MEDIUM
 		: HIGH;
