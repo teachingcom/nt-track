@@ -177,18 +177,6 @@ export default class TrackView extends BaseView {
 	/** adds a new car to the track */
 	trailIndex = Math.floor(Math.random() * 10)
 	addPlayer = async (data, isInstant) => {
-
-		// PERFORMANCETEST
-		// car effect style
-		data.type = this.isMildEffects ? 'rainbow'
-			: this.isNormalEffects ? 'police_cruiser'
-			: 'grid';
-
-		data.hue = (data.lane || 0) * 64;
-		data.mods = data.mods || { };
-		data.mods.trail = ['frosty', 'stars', 'smoke', 'type', 'bits', 'hearts', 'fire', 'burnout', 'lightning'][++this.trailIndex % 9];
-		data.mods.nitro = ['default', 'default', 'default', 'haha', 'burst'][Math.floor(Math.random() * 5)] || 'default';
-		
 		const { activePlayers, state, stage, isViewActive, animator } = this;
 		const playerOptions = merge({ view: this }, data);
 		const { isPlayer, id, lane } = playerOptions;

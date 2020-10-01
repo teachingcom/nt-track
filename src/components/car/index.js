@@ -31,6 +31,7 @@ import {
 import ActivateNitroAnimation from '../../animations/activate-nitro';
 import generateTextures from './texture-generator';
 import hueShift from './hue-shift';
+import { CAR_MAPPINGS, searchForEnhancedCar } from '../../car-mappings';
 
 
 export default class Car extends PIXI.Container {
@@ -48,7 +49,8 @@ export default class Car extends PIXI.Container {
 		const instance = new Car();
 		
 		// determine the type to create
-		const { type, view } = options;
+		const { view } = options;
+		const type = searchForEnhancedCar(options.type);
 		const path = `cars/${type}`;
 		const config = view.animator.lookup(path);
 		merge(instance, { options, view, path, config });

@@ -85652,7 +85652,26 @@ function getRootTexture(sprite) {
 
   return previous;
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js"}],"components/car/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js"}],"car-mappings.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.searchForEnhancedCar = searchForEnhancedCar;
+exports.CAR_MAPPINGS = void 0;
+
+function searchForEnhancedCar(id) {
+  id = id.replace(/_.*$/g, '');
+  return CAR_MAPPINGS[id] || id;
+} // mapping for advanced animation cars
+
+
+var CAR_MAPPINGS = {
+  '15': 'xcelsior'
+};
+exports.CAR_MAPPINGS = CAR_MAPPINGS;
+},{}],"components/car/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -85695,6 +85714,8 @@ var _activateNitro = _interopRequireDefault(require("../../animations/activate-n
 var _textureGenerator = _interopRequireDefault(require("./texture-generator"));
 
 var _hueShift = _interopRequireDefault(require("./hue-shift"));
+
+var _carMappings = require("../../car-mappings");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -86333,14 +86354,15 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
     /** handles creating a new car */
     value: function () {
       var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(options) {
-        var instance, type, view, path, config;
+        var instance, view, type, path, config;
         return _regenerator.default.wrap(function _callee7$(_context7) {
           while (1) {
             switch (_context7.prev = _context7.next) {
               case 0:
                 instance = new Car(); // determine the type to create
 
-                type = options.type, view = options.view;
+                view = options.view;
+                type = (0, _carMappings.searchForEnhancedCar)(options.type);
                 path = "cars/".concat(type);
                 config = view.animator.lookup(path);
                 (0, _utils.merge)(instance, {
@@ -86350,17 +86372,17 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
                   config: config
                 }); // initialize the car
 
-                _context7.next = 7;
+                _context7.next = 8;
                 return instance._initCar();
 
-              case 7:
-                _context7.next = 9;
+              case 8:
+                _context7.next = 10;
                 return instance._initFilters();
 
-              case 9:
+              case 10:
                 return _context7.abrupt("return", instance);
 
-              case 10:
+              case 11:
               case "end":
                 return _context7.stop();
             }
@@ -86379,7 +86401,7 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
 }(_ntAnimator.PIXI.Container);
 
 exports.default = Car;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","./create-static-car":"components/car/create-static-car.js","../../plugins/cars":"plugins/cars/index.js","../../views/track/layers":"views/track/layers.js","../../config":"config.js","../../animations/activate-nitro":"animations/activate-nitro.js","./texture-generator":"components/car/texture-generator.js","./hue-shift":"components/car/hue-shift.js"}],"components/trail/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","./create-static-car":"components/car/create-static-car.js","../../plugins/cars":"plugins/cars/index.js","../../views/track/layers":"views/track/layers.js","../../config":"config.js","../../animations/activate-nitro":"animations/activate-nitro.js","./texture-generator":"components/car/texture-generator.js","./hue-shift":"components/car/hue-shift.js","../../car-mappings":"car-mappings.js"}],"components/trail/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -95626,6 +95648,8 @@ var _ntAnimator = require("nt-animator");
 
 var _config = require("../config");
 
+var _layers = _interopRequireDefault(require("../plugins/crowd/layers"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
@@ -95654,6 +95678,7 @@ var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
 
     (0, _classCallCheck2.default)(this, RaceProgressAnimation);
     _this = _super.call(this);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "qualifyingX", 0);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "fitTo", {});
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "tweens", {});
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "timestamps", {});
@@ -95698,7 +95723,9 @@ var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
       var _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this),
           now = _assertThisInitialize3.now,
           timestamps = _assertThisInitialize3.timestamps,
-          tweens = _assertThisInitialize3.tweens;
+          tweens = _assertThisInitialize3.tweens,
+          isQualifyingRace = _assertThisInitialize3.isQualifyingRace,
+          qualifyingX = _assertThisInitialize3.qualifyingX;
 
       var percent = player.progress / 100;
       var interpolator = tweens[player.id]; // nothing to update
@@ -95719,7 +95746,7 @@ var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
         var done = (1 - _config.TRACK_STARTING_LINE_POSITION) * scaled;
         var offset = width * scaled;
         var at = _config.TRACK_STARTING_LINE_POSITION + done + offset;
-        player.preferredX = Math.max(_config.TRACK_STARTING_LINE_POSITION, at); // set the new target
+        player.preferredX = Math.max(player.relativeX, _config.TRACK_STARTING_LINE_POSITION, at); // set the new target
 
         interpolator.update(player.relativeX, player.preferredX);
       }
@@ -95731,6 +95758,7 @@ var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
           timestamps = _assertThisInitialize4.timestamps,
           tweens = _assertThisInitialize4.tweens,
           track = _assertThisInitialize4.track,
+          isOutro = _assertThisInitialize4.isOutro,
           isQualifyingRace = _assertThisInitialize4.isQualifyingRace;
 
       var activePlayer = track.activePlayer; // make sure they have an interpolator
@@ -95748,10 +95776,16 @@ var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
       if (player.isDisqualified && !activePlayer.isDisqualified) {
         player.relativeX -= 0.01;
         return;
-      } // adjust the position
+      } // if qualifying, show a slow movement forward
 
 
-      player.relativeX = interpolator.getProgress(); // check if already updated
+      if (isQualifyingRace && !isOutro) {
+        player.relativeX = Math.min(player.relativeX + 0.0005, _config.RACE_ENDING_ANIMATION_THRESHOLD);
+      } // all other times, interpolate position
+      else {
+          player.relativeX = interpolator.getProgress();
+        } // check if already updated
+
 
       if (lastUpdate[player.id] === player.lastUpdate) return;
       lastUpdate[player.id] = player.lastUpdate; // perform the update
@@ -95759,8 +95793,6 @@ var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
       if (player.isPlayer) _this.updateActivePlayer(player);else _this.updateOther(player); // cannot animate yet
 
       if (isNaN(player.preferredX)) {
-        // if this is the qualifying race
-        if (isQualifyingRace) player.relativeX += 0.01;
         return;
       } // update timestamps
 
@@ -95806,7 +95838,7 @@ var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
     _this.track = _track;
     _this.isQualifyingRace = _isQualifyingRace;
     return _this;
-  } // cached sizes for cars
+  } // bonus distance for qualifying races
 
 
   return RaceProgressAnimation;
@@ -96075,7 +96107,7 @@ var ProgressInterpolator = /*#__PURE__*/function () {
 // 	};
 // 	return exp.Tween;
 // }());
-},{"@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","./base":"animations/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../config":"config.js"}],"phaser-fps.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","./base":"animations/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../config":"config.js","../plugins/crowd/layers":"plugins/crowd/layers.js"}],"phaser-fps.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -96983,13 +97015,6 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                // PERFORMANCETEST
-                // car effect style
-                data.type = _this.isMildEffects ? 'rainbow' : _this.isNormalEffects ? 'police_cruiser' : 'grid';
-                data.hue = (data.lane || 0) * 64;
-                data.mods = data.mods || {};
-                data.mods.trail = ['frosty', 'stars', 'smoke', 'type', 'bits', 'hearts', 'fire', 'burnout', 'lightning'][++_this.trailIndex % 9];
-                data.mods.nitro = ['default', 'default', 'default', 'haha', 'burst'][Math.floor(Math.random() * 5)] || 'default';
                 _assertThisInitialize2 = (0, _assertThisInitialized2.default)(_this), activePlayers = _assertThisInitialize2.activePlayers, state = _assertThisInitialize2.state, stage = _assertThisInitialize2.stage, isViewActive = _assertThisInitialize2.isViewActive, animator = _assertThisInitialize2.animator;
                 playerOptions = (0, _utils.merge)({
                   view: (0, _assertThisInitialized2.default)(_this)
@@ -97000,34 +97025,34 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 if (existing) _this.removePlayer(existing.id); // make sure this isn't a mistake
 
                 if (!activePlayers[data.id]) {
-                  _context.next = 12;
+                  _context.next = 7;
                   break;
                 }
 
                 return _context.abrupt("return");
 
-              case 12:
+              case 7:
                 activePlayers[data.id] = true; // increase the expected players
 
                 state.totalPlayers++; // create the player instance
 
-                _context.prev = 14;
-                _context.next = 17;
+                _context.prev = 9;
+                _context.next = 12;
                 return _player2.default.create(playerOptions);
 
-              case 17:
+              case 12:
                 player = _context.sent;
                 player.track = (0, _assertThisInitialized2.default)(_this); // if this player failed to load, abandon the
                 // attempt
 
                 if (!(isPlayer && !player.hasRequiredAssets)) {
-                  _context.next = 21;
+                  _context.next = 16;
                   break;
                 }
 
                 throw new PlayerAssetError();
 
-              case 21:
+              case 16:
                 // set the active player, if needed
                 if (isPlayer) {
                   _this.activePlayerId = id;
@@ -97039,11 +97064,11 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 _player = player, car = _player.car;
 
                 if (!((_car$plugin = car.plugin) === null || _car$plugin === void 0 ? void 0 : _car$plugin.extend)) {
-                  _context.next = 26;
+                  _context.next = 21;
                   break;
                 }
 
-                _context.next = 26;
+                _context.next = 21;
                 return car.plugin.extend({
                   animator: animator,
                   car: car,
@@ -97051,7 +97076,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   track: (0, _assertThisInitialized2.default)(_this)
                 });
 
-              case 26:
+              case 21:
                 // with the player, include their namecard
                 namecard = player.layers.namecard;
 
@@ -97094,12 +97119,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   state.playerHasEntered = true;
                 }
 
-                _context.next = 44;
+                _context.next = 39;
                 break;
 
-              case 37:
-                _context.prev = 37;
-                _context.t0 = _context["catch"](14);
+              case 32:
+                _context.prev = 32;
+                _context.t0 = _context["catch"](9);
                 delete activePlayers[data.id];
                 state.totalPlayers--; // if the player was created, try and remove it
 
@@ -97107,18 +97132,18 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 // a breaking exception
 
                 if (!isPlayer) {
-                  _context.next = 44;
+                  _context.next = 39;
                   break;
                 }
 
                 throw _context.t0;
 
-              case 44:
+              case 39:
               case "end":
                 return _context.stop();
             }
           }
-        }, _callee, null, [[14, 37]]);
+        }, _callee, null, [[9, 32]]);
       }));
 
       return function (_x, _x2) {

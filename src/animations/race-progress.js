@@ -8,6 +8,7 @@ import {
 	TRACK_STARTING_LINE_POSITION,
 	ANIMATION_RATE_WHILE_RACING
 } from "../config";
+import layers from '../plugins/crowd/layers';
 
 export default class RaceProgressAnimation extends Animation {
 
@@ -17,6 +18,9 @@ export default class RaceProgressAnimation extends Animation {
 		this.track = track;
 		this.isQualifyingRace = isQualifyingRace;
 	}
+
+	// bonus distance for qualifying races
+	qualifyingX = 0
 
 	// cached sizes for cars
 	fitTo = { }
@@ -70,7 +74,7 @@ export default class RaceProgressAnimation extends Animation {
 
 	/** animates the player */
 	updateActivePlayer = player => {
-		const { now, timestamps, tweens } = this;
+		const { now, timestamps, tweens, isQualifyingRace, qualifyingX } = this;
 		const percent = player.progress / 100;
 		const interpolator = tweens[player.id];
 
@@ -91,7 +95,7 @@ export default class RaceProgressAnimation extends Animation {
 			const done = (1 - TRACK_STARTING_LINE_POSITION) * scaled;
 			const offset = width * scaled;
 			const at = TRACK_STARTING_LINE_POSITION + done + offset;
-			player.preferredX = Math.max(TRACK_STARTING_LINE_POSITION, at);
+			player.preferredX = Math.max(player.relativeX, TRACK_STARTING_LINE_POSITION, at);
 
 			// set the new target
 			interpolator.update(player.relativeX, player.preferredX);
@@ -101,7 +105,7 @@ export default class RaceProgressAnimation extends Animation {
 
 	/** updates a player's currenpt target progress value */
 	updatePlayer = player =>  {
-		const { now, lastUpdate, timestamps, tweens, track, isQualifyingRace } = this;
+		const { now, lastUpdate, timestamps, tweens, track, isOutro, isQualifyingRace } = this;
 		const { activePlayer } = track;
 
 		// make sure they have an interpolator
@@ -122,8 +126,14 @@ export default class RaceProgressAnimation extends Animation {
 			return;
 		}
 
-		// adjust the position
-		player.relativeX = interpolator.getProgress();
+		// if qualifying, show a slow movement forward
+		if (isQualifyingRace && !isOutro) {
+			player.relativeX = Math.min(player.relativeX + 0.0005, RACE_ENDING_ANIMATION_THRESHOLD);
+		}
+		// all other times, interpolate position
+		else {
+			player.relativeX = interpolator.getProgress();
+		}
 
 		// check if already updated
 		if (lastUpdate[player.id] === player.lastUpdate) return;
@@ -135,11 +145,6 @@ export default class RaceProgressAnimation extends Animation {
 				
 		// cannot animate yet
 		if (isNaN(player.preferredX)) {
-
-			// if this is the qualifying race
-			if (isQualifyingRace)
-				player.relativeX += 0.01;
-
 			return;
 		}
 
