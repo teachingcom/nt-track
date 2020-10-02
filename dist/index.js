@@ -85668,7 +85668,7 @@ function searchForEnhancedCar(id) {
 
 
 var CAR_MAPPINGS = {
-  '15': 'xcelsior'
+  '86': 'xcelsior'
 };
 exports.CAR_MAPPINGS = CAR_MAPPINGS;
 },{}],"components/car/index.js":[function(require,module,exports) {
