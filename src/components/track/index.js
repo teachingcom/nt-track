@@ -77,6 +77,7 @@ export default class Track {
 		
 		// loading external resources
 		try {
+			console.log('in parallel');
 			await Promise.all(resources);
 			onLoadTrackAssets();
 		}

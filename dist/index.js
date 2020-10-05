@@ -94687,37 +94687,38 @@ var Track = /*#__PURE__*/function () {
                 }
 
                 _context7.prev = 18;
-                _context7.next = 21;
+                console.log('in parallel');
+                _context7.next = 22;
                 return Promise.all(resources);
 
-              case 21:
+              case 22:
                 onLoadTrackAssets();
-                _context7.next = 28;
+                _context7.next = 29;
                 break;
 
-              case 24:
-                _context7.prev = 24;
+              case 25:
+                _context7.prev = 25;
                 _context7.t0 = _context7["catch"](18);
                 console.error("failed to preload track resources");
                 throw _context7.t0;
 
-              case 28:
+              case 29:
                 // setup each part
                 Track.create.status = 'creating road';
-                _context7.next = 31;
+                _context7.next = 32;
                 return instance._createRoad();
 
-              case 31:
+              case 32:
                 Track.create.status = 'creating starting line';
-                _context7.next = 34;
+                _context7.next = 35;
                 return instance._createStartingLine();
 
-              case 34:
+              case 35:
                 Track.create.status = 'creating finish line';
-                _context7.next = 37;
+                _context7.next = 38;
                 return instance._createFinishLine();
 
-              case 37:
+              case 38:
                 // ambience is nice, but not worth stalling over
                 Track.create.status = 'creating ambient sound';
 
@@ -94733,12 +94734,12 @@ var Track = /*#__PURE__*/function () {
                 instance.ready = true;
                 return _context7.abrupt("return", instance);
 
-              case 44:
+              case 45:
               case "end":
                 return _context7.stop();
             }
           }
-        }, _callee7, null, [[18, 24]]);
+        }, _callee7, null, [[18, 25]]);
       }));
 
       function create(_x) {
