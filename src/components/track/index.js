@@ -77,7 +77,6 @@ export default class Track {
 		
 		// loading external resources
 		try {
-			console.log('async preload');
 			await Promise.all(resources);
 			onLoadTrackAssets();
 		}

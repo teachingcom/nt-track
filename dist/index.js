@@ -74420,8 +74420,7 @@ var images = {};
 
 function loadImage(url) {
   return new Promise(function (resolve, reject) {
-    var now = +new Date(); // prevent accidental double slashes
-
+    // prevent accidental double slashes
     var parts = url.split('://');
     var last = parts.length - 1;
     parts[last] = parts[last].replace(/\/+/g, '/');
@@ -74435,20 +74434,7 @@ function loadImage(url) {
         reject: reject
       });
       return;
-    } // return new Promise((resolve, reject) => {
-    // });
-    // // check for a cached image
-    // try {
-    // 	const existing = await cache.getItem(url);
-    // 	if (!!existing) {
-    // 		const img = images[url] = document.createElement('img');
-    // 		img.src = existing;
-    // 		return img;
-    // 	}
-    // }
-    // catch (ex) { }
-    // no pending request
-    // return new Promise((resolve, reject) => {
+    } // load the image
 
 
     var img = document.createElement('img'); // if no active queue is available, start it now
@@ -74499,14 +74485,15 @@ function loadImage(url) {
           delete pending[url];
         }
       };
-    }; // make the exernal image request
+    }; // handle results
 
 
     img.onload = handle(true);
-    img.onerror = handle(false);
+    img.onerror = handle(false); // wait a moment before loading
+
     setTimeout(function () {
       return img.src = url;
-    }, Math.random() < 0.3 ? 3000 : 0); // });
+    });
   });
 }
 },{"../../utils/graphics":"utils/graphics.js","../../utils/assetCache":"utils/assetCache.js"}],"animation/resources/loadSpritesheet.js":[function(require,module,exports) {
@@ -94700,38 +94687,37 @@ var Track = /*#__PURE__*/function () {
                 }
 
                 _context7.prev = 18;
-                console.log('async preload');
-                _context7.next = 22;
+                _context7.next = 21;
                 return Promise.all(resources);
 
-              case 22:
+              case 21:
                 onLoadTrackAssets();
-                _context7.next = 29;
+                _context7.next = 28;
                 break;
 
-              case 25:
-                _context7.prev = 25;
+              case 24:
+                _context7.prev = 24;
                 _context7.t0 = _context7["catch"](18);
                 console.error("failed to preload track resources");
                 throw _context7.t0;
 
-              case 29:
+              case 28:
                 // setup each part
                 Track.create.status = 'creating road';
-                _context7.next = 32;
+                _context7.next = 31;
                 return instance._createRoad();
 
-              case 32:
+              case 31:
                 Track.create.status = 'creating starting line';
-                _context7.next = 35;
+                _context7.next = 34;
                 return instance._createStartingLine();
 
-              case 35:
+              case 34:
                 Track.create.status = 'creating finish line';
-                _context7.next = 38;
+                _context7.next = 37;
                 return instance._createFinishLine();
 
-              case 38:
+              case 37:
                 // ambience is nice, but not worth stalling over
                 Track.create.status = 'creating ambient sound';
 
@@ -94747,12 +94733,12 @@ var Track = /*#__PURE__*/function () {
                 instance.ready = true;
                 return _context7.abrupt("return", instance);
 
-              case 45:
+              case 44:
               case "end":
                 return _context7.stop();
             }
           }
-        }, _callee7, null, [[18, 25]]);
+        }, _callee7, null, [[18, 24]]);
       }));
 
       function create(_x) {
