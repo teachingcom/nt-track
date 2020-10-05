@@ -74401,15 +74401,9 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = loadImage;
 
-var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
-
-var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
-
 var _graphics = require("../../utils/graphics");
 
 var _assetCache = require("../../utils/assetCache");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
@@ -74424,107 +74418,98 @@ var images = {};
  * @param {string} url The url of the image to load
 */
 
-function loadImage(_x) {
-  return _loadImage.apply(this, arguments);
-}
+function loadImage(url) {
+  return new Promise(function (resolve, reject) {
+    var now = +new Date(); // prevent accidental double slashes
 
-function _loadImage() {
-  _loadImage = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(url) {
-    var now;
-    return _regenerator.default.wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            now = +new Date(); // check if already existing
+    var parts = url.split('://');
+    var last = parts.length - 1;
+    parts[last] = parts[last].replace(/\/+/g, '/');
+    url = parts.join('://'); // check if already existing
 
-            if (!(url in images)) {
-              _context.next = 3;
-              break;
+    if (url in images) return resolve(images[url]); // if already waiting for a resource
+
+    if (pending[url]) {
+      pending[url].push({
+        resolve: resolve,
+        reject: reject
+      });
+      return;
+    } // return new Promise((resolve, reject) => {
+    // });
+    // // check for a cached image
+    // try {
+    // 	const existing = await cache.getItem(url);
+    // 	if (!!existing) {
+    // 		const img = images[url] = document.createElement('img');
+    // 		img.src = existing;
+    // 		return img;
+    // 	}
+    // }
+    // catch (ex) { }
+    // no pending request
+    // return new Promise((resolve, reject) => {
+
+
+    var img = document.createElement('img'); // if no active queue is available, start it now
+
+    pending[url] = [{
+      resolve: resolve,
+      reject: reject
+    }]; // create resolution actions
+
+    var handle = function handle(success) {
+      return function () {
+        // all finished, resolve the result
+        images[url] = success ? img : null; // // try and cache
+        // if (success)
+        // 	requestAnimationFrame(() => {
+        // 		try {
+        // 			// save to the cache
+        // 			const context = createContext();
+        // 			context.resize(img.width, img.height);
+        // 			// create a data url for the image
+        // 			context.ctx.drawImage(img, 0, 0);
+        // 			const data = context.canvas.toDataURL();
+        // 			cache.setItem(url, data);
+        // 		}
+        // 		// do not fail for this
+        // 		catch(ex) { }
+        // 	});
+        // execute all waiting requests
+
+        try {
+          var _iterator = _createForOfIteratorHelper(pending[url]),
+              _step;
+
+          try {
+            for (_iterator.s(); !(_step = _iterator.n()).done;) {
+              var handler = _step.value;
+              var _resolve = handler.resolve;
+
+              _resolve(success ? img : null);
             }
-
-            return _context.abrupt("return", images[url]);
-
-          case 3:
-            if (!pending[url]) {
-              _context.next = 5;
-              break;
-            }
-
-            return _context.abrupt("return", new Promise(function (resolve, reject) {
-              pending[url].push({
-                resolve: resolve,
-                reject: reject
-              });
-            }));
-
-          case 5:
-            return _context.abrupt("return", new Promise(function (resolve, reject) {
-              var img = document.createElement('img'); // if no active queue is available, start it now
-
-              pending[url] = [{
-                resolve: resolve,
-                reject: reject
-              }]; // create resolution actions
-
-              var handle = function handle(success) {
-                return function () {
-                  // all finished, resolve the result
-                  images[url] = success ? img : null; // // try and cache
-                  // if (success)
-                  // 	requestAnimationFrame(() => {
-                  // 		try {
-                  // 			// save to the cache
-                  // 			const context = createContext();
-                  // 			context.resize(img.width, img.height);
-                  // 			// create a data url for the image
-                  // 			context.ctx.drawImage(img, 0, 0);
-                  // 			const data = context.canvas.toDataURL();
-                  // 			cache.setItem(url, data);
-                  // 		}
-                  // 		// do not fail for this
-                  // 		catch(ex) { }
-                  // 	});
-                  // execute all waiting requests
-
-                  try {
-                    var _iterator = _createForOfIteratorHelper(pending[url]),
-                        _step;
-
-                    try {
-                      for (_iterator.s(); !(_step = _iterator.n()).done;) {
-                        var handler = _step.value;
-                        var _resolve = handler.resolve;
-
-                        _resolve(success ? img : null);
-                      }
-                    } catch (err) {
-                      _iterator.e(err);
-                    } finally {
-                      _iterator.f();
-                    }
-                  } // cleanup
-                  finally {
-                    delete pending[url];
-                  }
-                };
-              }; // make the exernal image request
-
-
-              img.onload = handle(true);
-              img.onerror = handle(false);
-              img.src = url;
-            }));
-
-          case 6:
-          case "end":
-            return _context.stop();
+          } catch (err) {
+            _iterator.e(err);
+          } finally {
+            _iterator.f();
+          }
+        } // cleanup
+        finally {
+          delete pending[url];
         }
-      }
-    }, _callee);
-  }));
-  return _loadImage.apply(this, arguments);
+      };
+    }; // make the exernal image request
+
+
+    img.onload = handle(true);
+    img.onerror = handle(false);
+    setTimeout(function () {
+      return img.src = url;
+    }, Math.random() < 0.3 ? 3000 : 0); // });
+  });
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","../../utils/graphics":"utils/graphics.js","../../utils/assetCache":"utils/assetCache.js"}],"animation/resources/loadSpritesheet.js":[function(require,module,exports) {
+},{"../../utils/graphics":"utils/graphics.js","../../utils/assetCache":"utils/assetCache.js"}],"animation/resources/loadSpritesheet.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -83390,7 +83375,7 @@ var Sound = /*#__PURE__*/function () {
     }
   }]);
 
-  function Sound(type, source, key, _id, sprite) {
+  function Sound(type, source, _key, _id, sprite) {
     var _this = this;
 
     (0, _classCallCheck2.default)(this, Sound);
@@ -83445,9 +83430,15 @@ var Sound = /*#__PURE__*/function () {
 
       _this.source.volume(_this._preferredVolumeLevel, id);
 
-      _this.source.seek(0, id);
+      _this.source.seek(0, id); // do not crash for failed sounds
 
-      _this.source.play(id);
+
+      try {
+        _this.source.play(id);
+      } catch (ex) {
+        var key = _this.key;
+        console.warn("Failed to play sound ".concat(key));
+      }
     });
     (0, _defineProperty2.default)(this, "mute", function (shouldMute) {
       var id = _this.id;
@@ -83458,7 +83449,7 @@ var Sound = /*#__PURE__*/function () {
     this.source = source;
     this.id = _id;
     this.sprite = sprite;
-    this.key = "".concat(type, "::").concat(key, ":").concat(sprite || 'default'); // check the default state
+    this.key = "".concat(type, "::").concat(_key, ":").concat(sprite || 'default'); // check the default state
 
     this.isMusic = type === 'music';
     this.isSfx = !this.isMusic;
@@ -93319,6 +93310,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = createCrowd;
+exports.SELECTED_CROWD_URL = exports.SELECTED_CROWD_ID = void 0;
 
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
@@ -93351,8 +93343,13 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 var CROWD_TOTAL_MEMBERS = 10;
 var CROWD_FRAME_WIDTH = 600;
 var CROWD_FRAME_HEIGHT = 150;
-var CROWD_TIME_PER_STEP = _config.CROWD_ANIMATION_DURATION / _config.CROWD_ANIMATION_FRAME_COUNT; // shared crowd animators
+var CROWD_TIME_PER_STEP = _config.CROWD_ANIMATION_DURATION / _config.CROWD_ANIMATION_FRAME_COUNT; // selects a random pregenerated crowd ID
 
+var SELECTED_CROWD_ID = Math.ceil(Math.random() * 4);
+exports.SELECTED_CROWD_ID = SELECTED_CROWD_ID;
+var SELECTED_CROWD_URL = "rendered/crowd_".concat(SELECTED_CROWD_ID, ".png"); // shared crowd animators
+
+exports.SELECTED_CROWD_URL = SELECTED_CROWD_URL;
 var ANIMATORS; // cached list of sprites in a crowd spritesheet
 
 var SPRITES = {}; // shuffled palette colors mapped to properties
@@ -93487,22 +93484,21 @@ function createCrowd(_x6, _x7, _x8, _x9, _x10) {
 
 function _createCrowd() {
   _createCrowd = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(animator, controller, path, layer, data) {
-    var selected, img, base, totalFrames, i, y, texture, sprite, _data$props, props;
+    var img, base, totalFrames, i, y, texture, sprite, _data$props, props;
 
     return _regenerator.default.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
             if (FRAMES.length) {
-              _context2.next = 8;
+              _context2.next = 7;
               break;
             }
 
-            selected = Math.ceil(Math.random() * 4);
-            _context2.next = 4;
-            return animator.getImage("rendered/crowd_".concat(selected, ".png"));
+            _context2.next = 3;
+            return animator.getImage(SELECTED_CROWD_URL);
 
-          case 4:
+          case 3:
             img = _context2.sent;
             base = _ntAnimator.PIXI.Texture.from(img);
             totalFrames = _config.CROWD_ANIMATION_FRAME_COUNT * 2;
@@ -93514,7 +93510,7 @@ function _createCrowd() {
               FRAMES.push(texture);
             }
 
-          case 8:
+          case 7:
             // create the crowd
             sprite = new _ntAnimator.PIXI.AnimatedSprite(FRAMES);
             sprite.animationSpeed = 0.2 + Math.random() * 0.1;
@@ -93536,7 +93532,7 @@ function _createCrowd() {
               dispose: _utils.noop
             }]);
 
-          case 17:
+          case 16:
           case "end":
             return _context2.stop();
         }
@@ -94001,6 +93997,8 @@ var _ntAnimator = require("nt-animator");
 
 var _rng = _interopRequireDefault(require("../../rng"));
 
+var audio = _interopRequireWildcard(require("../../audio"));
+
 var _scaling = require("../../views/track/scaling");
 
 var _config = require("../../config");
@@ -94009,9 +94007,13 @@ var _utils = require("../../utils");
 
 var _segment3 = _interopRequireDefault(require("./segment"));
 
-var _crowd = _interopRequireDefault(require("../../plugins/crowd"));
+var _crowd = _interopRequireWildcard(require("../../plugins/crowd"));
 
 var _ambient = _interopRequireDefault(require("../../audio/ambient"));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -94021,9 +94023,11 @@ function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o =
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
-// total number of road slices to create
+// images present on all tracks
+var COMMON_IMAGE_ASSETS = ['extras/countdown.jpg', 'extras/countdown.png', 'particles.png', 'images.jpg', 'images.png']; // total number of road slices to create
 // consider making this calculated as needed
 // meaning, add more tiles if the view expands
+
 var TOTAL_ROAD_SEGMENTS = 10; // creates a default track
 
 var Track = /*#__PURE__*/function () {
@@ -94645,12 +94649,13 @@ var Track = /*#__PURE__*/function () {
     /** creates a new track instance */
     value: function () {
       var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(options) {
-        var view, seed, instance, y;
+        var view, seed, onLoadTrackAssets, instance, animator, trackAssetsUrl, resources, _iterator4, _step4, url, image, y;
+
         return _regenerator.default.wrap(function _callee7$(_context7) {
           while (1) {
             switch (_context7.prev = _context7.next) {
               case 0:
-                view = options.view, seed = options.seed; // create the new track
+                view = options.view, seed = options.seed, onLoadTrackAssets = options.onLoadTrackAssets; // create the new track
 
                 instance = new Track();
                 instance.options = options;
@@ -94668,24 +94673,65 @@ var Track = /*#__PURE__*/function () {
 
                 Track.create.status = 'selecting track';
 
-                instance._selectTrack(); // setup each part
+                instance._selectTrack(); // do resource preloading
 
 
-                Track.create.status = 'creating road';
-                _context7.next = 16;
-                return instance._createRoad();
+                animator = view.animator; // frontload known images
 
-              case 16:
-                Track.create.status = 'creating starting line';
-                _context7.next = 19;
-                return instance._createStartingLine();
+                trackAssetsUrl = "tracks/".concat(options.trackId, "/").concat(options.variantId);
+                resources = [// preselected crowd image
+                animator.getImage(_crowd.SELECTED_CROWD_URL), // unique track images
+                animator.getImage("".concat(trackAssetsUrl, ".png")), animator.getImage("".concat(trackAssetsUrl, ".jpg")), // common audio
+                audio.register('common', animator.manifest.sounds)]; // append common image resources
 
-              case 19:
-                Track.create.status = 'creating finish line';
+                _iterator4 = _createForOfIteratorHelper(COMMON_IMAGE_ASSETS);
+
+                try {
+                  for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+                    url = _step4.value;
+                    image = animator.getImage(url);
+                    resources.push(image);
+                  } // loading external resources
+
+                } catch (err) {
+                  _iterator4.e(err);
+                } finally {
+                  _iterator4.f();
+                }
+
+                _context7.prev = 18;
+                console.log('async preload');
                 _context7.next = 22;
-                return instance._createFinishLine();
+                return Promise.all(resources);
 
               case 22:
+                onLoadTrackAssets();
+                _context7.next = 29;
+                break;
+
+              case 25:
+                _context7.prev = 25;
+                _context7.t0 = _context7["catch"](18);
+                console.error("failed to preload track resources");
+                throw _context7.t0;
+
+              case 29:
+                // setup each part
+                Track.create.status = 'creating road';
+                _context7.next = 32;
+                return instance._createRoad();
+
+              case 32:
+                Track.create.status = 'creating starting line';
+                _context7.next = 35;
+                return instance._createStartingLine();
+
+              case 35:
+                Track.create.status = 'creating finish line';
+                _context7.next = 38;
+                return instance._createFinishLine();
+
+              case 38:
                 // ambience is nice, but not worth stalling over
                 Track.create.status = 'creating ambient sound';
 
@@ -94701,12 +94747,12 @@ var Track = /*#__PURE__*/function () {
                 instance.ready = true;
                 return _context7.abrupt("return", instance);
 
-              case 29:
+              case 45:
               case "end":
                 return _context7.stop();
             }
           }
-        }, _callee7);
+        }, _callee7, null, [[18, 25]]);
       }));
 
       function create(_x) {
@@ -94732,7 +94778,7 @@ var byRightEdge = function byRightEdge(a, b) {
 };
 
 function TrackGenerationException() {}
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/readOnlyError":"../node_modules/@babel/runtime/helpers/readOnlyError.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../rng":"rng.js","../../views/track/scaling":"views/track/scaling.js","../../config":"config.js","../../utils":"utils/index.js","./segment":"components/track/segment.js","../../plugins/crowd":"plugins/crowd/index.js","../../audio/ambient":"audio/ambient.js"}],"animations/car-entry.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/readOnlyError":"../node_modules/@babel/runtime/helpers/readOnlyError.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../rng":"rng.js","../../audio":"audio/index.js","../../views/track/scaling":"views/track/scaling.js","../../config":"config.js","../../utils":"utils/index.js","./segment":"components/track/segment.js","../../plugins/crowd":"plugins/crowd/index.js","../../audio/ambient":"audio/ambient.js"}],"animations/car-entry.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -96968,6 +97014,9 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       typingSpeedModifierShift: 0,
       totalPlayers: 0
     });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "onLoadTrackAssets", function () {
+      _this.resolveTask('load_assets');
+    });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "onBeginRace", function () {
       _this.fps.activate();
     });
@@ -97006,7 +97055,6 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
         _iterator2.f();
       }
     });
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "trailIndex", Math.floor(Math.random() * 10));
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "addPlayer", /*#__PURE__*/function () {
       var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(data, isInstant) {
         var _assertThisInitialize2, activePlayers, state, stage, isViewActive, animator, playerOptions, isPlayer, id, lane, existing, player, _car$plugin, _player, car, namecard, container, _ref2, _ref2$enterSound, enterSound, entry;
@@ -97155,21 +97203,23 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setTrack", /*#__PURE__*/function () {
       var _ref3 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(options) {
-        var _assertThisInitialize3, stage, trackOptions, pending, track;
+        var _assertThisInitialize3, stage, animator, trackOptions, track, _this$countdown, loading;
 
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this), stage = _assertThisInitialize3.stage;
+                _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this), stage = _assertThisInitialize3.stage, animator = _assertThisInitialize3.animator;
                 trackOptions = (0, _utils.merge)({
-                  view: (0, _assertThisInitialized2.default)(_this)
-                }, options);
+                  view: (0, _assertThisInitialized2.default)(_this),
+                  onLoadTrackAssets: _this.onLoadTrackAssets
+                }, options); // try and load the track instance
+
                 _context2.prev = 2;
-                pending = _track.default.create(trackOptions);
-                _context2.prev = 4;
+                _context2.prev = 3;
+                loading = _track.default.create(trackOptions);
                 _context2.next = 7;
-                return (0, _utils.waitWithTimeout)(pending, TRACK_CREATION_TIMEOUT);
+                return (0, _utils.waitWithTimeout)(loading, TRACK_CREATION_TIMEOUT);
 
               case 7:
                 track = _this.track = _context2.sent;
@@ -97178,10 +97228,57 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
               case 10:
                 _context2.prev = 10;
-                _context2.t0 = _context2["catch"](4);
+                _context2.t0 = _context2["catch"](3);
                 throw new Error("Track stalled creation at ".concat(_track.default.create.status || 'before setup'));
 
               case 13:
+                _context2.prev = 13;
+                _this.countdown = new _countdown.default({
+                  track: (0, _assertThisInitialized2.default)(_this),
+                  stage: stage,
+                  animator: animator,
+                  onBeginRace: _this.onBeginRace
+                });
+                _context2.next = 17;
+                return _this.countdown.init();
+
+              case 17:
+                _this.resolveTask('load_extras');
+
+                _context2.next = 24;
+                break;
+
+              case 20:
+                _context2.prev = 20;
+                _context2.t1 = _context2["catch"](13);
+                // delete this.countdown;
+                console.error("Failed to load required files for countdown animation");
+                throw new CountdownAssetError();
+
+              case 24:
+                if ((_this$countdown = _this.countdown) === null || _this$countdown === void 0 ? void 0 : _this$countdown.isReady) {
+                  _context2.next = 27;
+                  break;
+                }
+
+                console.error("Countdown did not load successfully");
+                throw new CountdownAssetError();
+
+              case 27:
+                // track is ready to go
+                _this.resolveTask('load_track');
+
+                _context2.next = 35;
+                break;
+
+              case 30:
+                _context2.prev = 30;
+                _context2.t2 = _context2["catch"](2);
+                console.log('failed to load track');
+                console.error(_context2.t2);
+                throw new TrackAssetError();
+
+              case 35:
                 // add the scroling ground
                 stage.addChild(track.ground);
                 track.ground.zIndex = _layers.LAYER_TRACK_GROUND;
@@ -97191,25 +97288,14 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 track.overlay.zIndex = _layers.LAYER_TRACK_OVERLAY;
                 track.overlay.relativeX = 0.5; // sort the layers
 
-                stage.sortChildren(); // track is ready to go
+                stage.sortChildren();
 
-                _this.resolveTask('load_track');
-
-                _context2.next = 27;
-                break;
-
-              case 23:
-                _context2.prev = 23;
-                _context2.t1 = _context2["catch"](2);
-                console.error(_context2.t1);
-                throw new TrackAssetError();
-
-              case 27:
+              case 42:
               case "end":
                 return _context2.stop();
             }
           }
-        }, _callee2, null, [[2, 23], [4, 10]]);
+        }, _callee2, null, [[2, 30], [3, 10], [13, 20]]);
       }));
 
       return function (_x3) {
@@ -97415,9 +97501,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     // handle remaining setup
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(options) {
-        var _this$countdown;
-
-        var animator, stage, _options, isQualifyingRace;
+        var _options, isQualifyingRace;
 
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
@@ -97436,72 +97520,16 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 return (0, _get2.default)((0, _getPrototypeOf2.default)(TrackView.prototype), "init", this).call(this, options);
 
               case 3:
-                // set the rendering style
-                // PERFORMANCETEST
-                this.effects = ['mild', 'normal', 'extreme'][Math.floor(Math.random() * 3)];
-                this.isMildEffects = this.effects === 'mild';
-                this.isNormalEffects = this.effects === 'normal';
-                this.isExtremeEffects = this.effects === 'extreme'; // identify loading tasks
-
-                this.addTasks('load_track', 'load_extras', 'load_audio'); // set default audio state
+                // identify loading tasks
+                this.addTasks('load_track', 'load_assets', 'load_extras'); // set default audio state
 
                 audio.configureSFX({
                   enabled: !!options.sfx
                 });
                 audio.configureMusic({
                   enabled: !!options.music
-                }); // preload common sounds
+                }); // tracking race position progress
 
-                _context4.prev = 10;
-                _context4.next = 13;
-                return audio.register('common', options.manifest.sounds);
-
-              case 13:
-                this.resolveTask('load_audio');
-                _context4.next = 20;
-                break;
-
-              case 16:
-                _context4.prev = 16;
-                _context4.t0 = _context4["catch"](10);
-                console.error('Failed to load required audio files');
-                throw new AudioAssetError();
-
-              case 20:
-                _context4.prev = 20;
-                animator = this.animator, stage = this.stage;
-                this.countdown = new _countdown.default({
-                  track: this,
-                  stage: stage,
-                  animator: animator,
-                  onBeginRace: this.onBeginRace
-                });
-                _context4.next = 25;
-                return this.countdown.init();
-
-              case 25:
-                this.resolveTask('load_extras');
-                _context4.next = 32;
-                break;
-
-              case 28:
-                _context4.prev = 28;
-                _context4.t1 = _context4["catch"](20);
-                // delete this.countdown;
-                console.error("Failed to load required files for countdown animation");
-                throw new CountdownAssetError();
-
-              case 32:
-                if ((_this$countdown = this.countdown) === null || _this$countdown === void 0 ? void 0 : _this$countdown.isReady) {
-                  _context4.next = 35;
-                  break;
-                }
-
-                console.error("Countdown did not load successfully");
-                throw new CountdownAssetError();
-
-              case 35:
-                // tracking race position progress
                 _options = options, isQualifyingRace = _options.isQualifyingRace;
                 this.progress = options.manifest.progress;
                 this.pendingPlayers = options.expectedPlayerCount;
@@ -97512,12 +97540,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 }); // attach the effects filter
                 // this.stage.filters = [ this.colorFilter ];
 
-              case 40:
+              case 11:
               case "end":
                 return _context4.stop();
             }
           }
-        }, _callee4, this, [[10, 16], [20, 28]]);
+        }, _callee4, this);
       }));
 
       function init(_x4) {
@@ -97525,7 +97553,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       }
 
       return init;
-    }() // race begins event
+    }() // when finishing preloading of assrets
 
   }, {
     key: "getFpsCache",

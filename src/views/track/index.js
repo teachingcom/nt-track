@@ -86,51 +86,13 @@ export default class TrackView extends BaseView {
 		// base class init
 		await super.init(options);
 
-		// set the rendering style
-		// PERFORMANCETEST
-		this.effects = ['mild', 'normal', 'extreme'][Math.floor(Math.random() * 3)];
-		this.isMildEffects = this.effects === 'mild';
-		this.isNormalEffects = this.effects === 'normal';
-		this.isExtremeEffects = this.effects === 'extreme';
-
 		// identify loading tasks
-		this.addTasks('load_track', 'load_extras', 'load_audio');
-		
+		this.addTasks('load_track', 'load_assets', 'load_extras');
+
 		// set default audio state
 		audio.configureSFX({ enabled: !!options.sfx });
 		audio.configureMusic({ enabled: !!options.music });	
 		
-		// preload common sounds
-		try {
-			await audio.register('common', options.manifest.sounds);
-			this.resolveTask('load_audio');
-		}
-		// unable to load sounds
-		catch (ex) {
-			console.error('Failed to load required audio files');
-			throw new AudioAssetError();
-		}
-		
-		// preload the countdown animation images
-		try {
-			const { animator, stage } = this;
-			this.countdown = new CountdownAnimation({ track: this, stage, animator, onBeginRace: this.onBeginRace });
-			await this.countdown.init();
-			this.resolveTask('load_extras');
-		}
-		// unable to load the countdown
-		catch(ex) {
-			// delete this.countdown;
-			console.error(`Failed to load required files for countdown animation`);
-			throw new CountdownAssetError();
-		}
-
-		// verify the countdown loaded
-		if (!this.countdown?.isReady) {
-			console.error(`Countdown did not load successfully`);
-			throw new CountdownAssetError();
-		}
-
 		// tracking race position progress
 		const { isQualifyingRace } = options;
 		this.progress = options.manifest.progress;
@@ -140,6 +102,11 @@ export default class TrackView extends BaseView {
 
 		// attach the effects filter
 		// this.stage.filters = [ this.colorFilter ];
+	}
+
+	// when finishing preloading of assrets
+	onLoadTrackAssets = () => {
+		this.resolveTask('load_assets');
 	}
 
 	// race begins event
@@ -175,7 +142,6 @@ export default class TrackView extends BaseView {
 	}
 
 	/** adds a new car to the track */
-	trailIndex = Math.floor(Math.random() * 10)
 	addPlayer = async (data, isInstant) => {
 		const { activePlayers, state, stage, isViewActive, animator } = this;
 		const playerOptions = merge({ view: this }, data);
@@ -278,41 +244,71 @@ export default class TrackView extends BaseView {
 
 	/** assigns the current track */
 	setTrack = async options => {
-		const { stage } = this;
-		const trackOptions = merge({ view: this }, options);
+		const { stage, animator } = this;
+		const trackOptions = merge({
+			view: this,
+			onLoadTrackAssets: this.onLoadTrackAssets
+		}, options);
 
+		// try and load the track instance
+		let track
 		try {
-			const pending = Track.create(trackOptions);
-			let track
 			try {
-				track = this.track = await waitWithTimeout(pending, TRACK_CREATION_TIMEOUT);
+				const loading = Track.create(trackOptions);
+				track = this.track = await waitWithTimeout(loading, TRACK_CREATION_TIMEOUT);
 			}
 			// failed to create the track in a timely fashion
 			catch (ex) {
 				throw new Error(`Track stalled creation at ${Track.create.status || 'before setup'}`);
 			}
 			
-			// add the scroling ground
-			stage.addChild(track.ground);
-			track.ground.zIndex = LAYER_TRACK_GROUND;
-			track.ground.relativeX = 0.5;
-			
-			// add the scrolling overlay
-			stage.addChild(track.overlay);
-			track.overlay.zIndex = LAYER_TRACK_OVERLAY;
-			track.overlay.relativeX = 0.5;
-			
-			// sort the layers
-			stage.sortChildren();
+			// preload the countdown animation images
+			try {
+				this.countdown = new CountdownAnimation({
+					track: this,
+					stage,
+					animator,
+					onBeginRace: this.onBeginRace
+				});
+
+				await this.countdown.init();
+				this.resolveTask('load_extras');
+			}
+			// unable to load the countdown
+			catch(ex) {
+				// delete this.countdown;
+				console.error(`Failed to load required files for countdown animation`);
+				throw new CountdownAssetError();
+			}
+
+			// verify the countdown loaded
+			if (!this.countdown?.isReady) {
+				console.error(`Countdown did not load successfully`);
+				throw new CountdownAssetError();
+			}
 
 			// track is ready to go
 			this.resolveTask('load_track');
 		}
 		// any failures
 		catch (ex) {
+			console.log('failed to load track');
 			console.error(ex);
 			throw new TrackAssetError();
 		}
+
+		// add the scroling ground
+		stage.addChild(track.ground);
+		track.ground.zIndex = LAYER_TRACK_GROUND;
+		track.ground.relativeX = 0.5;
+		
+		// add the scrolling overlay
+		stage.addChild(track.overlay);
+		track.overlay.zIndex = LAYER_TRACK_OVERLAY;
+		track.overlay.relativeX = 0.5;
+		
+		// sort the layers
+		stage.sortChildren();
 	}
 
 	/** sets a player as ready to go */

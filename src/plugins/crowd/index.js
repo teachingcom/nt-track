@@ -1,5 +1,5 @@
 import { PIXI } from 'nt-animator';
-import { noop, choose, shuffle } from '../../utils';
+import { noop, choose, shuffle, wait } from '../../utils';
 import { CROWD_DEFAULT_SCALE,CROWD_ANIMATION_FRAME_COUNT, CROWD_ANIMATION_DURATION } from '../../config';
 import generateAnimationFrames from './generate-animatons';
 import * as palettes from './palettes';
@@ -9,6 +9,10 @@ const CROWD_TOTAL_MEMBERS = 10;
 const CROWD_FRAME_WIDTH = 600;
 const CROWD_FRAME_HEIGHT = 150;
 const CROWD_TIME_PER_STEP = CROWD_ANIMATION_DURATION / CROWD_ANIMATION_FRAME_COUNT;
+
+// selects a random pregenerated crowd ID
+export const SELECTED_CROWD_ID = Math.ceil(Math.random() * 4);
+export const SELECTED_CROWD_URL = `rendered/crowd_${SELECTED_CROWD_ID}.png`;
 
 // shared crowd animators
 let ANIMATORS;
@@ -108,9 +112,10 @@ export default async function createCrowd(animator, controller, path, layer, dat
 	// await initializeCrowd(animator, controller, path, layer, data);
 	// return [{ displayObject: new PIXI.Container(), update: noop, dispose: noop }];
 
+	// await wait(60000);
+
 	if (!FRAMES.length) {
-		const selected = Math.ceil(Math.random() * 4);
-		const img = await animator.getImage(`rendered/crowd_${selected}.png`);
+		const img = await animator.getImage(SELECTED_CROWD_URL);
 		const base = PIXI.Texture.from(img);
 		
 		const totalFrames = CROWD_ANIMATION_FRAME_COUNT * 2;

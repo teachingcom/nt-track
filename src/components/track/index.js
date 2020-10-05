@@ -1,11 +1,21 @@
 import { PIXI, getBoundsForRole } from 'nt-animator';
 import Random from '../../rng';
+import * as audio from '../../audio';
 import { TRACK_HEIGHT, TRACK_TOP } from '../../views/track/scaling';
 import { TRACK_MAXIMUM_TRAVEL_DISTANCE, TRACK_MAXIMUM_SCROLL_SPEED, TRACK_STARTING_LINE_POSITION } from '../../config';
-import { isArray, isNumber, wait } from '../../utils';
+import { isArray, isNumber } from '../../utils';
 import Segment from './segment';
-import createCrowd from '../../plugins/crowd';
+import createCrowd, { SELECTED_CROWD_URL } from '../../plugins/crowd';
 import AmbientAudio from '../../audio/ambient';
+
+// images present on all tracks
+const COMMON_IMAGE_ASSETS = [ 
+	'extras/countdown.jpg',
+	'extras/countdown.png',
+	'particles.png',
+	'images.jpg',
+	'images.png'
+];
 
 // total number of road slices to create
 // consider making this calculated as needed
@@ -17,7 +27,7 @@ export default class Track {
 
 	/** creates a new track instance */
 	static async create(options) {
-		const { view, seed } = options;
+		const { view, seed, onLoadTrackAssets } = options;
 		
 		// create the new track
 		const instance = new Track();
@@ -40,6 +50,42 @@ export default class Track {
 		// idenitfy the track to render
 		Track.create.status = 'selecting track';
 		instance._selectTrack();
+
+		// do resource preloading
+		const { animator } = view;
+
+		// frontload known images
+		const trackAssetsUrl = `tracks/${options.trackId}/${options.variantId}`;
+		const resources = [
+
+			// preselected crowd image
+			animator.getImage(SELECTED_CROWD_URL),
+
+			// unique track images
+			animator.getImage(`${trackAssetsUrl}.png`),
+			animator.getImage(`${trackAssetsUrl}.jpg`),
+
+			// common audio
+			audio.register('common', animator.manifest.sounds)
+		];
+
+		// append common image resources
+		for (const url of COMMON_IMAGE_ASSETS) {
+			const image = animator.getImage(url);
+			resources.push(image);	
+		}
+		
+		// loading external resources
+		try {
+			console.log('async preload');
+			await Promise.all(resources);
+			onLoadTrackAssets();
+		}
+		// failed to load
+		catch (ex) {
+			console.error(`failed to preload track resources`);
+			throw ex;
+		}
 		
 		// setup each part
 		Track.create.status = 'creating road';

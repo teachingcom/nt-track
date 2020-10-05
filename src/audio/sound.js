@@ -127,7 +127,13 @@ export class Sound {
 		this.lastInstancePlay = +new Date;
 		this.source.volume(this._preferredVolumeLevel, id);
 		this.source.seek(0, id);
-		this.source.play(id);
+
+		// do not crash for failed sounds
+		try { this.source.play(id); }
+		catch (ex) {
+			const { key } = this;
+			console.warn(`Failed to play sound ${key}`);
+		}
 
 	}
 	
