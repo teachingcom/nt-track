@@ -59,6 +59,11 @@ export default async function hueShift(car, hue) {
 			// now, replace each sprite with the
 			// updated texture
 			for (const sprite of sprites) {
+
+				// should skip hue-shifting
+				if (sprite.config?.ignoreHueShift) continue;
+
+				// replace the texture with the hue-shifted texture
 				sprite.texture = sprite.texture.clone();
 				sprite.texture.baseTexture = texture;
 				sprite.texture.update();

@@ -3,7 +3,7 @@ import { PIXI } from 'nt-animator';
 import { merge, waitWithTimeout } from '../../utils';
 import * as audio from '../../audio';
 
-const TRACK_CREATION_TIMEOUT = 5000;
+const TRACK_CREATION_TIMEOUT = 15000;
 
 import { BaseView } from '../base';
 import Player from './player';
@@ -254,8 +254,8 @@ export default class TrackView extends BaseView {
 		let track
 		try {
 			try {
-				const loading = Track.create(trackOptions);
-				track = this.track = await waitWithTimeout(loading, TRACK_CREATION_TIMEOUT);
+				// await waitWithTimeout(loading, TRACK_CREATION_TIMEOUT);
+				track = this.track = await Track.create(trackOptions)
 			}
 			// failed to create the track in a timely fashion
 			catch (ex) {

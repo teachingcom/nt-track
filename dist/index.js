@@ -75120,7 +75120,8 @@ function _createSprite() {
             } // add to the controller
 
 
-            controller.register(sprite); // attach the update function
+            controller.register(sprite);
+            sprite.config = layer; // attach the update function
 
             return _context.abrupt("return", [{
               displayObject: sprite,
@@ -75129,18 +75130,18 @@ function _createSprite() {
               dispose: dispose
             }]);
 
-          case 42:
-            _context.prev = 42;
+          case 43:
+            _context.prev = 43;
             _context.t0 = _context["catch"](3);
             console.error("Failed to create sprite ".concat(path, " while ").concat(phase));
             throw _context.t0;
 
-          case 46:
+          case 47:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[3, 42]]);
+    }, _callee, null, [[3, 43]]);
   }));
   return _createSprite.apply(this, arguments);
 }
@@ -85497,7 +85498,12 @@ function _hueShift() {
 
                 try {
                   for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                    var _sprite$config;
+
                     var sprite = _step.value;
+                    // should skip hue-shifting
+                    if ((_sprite$config = sprite.config) === null || _sprite$config === void 0 ? void 0 : _sprite$config.ignoreHueShift) continue; // replace the texture with the hue-shifted texture
+
                     sprite.texture = sprite.texture.clone();
                     sprite.texture.baseTexture = texture;
                     sprite.texture.update(); // animated sprites
@@ -85640,8 +85646,8 @@ exports.searchForEnhancedCar = searchForEnhancedCar;
 exports.CAR_MAPPINGS = void 0;
 
 function searchForEnhancedCar(id) {
-  id = id.replace(/_.*$/g, '');
-  return CAR_MAPPINGS[id] || id;
+  var revised = id.replace(/_.*$/g, '');
+  return CAR_MAPPINGS[revised] || id;
 } // mapping for advanced animation cars
 
 
@@ -96966,7 +96972,7 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
-var TRACK_CREATION_TIMEOUT = 5000;
+var TRACK_CREATION_TIMEOUT = 15000;
 
 /** creates a track view that supports multiple cars for racing */
 var TrackView = /*#__PURE__*/function (_BaseView) {
@@ -97190,7 +97196,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setTrack", /*#__PURE__*/function () {
       var _ref3 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(options) {
-        var _assertThisInitialize3, stage, animator, trackOptions, track, _this$countdown, loading;
+        var _assertThisInitialize3, stage, animator, trackOptions, track, _this$countdown;
 
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
@@ -97204,68 +97210,67 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
                 _context2.prev = 2;
                 _context2.prev = 3;
-                loading = _track.default.create(trackOptions);
-                _context2.next = 7;
-                return (0, _utils.waitWithTimeout)(loading, TRACK_CREATION_TIMEOUT);
+                _context2.next = 6;
+                return _track.default.create(trackOptions);
 
-              case 7:
+              case 6:
                 track = _this.track = _context2.sent;
-                _context2.next = 13;
+                _context2.next = 12;
                 break;
 
-              case 10:
-                _context2.prev = 10;
+              case 9:
+                _context2.prev = 9;
                 _context2.t0 = _context2["catch"](3);
                 throw new Error("Track stalled creation at ".concat(_track.default.create.status || 'before setup'));
 
-              case 13:
-                _context2.prev = 13;
+              case 12:
+                _context2.prev = 12;
                 _this.countdown = new _countdown.default({
                   track: (0, _assertThisInitialized2.default)(_this),
                   stage: stage,
                   animator: animator,
                   onBeginRace: _this.onBeginRace
                 });
-                _context2.next = 17;
+                _context2.next = 16;
                 return _this.countdown.init();
 
-              case 17:
+              case 16:
                 _this.resolveTask('load_extras');
 
-                _context2.next = 24;
+                _context2.next = 23;
                 break;
 
-              case 20:
-                _context2.prev = 20;
-                _context2.t1 = _context2["catch"](13);
+              case 19:
+                _context2.prev = 19;
+                _context2.t1 = _context2["catch"](12);
                 // delete this.countdown;
                 console.error("Failed to load required files for countdown animation");
                 throw new CountdownAssetError();
 
-              case 24:
+              case 23:
                 if ((_this$countdown = _this.countdown) === null || _this$countdown === void 0 ? void 0 : _this$countdown.isReady) {
-                  _context2.next = 27;
+                  _context2.next = 26;
                   break;
                 }
 
                 console.error("Countdown did not load successfully");
                 throw new CountdownAssetError();
 
-              case 27:
+              case 26:
                 // track is ready to go
                 _this.resolveTask('load_track');
 
-                _context2.next = 35;
+                _context2.next = 34;
                 break;
 
-              case 30:
-                _context2.prev = 30;
+              case 29:
+                _context2.prev = 29;
                 _context2.t2 = _context2["catch"](2);
                 console.log('failed to load track');
                 console.error(_context2.t2);
                 throw new TrackAssetError();
 
-              case 35:
+              case 34:
                 // add the scroling ground
                 stage.addChild(track.ground);
                 track.ground.zIndex = _layers.LAYER_TRACK_GROUND;
@@ -97277,12 +97282,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
                 stage.sortChildren();
 
-              case 42:
+              case 41:
               case "end":
                 return _context2.stop();
             }
           }
-        }, _callee2, null, [[2, 30], [3, 10], [13, 20]]);
+        }, _callee2, null, [[2, 29], [3, 9], [12, 19]]);
       }));
 
       return function (_x3) {

@@ -1,7 +1,7 @@
 
 export function searchForEnhancedCar(id) {
-	id = id.replace(/_.*$/g, '');
-	return CAR_MAPPINGS[id] || id;
+	const revised = id.replace(/_.*$/g, '');
+	return CAR_MAPPINGS[revised] || id;
 }
 
 // mapping for advanced animation cars
