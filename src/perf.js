@@ -1,40 +1,57 @@
-export const MINIMAL = 0;
-export const LOW = 1;
-export const MEDIUM = 2;
-export const HIGH = 3;
 
-// highly experimental
-const MINIMAL_SCORE = 80000;
-const LOW_SCORE = 150000;
-const MEDIUM_SCORE = 400000;
+export const MINIMAL = 0
+export const LOW = 1
+export const MEDIUM = 2
+export const HIGH = 3
+
+// local storage tracking
+const KEY_FPS_TRACKING = 'nt:fps'
+
+// tracks fps and quality
+export function savePerformanceResult (quality, fps) {
+  const hour = 1000 * 60 * 60
+  const expires = hour + Date.now()
+  const data = JSON.stringify({ fps: 0 | fps, quality, expires })
+  window.localStorage.setItem(KEY_FPS_TRACKING, data)
+}
 
 // peforms a crude test to determine performance
 // potential for rendering
-export default function getPerformanceScore() {
-	const stopAt = (+new Date) + 250;
+export function getPerformanceScore () {
+  try {
+    const record = window.localStorage.getItem(KEY_FPS_TRACKING)
+    const data = JSON.parse(record)
+    const { fps, quality, expires = 0 } = data || { }
 
-	// drawing surface
-	const canvas = document.createElement('canvas');
-	const ctx = canvas.getContext('2d');
-	ctx.fillStyle = 'white';
-	const { width, height } = canvas;
+    // downgrade the experience on poor framerate
+    let score = quality
+    if (isNaN(score)) {
+      score = HIGH
+    }
 
-	// determine how many cycles can be done in
-	// a quarter of a second
-	let cycles = 0;
-	while (true) {
-		cycles++;
-		const x = 0 | width * Math.random();
-		const y = 0 | height * Math.random();
-		ctx.fillRect(x, y, 1, 1);
-		if (+new Date > stopAt) break;
-	}
+    // if it's been a long time since this recording
+    if (expires < Date.now()) {
+      score = HIGH
+    }
 
-	// return a simple score to determine which
-	// quality settings to use
-	console.log('cycles:', cycles);
-	return cycles < MINIMAL_SCORE ? MINIMAL
-		: cycles < LOW_SCORE ? LOW
-		: cycles < MEDIUM_SCORE ? MEDIUM
-		: HIGH;
+    // poor FPS
+    if (fps < 40) {
+      score--
+    }
+
+    // very poor FPS
+    if (fps < 20) {
+      score--
+    }
+
+    // ensure result
+    if (isNaN(score)) {
+      score = HIGH
+    }
+
+    // give back a score
+    return Math.max(MINIMAL, score)
+  } catch (ex) {
+    return HIGH
+  }
 }

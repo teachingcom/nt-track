@@ -1,30 +1,8 @@
-import getPerformanceScore from "./perf";
-
-// // internal testing flags
-// let overrides;
-// try {
-// 	overrides = JSON.parse(localStorage.getItem('nt:overrides')) || { };
-
-// 	// save a config helper
-// 	window.NT_CONFIG = new Proxy({ }, {
-// 		set(obj, str, val) {
-// 			if (val === undefined || val === null) delete overrides[str];
-// 			else overrides[str] = module.exports[str] = val;
-// 			localStorage.setItem('nt:overrides', JSON.stringify(overrides));
-// 		},
-	
-// 		get(obj, str) {
-// 			return module.exports[str];
-// 		}
-// 	});
-// }
-// // no crashing
-// catch (ex) { }
+import { getPerformanceScore } from "./perf";
 
 // performance related
 // 0 - minimal, 1 - low, 2 - medium, 3 - high
 export const PERFORMANCE_SCORE = getPerformanceScore();
-// export const PERFORMANCE_SCORE = 2;
 export const PERFORMANCE_LEVEL = ['minimal', 'low', 'medium', 'high'][PERFORMANCE_SCORE];
 export const PERFORMANCE_MINIMAL = PERFORMANCE_SCORE === 0;
 export const PERFORMANCE_LOW = PERFORMANCE_SCORE === 1;
@@ -99,7 +77,7 @@ export const CAR_404_STATIC_VERSION = '9_large_11';
 export const CAR_404_ENHANCED_VERSION = '/cars/missing';
 
 // a rotation to apply to all legacy cars
-export const STATIC_CAR_ROTATION_FIX =  Math.PI;
+export const STATIC_CAR_ROTATION_FIX = Math.PI;
 
 // special transforms for cars depending on their sprites
 export const CAR_SPRITE_MODIFICATIONS = {
@@ -127,11 +105,5 @@ try {
 
 	// debugging
 	window.NT_RENDER_QUALITY = PERFORMANCE_LEVEL;
-
-	// // set overrides, if any
-	// for (const key in overrides) {
-	// 	console.log(`${key}: ${overrides[key]}`);
-	// 	module.exports[key] = overrides[key];
-	// }
 }
 catch (ex) { }

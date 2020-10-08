@@ -1,21 +1,12 @@
 import { PIXI, getBoundsForRole } from 'nt-animator';
 import Random from '../../rng';
-import * as audio from '../../audio';
 import { TRACK_HEIGHT, TRACK_TOP } from '../../views/track/scaling';
 import { TRACK_MAXIMUM_TRAVEL_DISTANCE, TRACK_MAXIMUM_SCROLL_SPEED, TRACK_STARTING_LINE_POSITION } from '../../config';
 import { isArray, isNumber } from '../../utils';
 import Segment from './segment';
-import createCrowd, { SELECTED_CROWD_URL } from '../../plugins/crowd';
+import createCrowd from '../../plugins/crowd';
 import AmbientAudio from '../../audio/ambient';
-
-// images present on all tracks
-const COMMON_IMAGE_ASSETS = [ 
-	'extras/countdown.jpg',
-	'extras/countdown.png',
-	'particles.png',
-	'images.jpg',
-	'images.png'
-];
+import AssetPreloader from './preload';
 
 // total number of road slices to create
 // consider making this calculated as needed
@@ -27,7 +18,7 @@ export default class Track {
 
 	/** creates a new track instance */
 	static async create(options) {
-		const { view, seed, onLoadTrackAssets } = options;
+		const { view, seed } = options;
 		
 		// create the new track
 		const instance = new Track();
@@ -36,11 +27,11 @@ export default class Track {
 		instance.container = new PIXI.Container();
 		
 		// include special plugins
-		Track.create.status = 'installing plugings';
+		view.loadingStatus = 'installing plugings';
 		view.animator.install('crowd', createCrowd);
 
 		// assign the seed, if needed
-		Track.create.status = 'creating random number generator'
+		view.loadingStatus = 'creating random number generator'
 		view.animator.rng.activate(seed);
 		instance.rng = new Random(seed);
 
@@ -48,57 +39,25 @@ export default class Track {
 		instance.relativeX = 0.5;
 		
 		// idenitfy the track to render
-		Track.create.status = 'selecting track';
+		view.loadingStatus = 'selecting track';
 		instance._selectTrack();
-
-		// do resource preloading
-		const { animator } = view;
-
-		// frontload known images
-		const trackAssetsUrl = `tracks/${options.trackId}/${options.variantId}`;
-		const resources = [
-
-			// preselected crowd image
-			animator.getImage(SELECTED_CROWD_URL),
-
-			// unique track images
-			animator.getImage(`${trackAssetsUrl}.png`),
-			animator.getImage(`${trackAssetsUrl}.jpg`),
-
-			// common audio
-			audio.register('common', animator.manifest.sounds)
-		];
-
-		// append common image resources
-		for (const url of COMMON_IMAGE_ASSETS) {
-			const image = animator.getImage(url);
-			resources.push(image);	
-		}
 		
-		// loading external resources
-		try {
-			console.log('in parallel');
-			await Promise.all(resources);
-			onLoadTrackAssets();
-		}
-		// failed to load
-		catch (ex) {
-			console.error(`failed to preload track resources`);
-			throw ex;
-		}
+		// preload external files
+		view.loadingStatus = 'preloading resources';
+		await instance._preloadResources();
 		
 		// setup each part
-		Track.create.status = 'creating road';
+		view.loadingStatus = 'creating road';
 		await instance._createRoad();
 		
-		Track.create.status = 'creating starting line';
+		view.loadingStatus = 'creating starting line';
 		await instance._createStartingLine();
 		
-		Track.create.status = 'creating finish line';
+		view.loadingStatus = 'creating finish line';
 		await instance._createFinishLine();
 		
 		// ambience is nice, but not worth stalling over
-		Track.create.status = 'creating ambient sound';
+		view.loadingStatus = 'creating ambient sound';
 		instance._createAmbience();
 		// await instance._createForeground();
 		// await instance._createBackground();
@@ -156,6 +115,25 @@ export default class Track {
 		this.path = `tracks/${trackId}/${variantId}`;
 		this.zone = zone;
 		this.manifest = manifest;
+	}
+
+	// handles preloading track assets
+	async _preloadResources() {
+		const { view, options } = this
+		const { onLoadTrackAssets } = options
+		
+		// try to load external resources
+		const preloader = new AssetPreloader(this);
+		try {
+			await preloader.preload();
+			onLoadTrackAssets();
+		}
+		// failed to load
+		catch (ex) {
+			view.loadingStatus = preloader.status;
+			console.error(`failed to preload track resources`);
+			throw ex;
+		}
 	}
 
 	// creates ambient audio

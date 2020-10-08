@@ -75046,18 +75046,6 @@ function _createSprite() {
 
           case 11:
             textures = _context.sent;
-            // console.log('resolved', textures);
-            // // create textures for each sprite
-            // phase = 'generating textures';
-            // let textures;
-            // try {
-            // 	textures = map(images, createTextureFromImage);
-            // }
-            // // had a problem
-            // catch (ex) {
-            // 	console.error(`Failed to create a texture for ${path}`, composition);
-            // 	throw ex;
-            // }
             // create the instance of the sprite
             phase = 'creating sprite instance';
             isAnimated = textures.length > 1;
@@ -83568,7 +83556,7 @@ function _register() {
 
               var onLoaded = function onLoaded() {
                 AUDIO[key] = sound;
-                resolve();
+                resolve(true);
               }; // load the sound
 
 
@@ -83677,7 +83665,8 @@ document.addEventListener('visibilitychange', updateViewActiveState);
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = getPerformanceScore;
+exports.savePerformanceResult = savePerformanceResult;
+exports.getPerformanceScore = getPerformanceScore;
 exports.HIGH = exports.MEDIUM = exports.LOW = exports.MINIMAL = void 0;
 var MINIMAL = 0;
 exports.MINIMAL = MINIMAL;
@@ -83685,38 +83674,67 @@ var LOW = 1;
 exports.LOW = LOW;
 var MEDIUM = 2;
 exports.MEDIUM = MEDIUM;
-var HIGH = 3; // highly experimental
+var HIGH = 3; // local storage tracking
 
 exports.HIGH = HIGH;
-var MINIMAL_SCORE = 80000;
-var LOW_SCORE = 150000;
-var MEDIUM_SCORE = 400000; // peforms a crude test to determine performance
+var KEY_FPS_TRACKING = 'nt:fps'; // tracks fps and quality
+
+function savePerformanceResult(quality, fps) {
+  var hour = 1000 * 60 * 60;
+  var expires = hour + Date.now();
+  var data = JSON.stringify({
+    fps: 0 | fps,
+    quality: quality,
+    expires: expires
+  });
+  window.localStorage.setItem(KEY_FPS_TRACKING, data);
+} // peforms a crude test to determine performance
 // potential for rendering
 
+
 function getPerformanceScore() {
-  var stopAt = +new Date() + 250; // drawing surface
+  try {
+    var record = window.localStorage.getItem(KEY_FPS_TRACKING);
+    var data = JSON.parse(record);
 
-  var canvas = document.createElement('canvas');
-  var ctx = canvas.getContext('2d');
-  ctx.fillStyle = 'white';
-  var width = canvas.width,
-      height = canvas.height; // determine how many cycles can be done in
-  // a quarter of a second
-
-  var cycles = 0;
-
-  while (true) {
-    cycles++;
-    var x = 0 | width * Math.random();
-    var y = 0 | height * Math.random();
-    ctx.fillRect(x, y, 1, 1);
-    if (+new Date() > stopAt) break;
-  } // return a simple score to determine which
-  // quality settings to use
+    var _ref = data || {},
+        fps = _ref.fps,
+        quality = _ref.quality,
+        _ref$expires = _ref.expires,
+        expires = _ref$expires === void 0 ? 0 : _ref$expires; // downgrade the experience on poor framerate
 
 
-  console.log('cycles:', cycles);
-  return cycles < MINIMAL_SCORE ? MINIMAL : cycles < LOW_SCORE ? LOW : cycles < MEDIUM_SCORE ? MEDIUM : HIGH;
+    var score = quality;
+
+    if (isNaN(score)) {
+      score = HIGH;
+    } // if it's been a long time since this recording
+
+
+    if (expires < Date.now()) {
+      score = HIGH;
+    } // poor FPS
+
+
+    if (fps < 40) {
+      score--;
+    } // very poor FPS
+
+
+    if (fps < 20) {
+      score--;
+    } // ensure result
+
+
+    if (isNaN(score)) {
+      score = HIGH;
+    } // give back a score
+
+
+    return Math.max(MINIMAL, score);
+  } catch (ex) {
+    return HIGH;
+  }
 }
 },{}],"config.js":[function(require,module,exports) {
 "use strict";
@@ -83726,32 +83744,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.NITRO_BLUR_REALTIVE_SIZE_SCALING = exports.NITRO_BLUR_DEFAULT_OFFSET_X = exports.NITRO_BLUR_OFFSET_Y = exports.NITRO_ACTIVATED_TRAIL_OPACITY = exports.NITRO_OFFSET_Y = exports.NITRO_OFFSET_X = exports.NITRO_SCALE = exports.TRAIL_SCALE = exports.CAR_SPRITE_MODIFICATIONS = exports.STATIC_CAR_ROTATION_FIX = exports.CAR_404_ENHANCED_VERSION = exports.CAR_404_STATIC_VERSION = exports.CAR_NITRO_ADVANCEMENT_DISTANCE = exports.CAR_SHAKE_SHADOW_REDUCTION = exports.CAR_SHAKE_NITRO_BONUS = exports.CAR_SHAKE_DISTANCE = exports.CAR_DEFAULT_FRONT_BACK_OFFSET_X = exports.CAR_BODY_OFFSET_Y = exports.CAR_SHADOW_OFFSET_Y = exports.CAR_SHADOW_SCALE_ADJUST = exports.CAR_SHADOW_OPACITY = exports.CAR_SHADOW_BLUR = exports.CAR_DEFAULT_SHAKE_LEVEL = exports.NAMECARD_TETHER_DISTANCE = exports.NAMECARD_SCALE = exports.CROWD_ANIMATION_DURATION = exports.CROWD_ANIMATION_FRAME_COUNT = exports.CROWD_ANIMATION_VARIATIONS = exports.CROWD_DEFAULT_SCALE = exports.RACE_FINISH_FLASH_FADE_TIME = exports.RACE_SOUND_ERROR_MAX_INTERVAL = exports.RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL = exports.RACE_PROGRESS_TWEEN_TIMING = exports.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT = exports.RACE_FINISH_CAR_STOPPING_TIME = exports.RACE_START_NAMECARD_DELAY_TIME = exports.RACE_START_NAMECARD_ENTRY_TIME = exports.RACE_START_CAR_ENTRY_TIME = exports.RACE_AUTO_PROGRESS_DISTANCE = exports.RACE_OFF_SCREEN_FINISH_DISTANCE = exports.RACE_PLAYER_DISTANCE_MODIFIER = exports.RACE_ENDING_ANIMATION_THRESHOLD = exports.TRACK_OFFSCREEN_CAR_FINISH = exports.TRACK_NAMECARD_EDGE_PADDING = exports.TRACK_STARTING_LINE_POSITION = exports.TRACK_CAR_LANE_CENTER_OFFSET = exports.TRACK_CAR_SIZE_RELATIVE_TO_LANE = exports.TRACK_SHOULDER_SCALE = exports.TRACK_BOTTOM_SCALE = exports.TRACK_TOP_SCALE = exports.TRACK_ACCELERATION_RATE = exports.TRACK_MAXIMUM_TRAVEL_DISTANCE = exports.TRACK_MAXIMUM_SPEED = exports.TRACK_MAXIMUM_SPEED_DRAG_RATE = exports.TRACK_MAXIMUM_SPEED_BOOST_RATE = exports.TRACK_MAXIMUM_SCROLL_SPEED = exports.ANIMATION_ANIMATION_UPDATE_FREQUENCY = exports.ANIMATION_PARTICLE_UPDATE_FREQUENCY = exports.ANIMATION_RATE_FINISH_LINE = exports.ANIMATION_RATE_WHILE_RACING = exports.ANIMATION_RATE_STARTING_LINE = exports.SSAA_SCALING_AMOUNT = exports.PERFORMANCE_HIGH = exports.PERFORMANCE_MEDIUM = exports.PERFORMANCE_LOW = exports.PERFORMANCE_MINIMAL = exports.PERFORMANCE_LEVEL = exports.PERFORMANCE_SCORE = void 0;
 
-var _perf = _interopRequireDefault(require("./perf"));
+var _perf = require("./perf");
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-// // internal testing flags
-// let overrides;
-// try {
-// 	overrides = JSON.parse(localStorage.getItem('nt:overrides')) || { };
-// 	// save a config helper
-// 	window.NT_CONFIG = new Proxy({ }, {
-// 		set(obj, str, val) {
-// 			if (val === undefined || val === null) delete overrides[str];
-// 			else overrides[str] = module.exports[str] = val;
-// 			localStorage.setItem('nt:overrides', JSON.stringify(overrides));
-// 		},
-// 		get(obj, str) {
-// 			return module.exports[str];
-// 		}
-// 	});
-// }
-// // no crashing
-// catch (ex) { }
 // performance related
 // 0 - minimal, 1 - low, 2 - medium, 3 - high
-var PERFORMANCE_SCORE = (0, _perf.default)(); // export const PERFORMANCE_SCORE = 2;
-
+var PERFORMANCE_SCORE = (0, _perf.getPerformanceScore)();
 exports.PERFORMANCE_SCORE = PERFORMANCE_SCORE;
 var PERFORMANCE_LEVEL = ['minimal', 'low', 'medium', 'high'][PERFORMANCE_SCORE];
 exports.PERFORMANCE_LEVEL = PERFORMANCE_LEVEL;
@@ -83913,11 +83910,7 @@ exports.NITRO_BLUR_REALTIVE_SIZE_SCALING = NITRO_BLUR_REALTIVE_SIZE_SCALING;
 
 try {
   // debugging
-  window.NT_RENDER_QUALITY = PERFORMANCE_LEVEL; // // set overrides, if any
-  // for (const key in overrides) {
-  // 	console.log(`${key}: ${overrides[key]}`);
-  // 	module.exports[key] = overrides[key];
-  // }
+  window.NT_RENDER_QUALITY = PERFORMANCE_LEVEL;
 } catch (ex) {}
 },{"./perf":"perf.js"}],"views/base.js":[function(require,module,exports) {
 "use strict";
@@ -93966,7 +93959,240 @@ var AmbientAudio = function AmbientAudio(options) {
 ;
 
 exports.default = AmbientAudio;
-},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../audio":"audio/index.js","./volume":"audio/volume.js"}],"components/track/index.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../audio":"audio/index.js","./volume":"audio/volume.js"}],"components/track/preload.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
+
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var audio = _interopRequireWildcard(require("../../audio"));
+
+var _crowd = require("../../plugins/crowd");
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+// handles preloading external assets
+var AssetPreloader = /*#__PURE__*/function () {
+  // instantiation
+  function AssetPreloader(track) {
+    var _this = this;
+
+    (0, _classCallCheck2.default)(this, AssetPreloader);
+    (0, _defineProperty2.default)(this, "_generateResourceList", function () {
+      var options = _this.options,
+          animator = _this.animator; // create a list of resources to preload
+
+      var trackAssetsUrl = "tracks/".concat(options.trackId, "/").concat(options.variantId);
+      var resources = [// preselected crowd image
+      {
+        type: 'image',
+        src: _crowd.SELECTED_CROWD_URL
+      }, // unique track images
+      {
+        type: 'image',
+        src: "".concat(trackAssetsUrl, ".png")
+      }, {
+        type: 'image',
+        src: "".concat(trackAssetsUrl, ".jpg")
+      }, // include other image files
+      {
+        type: 'image',
+        src: 'extras/countdown.jpg'
+      }, {
+        type: 'image',
+        src: 'extras/countdown.png'
+      }, {
+        type: 'image',
+        src: 'particles.png'
+      }, {
+        type: 'image',
+        src: 'images.jpg'
+      }, {
+        type: 'image',
+        src: 'images.png'
+      }, // common audio
+      {
+        type: 'audio',
+        src: animator.manifest.sounds,
+        key: 'common'
+      } // TODO: allow tracks to define additional resources
+      ]; // save the resources
+
+      _this.resources = resources;
+    });
+    (0, _defineProperty2.default)(this, "_preloadResources", /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+      var resources, animator, pending, _iterator, _step, resource, type, src, key, task;
+
+      return _regenerator.default.wrap(function _callee$(_context) {
+        while (1) {
+          switch (_context.prev = _context.next) {
+            case 0:
+              resources = _this.resources, animator = _this.animator;
+              pending = []; // queue up all pending asset loading requests
+
+              _iterator = _createForOfIteratorHelper(resources);
+              _context.prev = 3;
+
+              _iterator.s();
+
+            case 5:
+              if ((_step = _iterator.n()).done) {
+                _context.next = 21;
+                break;
+              }
+
+              resource = _step.value;
+              type = resource.type, src = resource.src, key = resource.key; // loading image assets
+
+              task = void 0;
+
+              if (!(type === 'image')) {
+                _context.next = 13;
+                break;
+              }
+
+              task = animator.getImage(src);
+              _context.next = 18;
+              break;
+
+            case 13:
+              if (!(type === 'audio')) {
+                _context.next = 17;
+                break;
+              }
+
+              task = audio.register(key, src);
+              _context.next = 18;
+              break;
+
+            case 17:
+              throw new InvalidResourceError();
+
+            case 18:
+              // add the task
+              pending.push(task);
+
+            case 19:
+              _context.next = 5;
+              break;
+
+            case 21:
+              _context.next = 26;
+              break;
+
+            case 23:
+              _context.prev = 23;
+              _context.t0 = _context["catch"](3);
+
+              _iterator.e(_context.t0);
+
+            case 26:
+              _context.prev = 26;
+
+              _iterator.f();
+
+              return _context.finish(26);
+
+            case 29:
+              _context.next = 31;
+              return Promise.all(pending);
+
+            case 31:
+              _this.results = _context.sent;
+
+            case 32:
+            case "end":
+              return _context.stop();
+          }
+        }
+      }, _callee, null, [[3, 23, 26, 29]]);
+    })));
+    (0, _defineProperty2.default)(this, "_validateResources", function () {
+      var resources = _this.resources,
+          results = _this.results; // verify all resources loaded successfully
+
+      for (var i = resources.length; i-- > 0;) {
+        var resource = resources[i];
+        var result = results[i]; // this failed to load
+
+        if (!result) {
+          var type = resource.type,
+              src = resource.src;
+          _this.status = "".concat(type, " load error ").concat(src);
+          throw new AssetLoadingError();
+        }
+      }
+    });
+    this.track = track;
+    this.options = track.options;
+    this.animator = track.view.animator;
+  } // prepares the resource loading 
+
+
+  (0, _createClass2.default)(AssetPreloader, [{
+    key: "preload",
+    value: function () {
+      var _preload = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+        return _regenerator.default.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                this._generateResourceList();
+
+                _context2.next = 3;
+                return this._preloadResources();
+
+              case 3:
+                this._validateResources();
+
+              case 4:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function preload() {
+        return _preload.apply(this, arguments);
+      }
+
+      return preload;
+    }() // determine which assets to preload
+
+  }]);
+  return AssetPreloader;
+}(); // exceptions
+
+
+exports.default = AssetPreloader;
+
+function AssetLoadingError() {}
+
+function InvalidResourceError() {}
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../audio":"audio/index.js","../../plugins/crowd":"plugins/crowd/index.js"}],"components/track/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -93990,8 +94216,6 @@ var _ntAnimator = require("nt-animator");
 
 var _rng = _interopRequireDefault(require("../../rng"));
 
-var audio = _interopRequireWildcard(require("../../audio"));
-
 var _scaling = require("../../views/track/scaling");
 
 var _config = require("../../config");
@@ -94000,13 +94224,11 @@ var _utils = require("../../utils");
 
 var _segment3 = _interopRequireDefault(require("./segment"));
 
-var _crowd = _interopRequireWildcard(require("../../plugins/crowd"));
+var _crowd = _interopRequireDefault(require("../../plugins/crowd"));
 
 var _ambient = _interopRequireDefault(require("../../audio/ambient"));
 
-function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+var _preload = _interopRequireDefault(require("./preload"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -94016,11 +94238,9 @@ function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o =
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
-// images present on all tracks
-var COMMON_IMAGE_ASSETS = ['extras/countdown.jpg', 'extras/countdown.png', 'particles.png', 'images.jpg', 'images.png']; // total number of road slices to create
+// total number of road slices to create
 // consider making this calculated as needed
 // meaning, add more tiles if the view expands
-
 var TOTAL_ROAD_SEGMENTS = 10; // creates a default track
 
 var Track = /*#__PURE__*/function () {
@@ -94185,25 +94405,69 @@ var Track = /*#__PURE__*/function () {
       this.path = "tracks/".concat(trackId, "/").concat(variantId);
       this.zone = zone;
       this.manifest = manifest;
-    } // creates ambient audio
+    } // handles preloading track assets
 
   }, {
-    key: "_createAmbience",
+    key: "_preloadResources",
     value: function () {
-      var _createAmbience2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
-        var ambience;
+      var _preloadResources2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+        var view, options, onLoadTrackAssets, preloader;
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
+                view = this.view, options = this.options;
+                onLoadTrackAssets = options.onLoadTrackAssets; // try to load external resources
+
+                preloader = new _preload.default(this);
+                _context.prev = 3;
+                _context.next = 6;
+                return preloader.preload();
+
+              case 6:
+                onLoadTrackAssets();
+                _context.next = 14;
+                break;
+
+              case 9:
+                _context.prev = 9;
+                _context.t0 = _context["catch"](3);
+                view.loadingStatus = preloader.status;
+                console.error("failed to preload track resources");
+                throw _context.t0;
+
+              case 14:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this, [[3, 9]]);
+      }));
+
+      function _preloadResources() {
+        return _preloadResources2.apply(this, arguments);
+      }
+
+      return _preloadResources;
+    }() // creates ambient audio
+
+  }, {
+    key: "_createAmbience",
+    value: function () {
+      var _createAmbience2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+        var ambience;
+        return _regenerator.default.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
                 ambience = this.manifest.ambience;
 
                 if (ambience) {
-                  _context.next = 3;
+                  _context2.next = 3;
                   break;
                 }
 
-                return _context.abrupt("return");
+                return _context2.abrupt("return");
 
               case 3:
                 // create the ambient noise
@@ -94218,10 +94482,10 @@ var Track = /*#__PURE__*/function () {
 
               case 4:
               case "end":
-                return _context.stop();
+                return _context2.stop();
             }
           }
-        }, _callee, this);
+        }, _callee2, this);
       }));
 
       function _createAmbience() {
@@ -94234,12 +94498,12 @@ var Track = /*#__PURE__*/function () {
   }, {
     key: "_createRoad",
     value: function () {
-      var _createRoad2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+      var _createRoad2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
         var view, rng, segments, manifest, path, overlay, ground, _manifest$track, repeating, order, total, randomize, sequence, i, template, comp, segment;
 
-        return _regenerator.default.wrap(function _callee2$(_context2) {
+        return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
-            switch (_context2.prev = _context2.next) {
+            switch (_context3.prev = _context3.next) {
               case 0:
                 view = this.view, rng = this.rng, segments = this.segments, manifest = this.manifest, path = this.path, overlay = this.overlay, ground = this.ground;
                 _manifest$track = manifest.track, repeating = _manifest$track.repeating, order = _manifest$track.order;
@@ -94255,7 +94519,7 @@ var Track = /*#__PURE__*/function () {
 
               case 6:
                 if (!(i < TOTAL_ROAD_SEGMENTS)) {
-                  _context2.next = 21;
+                  _context3.next = 21;
                   break;
                 }
 
@@ -94265,11 +94529,11 @@ var Track = /*#__PURE__*/function () {
                 : repeating[i % total]; // compose the slice and add to the
                 // scrolling overlay/bottom containers
 
-                _context2.next = 10;
+                _context3.next = 10;
                 return view.animator.compose(template, path, manifest);
 
               case 10:
-                comp = _context2.sent;
+                comp = _context3.sent;
                 segment = new _segment3.default(this, comp);
                 segments.push(segment); // for repeating road, offset so that
                 // the layers are against the left side
@@ -94284,7 +94548,7 @@ var Track = /*#__PURE__*/function () {
 
               case 18:
                 i++;
-                _context2.next = 6;
+                _context3.next = 6;
                 break;
 
               case 21:
@@ -94293,10 +94557,10 @@ var Track = /*#__PURE__*/function () {
 
               case 22:
               case "end":
-                return _context2.stop();
+                return _context3.stop();
             }
           }
-        }, _callee2, this);
+        }, _callee3, this);
       }));
 
       function _createRoad() {
@@ -94309,31 +94573,31 @@ var Track = /*#__PURE__*/function () {
   }, {
     key: "_createStartingLine",
     value: function () {
-      var _createStartingLine2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
+      var _createStartingLine2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
         var view, overlay, ground, manifest, path, start, comp, segment, shiftBy;
-        return _regenerator.default.wrap(function _callee3$(_context3) {
+        return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
-            switch (_context3.prev = _context3.next) {
+            switch (_context4.prev = _context4.next) {
               case 0:
                 view = this.view, overlay = this.overlay, ground = this.ground, manifest = this.manifest, path = this.path;
                 start = manifest.track.start; // if missing
 
                 if (start) {
-                  _context3.next = 5;
+                  _context4.next = 5;
                   break;
                 }
 
                 console.warn("No starting block defined for ".concat(path));
-                return _context3.abrupt("return");
+                return _context4.abrupt("return");
 
               case 5:
-                _context3.next = 7;
+                _context4.next = 7;
                 return view.animator.compose({
                   compose: start
                 }, path, manifest);
 
               case 7:
-                comp = _context3.sent;
+                comp = _context4.sent;
                 segment = this.startingLine = new _segment3.default(this, comp); // add the overlay section
 
                 overlay.addChild(segment.top);
@@ -94351,10 +94615,10 @@ var Track = /*#__PURE__*/function () {
 
               case 15:
               case "end":
-                return _context3.stop();
+                return _context4.stop();
             }
           }
-        }, _callee3, this);
+        }, _callee4, this);
       }));
 
       function _createStartingLine() {
@@ -94367,39 +94631,39 @@ var Track = /*#__PURE__*/function () {
   }, {
     key: "_createFinishLine",
     value: function () {
-      var _createFinishLine2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+      var _createFinishLine2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
         var view, manifest, path, finish, comp;
-        return _regenerator.default.wrap(function _callee4$(_context4) {
+        return _regenerator.default.wrap(function _callee5$(_context5) {
           while (1) {
-            switch (_context4.prev = _context4.next) {
+            switch (_context5.prev = _context5.next) {
               case 0:
                 view = this.view, manifest = this.manifest, path = this.path;
                 finish = manifest.track.finish; // if missing
 
                 if (finish) {
-                  _context4.next = 5;
+                  _context5.next = 5;
                   break;
                 }
 
                 console.warn("No finishing block defined for ".concat(path));
-                return _context4.abrupt("return");
+                return _context5.abrupt("return");
 
               case 5:
-                _context4.next = 7;
+                _context5.next = 7;
                 return view.animator.compose({
                   compose: finish
                 }, path, manifest);
 
               case 7:
-                comp = _context4.sent;
+                comp = _context5.sent;
                 this.finishLine = new _segment3.default(this, comp);
 
               case 9:
               case "end":
-                return _context4.stop();
+                return _context5.stop();
             }
           }
-        }, _callee4, this);
+        }, _callee5, this);
       }));
 
       function _createFinishLine() {
@@ -94412,45 +94676,45 @@ var Track = /*#__PURE__*/function () {
   }, {
     key: "_createBackground",
     value: function () {
-      var _createBackground2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
+      var _createBackground2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
         var view, manifest, background;
-        return _regenerator.default.wrap(function _callee5$(_context5) {
+        return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context6.prev = _context6.next) {
               case 0:
                 view = this.view, manifest = this.manifest;
                 background = manifest.background; // check if present
 
                 if (background) {
-                  _context5.next = 4;
+                  _context6.next = 4;
                   break;
                 }
 
-                return _context5.abrupt("return");
+                return _context6.abrupt("return");
 
               case 4:
                 // check for a background color
                 if ((0, _utils.isNumber)(background.color)) view.renderer.backgroundColor = background.color; // check for a composition
 
                 if (!(0, _utils.isArray)(background.compose)) {
-                  _context5.next = 11;
+                  _context6.next = 11;
                   break;
                 }
 
-                _context5.next = 8;
+                _context6.next = 8;
                 return view.animator.compose(background, this.path);
 
               case 8:
-                this.background = _context5.sent;
+                this.background = _context6.sent;
                 this.background.zIndex = -1;
                 this.container.addChild(this.background);
 
               case 11:
               case "end":
-                return _context5.stop();
+                return _context6.stop();
             }
           }
-        }, _callee5, this);
+        }, _callee6, this);
       }));
 
       function _createBackground() {
@@ -94463,33 +94727,33 @@ var Track = /*#__PURE__*/function () {
   }, {
     key: "_createForeground",
     value: function () {
-      var _createForeground2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
+      var _createForeground2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7() {
         var view, manifest, foreground, layer;
-        return _regenerator.default.wrap(function _callee6$(_context6) {
+        return _regenerator.default.wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
                 view = this.view, manifest = this.manifest;
                 foreground = manifest.foreground; // check if present
 
                 if (foreground) {
-                  _context6.next = 4;
+                  _context7.next = 4;
                   break;
                 }
 
-                return _context6.abrupt("return");
+                return _context7.abrupt("return");
 
               case 4:
                 if (!(0, _utils.isArray)(foreground.compose)) {
-                  _context6.next = 12;
+                  _context7.next = 12;
                   break;
                 }
 
-                _context6.next = 7;
+                _context7.next = 7;
                 return view.animator.compose(foreground, this.path);
 
               case 7:
-                layer = _context6.sent;
+                layer = _context7.sent;
                 // create a a separate view - this will
                 // be placed over the cars layer
                 this.foreground = new _ntAnimator.PIXI.ResponsiveContainer();
@@ -94499,10 +94763,10 @@ var Track = /*#__PURE__*/function () {
 
               case 12:
               case "end":
-                return _context6.stop();
+                return _context7.stop();
             }
           }
-        }, _callee6, this);
+        }, _callee7, this);
       }));
 
       function _createForeground() {
@@ -94641,92 +94905,56 @@ var Track = /*#__PURE__*/function () {
 
     /** creates a new track instance */
     value: function () {
-      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(options) {
-        var view, seed, onLoadTrackAssets, instance, animator, trackAssetsUrl, resources, _iterator4, _step4, url, image, y;
-
-        return _regenerator.default.wrap(function _callee7$(_context7) {
+      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(options) {
+        var view, seed, instance, y;
+        return _regenerator.default.wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
-                view = options.view, seed = options.seed, onLoadTrackAssets = options.onLoadTrackAssets; // create the new track
+                view = options.view, seed = options.seed; // create the new track
 
                 instance = new Track();
                 instance.options = options;
                 instance.view = view;
                 instance.container = new _ntAnimator.PIXI.Container(); // include special plugins
 
-                Track.create.status = 'installing plugings';
+                view.loadingStatus = 'installing plugings';
                 view.animator.install('crowd', _crowd.default); // assign the seed, if needed
 
-                Track.create.status = 'creating random number generator';
+                view.loadingStatus = 'creating random number generator';
                 view.animator.rng.activate(seed);
                 instance.rng = new _rng.default(seed); // align to the center
 
                 instance.relativeX = 0.5; // idenitfy the track to render
 
-                Track.create.status = 'selecting track';
+                view.loadingStatus = 'selecting track';
 
-                instance._selectTrack(); // do resource preloading
+                instance._selectTrack(); // preload external files
 
 
-                animator = view.animator; // frontload known images
+                view.loadingStatus = 'preloading resources';
+                _context8.next = 16;
+                return instance._preloadResources();
 
-                trackAssetsUrl = "tracks/".concat(options.trackId, "/").concat(options.variantId);
-                resources = [// preselected crowd image
-                animator.getImage(_crowd.SELECTED_CROWD_URL), // unique track images
-                animator.getImage("".concat(trackAssetsUrl, ".png")), animator.getImage("".concat(trackAssetsUrl, ".jpg")), // common audio
-                audio.register('common', animator.manifest.sounds)]; // append common image resources
-
-                _iterator4 = _createForOfIteratorHelper(COMMON_IMAGE_ASSETS);
-
-                try {
-                  for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-                    url = _step4.value;
-                    image = animator.getImage(url);
-                    resources.push(image);
-                  } // loading external resources
-
-                } catch (err) {
-                  _iterator4.e(err);
-                } finally {
-                  _iterator4.f();
-                }
-
-                _context7.prev = 18;
-                console.log('in parallel');
-                _context7.next = 22;
-                return Promise.all(resources);
-
-              case 22:
-                onLoadTrackAssets();
-                _context7.next = 29;
-                break;
-
-              case 25:
-                _context7.prev = 25;
-                _context7.t0 = _context7["catch"](18);
-                console.error("failed to preload track resources");
-                throw _context7.t0;
-
-              case 29:
+              case 16:
                 // setup each part
-                Track.create.status = 'creating road';
-                _context7.next = 32;
+                view.loadingStatus = 'creating road';
+                _context8.next = 19;
                 return instance._createRoad();
 
-              case 32:
-                Track.create.status = 'creating starting line';
-                _context7.next = 35;
+              case 19:
+                view.loadingStatus = 'creating starting line';
+                _context8.next = 22;
                 return instance._createStartingLine();
 
-              case 35:
-                Track.create.status = 'creating finish line';
-                _context7.next = 38;
+              case 22:
+                view.loadingStatus = 'creating finish line';
+                _context8.next = 25;
                 return instance._createFinishLine();
 
-              case 38:
+              case 25:
                 // ambience is nice, but not worth stalling over
-                Track.create.status = 'creating ambient sound';
+                view.loadingStatus = 'creating ambient sound';
 
                 instance._createAmbience(); // await instance._createForeground();
                 // await instance._createBackground();
@@ -94738,14 +94966,14 @@ var Track = /*#__PURE__*/function () {
                 instance.ground.relativeY = y; // can render
 
                 instance.ready = true;
-                return _context7.abrupt("return", instance);
+                return _context8.abrupt("return", instance);
 
-              case 45:
+              case 32:
               case "end":
-                return _context7.stop();
+                return _context8.stop();
             }
           }
-        }, _callee7, null, [[18, 25]]);
+        }, _callee8);
       }));
 
       function create(_x) {
@@ -94771,7 +94999,437 @@ var byRightEdge = function byRightEdge(a, b) {
 };
 
 function TrackGenerationException() {}
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/readOnlyError":"../node_modules/@babel/runtime/helpers/readOnlyError.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../rng":"rng.js","../../audio":"audio/index.js","../../views/track/scaling":"views/track/scaling.js","../../config":"config.js","../../utils":"utils/index.js","./segment":"components/track/segment.js","../../plugins/crowd":"plugins/crowd/index.js","../../audio/ambient":"audio/ambient.js"}],"animations/car-entry.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/readOnlyError":"../node_modules/@babel/runtime/helpers/readOnlyError.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../rng":"rng.js","../../views/track/scaling":"views/track/scaling.js","../../config":"config.js","../../utils":"utils/index.js","./segment":"components/track/segment.js","../../plugins/crowd":"plugins/crowd/index.js","../../audio/ambient":"audio/ambient.js","./preload":"components/track/preload.js"}],"phaser-fps.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
+
+var _ntAnimator = require("nt-animator");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+// Rewrite of Phaser FPS
+
+/**
+ * @author       Richard Davey <rich@photonstorm.com>
+ * @copyright    2020 Photon Storm Ltd.
+ * @license      {@link https://opensource.org/licenses/MIT|MIT License}
+ */
+var PhaserFPS = /*#__PURE__*/function () {
+  function PhaserFPS() {
+    var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    (0, _classCallCheck2.default)(this, PhaserFPS);
+    this.raf = new RequestAnimationFrame();
+    this.started = false;
+    this.running = false;
+    this.minFps = config.min || 5; // GetValue(config, 'min', 5);
+
+    this.targetFps = config.target || 60; // GetValue(config, 'target', 60);
+    //calculated
+
+    this._min = 1000 / this.minFps;
+    this._target = 1000 / this.targetFps;
+    this.actualFps = this.targetFps; // props
+
+    this.nextFpsUpdate = 0;
+    this.framesThisSecond = 0;
+    this.callback = _ntAnimator.noop;
+    this.forceSetTimeOut = config.forceSetTimeOut || false;
+    this.time = 0;
+    this.startTime = 0;
+    this.lastTime = 0;
+    this.frame = 0;
+    this.inFocus = true; // internal
+
+    this._pauseTime = 0;
+    this._coolDown = 0;
+    this.delta = 0;
+    this.deltaIndex = 0;
+    this.deltaHistory = [];
+    this.deltaSmoothingMax = config.deltaHistory || 10;
+    this.panicMax = config.panicMax || 120;
+    this.rawDelta = 0;
+    this.now = 0;
+    this.smoothStep = config.smoothStep !== false;
+  }
+
+  (0, _createClass2.default)(PhaserFPS, [{
+    key: "blur",
+    value: function blur() {
+      this.inFocus = false;
+    }
+  }, {
+    key: "focus",
+    value: function focus() {
+      this.inFocus = true;
+      this.resetDelta();
+    }
+  }, {
+    key: "pause",
+    value: function pause() {
+      this._pauseTime = window.performance.now();
+    }
+  }, {
+    key: "resume",
+    value: function resume() {
+      this.resetDelta();
+      this.startTime += this.time - this._pauseTime;
+    }
+  }, {
+    key: "resetDelta",
+    value: function resetDelta() {
+      var now = window.performance.now();
+      this.time = now;
+      this.lastTime = now;
+      this.nextFpsUpdate = now + 1000;
+      this.framesThisSecond = 0; //  Pre-populate smoothing array
+
+      for (var i = 0; i < this.deltaSmoothingMax; i++) {
+        this.deltaHistory[i] = Math.min(this._target, this.deltaHistory[i]);
+      }
+
+      this.delta = 0;
+      this.deltaIndex = 0;
+      this._coolDown = this.panicMax;
+    }
+  }, {
+    key: "start",
+    value: function start(callback) {
+      if (this.started) {
+        return this;
+      }
+
+      this.started = true;
+      this.running = true;
+
+      for (var i = 0; i < this.deltaSmoothingMax; i++) {
+        this.deltaHistory[i] = this._target;
+      }
+
+      this.resetDelta();
+      this.startTime = window.performance.now();
+      this.callback = callback || _ntAnimator.noop;
+      this.raf.start(this.step.bind(this), this.forceSetTimeOut, this._target);
+    }
+  }, {
+    key: "step",
+    value: function step() {
+      //  Because the timestamp passed in from raf represents the beginning of the main thread frame that we’re currently in,
+      //  not the actual time now, and as we want to compare this time value against Event timeStamps and the like, we need a
+      //  more accurate one:
+      var time = window.performance.now();
+      this.now = time;
+      var before = time - this.lastTime;
+
+      if (before < 0) {
+        //  Because, Chrome.
+        before = 0;
+      }
+
+      this.rawDelta = before;
+      var idx = this.deltaIndex;
+      var history = this.deltaHistory;
+      var max = this.deltaSmoothingMax; //  delta time (time is in ms)
+
+      var dt = before; //  Delta Average
+
+      var avg = before; //  When a browser switches tab, then comes back again, it takes around 10 frames before
+      //  the delta time settles down so we employ a 'cooling down' period before we start
+      //  trusting the delta values again, to avoid spikes flooding through our delta average
+
+      if (this.smoothStep) {
+        if (this._coolDown > 0 || !this.inFocus) {
+          this._coolDown--;
+          dt = Math.min(dt, this._target);
+        }
+
+        if (dt > this._min) {
+          //  Probably super bad start time or browser tab context loss,
+          //  so use the last 'sane' dt value
+          dt = history[idx]; //  Clamp delta to min (in case history has become corrupted somehow)
+
+          dt = Math.min(dt, this._min);
+        } //  Smooth out the delta over the previous X frames
+        //  add the delta to the smoothing array
+
+
+        history[idx] = dt; //  adjusts the delta history array index based on the smoothing count
+        //  this stops the array growing beyond the size of deltaSmoothingMax
+
+        this.deltaIndex++;
+
+        if (this.deltaIndex > max) {
+          this.deltaIndex = 0;
+        } //  Loop the history array, adding the delta values together
+
+
+        avg = 0;
+
+        for (var i = 0; i < max; i++) {
+          avg += history[i];
+        } //  Then divide by the array length to get the average delta
+
+
+        avg /= max;
+      } //  Set as the world delta value
+
+
+      this.delta = avg; //  Real-world timer advance
+
+      this.time += this.rawDelta; // Update the estimate of the frame rate, `fps`. Every second, the number
+      // of frames that occurred in that second are included in an exponential
+      // moving average of all frames per second, with an alpha of 0.25. This
+      // means that more recent seconds affect the estimated frame rate more than
+      // older seconds.
+      //
+      // When a browser window is NOT minimized, but is covered up (i.e. you're using
+      // another app which has spawned a window over the top of the browser), then it
+      // will start to throttle the raf callback time. It waits for a while, and then
+      // starts to drop the frame rate at 1 frame per second until it's down to just over 1fps.
+      // So if the game was running at 60fps, and the player opens a new window, then
+      // after 60 seconds (+ the 'buffer time') it'll be down to 1fps, so rafin'g at 1Hz.
+      //
+      // When they make the game visible again, the frame rate is increased at a rate of
+      // approx. 8fps, back up to 60fps (or the max it can obtain)
+      //
+      // There is no easy way to determine if this drop in frame rate is because the
+      // browser is throttling raf, or because the game is struggling with performance
+      // because you're asking it to do too much on the device.
+
+      if (time > this.nextFpsUpdate) {
+        //  Compute the new exponential moving average with an alpha of 0.25.
+        this.actualFps = 0.25 * this.framesThisSecond + 0.75 * this.actualFps;
+        this.nextFpsUpdate = time + 1000;
+        this.framesThisSecond = 0;
+      }
+
+      this.framesThisSecond++; //  Interpolation - how far between what is expected and where we are?
+
+      var interpolation = avg / this._target;
+      if (this.callback) this.callback(time, avg, interpolation); //  Shift time value over
+
+      this.lastTime = time;
+      this.frame++;
+    }
+  }, {
+    key: "tick",
+    value: function tick() {
+      this.step();
+    }
+  }, {
+    key: "sleep",
+    value: function sleep() {
+      if (this.running) {
+        this.raf.stop();
+        this.running = false;
+      }
+    }
+  }, {
+    key: "wake",
+    value: function wake(seamless) {
+      if (this.running) {
+        return;
+      } else if (seamless) {
+        this.startTime += -this.lastTime + (this.lastTime + window.performance.now());
+      }
+
+      this.raf.start(this.step.bind(this), this.useRAF);
+      this.running = true;
+      this.step();
+    }
+  }, {
+    key: "getDuration",
+    value: function getDuration() {
+      return Math.round(this.lastTime - this.startTime) / 1000;
+    }
+  }, {
+    key: "getDurationMS",
+    value: function getDurationMS() {
+      return Math.round(this.lastTime - this.startTime);
+    }
+  }, {
+    key: "stop",
+    value: function stop() {
+      this.running = false;
+      this.started = false;
+      this.raf.stop();
+      return this;
+    }
+  }, {
+    key: "destroy",
+    value: function destroy() {
+      this.stop();
+      this.callback = _ntAnimator.noop;
+      this.raf = null;
+    }
+  }]);
+  return PhaserFPS;
+}();
+/**
+ * @author       Richard Davey <rich@photonstorm.com>
+ * @copyright    2020 Photon Storm Ltd.
+ * @license      {@link https://opensource.org/licenses/MIT|MIT License}
+ */
+
+
+exports.default = PhaserFPS;
+
+var RequestAnimationFrame = /*#__PURE__*/function () {
+  function RequestAnimationFrame() {
+    (0, _classCallCheck2.default)(this, RequestAnimationFrame);
+    this.isRunning = false;
+    this.callback = _ntAnimator.noop;
+    this.tick = 0;
+    this.isSetTimeOut = false;
+    this.timeOutID = null;
+    this.lastTime = 0;
+    this.target = 0;
+
+    var _this = this;
+
+    this.step = function step() {
+      //  Because we cannot trust the time passed to this callback from the browser and need it kept in sync with event times
+      var timestamp = window.performance.now(); //  DOMHighResTimeStamp
+
+      _this.lastTime = _this.tick;
+      _this.tick = timestamp;
+
+      _this.callback(timestamp);
+
+      _this.timeOutID = window.requestAnimationFrame(step);
+    };
+
+    this.stepTimeout = function stepTimeout() {
+      var d = Date.now();
+      var delay = Math.min(Math.max(_this.target * 2 + _this.tick - d, 0), _this.target);
+      _this.lastTime = _this.tick;
+      _this.tick = d;
+
+      _this.callback(d);
+
+      _this.timeOutID = window.setTimeout(stepTimeout, delay);
+    };
+  }
+
+  (0, _createClass2.default)(RequestAnimationFrame, [{
+    key: "start",
+    value: function start(callback, forceSetTimeOut, targetFPS) {
+      if (this.isRunning) {
+        return;
+      }
+
+      this.callback = callback;
+      this.isSetTimeOut = forceSetTimeOut;
+      this.target = targetFPS;
+      this.isRunning = true;
+      this.timeOutID = forceSetTimeOut ? window.setTimeout(this.stepTimeout, 0) : window.requestAnimationFrame(this.step);
+    }
+  }, {
+    key: "stop",
+    value: function stop() {
+      this.isRunning = false;
+
+      if (this.isSetTimeOut) {
+        clearTimeout(this.timeOutID);
+      } else {
+        window.cancelAnimationFrame(this.timeOutID);
+      }
+    }
+  }, {
+    key: "destroy",
+    value: function destroy() {
+      this.stop();
+      this.callback = _ntAnimator.noop;
+    }
+  }]);
+  return RequestAnimationFrame;
+}();
+},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","nt-animator":"../node_modules/nt-animator/dist/index.js"}],"fps.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var _ntAnimator = require("nt-animator");
+
+var _phaserFps = _interopRequireDefault(require("./phaser-fps"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/** tracking FPS */
+var FpsMonitor = /*#__PURE__*/function () {
+  (0, _createClass2.default)(FpsMonitor, [{
+    key: "flush",
+    // tracking FPS
+
+    /** returns all cached FPS values */
+    value: function flush() {
+      var pixiCache = this.pixiCache,
+          phaserCache = this.phaserCache;
+      this.pixiCache = [];
+      this.phaserCache = [];
+      return {
+        pixiCache: pixiCache,
+        phaserCache: phaserCache
+      };
+    } // change the state
+
+  }]);
+
+  // creates a new monitor
+  function FpsMonitor() {
+    var _this = this;
+
+    (0, _classCallCheck2.default)(this, FpsMonitor);
+    (0, _defineProperty2.default)(this, "pixiCache", []);
+    (0, _defineProperty2.default)(this, "phaserCache", []);
+    (0, _defineProperty2.default)(this, "activate", function () {
+      _this.active = true;
+
+      _this.phaserFPS.start();
+    });
+    (0, _defineProperty2.default)(this, "deactivate", function () {
+      _this.active = false;
+
+      _this.phaserFPS.stop();
+    });
+    // activate the phase
+    this.phaserFPS = new _phaserFps.default(); // captures PIXI fps reporting
+
+    setInterval(function () {
+      if (!_this.active) return; // copy PIXI fps
+
+      var fps = Math.round(_ntAnimator.PIXI.Ticker.shared.FPS);
+
+      _this.pixiCache.push(fps); // copy phaser FPS
+
+
+      var fps2 = Math.round(_this.phaserFPS.actualFps);
+
+      _this.phaserCache.push(fps2);
+    }, 1000);
+  }
+
+  return FpsMonitor;
+}();
+
+exports.default = FpsMonitor;
+},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","./phaser-fps":"phaser-fps.js"}],"animations/car-entry.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -96146,437 +96804,7 @@ var ProgressInterpolator = /*#__PURE__*/function () {
 // 	};
 // 	return exp.Tween;
 // }());
-},{"@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","./base":"animations/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../config":"config.js","../plugins/crowd/layers":"plugins/crowd/layers.js"}],"phaser-fps.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
-
-var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
-
-var _ntAnimator = require("nt-animator");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-// Rewrite of Phaser FPS
-
-/**
- * @author       Richard Davey <rich@photonstorm.com>
- * @copyright    2020 Photon Storm Ltd.
- * @license      {@link https://opensource.org/licenses/MIT|MIT License}
- */
-var PhaserFPS = /*#__PURE__*/function () {
-  function PhaserFPS() {
-    var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-    (0, _classCallCheck2.default)(this, PhaserFPS);
-    this.raf = new RequestAnimationFrame();
-    this.started = false;
-    this.running = false;
-    this.minFps = config.min || 5; // GetValue(config, 'min', 5);
-
-    this.targetFps = config.target || 60; // GetValue(config, 'target', 60);
-    //calculated
-
-    this._min = 1000 / this.minFps;
-    this._target = 1000 / this.targetFps;
-    this.actualFps = this.targetFps; // props
-
-    this.nextFpsUpdate = 0;
-    this.framesThisSecond = 0;
-    this.callback = _ntAnimator.noop;
-    this.forceSetTimeOut = config.forceSetTimeOut || false;
-    this.time = 0;
-    this.startTime = 0;
-    this.lastTime = 0;
-    this.frame = 0;
-    this.inFocus = true; // internal
-
-    this._pauseTime = 0;
-    this._coolDown = 0;
-    this.delta = 0;
-    this.deltaIndex = 0;
-    this.deltaHistory = [];
-    this.deltaSmoothingMax = config.deltaHistory || 10;
-    this.panicMax = config.panicMax || 120;
-    this.rawDelta = 0;
-    this.now = 0;
-    this.smoothStep = config.smoothStep !== false;
-  }
-
-  (0, _createClass2.default)(PhaserFPS, [{
-    key: "blur",
-    value: function blur() {
-      this.inFocus = false;
-    }
-  }, {
-    key: "focus",
-    value: function focus() {
-      this.inFocus = true;
-      this.resetDelta();
-    }
-  }, {
-    key: "pause",
-    value: function pause() {
-      this._pauseTime = window.performance.now();
-    }
-  }, {
-    key: "resume",
-    value: function resume() {
-      this.resetDelta();
-      this.startTime += this.time - this._pauseTime;
-    }
-  }, {
-    key: "resetDelta",
-    value: function resetDelta() {
-      var now = window.performance.now();
-      this.time = now;
-      this.lastTime = now;
-      this.nextFpsUpdate = now + 1000;
-      this.framesThisSecond = 0; //  Pre-populate smoothing array
-
-      for (var i = 0; i < this.deltaSmoothingMax; i++) {
-        this.deltaHistory[i] = Math.min(this._target, this.deltaHistory[i]);
-      }
-
-      this.delta = 0;
-      this.deltaIndex = 0;
-      this._coolDown = this.panicMax;
-    }
-  }, {
-    key: "start",
-    value: function start(callback) {
-      if (this.started) {
-        return this;
-      }
-
-      this.started = true;
-      this.running = true;
-
-      for (var i = 0; i < this.deltaSmoothingMax; i++) {
-        this.deltaHistory[i] = this._target;
-      }
-
-      this.resetDelta();
-      this.startTime = window.performance.now();
-      this.callback = callback || _ntAnimator.noop;
-      this.raf.start(this.step.bind(this), this.forceSetTimeOut, this._target);
-    }
-  }, {
-    key: "step",
-    value: function step() {
-      //  Because the timestamp passed in from raf represents the beginning of the main thread frame that we’re currently in,
-      //  not the actual time now, and as we want to compare this time value against Event timeStamps and the like, we need a
-      //  more accurate one:
-      var time = window.performance.now();
-      this.now = time;
-      var before = time - this.lastTime;
-
-      if (before < 0) {
-        //  Because, Chrome.
-        before = 0;
-      }
-
-      this.rawDelta = before;
-      var idx = this.deltaIndex;
-      var history = this.deltaHistory;
-      var max = this.deltaSmoothingMax; //  delta time (time is in ms)
-
-      var dt = before; //  Delta Average
-
-      var avg = before; //  When a browser switches tab, then comes back again, it takes around 10 frames before
-      //  the delta time settles down so we employ a 'cooling down' period before we start
-      //  trusting the delta values again, to avoid spikes flooding through our delta average
-
-      if (this.smoothStep) {
-        if (this._coolDown > 0 || !this.inFocus) {
-          this._coolDown--;
-          dt = Math.min(dt, this._target);
-        }
-
-        if (dt > this._min) {
-          //  Probably super bad start time or browser tab context loss,
-          //  so use the last 'sane' dt value
-          dt = history[idx]; //  Clamp delta to min (in case history has become corrupted somehow)
-
-          dt = Math.min(dt, this._min);
-        } //  Smooth out the delta over the previous X frames
-        //  add the delta to the smoothing array
-
-
-        history[idx] = dt; //  adjusts the delta history array index based on the smoothing count
-        //  this stops the array growing beyond the size of deltaSmoothingMax
-
-        this.deltaIndex++;
-
-        if (this.deltaIndex > max) {
-          this.deltaIndex = 0;
-        } //  Loop the history array, adding the delta values together
-
-
-        avg = 0;
-
-        for (var i = 0; i < max; i++) {
-          avg += history[i];
-        } //  Then divide by the array length to get the average delta
-
-
-        avg /= max;
-      } //  Set as the world delta value
-
-
-      this.delta = avg; //  Real-world timer advance
-
-      this.time += this.rawDelta; // Update the estimate of the frame rate, `fps`. Every second, the number
-      // of frames that occurred in that second are included in an exponential
-      // moving average of all frames per second, with an alpha of 0.25. This
-      // means that more recent seconds affect the estimated frame rate more than
-      // older seconds.
-      //
-      // When a browser window is NOT minimized, but is covered up (i.e. you're using
-      // another app which has spawned a window over the top of the browser), then it
-      // will start to throttle the raf callback time. It waits for a while, and then
-      // starts to drop the frame rate at 1 frame per second until it's down to just over 1fps.
-      // So if the game was running at 60fps, and the player opens a new window, then
-      // after 60 seconds (+ the 'buffer time') it'll be down to 1fps, so rafin'g at 1Hz.
-      //
-      // When they make the game visible again, the frame rate is increased at a rate of
-      // approx. 8fps, back up to 60fps (or the max it can obtain)
-      //
-      // There is no easy way to determine if this drop in frame rate is because the
-      // browser is throttling raf, or because the game is struggling with performance
-      // because you're asking it to do too much on the device.
-
-      if (time > this.nextFpsUpdate) {
-        //  Compute the new exponential moving average with an alpha of 0.25.
-        this.actualFps = 0.25 * this.framesThisSecond + 0.75 * this.actualFps;
-        this.nextFpsUpdate = time + 1000;
-        this.framesThisSecond = 0;
-      }
-
-      this.framesThisSecond++; //  Interpolation - how far between what is expected and where we are?
-
-      var interpolation = avg / this._target;
-      if (this.callback) this.callback(time, avg, interpolation); //  Shift time value over
-
-      this.lastTime = time;
-      this.frame++;
-    }
-  }, {
-    key: "tick",
-    value: function tick() {
-      this.step();
-    }
-  }, {
-    key: "sleep",
-    value: function sleep() {
-      if (this.running) {
-        this.raf.stop();
-        this.running = false;
-      }
-    }
-  }, {
-    key: "wake",
-    value: function wake(seamless) {
-      if (this.running) {
-        return;
-      } else if (seamless) {
-        this.startTime += -this.lastTime + (this.lastTime + window.performance.now());
-      }
-
-      this.raf.start(this.step.bind(this), this.useRAF);
-      this.running = true;
-      this.step();
-    }
-  }, {
-    key: "getDuration",
-    value: function getDuration() {
-      return Math.round(this.lastTime - this.startTime) / 1000;
-    }
-  }, {
-    key: "getDurationMS",
-    value: function getDurationMS() {
-      return Math.round(this.lastTime - this.startTime);
-    }
-  }, {
-    key: "stop",
-    value: function stop() {
-      this.running = false;
-      this.started = false;
-      this.raf.stop();
-      return this;
-    }
-  }, {
-    key: "destroy",
-    value: function destroy() {
-      this.stop();
-      this.callback = _ntAnimator.noop;
-      this.raf = null;
-    }
-  }]);
-  return PhaserFPS;
-}();
-/**
- * @author       Richard Davey <rich@photonstorm.com>
- * @copyright    2020 Photon Storm Ltd.
- * @license      {@link https://opensource.org/licenses/MIT|MIT License}
- */
-
-
-exports.default = PhaserFPS;
-
-var RequestAnimationFrame = /*#__PURE__*/function () {
-  function RequestAnimationFrame() {
-    (0, _classCallCheck2.default)(this, RequestAnimationFrame);
-    this.isRunning = false;
-    this.callback = _ntAnimator.noop;
-    this.tick = 0;
-    this.isSetTimeOut = false;
-    this.timeOutID = null;
-    this.lastTime = 0;
-    this.target = 0;
-
-    var _this = this;
-
-    this.step = function step() {
-      //  Because we cannot trust the time passed to this callback from the browser and need it kept in sync with event times
-      var timestamp = window.performance.now(); //  DOMHighResTimeStamp
-
-      _this.lastTime = _this.tick;
-      _this.tick = timestamp;
-
-      _this.callback(timestamp);
-
-      _this.timeOutID = window.requestAnimationFrame(step);
-    };
-
-    this.stepTimeout = function stepTimeout() {
-      var d = Date.now();
-      var delay = Math.min(Math.max(_this.target * 2 + _this.tick - d, 0), _this.target);
-      _this.lastTime = _this.tick;
-      _this.tick = d;
-
-      _this.callback(d);
-
-      _this.timeOutID = window.setTimeout(stepTimeout, delay);
-    };
-  }
-
-  (0, _createClass2.default)(RequestAnimationFrame, [{
-    key: "start",
-    value: function start(callback, forceSetTimeOut, targetFPS) {
-      if (this.isRunning) {
-        return;
-      }
-
-      this.callback = callback;
-      this.isSetTimeOut = forceSetTimeOut;
-      this.target = targetFPS;
-      this.isRunning = true;
-      this.timeOutID = forceSetTimeOut ? window.setTimeout(this.stepTimeout, 0) : window.requestAnimationFrame(this.step);
-    }
-  }, {
-    key: "stop",
-    value: function stop() {
-      this.isRunning = false;
-
-      if (this.isSetTimeOut) {
-        clearTimeout(this.timeOutID);
-      } else {
-        window.cancelAnimationFrame(this.timeOutID);
-      }
-    }
-  }, {
-    key: "destroy",
-    value: function destroy() {
-      this.stop();
-      this.callback = _ntAnimator.noop;
-    }
-  }]);
-  return RequestAnimationFrame;
-}();
-},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","nt-animator":"../node_modules/nt-animator/dist/index.js"}],"fps.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
-
-var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
-
-var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
-
-var _ntAnimator = require("nt-animator");
-
-var _phaserFps = _interopRequireDefault(require("./phaser-fps"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/** tracking FPS */
-var FpsMonitor = /*#__PURE__*/function () {
-  (0, _createClass2.default)(FpsMonitor, [{
-    key: "flush",
-    // tracking FPS
-
-    /** returns all cached FPS values */
-    value: function flush() {
-      var pixiCache = this.pixiCache,
-          phaserCache = this.phaserCache;
-      this.pixiCache = [];
-      this.phaserCache = [];
-      return {
-        pixiCache: pixiCache,
-        phaserCache: phaserCache
-      };
-    } // change the state
-
-  }]);
-
-  // creates a new monitor
-  function FpsMonitor() {
-    var _this = this;
-
-    (0, _classCallCheck2.default)(this, FpsMonitor);
-    (0, _defineProperty2.default)(this, "pixiCache", []);
-    (0, _defineProperty2.default)(this, "phaserCache", []);
-    (0, _defineProperty2.default)(this, "activate", function () {
-      _this.active = true;
-
-      _this.phaserFPS.start();
-    });
-    (0, _defineProperty2.default)(this, "deactivate", function () {
-      _this.active = false;
-
-      _this.phaserFPS.stop();
-    });
-    // activate the phase
-    this.phaserFPS = new _phaserFps.default(); // captures PIXI fps reporting
-
-    setInterval(function () {
-      if (!_this.active) return; // copy PIXI fps
-
-      var fps = Math.round(_ntAnimator.PIXI.Ticker.shared.FPS);
-
-      _this.pixiCache.push(fps); // copy phaser FPS
-
-
-      var fps2 = Math.round(_this.phaserFPS.actualFps);
-
-      _this.phaserCache.push(fps2);
-    }, 1000);
-  }
-
-  return FpsMonitor;
-}();
-
-exports.default = FpsMonitor;
-},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","./phaser-fps":"phaser-fps.js"}],"animations/countdown.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","./base":"animations/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../config":"config.js","../plugins/crowd/layers":"plugins/crowd/layers.js"}],"animations/countdown.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -96748,8 +96976,11 @@ var CountdownAnimation = /*#__PURE__*/function (_Animation) {
           onBeginRace = _assertThisInitialize4.onBeginRace; // notify this has started
 
 
-      onBeginRace(); // if for some reason the countdown hasn't finished
+      if (onBeginRace) {
+        onBeginRace();
+      } // if for some reason the countdown hasn't finished
       // then go ahead and stop it
+
 
       clearInterval(countdownInterval); // play the go audio clip
 
@@ -96938,6 +97169,8 @@ var _player2 = _interopRequireDefault(require("./player"));
 
 var _track = _interopRequireDefault(require("../../components/track"));
 
+var _fps = _interopRequireDefault(require("../../fps"));
+
 var scaling = _interopRequireWildcard(require("./scaling"));
 
 var _config = require("../../config");
@@ -96952,9 +97185,9 @@ var _raceCompleted = _interopRequireDefault(require("../../animations/race-compl
 
 var _raceProgress = _interopRequireDefault(require("../../animations/race-progress"));
 
-var _fps = _interopRequireDefault(require("../../fps"));
-
 var _countdown = _interopRequireDefault(require("../../animations/countdown"));
+
+var _perf = require("../../perf");
 
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
@@ -96971,8 +97204,6 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
-
-var TRACK_CREATION_TIMEOUT = 15000;
 
 /** creates a track view that supports multiple cars for racing */
 var TrackView = /*#__PURE__*/function (_BaseView) {
@@ -97009,9 +97240,6 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "onLoadTrackAssets", function () {
       _this.resolveTask('load_assets');
-    });
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "onBeginRace", function () {
-      _this.fps.activate();
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "getPlayerById", function (id) {
       var _iterator = _createForOfIteratorHelper(_this.players),
@@ -97210,67 +97438,71 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
                 _context2.prev = 2;
                 _context2.prev = 3;
-                _context2.next = 6;
+                _this.loadingStatus = 'creating track instance'; // await waitWithTimeout(loading, TRACK_CREATION_TIMEOUT);
+
+                _context2.next = 7;
                 return _track.default.create(trackOptions);
 
-              case 6:
+              case 7:
                 track = _this.track = _context2.sent;
-                _context2.next = 12;
+                _context2.next = 13;
                 break;
 
-              case 9:
-                _context2.prev = 9;
+              case 10:
+                _context2.prev = 10;
                 _context2.t0 = _context2["catch"](3);
-                throw new Error("Track stalled creation at ".concat(_track.default.create.status || 'before setup'));
+                throw new Error("Track stalled creation at ".concat(_this.loadingStatus || 'before setup'));
 
-              case 12:
-                _context2.prev = 12;
+              case 13:
+                _context2.prev = 13;
+                _this.loadingStatus = 'creating countdown';
                 _this.countdown = new _countdown.default({
                   track: (0, _assertThisInitialized2.default)(_this),
                   stage: stage,
                   animator: animator,
                   onBeginRace: _this.onBeginRace
                 });
-                _context2.next = 16;
+                _this.loadingStatus = 'initializing countdown';
+                _context2.next = 19;
                 return _this.countdown.init();
 
-              case 16:
+              case 19:
                 _this.resolveTask('load_extras');
 
-                _context2.next = 23;
+                _context2.next = 26;
                 break;
 
-              case 19:
-                _context2.prev = 19;
-                _context2.t1 = _context2["catch"](12);
+              case 22:
+                _context2.prev = 22;
+                _context2.t1 = _context2["catch"](13);
                 // delete this.countdown;
                 console.error("Failed to load required files for countdown animation");
                 throw new CountdownAssetError();
 
-              case 23:
+              case 26:
                 if ((_this$countdown = _this.countdown) === null || _this$countdown === void 0 ? void 0 : _this$countdown.isReady) {
-                  _context2.next = 26;
+                  _context2.next = 30;
                   break;
                 }
 
+                _this.loadingStatus = 'countdown was incomplete';
                 console.error("Countdown did not load successfully");
                 throw new CountdownAssetError();
 
-              case 26:
+              case 30:
                 // track is ready to go
                 _this.resolveTask('load_track');
 
-                _context2.next = 34;
+                _context2.next = 37;
                 break;
 
-              case 29:
-                _context2.prev = 29;
+              case 33:
+                _context2.prev = 33;
                 _context2.t2 = _context2["catch"](2);
-                console.log('failed to load track');
                 console.error(_context2.t2);
                 throw new TrackAssetError();
 
-              case 34:
+              case 37:
                 // add the scroling ground
                 stage.addChild(track.ground);
                 track.ground.zIndex = _layers.LAYER_TRACK_GROUND;
@@ -97282,12 +97514,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
                 stage.sortChildren();
 
-              case 41:
+              case 44:
               case "end":
                 return _context2.stop();
             }
           }
-        }, _callee2, null, [[2, 29], [3, 9], [12, 19]]);
+        }, _callee2, null, [[2, 33], [3, 10], [13, 22]]);
       }));
 
       return function (_x3) {
@@ -97454,8 +97686,10 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       raceCompletedAnimation.play({});
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "finishRace", function () {
-      // the race has been marked as finished, show the completion
+      _this.finalizePerformanceTracking(); // the race has been marked as finished, show the completion
       // until the player is marked ready
+
+
       var _assertThisInitialize10 = (0, _assertThisInitialized2.default)(_this),
           players = _assertThisInitialize10.players,
           track = _assertThisInitialize10.track,
@@ -97485,6 +97719,17 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       });
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "lastUpdate", +new Date());
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "finalizePerformanceTracking", function () {
+      var actualFps = _this.fps.phaserFPS.actualFps; // if for some reason the FPS is zero, do not replace
+      // the score since it'll force the lowest settings
+
+      if (actualFps <= 0) {
+        return;
+      } // save the final result
+
+
+      (0, _perf.savePerformanceResult)(_config.PERFORMANCE_SCORE, actualFps);
+    });
     return _this;
   }
 
@@ -97512,7 +97757,9 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 return (0, _get2.default)((0, _getPrototypeOf2.default)(TrackView.prototype), "init", this).call(this, options);
 
               case 3:
-                // identify loading tasks
+                // start initializing 
+                this.fps.activate(); // identify loading tasks
+
                 this.addTasks('load_track', 'load_assets', 'load_extras'); // set default audio state
 
                 audio.configureSFX({
@@ -97532,7 +97779,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 }); // attach the effects filter
                 // this.stage.filters = [ this.colorFilter ];
 
-              case 11:
+              case 12:
               case "end":
                 return _context4.stop();
             }
@@ -97557,8 +97804,8 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
           phaserCache = _this$fps$flush.phaserCache;
 
       return {
-        fps: pixiCache,
-        fps2: phaserCache
+        fps: phaserCache,
+        fps2: pixiCache
       };
     }
     /** get the viewport size */
@@ -97623,7 +97870,8 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       (0, _get2.default)((0, _getPrototypeOf2.default)(TrackView.prototype), "render", this).call(this); // race is finished
 
       if (raceCompletedAnimation) raceCompletedAnimation.update();
-    }
+    } // save the FPS and performance score
+
   }]);
   return TrackView;
 }(_base.BaseView);
@@ -97637,7 +97885,7 @@ function TrackAssetError() {}
 function AudioAssetError() {}
 
 function PlayerAssetError() {}
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","../../audio":"audio/index.js","../base":"views/base.js","./player":"views/track/player.js","../../components/track":"components/track/index.js","./scaling":"views/track/scaling.js","../../config":"config.js","./layers":"views/track/layers.js","../../audio/volume":"audio/volume.js","../../animations/car-entry":"animations/car-entry.js","../../animations/race-completed":"animations/race-completed.js","../../animations/race-progress":"animations/race-progress.js","../../fps":"fps.js","../../animations/countdown":"animations/countdown.js"}],"views/composer.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","../../audio":"audio/index.js","../base":"views/base.js","./player":"views/track/player.js","../../components/track":"components/track/index.js","../../fps":"fps.js","./scaling":"views/track/scaling.js","../../config":"config.js","./layers":"views/track/layers.js","../../audio/volume":"audio/volume.js","../../animations/car-entry":"animations/car-entry.js","../../animations/race-completed":"animations/race-completed.js","../../animations/race-progress":"animations/race-progress.js","../../animations/countdown":"animations/countdown.js","../../perf":"perf.js"}],"views/composer.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {

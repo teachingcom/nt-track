@@ -1,13 +1,12 @@
 
 import { PIXI } from 'nt-animator';
-import { merge, waitWithTimeout } from '../../utils';
+import { merge } from '../../utils';
 import * as audio from '../../audio';
-
-const TRACK_CREATION_TIMEOUT = 15000;
 
 import { BaseView } from '../base';
 import Player from './player';
 import Track from '../../components/track';
+import FpsMonitor from '../../fps';
 
 // sizing, layers, positions
 import * as scaling from './scaling';
@@ -19,7 +18,7 @@ import {
 	ANIMATION_RATE_FINISH_LINE,
 	ANIMATION_RATE_WHILE_RACING,
 	TRACK_MAXIMUM_SPEED_BOOST_RATE,
-	TRACK_MAXIMUM_SPEED_DRAG_RATE, TRACK_FORCE_CANVAS
+	TRACK_MAXIMUM_SPEED_DRAG_RATE, PERFORMANCE_SCORE
 } from '../../config';
 
 import {
@@ -41,8 +40,8 @@ import {
 import CarEntryAnimation from '../../animations/car-entry';
 import RaceCompletedAnimation from '../../animations/race-completed';
 import RaceProgressAnimation from '../../animations/race-progress';
-import FpsMonitor from '../../fps';
 import CountdownAnimation from '../../animations/countdown';
+import { savePerformanceResult } from '../../perf';
 
 /** creates a track view that supports multiple cars for racing */
 export default class TrackView extends BaseView {
@@ -86,6 +85,9 @@ export default class TrackView extends BaseView {
 		// base class init
 		await super.init(options);
 
+		// start initializing 
+		this.fps.activate();
+
 		// identify loading tasks
 		this.addTasks('load_track', 'load_assets', 'load_extras');
 
@@ -109,15 +111,10 @@ export default class TrackView extends BaseView {
 		this.resolveTask('load_assets');
 	}
 
-	// race begins event
-	onBeginRace = () => {
-		this.fps.activate();
-	}
-
 	/** returns the FPS cache values */
 	getFpsCache() {
 		const { pixiCache, phaserCache } = this.fps.flush();
-		return { fps: pixiCache, fps2: phaserCache };
+		return { fps: phaserCache, fps2: pixiCache };
 	}
 
 	/** get the viewport size */
@@ -254,23 +251,26 @@ export default class TrackView extends BaseView {
 		let track
 		try {
 			try {
+				this.loadingStatus = 'creating track instance';
 				// await waitWithTimeout(loading, TRACK_CREATION_TIMEOUT);
 				track = this.track = await Track.create(trackOptions)
 			}
 			// failed to create the track in a timely fashion
 			catch (ex) {
-				throw new Error(`Track stalled creation at ${Track.create.status || 'before setup'}`);
+				throw new Error(`Track stalled creation at ${this.loadingStatus || 'before setup'}`);
 			}
 			
 			// preload the countdown animation images
 			try {
+				this.loadingStatus = 'creating countdown';
 				this.countdown = new CountdownAnimation({
 					track: this,
 					stage,
 					animator,
 					onBeginRace: this.onBeginRace
 				});
-
+				
+				this.loadingStatus = 'initializing countdown';
 				await this.countdown.init();
 				this.resolveTask('load_extras');
 			}
@@ -283,6 +283,7 @@ export default class TrackView extends BaseView {
 
 			// verify the countdown loaded
 			if (!this.countdown?.isReady) {
+				this.loadingStatus = 'countdown was incomplete';
 				console.error(`Countdown did not load successfully`);
 				throw new CountdownAssetError();
 			}
@@ -292,7 +293,6 @@ export default class TrackView extends BaseView {
 		}
 		// any failures
 		catch (ex) {
-			console.log('failed to load track');
 			console.error(ex);
 			throw new TrackAssetError();
 		}
@@ -481,6 +481,7 @@ export default class TrackView extends BaseView {
 
 	/** activates the finished race state */
 	finishRace = () => {
+		this.finalizePerformanceTracking();
 
 		// the race has been marked as finished, show the completion
 		// until the player is marked ready
@@ -574,6 +575,20 @@ export default class TrackView extends BaseView {
 		// race is finished
 		if (raceCompletedAnimation)
 			raceCompletedAnimation.update();
+	}
+
+	// save the FPS and performance score
+	finalizePerformanceTracking = () => {
+		const { actualFps } = this.fps.phaserFPS;
+
+		// if for some reason the FPS is zero, do not replace
+		// the score since it'll force the lowest settings
+		if (actualFps <= 0) {
+			return;
+		}
+
+		// save the final result
+		savePerformanceResult(PERFORMANCE_SCORE, actualFps);
 	}
 
 }

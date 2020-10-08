@@ -151,7 +151,9 @@ export default class CountdownAnimation extends Animation {
 		const { numbers, go, countdown, flash, countdownInterval, onBeginRace } = this;
 
 		// notify this has started
-		onBeginRace();
+		if (onBeginRace) {
+			onBeginRace();
+		}
 
 		// if for some reason the countdown hasn't finished
 		// then go ahead and stop it

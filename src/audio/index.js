@@ -47,7 +47,7 @@ export async function register(key, sprites) {
 		// handle finalizing the sound
 		const onLoaded = () => {
 			AUDIO[key] = sound;
-			resolve();
+			resolve(true);
 		};
 		
 		// load the sound
