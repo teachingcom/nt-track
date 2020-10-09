@@ -41,7 +41,7 @@ export default class AssetPreloader {
 			{ type: 'image', src: 'images.png' },
 
 			// common audio
-			{ type: 'audio', src: animator.manifest.sounds, key:'common' },
+			{ type: 'audio', src: 'common', sprites: animator.manifest.sounds },
 
 			// TODO: allow tracks to define additional resources
 		]
@@ -57,7 +57,7 @@ export default class AssetPreloader {
 		
 		// queue up all pending asset loading requests
 		for (const resource of resources) {
-			const { type, src, key } = resource;
+			const { type, src, sprites } = resource;
 			
 			// loading image assets
 			let task;
@@ -66,7 +66,7 @@ export default class AssetPreloader {
 			}
 			// loading audio files
 			else if (type === 'audio') {
-				task = audio.register(key, src)
+				task = audio.register(src, sprites)
 			}
 			// unknown preload type
 			else {

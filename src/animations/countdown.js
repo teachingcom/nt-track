@@ -18,10 +18,6 @@ export default class CountdownAnimation extends Animation {
 	async init() {
 		const { animator } = this;
 		
-		// load resources
-		const resources = await animator.getSpritesheet('extras/countdown');
-		if (!resources) throw new Error('Missing Countdown assets');
-		
 		// save references
 		const countdown = await animator.create('extras/countdown');
 		if (!countdown) throw new Error('Missing Countdown animation');

@@ -234,6 +234,11 @@ export default class TrackView extends BaseView {
 		}
 	}
 
+	// tracking sections of loading process
+	setLoadingStatus(type, status) {
+		this.loadingStatus = { type, status };
+	}
+
 	// manually changes the scroll value
 	setScroll = position => {
 		this.track.setTrackPosition(position);
@@ -251,18 +256,18 @@ export default class TrackView extends BaseView {
 		let track
 		try {
 			try {
-				this.loadingStatus = 'creating track instance';
+				this.setLoadingStatus('init', 'creating track instance');
 				// await waitWithTimeout(loading, TRACK_CREATION_TIMEOUT);
 				track = this.track = await Track.create(trackOptions)
 			}
 			// failed to create the track in a timely fashion
 			catch (ex) {
-				throw new Error(`Track stalled creation at ${this.loadingStatus || 'before setup'}`);
+				throw new Error(`Failed to create new track instance`);
 			}
 			
 			// preload the countdown animation images
 			try {
-				this.loadingStatus = 'creating countdown';
+				this.setLoadingStatus('init', 'creating countdown');
 				this.countdown = new CountdownAnimation({
 					track: this,
 					stage,
@@ -270,7 +275,7 @@ export default class TrackView extends BaseView {
 					onBeginRace: this.onBeginRace
 				});
 				
-				this.loadingStatus = 'initializing countdown';
+				this.setLoadingStatus('init', 'initializing countdown');
 				await this.countdown.init();
 				this.resolveTask('load_extras');
 			}
@@ -283,7 +288,7 @@ export default class TrackView extends BaseView {
 
 			// verify the countdown loaded
 			if (!this.countdown?.isReady) {
-				this.loadingStatus = 'countdown was incomplete';
+				this.setLoadingStatus('init', 'countdown was incomplete');
 				console.error(`Countdown did not load successfully`);
 				throw new CountdownAssetError();
 			}
@@ -293,8 +298,7 @@ export default class TrackView extends BaseView {
 		}
 		// any failures
 		catch (ex) {
-			console.error(ex);
-			throw new TrackAssetError();
+			throw new TrackCreationError();
 		}
 
 		// add the scroling ground

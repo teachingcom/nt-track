@@ -27,11 +27,11 @@ export default class Track {
 		instance.container = new PIXI.Container();
 		
 		// include special plugins
-		view.loadingStatus = 'installing plugings';
+		view.setLoadingStatus('init', 'installing plugings');
 		view.animator.install('crowd', createCrowd);
 
 		// assign the seed, if needed
-		view.loadingStatus = 'creating random number generator'
+		view.setLoadingStatus('init', 'creating random number generator');
 		view.animator.rng.activate(seed);
 		instance.rng = new Random(seed);
 
@@ -39,30 +39,31 @@ export default class Track {
 		instance.relativeX = 0.5;
 		
 		// idenitfy the track to render
-		view.loadingStatus = 'selecting track';
+		view.setLoadingStatus('init', 'selecting track');
 		instance._selectTrack();
 		
 		// preload external files
-		view.loadingStatus = 'preloading resources';
+		view.setLoadingStatus('assets', 'preloading resources');
 		await instance._preloadResources();
 		
 		// setup each part
-		view.loadingStatus = 'creating road';
+		view.setLoadingStatus('init', 'creating road');
 		await instance._createRoad();
 		
-		view.loadingStatus = 'creating starting line';
+		view.setLoadingStatus('init', 'creating starting line');
 		await instance._createStartingLine();
 		
-		view.loadingStatus = 'creating finish line';
+		view.setLoadingStatus('init', 'creating finish line');
 		await instance._createFinishLine();
 		
 		// ambience is nice, but not worth stalling over
-		view.loadingStatus = 'creating ambient sound';
+		view.setLoadingStatus('init', 'creating ambient sound');
 		instance._createAmbience();
 		// await instance._createForeground();
 		// await instance._createBackground();
 
 		// set the y position
+		view.setLoadingStatus('init', 'aligning track');
 		const y = TRACK_TOP + (TRACK_HEIGHT / 2);
 		instance.overlay.relativeY = y;
 		instance.ground.relativeY = y;
@@ -130,7 +131,7 @@ export default class Track {
 		}
 		// failed to load
 		catch (ex) {
-			view.loadingStatus = preloader.status;
+			view.setLoadingStatus('assets', preloader.status);
 			console.error(`failed to preload track resources`);
 			throw ex;
 		}
@@ -518,5 +519,3 @@ export default class Track {
 // helpers
 const getRightEdge = t => t.bottom.x + t.bounds.width;
 const byRightEdge = (a, b) => getRightEdge(a) - getRightEdge(b);
-
-function TrackGenerationException() { }
