@@ -130,3 +130,50 @@ export function getSprites(container, sprites = [ ]) {
 
 	return sprites;
 }
+
+// recursively finds textures
+export function findTextures (target, collection = { }) {
+  // skip this item
+  if (target.config?.ignoreHueShift || target.emitter?.config?.ignoreHueShift) {
+    return
+  }
+
+  // particle emitters keep textures in a separate array
+  if (target.emitter) {
+    const { particleImages } = target.emitter
+    // for (const texture of target.particleImages) {
+    for (let i = particleImages.length; i-- > 0;) {
+      addTexture(collection, particleImages, i)
+    }
+
+  // sprites just add the texture as is
+  } else if (target.isSprite) {
+    addTexture(collection, target)
+
+  // recursively look for children
+  } else if (target.children) {
+    for (const child of target.children) {
+      findTextures(child, collection)
+    }
+  }
+
+  return collection
+}
+
+// adds a texture to the search collection
+function addTexture (collection, target, index) {
+  const source = !isNaN(index) ? target[index] : target.texture
+  const { cacheId } = source.baseTexture
+
+  // make sure the group is ready
+  let group = collection[cacheId]
+  if (!group) {
+    group = collection[cacheId] = {
+      texture: source.baseTexture,
+      targets: []
+    }
+  }
+
+  // append the texture target
+  group.targets.push([target, index])
+}

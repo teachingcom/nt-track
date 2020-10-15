@@ -6,9 +6,6 @@ import { PIXI, findDisplayObjectsOfRole, createPlaceholderImage } from 'nt-anima
 import { merge, isNumber, noop } from '../../utils';
 import { createStaticCar } from './create-static-car';
 
-// get special car extensions
-import carPlugins from '../../plugins/cars';
-
 // layers and positions
 import { LAYER_CAR, LAYER_SHADOW, LAYER_NITRO_BLUR } from '../../views/track/layers';
 import {
@@ -31,7 +28,7 @@ import {
 import ActivateNitroAnimation from '../../animations/activate-nitro';
 import generateTextures from './texture-generator';
 import hueShift from './hue-shift';
-import { CAR_MAPPINGS, searchForEnhancedCar } from '../../car-mappings';
+import { getCarAnimations, getCarPlugin } from '../../car-mappings';
 
 
 export default class Car extends PIXI.Container {
@@ -50,7 +47,7 @@ export default class Car extends PIXI.Container {
 		
 		// determine the type to create
 		const { view } = options;
-		const type = searchForEnhancedCar(options.type);
+		const type = getCarAnimations(options.type);
 		const path = `cars/${type}`;
 		const config = view.animator.lookup(path);
 		merge(instance, { options, view, path, config });
@@ -99,8 +96,8 @@ export default class Car extends PIXI.Container {
 		this.bounds = bounds;
 
 		// append plugins, if any
-		this.plugin = carPlugins[type];
-
+		this.plugin = getCarPlugin(type);
+	
 		// load any textures
 		await this._initTextures(imageSource, includeShadow, includeNormalMap);
 
@@ -159,17 +156,17 @@ export default class Car extends PIXI.Container {
 	// creates a car from a static resource
 	_createStaticCar = async type => {
 		const { view } = this;
-		const { staticUrl } = view.options;
+		const { getCarUrl } = view.options;
 		const car = new PIXI.Container();
 
-		// check fpr special instructions
-		const id = 0 | type.match(/^\d+/)[0];
-		const mods = CAR_SPRITE_MODIFICATIONS[id];
+		// check for mods (rotation, flipping, etc)
+		const mods = CAR_SPRITE_MODIFICATIONS[type];
 		
 		// get the sprite to render
 		let sprite;
+		const url = getCarUrl(type);
 		try {
-			sprite = await createStaticCar(staticUrl, type);
+			sprite = await createStaticCar(url);
 
 			// if this failed to load
 			if (!sprite) {
@@ -178,7 +175,7 @@ export default class Car extends PIXI.Container {
 		}
 		// if this failed to find the image
 		catch (ex) {
-			console.error(`Failed to load ${staticUrl}`);
+			console.error(`Failed to load ${url}`);
 			return this._createMissingCar();
 		}
 		
@@ -359,6 +356,14 @@ export default class Car extends PIXI.Container {
 		// nitro blur shifting
 		if (hasNitro) {
 			nitroBlur.y = (CAR_BODY_OFFSET_Y + NITRO_BLUR_OFFSET_Y) + (y * 1.5);
+		}
+	}
+
+	moveShadow = (x, y) => {
+		const shadows = findDisplayObjectsOfRole(this, 'shadow');
+		for (const shadow of shadows) {
+			shadow.x *= x;
+			shadow.y *= y;
 		}
 	}
 

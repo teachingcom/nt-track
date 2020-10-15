@@ -208,6 +208,20 @@ export default class Player extends PIXI.ResponsiveContainer {
 			namecard.setVisibility(true);
 		}
 
+		// check for an optional plugin
+		if (car.plugin) {
+			const { view } = this.options;
+			car.plugin({
+				animator: view.animator,
+				track: view,
+				player: this,
+				car,
+				trail,
+				namecard,
+				nitro
+			});
+		}
+
 		// finalize order
 		this.sortChildren();
 	}

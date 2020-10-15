@@ -599,6 +599,6 @@ export default class TrackView extends BaseView {
 
 
 function CountdownAssetError() { }
-function TrackAssetError() { }
+function TrackCreationError() { }
 function AudioAssetError() { }
 function PlayerAssetError() { }
