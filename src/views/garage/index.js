@@ -182,7 +182,6 @@ function fadeOut(car) {
 			update: props => car.alpha = props.alpha,
 			complete: () => {
 				removeCar(car);
-				console.log('dn');
 				setTimeout(resolve, 100);
 			},
 		});
@@ -192,16 +191,12 @@ function fadeOut(car) {
 function fadeIn(car) {
 	car.alpha = 0;
 	car.relativeX = 0.5;
-	console.log('doo');
 	car.animation = animate({
 		duration: 500,
 		ease: 'linear',
 		from: { alpha: 0 },
 		to: { alpha: 1 },
 		loop: false,
-		update: props => {
-			console.log('ggg');
-			car.alpha = props.alpha
-		}
+		update: props => car.alpha = props.alpha
 	});
 }

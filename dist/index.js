@@ -98586,7 +98586,6 @@ function fadeOut(car) {
       },
       complete: function complete() {
         removeCar(car);
-        console.log('dn');
         setTimeout(resolve, 100);
       }
     });
@@ -98596,7 +98595,6 @@ function fadeOut(car) {
 function fadeIn(car) {
   car.alpha = 0;
   car.relativeX = 0.5;
-  console.log('doo');
   car.animation = (0, _ntAnimator.animate)({
     duration: 500,
     ease: 'linear',
@@ -98608,8 +98606,7 @@ function fadeIn(car) {
     },
     loop: false,
     update: function update(props) {
-      console.log('ggg');
-      car.alpha = props.alpha;
+      return car.alpha = props.alpha;
     }
   });
 }
