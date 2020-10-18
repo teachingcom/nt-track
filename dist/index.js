@@ -85788,26 +85788,25 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
 
               case 8:
                 sprite = _context2.sent;
-                console.log(sprite); // if this failed to load
 
                 if (sprite) {
-                  _context2.next = 12;
+                  _context2.next = 11;
                   break;
                 }
 
                 return _context2.abrupt("return", _this._createMissingCar());
 
-              case 12:
-                _context2.next = 18;
+              case 11:
+                _context2.next = 17;
                 break;
 
-              case 14:
-                _context2.prev = 14;
+              case 13:
+                _context2.prev = 13;
                 _context2.t0 = _context2["catch"](5);
                 console.error("Failed to load ".concat(url));
                 return _context2.abrupt("return", _this._createMissingCar());
 
-              case 18:
+              case 17:
                 height = sprite.height;
                 imageSource = sprite; // place this car into a container
 
@@ -85832,12 +85831,12 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
                   height: height
                 });
 
-              case 27:
+              case 26:
               case "end":
                 return _context2.stop();
             }
           }
-        }, _callee2, null, [[5, 14]]);
+        }, _callee2, null, [[5, 13]]);
       }));
 
       return function (_x) {

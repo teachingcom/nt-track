@@ -167,7 +167,6 @@ export default class Car extends PIXI.Container {
 		const url = getCarUrl(type);
 		try {
 			sprite = await createStaticCar(url);
-			console.log(sprite);
 
 			// if this failed to load
 			if (!sprite) {
