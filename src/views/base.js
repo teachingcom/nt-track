@@ -214,6 +214,12 @@ export class BaseView extends EventEmitter {
 		delete this.autoRender;
 	}
 
+	getDisplaySize() {
+		const height = this.height / SSAA_SCALING_AMOUNT;
+		const width = this.width / SSAA_SCALING_AMOUNT;
+		return { width, height };
+	}
+
 	/** resizes to match the container element */
 	resize = () => {
 		const { parent, view, renderer } = this;

@@ -84306,6 +84306,18 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
       // fast.render(view);
     } // turn on auto rendering
 
+  }, {
+    key: "getDisplaySize",
+    value: function getDisplaySize() {
+      var height = this.height / _config.SSAA_SCALING_AMOUNT;
+      var width = this.width / _config.SSAA_SCALING_AMOUNT;
+      return {
+        width: width,
+        height: height
+      };
+    }
+    /** resizes to match the container element */
+
   }]);
   return BaseView;
 }(_ntAnimator.EventEmitter); // create a webgl based renderer
@@ -85776,25 +85788,26 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
 
               case 8:
                 sprite = _context2.sent;
+                console.log(sprite); // if this failed to load
 
                 if (sprite) {
-                  _context2.next = 11;
+                  _context2.next = 12;
                   break;
                 }
 
                 return _context2.abrupt("return", _this._createMissingCar());
 
-              case 11:
-                _context2.next = 17;
+              case 12:
+                _context2.next = 18;
                 break;
 
-              case 13:
-                _context2.prev = 13;
+              case 14:
+                _context2.prev = 14;
                 _context2.t0 = _context2["catch"](5);
                 console.error("Failed to load ".concat(url));
                 return _context2.abrupt("return", _this._createMissingCar());
 
-              case 17:
+              case 18:
                 height = sprite.height;
                 imageSource = sprite; // place this car into a container
 
@@ -85819,12 +85832,12 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
                   height: height
                 });
 
-              case 26:
+              case 27:
               case "end":
                 return _context2.stop();
             }
           }
-        }, _callee2, null, [[5, 13]]);
+        }, _callee2, null, [[5, 14]]);
       }));
 
       return function (_x) {
@@ -98264,6 +98277,9 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
+var DEFAULT_MAX_HEIGHT = 250;
+var EFFECTS_PADDING_SCALING = 0.85;
+
 var GarageView = /*#__PURE__*/function (_BaseView) {
   (0, _inherits2.default)(GarageView, _BaseView);
 
@@ -98408,13 +98424,14 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
     }());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "createCar", /*#__PURE__*/function () {
       var _ref4 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(config) {
-        var type, hue, view, container, car, scale;
+        var view, type, hue, container, car, _this$getDisplaySize, height, scale;
+
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
-                type = config.type, hue = config.hue;
-                view = (0, _assertThisInitialized2.default)(_this); // create the new car
+                view = (0, _assertThisInitialized2.default)(_this);
+                type = config.type, hue = config.hue; // create the new car
 
                 container = new _ntAnimator.PIXI.ResponsiveContainer();
                 _context4.next = 5;
@@ -98422,15 +98439,20 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                   view: view,
                   type: type,
                   hue: hue,
-                  baseHeight: 200
+                  baseHeight: DEFAULT_MAX_HEIGHT
                 });
 
               case 5:
                 car = _context4.sent;
-                // setup the car
-                scale = 300 / car.width;
+                // calculate scale
+                // this should leave a little padding on the
+                // top and bottom for effects
+                _this$getDisplaySize = _this.getDisplaySize(), height = _this$getDisplaySize.height;
+                scale = height / car.height * EFFECTS_PADDING_SCALING; // setup the car
+
                 container.addChild(car);
                 car.pivot.x = 0.5;
+                car.pivot.y = 0.5;
                 car.scale.x = scale;
                 car.scale.y = scale; // setup the container
 
@@ -98441,7 +98463,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 car.moveShadow(0, -1);
                 return _context4.abrupt("return", container);
 
-              case 16:
+              case 18:
               case "end":
                 return _context4.stop();
             }
@@ -98467,7 +98489,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 _context5.next = 2;
                 return (0, _get2.default)((0, _getPrototypeOf2.default)(GarageView.prototype), "init", this).call(this, _objectSpread(_objectSpread({}, options), {}, {
                   scale: {
-                    height: 250
+                    height: DEFAULT_MAX_HEIGHT
                   }
                 }));
 

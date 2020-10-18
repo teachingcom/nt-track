@@ -2,12 +2,17 @@ import Car from "../../components/car";
 import { animate, PIXI } from 'nt-animator';
 import { BaseView } from "../base";
 
+const DEFAULT_MAX_HEIGHT = 250;
+const EFFECTS_PADDING_SCALING = 0.85;
+
 export default class GarageView extends BaseView {
 
 	async init(options) {
+
+		// initialize the view
 		await super.init({
 			...options,
-			scale: { height: 250 }
+			scale: { height: DEFAULT_MAX_HEIGHT }
 		});
 
 		// automatically render
@@ -90,8 +95,8 @@ export default class GarageView extends BaseView {
 
 	// creates a new car instance
 	createCar = async config => {
-		const { type, hue } = config;
 		const view = this;
+		const { type, hue } = config;
 
 		// create the new car
 		const container = new PIXI.ResponsiveContainer();
@@ -99,13 +104,19 @@ export default class GarageView extends BaseView {
 			view, 
 			type,
 			hue,
-			baseHeight: 200,
+			baseHeight: DEFAULT_MAX_HEIGHT
 		});
 		
+		// calculate scale
+		// this should leave a little padding on the
+		// top and bottom for effects
+		const { height } = this.getDisplaySize();
+		const scale = (height / car.height) * EFFECTS_PADDING_SCALING;
+
 		// setup the car
-		const scale = 300 / car.width;
 		container.addChild(car);
 		car.pivot.x = 0.5;
+		car.pivot.y = 0.5;
 		car.scale.x = scale;
 		car.scale.y = scale;
 		
