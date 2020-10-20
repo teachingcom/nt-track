@@ -39,12 +39,11 @@ export class BaseView extends EventEmitter {
 		this.data = options.data;
 
 		// create the renderer config
+		const DEFAULT_BACKGROUND_COLOR = 0x282d3f;
 		const transparent = !!options.transparent;
-		const hasBackgroundColor = !transparent && 'backgroundColor' in options;
+		const hasBackgroundColor = 'backgroundColor' in options;
 		const clearBeforeRender = transparent || hasBackgroundColor;
-		const backgroundColor = transparent ? null
-			: hasBackgroundColor ? options.backgroundColor
-			: 0x282d3f;
+		const backgroundColor = hasBackgroundColor ? options.backgroundColor : DEFAULT_BACKGROUND_COLOR;
 
 		this.config = {
 			antialias: false, // doesn't appear to improve anything

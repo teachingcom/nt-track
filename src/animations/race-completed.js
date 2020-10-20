@@ -62,10 +62,15 @@ export default class RaceCompletedAnimation extends Animation {
 		const finishedBeforePlayer = place < playerFinishPlace;
 		
 		// update the plauer and ending, if any
+		const { namecard, trail, nitro } = player;
 		player.car.onFinishRace({
 			isRaceFinished: true,
 			finishedBeforePlayer,
-			place
+			place,
+			track,
+			namecard,
+			trail,
+			nitro
 		});
 
 		// create the animation

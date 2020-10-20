@@ -11,8 +11,8 @@ export default class GarageView extends BaseView {
 
 		// initialize the view
 		await super.init({
-			...options,
-			scale: { height: DEFAULT_MAX_HEIGHT }
+			scale: { height: DEFAULT_MAX_HEIGHT },
+			...options
 		});
 
 		// automatically render
@@ -111,7 +111,7 @@ export default class GarageView extends BaseView {
 		// this should leave a little padding on the
 		// top and bottom for effects
 		const { height } = this.getDisplaySize();
-		const scale = (height / car.height) * EFFECTS_PADDING_SCALING;
+		const scale = (height / DEFAULT_MAX_HEIGHT) * EFFECTS_PADDING_SCALING;
 
 		// setup the car
 		container.addChild(car);

@@ -3,6 +3,7 @@ import { PIXI, removeDisplayObject } from 'nt-animator';
 
 import { LANES, SCALED_CAR_HEIGHT, SCALED_NAMECARD_HEIGHT } from './scaling';
 import { NITRO_SCALE, NITRO_OFFSET_Y, TRAIL_SCALE, NAMECARD_TETHER_DISTANCE } from '../../config';
+import { getCarOverrides } from '../../car-mappings';
 
 import Car from '../../components/car';
 import Trail from '../../components/trail';
@@ -97,7 +98,12 @@ export default class Player extends PIXI.ResponsiveContainer {
 	// handles creating a trail
 	async _initTrail() {
 		const { options, mods } = this;
-		const { view } = options;
+		const { view, type } = options;
+
+		// make sure this car has a trail
+		const overrides = getCarOverrides(type);
+		console.log(overrides);
+		if (overrides?.noTrail) return;
 
 		// prepare to create loot items
 		if (!mods.trail) return;
@@ -208,20 +214,6 @@ export default class Player extends PIXI.ResponsiveContainer {
 			namecard.setVisibility(true);
 		}
 
-		// check for an optional plugin
-		if (car.plugin) {
-			const { view } = this.options;
-			car.plugin({
-				animator: view.animator,
-				track: view,
-				player: this,
-				car,
-				trail,
-				namecard,
-				nitro
-			});
-		}
-
 		// finalize order
 		this.sortChildren();
 	}
@@ -274,8 +266,8 @@ x   : ${screenX}%${place}`;
 		}
 		
 		// perform updates
-		const { car, track, namecard } = this;
-		car.onUpdate(...args);
+		const { car, track, namecard, trail, nitro } = this;
+		car.onUpdate({ car, track, namecard, trail, nitro, player: this });
 		
 		// tether namecards
 		if (namecard && track) {

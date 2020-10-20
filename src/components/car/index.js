@@ -20,16 +20,14 @@ import {
 	NITRO_BLUR_DEFAULT_OFFSET_X,
 	CAR_SHAKE_NITRO_BONUS,
 	CAR_SHAKE_SHADOW_REDUCTION,
-	CAR_404_STATIC_VERSION,
-	CAR_SPRITE_MODIFICATIONS
+	CAR_404_STATIC_VERSION
 } from '../../config';
 
 // animations
 import ActivateNitroAnimation from '../../animations/activate-nitro';
 import generateTextures from './texture-generator';
 import hueShift from './hue-shift';
-import { getCarAnimations, getCarPlugin } from '../../car-mappings';
-
+import { getCarAnimations, getCarPlugin, getCarOverrides } from '../../car-mappings';
 
 export default class Car extends PIXI.Container {
 
@@ -95,14 +93,21 @@ export default class Car extends PIXI.Container {
 		this.car = car;
 		this.bounds = bounds;
 
-		// append plugins, if any
-		this.plugin = getCarPlugin(type);
-	
 		// load any textures
 		await this._initTextures(imageSource, includeShadow, includeNormalMap);
 
 		// add the car to the view
 		this.addChild(car);
+
+		// initialize plugins as required
+		this.plugin = getCarPlugin(type);
+		if (this.plugin) {
+			this.plugin({
+				animator: this.view.animator,
+				car: this
+			});
+		}
+
 	}
 
 	// creates a car when the resource is missing
@@ -160,7 +165,7 @@ export default class Car extends PIXI.Container {
 		const car = new PIXI.Container();
 
 		// check for mods (rotation, flipping, etc)
-		const mods = CAR_SPRITE_MODIFICATIONS[type];
+		const overrides = getCarOverrides(type);
 		
 		// get the sprite to render
 		let sprite;
@@ -189,10 +194,10 @@ export default class Car extends PIXI.Container {
 		sprite.rotation = STATIC_CAR_ROTATION_FIX;
 		
 		// adjust as required
-		if (mods) {
-			sprite.rotation += mods.rotation || 0;
-			sprite.scale.x *= mods.flipX ? -1 : 1;
-			sprite.scale.y *= mods.flipY ? -1 : 1;
+		if (overrides) {
+			sprite.rotation += overrides.rotation || 0;
+			sprite.scale.x *= overrides.flipX ? -1 : 1;
+			sprite.scale.y *= overrides.flipY ? -1 : 1;
 		}
 
 		// adjust the center point

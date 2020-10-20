@@ -7,6 +7,8 @@ const XCELSIOR = 86
 const FURZE_SCREW_TANK = 220
 const FURZE_HOVER_BIKE = 221
 const FURZE_JET_BIKE = 222
+const FROSTED_ROLLER = 192
+const NT_GOLD = 175
 
 // look up special animations
 export function getCarAnimations (id) {
@@ -16,6 +18,11 @@ export function getCarAnimations (id) {
 // look up car plugins
 export function getCarPlugin (type) {
   return CAR_PLUGINS[type]
+}
+
+// look up car plugins
+export function getCarOverrides (type) {
+  return CAR_OVERRIDES[type]
 }
 
 // various car plugins
@@ -33,4 +40,18 @@ export const CAR_MAPPINGS = {
   [FURZE_SCREW_TANK]: 'furze_tank'
   // 15: 'xcelsior',
   // 3: 'grid',
+}
+
+// special transforms for cars depending on their sprites
+export const CAR_OVERRIDES = {
+  // Frosted Roller
+  [FROSTED_ROLLER]: { flipY: true },
+
+  // NT-Gold
+  [NT_GOLD]: { rotation: -Math.PI },
+
+  // no trails for furze cars
+  [FURZE_HOVER_BIKE]: { noTrail: true },
+  [FURZE_SCREW_TANK]: { noTrail: true },
+  [FURZE_JET_BIKE]: { noTrail: true }
 }

@@ -79,15 +79,6 @@ export const CAR_404_ENHANCED_VERSION = '/cars/missing';
 // a rotation to apply to all legacy cars
 export const STATIC_CAR_ROTATION_FIX = Math.PI;
 
-// special transforms for cars depending on their sprites
-export const CAR_SPRITE_MODIFICATIONS = {
-	// Frosted Roller
-	'192' : { flipY: true },
-	
-	//NT-Gold 
-	'175' : { rotation: -Math.PI }
-};
-
 // trails
 export const TRAIL_SCALE = 0.55;
 
