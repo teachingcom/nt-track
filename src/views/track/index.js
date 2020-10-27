@@ -6,7 +6,6 @@ import * as audio from '../../audio';
 import { BaseView } from '../base';
 import Player from './player';
 import Track from '../../components/track';
-import FpsMonitor from '../../fps';
 
 // sizing, layers, positions
 import * as scaling from './scaling';
@@ -14,11 +13,8 @@ import {
 	TRACK_MAXIMUM_SPEED,
 	TRACK_ACCELERATION_RATE,
 	CAR_DEFAULT_SHAKE_LEVEL,
-	ANIMATION_RATE_STARTING_LINE,
-	ANIMATION_RATE_FINISH_LINE,
-	ANIMATION_RATE_WHILE_RACING,
 	TRACK_MAXIMUM_SPEED_BOOST_RATE,
-	TRACK_MAXIMUM_SPEED_DRAG_RATE, PERFORMANCE_SCORE
+	TRACK_MAXIMUM_SPEED_DRAG_RATE
 } from '../../config';
 
 import {
@@ -41,7 +37,6 @@ import CarEntryAnimation from '../../animations/car-entry';
 import RaceCompletedAnimation from '../../animations/race-completed';
 import RaceProgressAnimation from '../../animations/race-progress';
 import CountdownAnimation from '../../animations/countdown';
-import { savePerformanceResult } from '../../perf';
 
 /** creates a track view that supports multiple cars for racing */
 export default class TrackView extends BaseView {

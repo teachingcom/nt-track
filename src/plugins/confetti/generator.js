@@ -1,6 +1,5 @@
 import { PIXI, createContext, drawPixiTexture } from 'nt-animator';
 import { LAYER_TRACK_OVERLAY } from '../../views/track/layers';
-import { ANIMATION_RATE_STARTING_LINE, ANIMATION_RATE_FINISH_LINE } from '../../config';
 
 const PARTICLE_COUNT = 125;
 const DEFAULT_PARTICLE_SIZE = 11;

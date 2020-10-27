@@ -59,6 +59,13 @@ export default class DynamicPerformanceController {
     if (!isNumber(score)) {
       score = HIGH;
     }
+    // and existing score was found
+    else {
+      score++;
+    }
+
+    // ensure the correct range
+    score = this.clampScore(score);
     
     //  get the original value
     console.log('perf:', PERFORMANCE_LEVEL[score]);
@@ -68,6 +75,11 @@ export default class DynamicPerformanceController {
   // handles updated performance values
   onPerformanceChanged = listener => {
     this.listeners.push(listener);
+  }
+
+  // ensure the score range
+  clampScore = score => {
+    return Math.max(MINIMAL, Math.min(this.maxAllowedScore, score))
   }
 
   // looks at performace to determine if the rendering
@@ -119,7 +131,7 @@ export default class DynamicPerformanceController {
   setScore = (score, notify = true) => {
 
     // cap the score
-    score = Math.max(MINIMAL, Math.min(this.maxAllowedScore, score))
+    score = this.clampScore(score);
     this.maxAllowedScore = score
 
     // reassign changes
