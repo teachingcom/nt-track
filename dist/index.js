@@ -84053,11 +84053,14 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
       }
 
       _this.isUsingWebGL = target.isWebGL;
-      _this.isUsingCanvas = target.isCanvas; // add the view 
+      _this.isUsingCanvas = target.isCanvas; // perform sizing first since the
+      // canvas itself might be larger than
+      // the target area
+
+      _this.resize(); // add the view 
+
 
       _this.parent.appendChild(target.view);
-
-      _this.resize();
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "pause", function () {
       return _this.paused = true;
@@ -84108,12 +84111,13 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
       var surface = renderer.view;
       var ssaa = true; // get the updated bounds
 
-      var bounds = parent.getBoundingClientRect();
-      var preferred = bounds.width;
+      var width = parent.clientWidth;
+      var height = parent.clientHeight;
+      var preferred = width;
       var upscale = _config.SSAA_SCALING_AMOUNT; // scale as required
 
-      var width = (bounds.right - bounds.left) * (ssaa ? upscale : 1);
-      var height = (bounds.bottom - bounds.top) * (ssaa ? upscale : 1);
+      width *= ssaa ? upscale : 1;
+      height *= ssaa ? upscale : 1;
       var scale = ssaa ? preferred / width : 1; // update the sizing
 
       view.resize(width, height); // resize the view
@@ -84298,11 +84302,9 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "getDisplaySize",
     value: function getDisplaySize() {
-      var height = this.height / _config.SSAA_SCALING_AMOUNT;
-      var width = this.width / _config.SSAA_SCALING_AMOUNT;
       return {
-        width: width,
-        height: height
+        width: this.width,
+        height: this.height
       };
     }
     /** resizes to match the container element */
@@ -84317,7 +84319,12 @@ exports.BaseView = BaseView;
 function createWebGLRenderer(instance) {
   var config = instance.config; // create the renderer
 
-  var renderer = new _ntAnimator.PIXI.Renderer(config);
+  var renderer = new _ntAnimator.PIXI.Renderer(config); // set sizing to zero so it does not
+  // conflict with getting the size of
+  // the container
+
+  renderer.view.width = renderer.view.height = 1; // setup the renderer
+
   renderer.plugins.interaction.destroy();
   instance.webGLRenderer = {
     isWebGL: true,
@@ -84330,7 +84337,12 @@ function createWebGLRenderer(instance) {
 function createCanvasRenderer(instance) {
   var config = instance.config; // create the renderer
 
-  var renderer = new _ntAnimator.PIXI.CanvasRenderer(config);
+  var renderer = new _ntAnimator.PIXI.CanvasRenderer(config); // set sizing to zero so it does not
+  // conflict with getting the size of
+  // the container
+
+  renderer.view.width = renderer.view.height = 1; // setup the renderer
+
   renderer.plugins.interaction.destroy();
   instance.canvasRenderer = {
     isCanvas: true,
@@ -98318,7 +98330,7 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
 var DEFAULT_MAX_HEIGHT = 250;
-var EFFECTS_PADDING_SCALING = 0.85;
+var EFFECTS_PADDING_SCALING = 0.8;
 
 var GarageView = /*#__PURE__*/function (_BaseView) {
   (0, _inherits2.default)(GarageView, _BaseView);
@@ -98464,8 +98476,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
     }());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "createCar", /*#__PURE__*/function () {
       var _ref4 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(config) {
-        var view, type, hue, container, car, _this$getDisplaySize, height, scale;
-
+        var view, type, hue, container, car, bounds, display, target, scale;
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
@@ -98484,11 +98495,15 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
               case 5:
                 car = _context4.sent;
-                // calculate scale
-                // this should leave a little padding on the
-                // top and bottom for effects
-                _this$getDisplaySize = _this.getDisplaySize(), height = _this$getDisplaySize.height;
-                scale = height / DEFAULT_MAX_HEIGHT * EFFECTS_PADDING_SCALING; // setup the car
+                // finds the bounds for a car - if nothing was
+                // found then it's most likely a simple car. 
+                // use the sprite height of the car
+                bounds = (0, _ntAnimator.getBoundsForRole)(car, 'base') || car; // calculate scale - include some extra
+                // padding to make sure effects (if any) are visible
+
+                display = _this.getDisplaySize();
+                target = display.height;
+                scale = target / bounds.height * EFFECTS_PADDING_SCALING; // setup the car
 
                 container.addChild(car);
                 car.pivot.x = 0.5;
@@ -98503,7 +98518,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 car.moveShadow(0, -1);
                 return _context4.abrupt("return", container);
 
-              case 18:
+              case 20:
               case "end":
                 return _context4.stop();
             }
@@ -98529,7 +98544,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 _context5.next = 2;
                 return (0, _get2.default)((0, _getPrototypeOf2.default)(GarageView.prototype), "init", this).call(this, _objectSpread({
                   scale: {
-                    height: DEFAULT_MAX_HEIGHT
+                    DEFAULT_MAX_HEIGHT: DEFAULT_MAX_HEIGHT
                   }
                 }, options));
 

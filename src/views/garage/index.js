@@ -1,9 +1,9 @@
 import Car from "../../components/car";
-import { animate, PIXI } from 'nt-animator';
+import { animate, getBoundsForRole, PIXI } from 'nt-animator';
 import { BaseView } from "../base";
 
 const DEFAULT_MAX_HEIGHT = 250;
-const EFFECTS_PADDING_SCALING = 0.85;
+const EFFECTS_PADDING_SCALING = 0.8;
 
 export default class GarageView extends BaseView {
 
@@ -11,7 +11,7 @@ export default class GarageView extends BaseView {
 
 		// initialize the view
 		await super.init({
-			scale: { height: DEFAULT_MAX_HEIGHT },
+			scale: { DEFAULT_MAX_HEIGHT },
 			...options
 		});
 
@@ -107,11 +107,16 @@ export default class GarageView extends BaseView {
 			baseHeight: DEFAULT_MAX_HEIGHT
 		});
 		
-		// calculate scale
-		// this should leave a little padding on the
-		// top and bottom for effects
-		const { height } = this.getDisplaySize();
-		const scale = (height / DEFAULT_MAX_HEIGHT) * EFFECTS_PADDING_SCALING;
+		// finds the bounds for a car - if nothing was
+		// found then it's most likely a simple car. 
+		// use the sprite height of the car
+		const bounds = getBoundsForRole(car, 'base') || car;
+
+		// calculate scale - include some extra
+		// padding to make sure effects (if any) are visible
+		const display = this.getDisplaySize();
+		const target = display.height;
+		const scale = (target / bounds.height) * EFFECTS_PADDING_SCALING;
 
 		// setup the car
 		container.addChild(car);
