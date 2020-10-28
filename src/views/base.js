@@ -268,6 +268,10 @@ export class BaseView extends EventEmitter {
 		const preferred = bounds.width;
 		const upscale = this.ssaaScalingLevel;
 
+		// get the size of the view
+		let width = parent.clientWidth;
+		let height = parent.clientHeight;
+
 		// scale as required
 		width *= (ssaa ? upscale : 1);
 		height *= (ssaa ? upscale : 1);

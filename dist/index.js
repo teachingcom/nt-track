@@ -84689,7 +84689,10 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
 
       var bounds = parent.getBoundingClientRect();
       var preferred = bounds.width;
-      var upscale = _this.ssaaScalingLevel; // scale as required
+      var upscale = _this.ssaaScalingLevel; // get the size of the view
+
+      var width = parent.clientWidth;
+      var height = parent.clientHeight; // scale as required
 
       width *= ssaa ? upscale : 1;
       height *= ssaa ? upscale : 1;
