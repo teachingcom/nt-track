@@ -6,7 +6,6 @@ import * as audio from '../../audio';
 import { BaseView } from '../base';
 import Player from './player';
 import Track from '../../components/track';
-import FpsMonitor from '../../fps';
 
 // sizing, layers, positions
 import * as scaling from './scaling';
@@ -14,11 +13,8 @@ import {
 	TRACK_MAXIMUM_SPEED,
 	TRACK_ACCELERATION_RATE,
 	CAR_DEFAULT_SHAKE_LEVEL,
-	ANIMATION_RATE_STARTING_LINE,
-	ANIMATION_RATE_FINISH_LINE,
-	ANIMATION_RATE_WHILE_RACING,
 	TRACK_MAXIMUM_SPEED_BOOST_RATE,
-	TRACK_MAXIMUM_SPEED_DRAG_RATE, PERFORMANCE_SCORE
+	TRACK_MAXIMUM_SPEED_DRAG_RATE
 } from '../../config';
 
 import {
@@ -41,13 +37,9 @@ import CarEntryAnimation from '../../animations/car-entry';
 import RaceCompletedAnimation from '../../animations/race-completed';
 import RaceProgressAnimation from '../../animations/race-progress';
 import CountdownAnimation from '../../animations/countdown';
-import { savePerformanceResult } from '../../perf';
 
 /** creates a track view that supports multiple cars for racing */
 export default class TrackView extends BaseView {
-
-	// tracking FPS changes
-	fps = new FpsMonitor()
 
 	// global effect filter
 	colorFilter = new PIXI.filters.ColorMatrixFilter()
@@ -76,10 +68,8 @@ export default class TrackView extends BaseView {
 	// handle remaining setup
 	async init(options) {
 		options = merge({
-			animationRateWhenStartLine: ANIMATION_RATE_STARTING_LINE,
-			animationRateWhenFinishLine: ANIMATION_RATE_FINISH_LINE,
-			animationRateWhenRacing: ANIMATION_RATE_WHILE_RACING,
-			scale: { height: scaling.BASE_HEIGHT }
+			scale: { height: scaling.BASE_HEIGHT },
+			dynamicPerformanceCacheKey: 'track'
 		}, options);
 		
 		// base class init
@@ -99,7 +89,6 @@ export default class TrackView extends BaseView {
 		const { isQualifyingRace } = options;
 		this.progress = options.manifest.progress;
 		this.pendingPlayers = options.expectedPlayerCount;
-		this.animationRate = options.animationRateWhenStartLine;
 		this.raceProgressAnimation = new RaceProgressAnimation({ track: this, isQualifyingRace });
 
 		// attach the effects filter
@@ -466,9 +455,6 @@ export default class TrackView extends BaseView {
 		state.animateTrackMovement = true;
 		state.trackMovementAmount = TRACK_ACCELERATION_RATE;
 		state.isStarted = true;
-		
-		// improve performance while racing
-		this.animationRate = options.animationRateWhenRacing;
 	}
 
 	// performs the ending
@@ -505,9 +491,6 @@ export default class TrackView extends BaseView {
 		state.isFinished = true;
 		track.showFinishLine();
 
-		// return to idle animation speed
-		this.animationRate = options.animationRateWhenFinishLine;
-
 		// stop animating progress
 		this.raceProgressAnimation.stop();
 
@@ -523,18 +506,15 @@ export default class TrackView extends BaseView {
 		// increment the frame counter
 		this.frame++;
 		const {
-			paused,
 			state,
-			frame,
 			track,
-			animationRate,
 			raceProgressAnimation,
 			raceCompletedAnimation
 		} = this;
 
 		// if throttling
-		if (!force && (frame % animationRate !== 0 || paused)) return;
-
+		if (!this.shouldAnimateFrame && !force) return;
+		
 		// calculate the delta
 		state.delta = this.getDeltaTime(this.lastUpdate);
 		this.lastUpdate = +new Date;
@@ -592,7 +572,9 @@ export default class TrackView extends BaseView {
 		}
 
 		// save the final result
-		savePerformanceResult(PERFORMANCE_SCORE, actualFps);
+		if (this.performance) {
+			this.performance.finalize();
+		}
 	}
 
 }

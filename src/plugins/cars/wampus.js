@@ -38,7 +38,6 @@ export async function extend ({ animator, car }) {
 
   // get the head animation
   const animation = head && head.animation
-  console.log('assing ', car);
 
   // handle raceplace
   car.onFinishRace = ({ finishedBeforePlayer, isRaceFinished }) => {

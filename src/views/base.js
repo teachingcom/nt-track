@@ -3,7 +3,11 @@ import * as debug from '../debug';
 import { isViewActive, onViewActiveStateChanged } from '../utils/view';
 import { Animator, EventEmitter, PIXI } from 'nt-animator';
 import { noop } from '../utils';
-import { ANIMATION_ANIMATION_UPDATE_FREQUENCY, ANIMATION_PARTICLE_UPDATE_FREQUENCY, PERFORMANCE_LEVEL, SSAA_SCALING_AMOUNT } from '../config';
+import { PERFORMANCE_LEVEL } from '../config';
+
+// dynamic management of performance
+import FpsMonitor from '../fps';
+import DynamicPerformanceController from '../perf';
 
 /** creates a track instance */
 export class BaseView extends EventEmitter {
@@ -26,11 +30,9 @@ export class BaseView extends EventEmitter {
 
 		// create the animation creator
 		const { baseUrl, seed, manifest } = options;
-		const animationUpdateFrequency = ANIMATION_ANIMATION_UPDATE_FREQUENCY;
-		const emitterUpdateFrequency = ANIMATION_PARTICLE_UPDATE_FREQUENCY;
 		this.animator = new Animator(manifest, {
-			animationUpdateFrequency,
-			emitterUpdateFrequency,
+			animationUpdateFrequency: 1,
+			emitterUpdateFrequency: 1,
 			baseUrl,
 			seed
 		});
@@ -96,18 +98,38 @@ export class BaseView extends EventEmitter {
 		
 		// set the correct renderer
 		this.setRenderer(renderer);
+
+		// tracking FPS
+		this.fps = new FpsMonitor();
+
+		// allow for rendering to be adjusted dynamically
+		if (options.useDynamicPerformance !== false) {
+			this.performance = new DynamicPerformanceController({
+				key: options.dynamicPerformanceCacheKey || 'animation',
+				view: this,
+				onPerformanceChanged: this.onPerformanceChanged,
+				fps: this.fps,
+			});
+		}
 	}
-	
+
 	/** keeping track of progress */
 	activeTasks = [ ]
 	totalTasks = 0
 	loadingProgress = 0
+	animationRate = 1
+	ssaaScalingLevel = 2
 
 	timing = { 
 		elapsed: 0,
 		current: 0
 	}
 
+	// checks if this frame should perform rendering
+	get shouldAnimateFrame() {
+		return !this.paused && !!this.isViewActive && (this.frame % this.animationRate === 0);
+	}
+	
 	setRenderer = target => {
 		const { parent } = this;
 		this.renderer = target.renderer;
@@ -132,6 +154,19 @@ export class BaseView extends EventEmitter {
 	// handle pausing the render
 	pause = () => this.paused = true
 	resume = () => this.paused = false
+
+	// check for performance updates
+	onPerformanceChanged = perf => {
+		this.animator.options.animationUpdateFrequency = perf.animationAnimationUpdateFrequency;
+		this.animator.options.emitterUpdateFrequency = perf.animationParticleUpdateFrequency;
+		this.animationRate = perf.renderingInterval;
+		
+		// perform a dynamic resize
+		if (perf.ssaaScalingAmount !== this.ssaaScalingLevel) {
+			this.ssaaScalingLevel = perf.ssaaScalingAmount;
+			this.resize();
+		}
+	}
 
 	// update state info
 	onViewActiveStateChanged = active => this.isViewActive = active
@@ -199,7 +234,6 @@ export class BaseView extends EventEmitter {
 		}
 
 		// start the rendering
-		if (!this.isViewActive || !!this.paused) return;
 		const { renderer, view } = this;
 		renderer.render(view);
 		// const fast = new FastRenderer(this.renderer);
@@ -218,7 +252,9 @@ export class BaseView extends EventEmitter {
 	}
 
 	getDisplaySize() {
-		return { width: this.width, height: this.height };
+		const height = this.height / this.ssaaScalingLevel;
+		const width = this.width / this.ssaaScalingLevel;
+		return { width, height };
 	}
 
 	/** resizes to match the container element */
@@ -228,10 +264,13 @@ export class BaseView extends EventEmitter {
 		const ssaa = true;
 		
 		// get the updated bounds
+		const bounds = parent.getBoundingClientRect();
+		const preferred = bounds.width;
+		const upscale = this.ssaaScalingLevel;
+
+		// get the size of the view
 		let width = parent.clientWidth;
 		let height = parent.clientHeight;
-		const preferred = width;
-		const upscale = SSAA_SCALING_AMOUNT;
 
 		// scale as required
 		width *= (ssaa ? upscale : 1);

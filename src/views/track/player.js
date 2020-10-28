@@ -102,7 +102,6 @@ export default class Player extends PIXI.ResponsiveContainer {
 
 		// make sure this car has a trail
 		const overrides = getCarOverrides(type);
-		console.log(overrides);
 		if (overrides?.noTrail) return;
 
 		// prepare to create loot items

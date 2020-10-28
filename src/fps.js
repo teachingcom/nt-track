@@ -28,6 +28,21 @@ export default class FpsMonitor {
 	}
 
 	
+	getSample = count => {
+		let avg = 0;
+		const total = this.pixiCache.length;
+		const limit = Math.min(count, total);
+		const start = total - limit;
+
+		// gather up all frame data
+		for (let i = start; i < total; i++) {
+			avg += this.pixiCache[i] + this.phaserCache[i];
+		}		
+
+		return avg / (limit * 2);
+	}
+
+	
 	// creates a new monitor
 	constructor() {
 

@@ -6,9 +6,7 @@ import {
 	RACE_PLAYER_DISTANCE_MODIFIER,
 	RACE_OFF_SCREEN_FINISH_DISTANCE,
 	TRACK_STARTING_LINE_POSITION,
-	ANIMATION_RATE_WHILE_RACING
 } from "../config";
-import layers from '../plugins/crowd/layers';
 
 export default class RaceProgressAnimation extends Animation {
 
