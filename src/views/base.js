@@ -133,7 +133,7 @@ export class BaseView extends EventEmitter {
 	setRenderer = target => {
 		const { parent } = this;
 		this.renderer = target.renderer;
-		
+
 		// remove all children
 		for (const child of parent.children)
 			parent.removeChild(child);
@@ -142,9 +142,13 @@ export class BaseView extends EventEmitter {
 		this.isUsingWebGL = target.isWebGL;
 		this.isUsingCanvas = target.isCanvas;
 
+		// perform sizing first since the
+		// canvas itself might be larger than
+		// the target area
+		this.resize();
+
 		// add the view 
 		this.parent.appendChild(target.view);
-		this.resize();
 	}
 
 	// handle pausing the render
@@ -265,8 +269,8 @@ export class BaseView extends EventEmitter {
 		const upscale = this.ssaaScalingLevel;
 
 		// scale as required
-		const width = (bounds.right - bounds.left) * (ssaa ? upscale : 1);
-		const height = (bounds.bottom - bounds.top) * (ssaa ? upscale : 1);
+		width *= (ssaa ? upscale : 1);
+		height *= (ssaa ? upscale : 1);
 		const scale = ssaa ? (preferred / width) : 1;
 
 		// update the sizing
@@ -298,6 +302,13 @@ function createWebGLRenderer(instance) {
 
 	// create the renderer
 	const renderer = new PIXI.Renderer(config);
+	
+	// set sizing to zero so it does not
+	// conflict with getting the size of
+	// the container
+	renderer.view.width = renderer.view.height = 1;
+
+	// setup the renderer
 	renderer.plugins.interaction.destroy();
 	instance.webGLRenderer = {
 		isWebGL: true,
@@ -312,6 +323,13 @@ function createCanvasRenderer(instance) {
 
 	// create the renderer
 	const renderer = new PIXI.CanvasRenderer(config);
+	
+	// set sizing to zero so it does not
+	// conflict with getting the size of
+	// the container
+	renderer.view.width = renderer.view.height = 1;
+
+	// setup the renderer
 	renderer.plugins.interaction.destroy();
 	instance.canvasRenderer = {
 		isCanvas: true,
