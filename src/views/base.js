@@ -252,9 +252,7 @@ export class BaseView extends EventEmitter {
 	}
 
 	getDisplaySize() {
-		const height = this.height / this.ssaaScalingLevel;
-		const width = this.width / this.ssaaScalingLevel;
-		return { width, height };
+		return { width: this.width, height: this.height };
 	}
 
 	/** resizes to match the container element */
@@ -273,8 +271,8 @@ export class BaseView extends EventEmitter {
 		let height = parent.clientHeight;
 
 		// scale as required
-		width *= (ssaa ? upscale : 1);
-		height *= (ssaa ? upscale : 1);
+		width = Math.floor(width * (ssaa ? upscale : 1));
+		height = Math.floor(height * (ssaa ? upscale : 1));
 		const scale = ssaa ? (preferred / width) : 1;
 
 		// update the sizing

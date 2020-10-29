@@ -84310,12 +84310,12 @@ var FpsMonitor = /*#__PURE__*/function () {
 
       var fps = Math.round(_ntAnimator.PIXI.Ticker.shared.FPS);
 
-      _this.pixiCache.push(fps); // copy phaser FPS
+      _this.pixiCache.push(fps * 0.7); // copy phaser FPS
 
 
       var fps2 = Math.round(_this.phaserFPS.actualFps);
 
-      _this.phaserCache.push(fps2);
+      _this.phaserCache.push(fps2 * 0.7);
     }, 1000);
   }
 
@@ -84377,6 +84377,7 @@ var DynamicPerformanceController = /*#__PURE__*/function () {
   // listening for performance changed events
   // the maximum allowed rendering performance
   // for this specific instance
+  // tracking changes
   function DynamicPerformanceController(_ref) {
     var _this = this;
 
@@ -84387,6 +84388,8 @@ var DynamicPerformanceController = /*#__PURE__*/function () {
     (0, _classCallCheck2.default)(this, DynamicPerformanceController);
     (0, _defineProperty2.default)(this, "listeners", []);
     (0, _defineProperty2.default)(this, "maxAllowedScore", HIGH);
+    (0, _defineProperty2.default)(this, "upgrades", 0);
+    (0, _defineProperty2.default)(this, "downgrades", 0);
     (0, _defineProperty2.default)(this, "onPerformanceChanged", function (listener) {
       _this.listeners.push(listener);
     });
@@ -84408,15 +84411,20 @@ var DynamicPerformanceController = /*#__PURE__*/function () {
       if (_this.isAtRisk && atRiskOfPoorFramerate) {
         // depending on how bad they're doing, just
         // skip certain levels
+        var downgradeBy = 0;
+
         if (sample < MAJOR_FRAMERATE_RISK) {
-          _this.maxAllowedScore -= 3;
+          downgradeBy = 3;
         } else if (sample < NOTICABLE_FRAMERATE_RISK) {
-          _this.maxAllowedScore -= 2;
+          downgradeBy = 2;
         } else if (sample < MINOR_FRAMERATE_RISK) {
-          _this.maxAllowedScore -= 1;
+          downgradeBy = 1;
         } // reset the risk tracking and
         // try to race again
 
+
+        _this.downgrades = Math.max(HIGH, downgradeBy - _this.downgrades);
+        _this.maxAllowedScore -= downgradeBy; // update the score
 
         _this.setScore(_this.maxAllowedScore);
 
@@ -84481,15 +84489,31 @@ var DynamicPerformanceController = /*#__PURE__*/function () {
         score = HIGH;
       } // and existing score was found
       else {
+          if (score < HIGH) {
+            this.upgrades++;
+          } // update the score
+
+
           score++;
         } // ensure the correct range
 
 
-      score = this.clampScore(score); //  get the original value
+      score = this.clampScore(score); // save some data
+
+      this.initialLevel = PERFORMANCE_LEVEL[score];
+      this.cachedLevel = PERFORMANCE_LEVEL[score - this.upgrades]; //  get the original value
 
       console.log('perf:', PERFORMANCE_LEVEL[score]);
       this.setScore(score);
     } // handles updated performance values
+
+  }, {
+    key: "getVariance",
+    value: function getVariance() {
+      var current = PERFORMANCE_LEVEL[this.maxAllowedScore];
+      return "".concat(this.initialLevel, " > ").concat(current);
+    } // looks at performace to determine if the rendering
+    // should be adjusted for a better game pla
 
   }]);
   return DynamicPerformanceController;
@@ -84694,8 +84718,8 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
       var width = parent.clientWidth;
       var height = parent.clientHeight; // scale as required
 
-      width *= ssaa ? upscale : 1;
-      height *= ssaa ? upscale : 1;
+      width = Math.floor(width * (ssaa ? upscale : 1));
+      height = Math.floor(height * (ssaa ? upscale : 1));
       var scale = ssaa ? preferred / width : 1; // update the sizing
 
       view.resize(width, height); // resize the view
@@ -84888,11 +84912,9 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "getDisplaySize",
     value: function getDisplaySize() {
-      var height = this.height / this.ssaaScalingLevel;
-      var width = this.width / this.ssaaScalingLevel;
       return {
-        width: width,
-        height: height
+        width: this.width,
+        height: this.height
       };
     }
     /** resizes to match the container element */
@@ -85511,7 +85533,7 @@ var ActivateNitroAnimation = /*#__PURE__*/function (_Animation) {
     var _this;
 
     var _car = _ref.car,
-        _shadow = _ref.shadow,
+        shadow = _ref.shadow,
         _nitro = _ref.nitro,
         track = _ref.track,
         _trail = _ref.trail,
@@ -85534,10 +85556,10 @@ var ActivateNitroAnimation = /*#__PURE__*/function (_Animation) {
       car.skew.y = props.carSkewY;
       car.skew.x = props.carSkewX;
       car.scale.x = props.carScaleX;
-      car.scale.y = props.carScaleY; // update the shadow
-
-      shadow.scale.x = props.shadowScaleX;
-      shadow.x = props.shadowX; // update the trail, if any
+      car.scale.y = props.carScaleY; // // update the shadow
+      // shadow.scale.x = props.shadowScaleX;
+      // shadow.x = props.shadowX;
+      // update the trail, if any
 
       if (hasTrail) {
         trail.assign({
@@ -85560,7 +85582,7 @@ var ActivateNitroAnimation = /*#__PURE__*/function (_Animation) {
     _this.car = _car;
     _this.nitro = _nitro;
     _this.track = track;
-    _this.shadow = _shadow;
+    _this.shadow = shadow;
     _this.trail = _trail;
     _this.nitroBlur = _nitroBlur;
     return _this;
@@ -85598,9 +85620,9 @@ var ActivateNitroAnimation = /*#__PURE__*/function (_Animation) {
         carRotation: 0,
         carScaleX: car.scale.x,
         carScaleY: car.scale.y,
-        // beneath car shadow
-        shadowScaleX: shadow.scale.x,
-        shadowX: shadow.x,
+        // // beneath car shadow
+        // shadowScaleX: shadow.scale.x,
+        // shadowX: shadow.x,
         // trail opacity
         trailAlpha: 1,
         // nitro blur
@@ -85622,10 +85644,10 @@ var ActivateNitroAnimation = /*#__PURE__*/function (_Animation) {
         carScaleX: origin.carScaleX - 0.01,
         carScaleY: origin.carScaleX + 0.02,
         carRotation: 0.05,
-        // beneath car shadow
-        // scaled backwards slightly
-        shadowScaleX: origin.shadowScaleX - 0.01,
-        shadowX: origin.shadowX - 5,
+        // // beneath car shadow
+        // // scaled backwards slightly
+        // shadowScaleX: origin.shadowScaleX - 0.01,
+        // shadowX: origin.shadowX - 5,
         // trail opacity
         // slightly faded
         trailAlpha: _config.NITRO_ACTIVATED_TRAIL_OPACITY,
@@ -85694,289 +85716,226 @@ var ActivateNitroAnimation = /*#__PURE__*/function (_Animation) {
 
 exports.default = ActivateNitroAnimation;
 },{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","./base":"animations/base.js","../utils":"utils/index.js","../config":"config.js","nt-animator":"../node_modules/nt-animator/dist/index.js"}],"components/car/texture-generator.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = generateTextures;
-
-var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
-
-var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
-
-var _ntAnimator = require("nt-animator");
-
-var _config = require("../../config");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-// TODO: this file needs to be optimized
-// extra padding for the rendered shadows
-var CAR_SHADOW_PADDING = 100; // reusable renderer for assets
-
-var spriteRenderer = new _ntAnimator.PIXI.Renderer({
-  transparent: true
-}); // create some containers for effects
-
-var blurContainer = function () {
-  var container = new _ntAnimator.PIXI.Container(); // set blurs
-
-  var blur = new _ntAnimator.PIXI.filters.BlurFilter();
-  blur.quality = 10; // set adjustments
-
-  var base = new _ntAnimator.PIXI.filters.ColorMatrixFilter(); // allow hue shifting
-
-  var color = new _ntAnimator.PIXI.filters.ColorMatrixFilter();
-  container.colorFilter = color;
-  container.blurFilter = blur;
-  container.baseFilter = base; // set the filter order
-
-  container.filters = [base, color, blur];
-  return container;
-}(); // create some containers for effects
-
-
-var shadowContainer = function () {
-  var container = new _ntAnimator.PIXI.Container(); // make blurred - only uses a blur filter
-  // since there doesn't appear to be a way
-  // to make all pixels completely black
-  // instead there's a second canvas that does this
-
-  var blur = new _ntAnimator.PIXI.filters.BlurFilter();
-  blur.quality = 2;
-  blur.blur = _config.CAR_SHADOW_BLUR;
-  container.filters = [blur];
-  return container;
-}(); // handles generating expensive textures
-
-
-function generateTextures(_x, _x2) {
-  return _generateTextures.apply(this, arguments);
-} // generates a blurred nitro image
-
-
-function _generateTextures() {
-  _generateTextures = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(source, options) {
-    var parent, index, shadow;
-    return _regenerator.default.wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            parent = source.parent; // const { includeNitroBlur, includeShadow, isDarkCar, nitroBlurHue = 0 } = options;
-            // track origin since it's borrowed for rendering
-
-            index = parent && parent.getChildIndex(source); // generate the shadow
-
-            shadow = new _ntAnimator.PIXI.Container(); //  await createShadow(source);
-            // put the child back where it came from, if needed
-
-            if (parent) {
-              parent.addChildAt(source, index);
-            } // give back the shadow
-
-
-            return _context.abrupt("return", {
-              shadow: shadow
-            });
-
-          case 5:
-          case "end":
-            return _context.stop();
-        }
-      }
-    }, _callee);
-  }));
-  return _generateTextures.apply(this, arguments);
-}
-
-function createNitroBlur(source, hue, isDarkCar) {
-  blurContainer.addChild(source); // render a blurred streak for the car when using a nitro
-
-  blurContainer.blurFilter.blurX = 0 | source.width * _config.NITRO_BLUR_REALTIVE_SIZE_SCALING; // match the car
-
-  blurContainer.baseFilter.reset();
-  blurContainer.colorFilter.reset();
-  blurContainer.colorFilter.hue(hue); // for dark cars, bump up the brightness
-
-  if (isDarkCar) {
-    blurContainer.baseFilter.contrast(500);
-    blurContainer.baseFilter.saturate(1, true);
-  } // center into the view
-
-
-  blurContainer.x = source.width * _config.NITRO_BLUR_REALTIVE_SIZE_SCALING;
-  blurContainer.y = source.height / 2; // render the blur streak
-
-  spriteRenderer.resize(source.width * 2, source.height);
-  spriteRenderer.render(blurContainer); // give back the result
-
-  var blur = spriteRenderer.plugins.extract.canvas();
-  return new _ntAnimator.PIXI.Sprite.from(blur);
-} // generates a car shadow
-
-
-function createShadow(_x3) {
-  return _createShadow.apply(this, arguments);
-} // // pixel array offset values
-// const RED_OFFSET = 0;
-// const GREEN_OFFSET = 1;
-// const BLUE_OFFSET = 2;
-// const ALPHA_OFFSET = 3;
-// // sample range for 	
-// const SHADOW_PADDING = 10;
-// const SHADOW_SAMPLE_STEP = 2;
-// const SHADOW_SAMPLE_COUNT = 3;
-// const SHADOW_SAMPLES_PER_ROW = SHADOW_SAMPLE_COUNT * 2;
-// const SHADOW_SAMPLE_TOTAL = SHADOW_SAMPLES_PER_ROW * SHADOW_SAMPLES_PER_ROW;
-// const { includeNormalMap = false, includeShadow = false } = options;
-// const { width, height } = source;
-// // if neither are needed
-// if (!(includeNormalMap || includeShadow)) {
-// 	return { };
-// }
-// // calculate the size to capture
-// const padding = SHADOW_PADDING;
-// const fullPadding = padding * 2;
-// const left = padding;
-// const right = width + padding;
-// const top = padding;
-// const bottom = height + padding;
-// const paddedWidth = width + fullPadding;
-// const paddedHeight = height + fullPadding;
-// const size = paddedWidth * paddedHeight;
-// // create target pixel arrays for image data
-// const normalMapData = normalMapBuilder.ctx.createImageData(width, height);
-// const shadowData = shadowBuilder.ctx.createImageData(paddedWidth, paddedHeight);
-// // extract pixels for the existing car
-// const pixels = spriteRenderer.plugins.extract.pixels(source);
-// // helper function to grab a pixel from a location
-// const pixel = (x, y, offset = 0) => {
-// 	x -= offset;
-// 	y -= offset;
-// 	if (x < 0 || x > width || y < 0 || y > height) return 0;
-// 	return pixels[(((y * width) + x) * 4) + 3] || 0;
-// };
-// // to save time, we generate the normal map and the shadow
-// // at the same time - the shadow is generated on a slightly
-// // larger area than the car itself (to allow blurring) - the
-// // normal map checks for a smaller bounding area within
-// for (let i = 0; i < size; i++) {
-// 	const index = i * 4;
-// 	const col = i % paddedWidth;
-// 	const row = 0 | i / paddedWidth;
-// 	// if within range, create a very crude normal map - we can
-// 	// revisit this to make it look better, but this should provide
-// 	// some level of visible lighting effects
-// 	// TODO: this could be way better
-// 	if (includeNormalMap && col >= left && col < right && row >= top && row < bottom) {
-// 		const normalMapCol = col - padding;
-// 		const normalMapRow = row - padding;
-// 		const normalMapIndex = ((normalMapRow * width) + normalMapCol) * 4;
-// 		// calculate r/g based on the x/y positions of the pixel
-// 		const r = 255 * (normalMapCol / width); 
-// 		const g = 255 - (255 * (normalMapRow / height));
-// 		normalMapData.data[normalMapIndex + RED_OFFSET] = r;
-// 		normalMapData.data[normalMapIndex + GREEN_OFFSET] = g;
-// 		normalMapData.data[normalMapIndex + BLUE_OFFSET] = Math.max(0, 255 - r - g);
-// 		normalMapData.data[normalMapIndex + ALPHA_OFFSET] = pixel(normalMapCol, normalMapRow);
+// // TODO: this file needs to be optimized
+// import { PIXI, createContext } from "nt-animator";
+// import { NITRO_BLUR_REALTIVE_SIZE_SCALING, CAR_SHADOW_BLUR } from '../../config';
+// // extra padding for the rendered shadows
+// const CAR_SHADOW_PADDING = 100;
+// // create some containers for effects
+// const blurContainer = (() => {
+// 	const container = new PIXI.Container();
+// 	// set blurs
+// 	const blur = new PIXI.filters.BlurFilter();
+// 	blur.quality = 10;
+// 	// set adjustments
+// 	const base = new PIXI.filters.ColorMatrixFilter();
+// 	// allow hue shifting
+// 	const color = new PIXI.filters.ColorMatrixFilter();
+// 	container.colorFilter = color;
+// 	container.blurFilter = blur;
+// 	container.baseFilter = base;
+// 	// set the filter order
+// 	container.filters = [ base, color, blur ];
+// 	return container;
+// })();
+// // create some containers for effects
+// const shadowContainer = (() => {
+// 	const container = new PIXI.Container();
+// 	// make blurred - only uses a blur filter
+// 	// since there doesn't appear to be a way
+// 	// to make all pixels completely black
+// 	// instead there's a second canvas that does this
+// 	const blur = new PIXI.filters.BlurFilter();
+// 	blur.quality = 2;
+// 	blur.blur = CAR_SHADOW_BLUR;
+// 	container.filters = [ blur ];
+// 	return container;
+// })();
+// // handles generating expensive textures
+// export default async function generateTextures(source, options) {
+// 	const { parent } = source;
+// 	// const { includeNitroBlur, includeShadow, isDarkCar, nitroBlurHue = 0 } = options;
+// 	// track origin since it's borrowed for rendering
+// 	const index = parent && parent.getChildIndex(source);
+// 	// generate the shadow
+// 	const shadow = new PIXI.Container(); //  await createShadow(source);
+// 	// put the child back where it came from, if needed
+// 	if (parent) {
+// 		parent.addChildAt(source, index);
 // 	}
-// 	// take a sample of nearby pixels to create the shadow
-// 	// TODO: this can be way better, but the approach
-// 	// is good enough to continue forward - consider creating
-// 	// a compiled javascript function that doesn't use arrays
-// 	if (includeShadow) {
-// 		let sum = 0;
-// 		for (let j = 0; j < SHADOW_SAMPLE_TOTAL; j++) {
-// 			const sampleColumn = col + (((j % SHADOW_SAMPLES_PER_ROW) - SHADOW_SAMPLE_COUNT) * SHADOW_SAMPLE_STEP);
-// 			const sampleRow = row + (((0 | j / SHADOW_SAMPLES_PER_ROW) - SHADOW_SAMPLE_COUNT) * SHADOW_SAMPLE_STEP);
-// 			sum += pixel(sampleColumn, sampleRow);
+// 	// give back the shadow
+// 	return { shadow };
+// }
+// // generates a blurred nitro image
+// function createNitroBlur(source, hue, isDarkCar) {
+// 	blurContainer.addChild(source);
+// 	// render a blurred streak for the car when using a nitro
+// 	blurContainer.blurFilter.blurX = 0 | (source.width * NITRO_BLUR_REALTIVE_SIZE_SCALING);
+// 	// match the car
+// 	blurContainer.baseFilter.reset();
+// 	blurContainer.colorFilter.reset();
+// 	blurContainer.colorFilter.hue(hue);
+// 	// for dark cars, bump up the brightness
+// 	if (isDarkCar) {
+// 		blurContainer.baseFilter.contrast(500);
+// 		blurContainer.baseFilter.saturate(1, true);
+// 	}
+// 	// center into the view
+// 	blurContainer.x = source.width * NITRO_BLUR_REALTIVE_SIZE_SCALING;
+// 	blurContainer.y = source.height / 2;
+// 	// render the blur streak
+// 	spriteRenderer.resize(source.width * 2, source.height);
+// 	spriteRenderer.render(blurContainer);
+// 	// give back the result
+// 	const blur = spriteRenderer.plugins.extract.canvas();
+// 	return new PIXI.Sprite.from(blur);
+// }
+// // generates a car shadow
+// async function createShadow(source) {
+// 	return new Promise(resolve => {
+// 		try {
+// 			const width = source.width + CAR_SHADOW_PADDING;
+// 			const height = source.height + CAR_SHADOW_PADDING;
+// 			// next, render the car shadow
+// 			shadowContainer.addChild(source);
+// 			// center into the view
+// 			shadowContainer.x = width / 2;
+// 			shadowContainer.y = height / 2;
+// 			// render the blurred version of the car
+// 			spriteRenderer.resize(width, height);
+// 			spriteRenderer.render(shadowContainer);
+// 			// next 'stencil' out the canvas using the blurred car
+// 			const shadowImage = spriteRenderer.plugins.extract.canvas();
+// 				// do this a moment later
+// 			requestAnimationFrame(() => {
+// 				try {
+// 					const shadow = createContext();
+// 					// match the size	
+// 					shadow.canvas.width = width;
+// 					shadow.canvas.height = height;
+// 					// draw the car
+// 					shadow.ctx.drawImage(shadowImage, 0, 0);
+// 					// then fill over with black
+// 					shadow.ctx.globalCompositeOperation = 'source-in';
+// 					shadow.ctx.fillStyle = 'black';
+// 					shadow.ctx.fillRect(0, 0, width, height);
+// 					// return the canvas
+// 					const result = new PIXI.Sprite.from(shadow.canvas);
+// 					resolve(result);
+// 				}
+// 				// don't crash for this
+// 				catch (ex) {
+// 					console.warn('failed to generate shadow texture');
+// 					resolve();
+// 				}
+// 			});
 // 		}
-// 		// save the shadow sample
-// 		shadowData.data[index + ALPHA_OFFSET] = sum / (SHADOW_SAMPLE_TOTAL + 1);
-// 	}
+// 		// don't crash for this
+// 		catch (ex) {
+// 			console.warn('failed to generate shadow texture');
+// 			resolve();
+// 		}
+// 	});
 // }
-// // finalize the shadow, if any
-// let shadowImage;
-// if (includeShadow) {
-// 	const context = createContext();
-// 	context.canvas.width = paddedWidth;
-// 	context.canvas.height = paddedHeight;
-// 	context.ctx.putImageData(shadowData, 0, 0);
-// 	shadowImage = context.canvas;
-// }
-// // finalize the normal map, if any
-// let normalMapImage;
-// if (includeNormalMap) {
-// 	const context = createContext();
-// 	context.canvas.width = width;
-// 	context.canvas.height = height;
-// 	context.ctx.putImageData(normalMapData, 0, 0);
-// 	normalMapImage = context.canvas;
-// }
-// // give back the generated textures
-// return { shadowImage, normalMapImage };
-
-
-function _createShadow() {
-  _createShadow = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(source) {
-    return _regenerator.default.wrap(function _callee2$(_context2) {
-      while (1) {
-        switch (_context2.prev = _context2.next) {
-          case 0:
-            return _context2.abrupt("return", new Promise(function (resolve) {
-              try {
-                var width = source.width + CAR_SHADOW_PADDING;
-                var height = source.height + CAR_SHADOW_PADDING; // next, render the car shadow
-
-                shadowContainer.addChild(source); // center into the view
-
-                shadowContainer.x = width / 2;
-                shadowContainer.y = height / 2; // render the blurred version of the car
-
-                spriteRenderer.resize(width, height);
-                spriteRenderer.render(shadowContainer); // next 'stencil' out the canvas using the blurred car
-
-                var shadowImage = spriteRenderer.plugins.extract.canvas(); // do this a moment later
-
-                requestAnimationFrame(function () {
-                  try {
-                    var shadow = (0, _ntAnimator.createContext)(); // match the size	
-
-                    shadow.canvas.width = width;
-                    shadow.canvas.height = height; // draw the car
-
-                    shadow.ctx.drawImage(shadowImage, 0, 0); // then fill over with black
-
-                    shadow.ctx.globalCompositeOperation = 'source-in';
-                    shadow.ctx.fillStyle = 'black';
-                    shadow.ctx.fillRect(0, 0, width, height); // return the canvas
-
-                    var result = new _ntAnimator.PIXI.Sprite.from(shadow.canvas);
-                    resolve(result);
-                  } // don't crash for this
-                  catch (ex) {
-                    console.warn('failed to generate shadow texture');
-                    resolve();
-                  }
-                });
-              } // don't crash for this
-              catch (ex) {
-                console.warn('failed to generate shadow texture');
-                resolve();
-              }
-            }));
-
-          case 1:
-          case "end":
-            return _context2.stop();
-        }
-      }
-    }, _callee2);
-  }));
-  return _createShadow.apply(this, arguments);
-}
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../config":"config.js"}],"components/car/hue-shift.js":[function(require,module,exports) {
+// // // pixel array offset values
+// // const RED_OFFSET = 0;
+// // const GREEN_OFFSET = 1;
+// // const BLUE_OFFSET = 2;
+// // const ALPHA_OFFSET = 3;
+// // // sample range for 	
+// // const SHADOW_PADDING = 10;
+// // const SHADOW_SAMPLE_STEP = 2;
+// // const SHADOW_SAMPLE_COUNT = 3;
+// // const SHADOW_SAMPLES_PER_ROW = SHADOW_SAMPLE_COUNT * 2;
+// // const SHADOW_SAMPLE_TOTAL = SHADOW_SAMPLES_PER_ROW * SHADOW_SAMPLES_PER_ROW;
+// // const { includeNormalMap = false, includeShadow = false } = options;
+// // const { width, height } = source;
+// // // if neither are needed
+// // if (!(includeNormalMap || includeShadow)) {
+// // 	return { };
+// // }
+// // // calculate the size to capture
+// // const padding = SHADOW_PADDING;
+// // const fullPadding = padding * 2;
+// // const left = padding;
+// // const right = width + padding;
+// // const top = padding;
+// // const bottom = height + padding;
+// // const paddedWidth = width + fullPadding;
+// // const paddedHeight = height + fullPadding;
+// // const size = paddedWidth * paddedHeight;
+// // // create target pixel arrays for image data
+// // const normalMapData = normalMapBuilder.ctx.createImageData(width, height);
+// // const shadowData = shadowBuilder.ctx.createImageData(paddedWidth, paddedHeight);
+// // // extract pixels for the existing car
+// // const pixels = spriteRenderer.plugins.extract.pixels(source);
+// // // helper function to grab a pixel from a location
+// // const pixel = (x, y, offset = 0) => {
+// // 	x -= offset;
+// // 	y -= offset;
+// // 	if (x < 0 || x > width || y < 0 || y > height) return 0;
+// // 	return pixels[(((y * width) + x) * 4) + 3] || 0;
+// // };
+// // // to save time, we generate the normal map and the shadow
+// // // at the same time - the shadow is generated on a slightly
+// // // larger area than the car itself (to allow blurring) - the
+// // // normal map checks for a smaller bounding area within
+// // for (let i = 0; i < size; i++) {
+// // 	const index = i * 4;
+// // 	const col = i % paddedWidth;
+// // 	const row = 0 | i / paddedWidth;
+// // 	// if within range, create a very crude normal map - we can
+// // 	// revisit this to make it look better, but this should provide
+// // 	// some level of visible lighting effects
+// // 	// TODO: this could be way better
+// // 	if (includeNormalMap && col >= left && col < right && row >= top && row < bottom) {
+// // 		const normalMapCol = col - padding;
+// // 		const normalMapRow = row - padding;
+// // 		const normalMapIndex = ((normalMapRow * width) + normalMapCol) * 4;
+// // 		// calculate r/g based on the x/y positions of the pixel
+// // 		const r = 255 * (normalMapCol / width); 
+// // 		const g = 255 - (255 * (normalMapRow / height));
+// // 		normalMapData.data[normalMapIndex + RED_OFFSET] = r;
+// // 		normalMapData.data[normalMapIndex + GREEN_OFFSET] = g;
+// // 		normalMapData.data[normalMapIndex + BLUE_OFFSET] = Math.max(0, 255 - r - g);
+// // 		normalMapData.data[normalMapIndex + ALPHA_OFFSET] = pixel(normalMapCol, normalMapRow);
+// // 	}
+// // 	// take a sample of nearby pixels to create the shadow
+// // 	// TODO: this can be way better, but the approach
+// // 	// is good enough to continue forward - consider creating
+// // 	// a compiled javascript function that doesn't use arrays
+// // 	if (includeShadow) {
+// // 		let sum = 0;
+// // 		for (let j = 0; j < SHADOW_SAMPLE_TOTAL; j++) {
+// // 			const sampleColumn = col + (((j % SHADOW_SAMPLES_PER_ROW) - SHADOW_SAMPLE_COUNT) * SHADOW_SAMPLE_STEP);
+// // 			const sampleRow = row + (((0 | j / SHADOW_SAMPLES_PER_ROW) - SHADOW_SAMPLE_COUNT) * SHADOW_SAMPLE_STEP);
+// // 			sum += pixel(sampleColumn, sampleRow);
+// // 		}
+// // 		// save the shadow sample
+// // 		shadowData.data[index + ALPHA_OFFSET] = sum / (SHADOW_SAMPLE_TOTAL + 1);
+// // 	}
+// // }
+// // // finalize the shadow, if any
+// // let shadowImage;
+// // if (includeShadow) {
+// // 	const context = createContext();
+// // 	context.canvas.width = paddedWidth;
+// // 	context.canvas.height = paddedHeight;
+// // 	context.ctx.putImageData(shadowData, 0, 0);
+// // 	shadowImage = context.canvas;
+// // }
+// // // finalize the normal map, if any
+// // let normalMapImage;
+// // if (includeNormalMap) {
+// // 	const context = createContext();
+// // 	context.canvas.width = width;
+// // 	context.canvas.height = height;
+// // 	context.ctx.putImageData(normalMapData, 0, 0);
+// // 	normalMapImage = context.canvas;
+// // }
+// // // give back the generated textures
+// // return { shadowImage, normalMapImage };
+},{}],"components/car/hue-shift.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -86727,7 +86686,7 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
                 this.bounds = bounds; // load any textures
 
                 _context4.next = 28;
-                return this._initTextures(imageSource, includeShadow, includeNormalMap);
+                return this._initTextures();
 
               case 28:
                 // add the car to the view
@@ -86810,45 +86769,22 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
   }, {
     key: "_initTextures",
     value: function () {
-      var _initTextures2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(imageSource, includeShadow, includeNormalMap) {
-        var car, view, scale, _yield$generateTextur, shadow, nitroBlur, nitroBlurContainer, ratio;
-
+      var _initTextures2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
+        var car, view, nitroBlur, nitroBlurContainer, ratio;
         return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
             switch (_context6.prev = _context6.next) {
               case 0:
-                car = this.car, view = this.view;
-                scale = car.scale.x; // create textures for this vehicle
+                car = this.car, view = this.view; // create textures for this vehicle
 
-                _context6.next = 4;
-                return (0, _textureGenerator.default)(imageSource, {
-                  includeShadow: true
-                });
-
-              case 4:
-                _yield$generateTextur = _context6.sent;
-                shadow = _yield$generateTextur.shadow;
-                _context6.next = 8;
+                _context6.next = 3;
                 return view.animator.getSprite('images', 'nitro_blur');
 
-              case 8:
+              case 3:
                 nitroBlur = _context6.sent;
 
-                // apply each, if possible
-                if (shadow) {
-                  this.shadow = shadow;
-                  shadow.blendMode = _ntAnimator.PIXI.BLEND_MODES.MULTIPLY; // align to the center
-
-                  shadow.pivot.x = shadow.width / 2;
-                  shadow.pivot.y = shadow.height / 2;
-                  shadow.alpha = _config.CAR_SHADOW_OPACITY;
-                  shadow.x = -this.pivot.x; // match scale
-
-                  shadow.scale.x = shadow.scale.y = scale * _config.CAR_SHADOW_SCALE_ADJUST;
-                } // nitro blurs should be put into another container
+                // nitro blurs should be put into another container
                 // since they will be scaled and animated
-
-
                 if (nitroBlur) {
                   nitroBlurContainer = new _ntAnimator.PIXI.Container();
                   this.nitroBlur = nitroBlurContainer;
@@ -86863,11 +86799,9 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
                   ratio = car.height / nitroBlur.height;
                   nitroBlur.height = car.height * 0.85;
                   nitroBlur.width *= ratio;
-                } // the normal map, if any
-                // this.normalMap = normalMap;
+                }
 
-
-              case 11:
+              case 5:
               case "end":
                 return _context6.stop();
             }
@@ -86875,7 +86809,7 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
         }, _callee6, this);
       }));
 
-      function _initTextures(_x3, _x4, _x5) {
+      function _initTextures() {
         return _initTextures2.apply(this, arguments);
       }
 
@@ -87006,7 +86940,7 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
         }, _callee7);
       }));
 
-      function create(_x6) {
+      function create(_x3) {
         return _create.apply(this, arguments);
       }
 
@@ -98092,6 +98026,21 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       if (raceCompletedAnimation) raceCompletedAnimation.update();
     } // save the FPS and performance score
 
+  }, {
+    key: "getDynamicPerformanceSummary",
+    value: function getDynamicPerformanceSummary() {
+      if (!this.performance) {
+        return {};
+      }
+
+      return {
+        qualityStart: this.performance.initialLevel,
+        qualityCached: this.performance.cachedLevel,
+        qualitySummary: this.performance.getVariance(),
+        qualityUpgradeCount: this.performance.upgrades,
+        qualityDowngradeCount: this.performance.downgrades
+      };
+    }
   }]);
   return TrackView;
 }(_base.BaseView);

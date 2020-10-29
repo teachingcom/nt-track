@@ -35,6 +35,10 @@ export default class DynamicPerformanceController {
   // for this specific instance
   maxAllowedScore = HIGH
 
+  // tracking changes
+  upgrades = 0
+  downgrades = 0
+
   constructor({ view, key, fps, onPerformanceChanged }) {
 
     // there should be at least one action for changes
@@ -61,11 +65,20 @@ export default class DynamicPerformanceController {
     }
     // and existing score was found
     else {
+      if (score < HIGH) {
+        this.upgrades++;
+      }
+
+      // update the score
       score++;
     }
 
     // ensure the correct range
     score = this.clampScore(score);
+
+    // save some data
+    this.initialLevel = PERFORMANCE_LEVEL[score];
+    this.cachedLevel = PERFORMANCE_LEVEL[score - this.upgrades];
     
     //  get the original value
     console.log('perf:', PERFORMANCE_LEVEL[score]);
@@ -80,6 +93,11 @@ export default class DynamicPerformanceController {
   // ensure the score range
   clampScore = score => {
     return Math.max(MINIMAL, Math.min(this.maxAllowedScore, score))
+  }
+
+  getVariance() {
+    const current = PERFORMANCE_LEVEL[this.maxAllowedScore];
+    return `${this.initialLevel} > ${current}`;
   }
 
   // looks at performace to determine if the rendering
@@ -100,18 +118,23 @@ export default class DynamicPerformanceController {
       
       // depending on how bad they're doing, just
       // skip certain levels
+      let downgradeBy = 0;
       if (sample < MAJOR_FRAMERATE_RISK) {
-        this.maxAllowedScore -= 3;
+        downgradeBy = 3;
       }
       else if (sample < NOTICABLE_FRAMERATE_RISK) {
-        this.maxAllowedScore -= 2;
+        downgradeBy = 2;
       }
       else if (sample < MINOR_FRAMERATE_RISK) {
-        this.maxAllowedScore -= 1;
+        downgradeBy = 1;
       }
       
       // reset the risk tracking and
       // try to race again
+      this.downgrades = Math.max(HIGH, downgradeBy - this.downgrades);
+      this.maxAllowedScore -= downgradeBy;
+
+      // update the score
       this.setScore(this.maxAllowedScore);
       this.isAtRisk = false;
     }

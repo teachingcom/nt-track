@@ -577,6 +577,20 @@ export default class TrackView extends BaseView {
 		}
 	}
 
+	getDynamicPerformanceSummary() {
+		if (!this.performance) {
+			return { };
+		}
+
+		return {
+			qualityStart: this.performance.initialLevel,
+			qualityCached: this.performance.cachedLevel,
+			qualitySummary: this.performance.getVariance(),
+			qualityUpgradeCount: this.performance.upgrades,
+			qualityDowngradeCount: this.performance.downgrades
+		}
+	}
+
 }
 
 

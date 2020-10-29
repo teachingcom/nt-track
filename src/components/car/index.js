@@ -94,7 +94,7 @@ export default class Car extends PIXI.Container {
 		this.bounds = bounds;
 
 		// load any textures
-		await this._initTextures(imageSource, includeShadow, includeNormalMap);
+		await this._initTextures();
 
 		// add the car to the view
 		this.addChild(car);
@@ -284,28 +284,11 @@ export default class Car extends PIXI.Container {
 
 
 	// handles generating dynamic textures
-	async _initTextures(imageSource, includeShadow, includeNormalMap) {
+	async _initTextures() {
 		const { car, view } = this;
-		const scale = car.scale.x;
 
 		// create textures for this vehicle
-		const { shadow } = await generateTextures(imageSource, { includeShadow: true });
 		const nitroBlur = await view.animator.getSprite('images', 'nitro_blur');
-
-		// apply each, if possible
-		if (shadow) {
-			this.shadow = shadow;
-			shadow.blendMode = PIXI.BLEND_MODES.MULTIPLY;
-			
-			// align to the center
-			shadow.pivot.x = shadow.width / 2;
-			shadow.pivot.y = shadow.height / 2;
-			shadow.alpha = CAR_SHADOW_OPACITY;
-			shadow.x = -this.pivot.x;
-
-			// match scale
-			shadow.scale.x = shadow.scale.y = scale * CAR_SHADOW_SCALE_ADJUST;
-		}
 
 		// nitro blurs should be put into another container
 		// since they will be scaled and animated
@@ -327,9 +310,6 @@ export default class Car extends PIXI.Container {
 			nitroBlur.height = car.height * 0.85;
 			nitroBlur.width *= ratio;
 		}
-		
-		// the normal map, if any
-		// this.normalMap = normalMap;
 	}
 
 	/** returns the scaling for the car */
