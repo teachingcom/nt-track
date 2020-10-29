@@ -55,11 +55,11 @@ export default class FpsMonitor {
 			
 			// copy PIXI fps
 			const fps = Math.round(PIXI.Ticker.shared.FPS);
-			this.pixiCache.push(fps * 0.7);
+			this.pixiCache.push(fps);
 
 			// copy phaser FPS
 			const fps2 = Math.round(this.phaserFPS.actualFps);
-			this.phaserCache.push(fps2 * 0.7);
+			this.phaserCache.push(fps2);
 		}, 1000);
 
 	}

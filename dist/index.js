@@ -84310,12 +84310,12 @@ var FpsMonitor = /*#__PURE__*/function () {
 
       var fps = Math.round(_ntAnimator.PIXI.Ticker.shared.FPS);
 
-      _this.pixiCache.push(fps * 0.7); // copy phaser FPS
+      _this.pixiCache.push(fps); // copy phaser FPS
 
 
       var fps2 = Math.round(_this.phaserFPS.actualFps);
 
-      _this.phaserCache.push(fps2 * 0.7);
+      _this.phaserCache.push(fps2);
     }, 1000);
   }
 
