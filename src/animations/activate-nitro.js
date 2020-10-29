@@ -44,9 +44,9 @@ export default class ActivateNitroAnimation extends Animation {
 			carScaleX: car.scale.x,
 			carScaleY: car.scale.y,
 
-			// beneath car shadow
-			shadowScaleX: shadow.scale.x,
-			shadowX: shadow.x,
+			// // beneath car shadow
+			// shadowScaleX: shadow.scale.x,
+			// shadowX: shadow.x,
 			
 			// trail opacity
 			trailAlpha: 1,
@@ -74,10 +74,10 @@ export default class ActivateNitroAnimation extends Animation {
 			carScaleY: origin.carScaleX + 0.02,
 			carRotation: 0.05,
 
-			// beneath car shadow
-			// scaled backwards slightly
-			shadowScaleX: origin.shadowScaleX - 0.01,
-			shadowX: origin.shadowX - 5,
+			// // beneath car shadow
+			// // scaled backwards slightly
+			// shadowScaleX: origin.shadowScaleX - 0.01,
+			// shadowX: origin.shadowX - 5,
 			
 			// trail opacity
 			// slightly faded
@@ -147,9 +147,9 @@ export default class ActivateNitroAnimation extends Animation {
 		car.scale.x = props.carScaleX;
 		car.scale.y = props.carScaleY;
 		
-		// update the shadow
-		shadow.scale.x = props.shadowScaleX;
-		shadow.x = props.shadowX;
+		// // update the shadow
+		// shadow.scale.x = props.shadowScaleX;
+		// shadow.x = props.shadowX;
 
 		// update the trail, if any
 		if (hasTrail) {
