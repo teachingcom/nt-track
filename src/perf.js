@@ -155,6 +155,12 @@ export default class DynamicPerformanceController {
 
   // track the final 
   finalize = () => {
+    // require at least one evaluation attempt
+    if (!this.hasEvaluatedPerformance) {
+      return
+      
+    }
+
     setCachedPerformanceScore(this.key, this.maxAllowedScore)
   }
 

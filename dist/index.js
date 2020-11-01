@@ -84432,6 +84432,11 @@ var DynamicPerformanceController = /*#__PURE__*/function () {
       _this.hasEvaluatedPerformance = true;
     });
     (0, _defineProperty2.default)(this, "finalize", function () {
+      // require at least one evaluation attempt
+      if (!_this.hasEvaluatedPerformance) {
+        return;
+      }
+
       setCachedPerformanceScore(_this.key, _this.maxAllowedScore);
     });
     (0, _defineProperty2.default)(this, "setScore", function (score) {
