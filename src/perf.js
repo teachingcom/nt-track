@@ -1,20 +1,23 @@
-import { isNumber } from "./utils";
+import { isNumber } from "./utils"
 
 export const MINIMAL = 0
 export const LOW = 1
 export const MEDIUM = 2
 export const HIGH = 3
-export const PERFORMANCE_LEVEL = ['minimal', 'low', 'medium', 'high'];
+export const PERFORMANCE_LEVEL = ['minimal', 'low', 'medium', 'high']
 
 // caching key for performance
-const PERFORMANCE_PREFIX = 'nt:performance-';
-const DYNAMIC_SAMPLE_COUNT = 3;
+const PERFORMANCE_PREFIX = 'nt:performance-'
+// const DYNAMIC_SAMPLE_COUNT = 3
+
+// the frequency in which to monitor performance changes
+const PERFORMANCE_MONITORING_INTERVAL = 3000
 
 // the minimum FPS to get before considering the player
 // at risk of needing to be down graded on performance
-const MINOR_FRAMERATE_RISK = 48;
-const NOTICABLE_FRAMERATE_RISK = MINOR_FRAMERATE_RISK * 0.66;
-const MAJOR_FRAMERATE_RISK = MINOR_FRAMERATE_RISK * 0.33;
+const MINOR_FRAMERATE_RISK = 42
+// const NOTICABLE_FRAMERATE_RISK = MINOR_FRAMERATE_RISK * 0.66
+// const MAJOR_FRAMERATE_RISK = MINOR_FRAMERATE_RISK * 0.33
 
 // the amount to upscale for SSAA
 const SSAA_SCALING_AMOUNT = [1, 1.15, 1.5, 2]
@@ -39,55 +42,58 @@ export default class DynamicPerformanceController {
   upgrades = 0
   downgrades = 0
 
-  constructor({ view, key, fps, onPerformanceChanged }) {
+  constructor({ view, key, fps, delay = 0, onPerformanceChanged }) {
 
     // there should be at least one action for changes
     if (!!onPerformanceChanged) {
       this.onPerformanceChanged(onPerformanceChanged)
     }
 
-    this.key = key;
-    this.fps = fps;
-    this.view = view;
+    this.key = key
+    this.fps = fps
+    this.view = view
 
     // load the original score
-    this.init();
+    this.init(delay)
   }
 
   // shares the tracing 
-  init() {
-    this.interval = setInterval(this.evaluatePerformance, 3000);
-
+  init(delay) {
     // try and find a previous score to use
-    let score = getCachedPerformanceScore(this.key);
+    let score = getCachedPerformanceScore(this.key)
     if (!isNumber(score)) {
-      score = HIGH;
+      score = HIGH
     }
     // and existing score was found
     else {
       if (score < HIGH) {
-        this.upgrades++;
+        this.upgrades++
       }
 
       // update the score
-      score++;
+      score++
     }
 
     // ensure the correct range
-    score = this.clampScore(score);
+    score = this.clampScore(score)
 
     // save some data
-    this.initialLevel = PERFORMANCE_LEVEL[score];
-    this.cachedLevel = PERFORMANCE_LEVEL[score - this.upgrades];
+    this.initialLevel = PERFORMANCE_LEVEL[score]
+    this.cachedLevel = PERFORMANCE_LEVEL[score - this.upgrades]
     
     //  get the original value
-    console.log('perf:', PERFORMANCE_LEVEL[score]);
-    this.setScore(score);
+    this.setScore(score)
+
+    // activate monitoring
+    setTimeout(() => {
+      this.evaluatePerformance()
+      this.interval = setInterval(this.evaluatePerformance, PERFORMANCE_MONITORING_INTERVAL)
+    }, delay)
   }
 
   // handles updated performance values
   onPerformanceChanged = listener => {
-    this.listeners.push(listener);
+    this.listeners.push(listener)
   }
 
   // ensure the score range
@@ -96,65 +102,66 @@ export default class DynamicPerformanceController {
   }
 
   getVariance() {
-    const current = PERFORMANCE_LEVEL[this.maxAllowedScore];
-    return `${this.initialLevel} > ${current}`;
+    const current = PERFORMANCE_LEVEL[this.maxAllowedScore]
+    return `${this.initialLevel} > ${current}`
   }
 
   // looks at performace to determine if the rendering
   // should be adjusted for a better game pla
   evaluatePerformance = () => {
-
     // view must be active
     if (!this.view.isViewActive) {
-      return;
+      return
     }
-
-    // get a sample of the last 5 track fps values
-    const sample = this.fps.getSample(DYNAMIC_SAMPLE_COUNT);
+    
+    // get a active sample of the track performance
+    const sample = this.fps.getSample()
     
     // if below minimal value FPS, consider the player at risk
-    const atRiskOfPoorFramerate = sample < MINOR_FRAMERATE_RISK;
+    const atRiskOfPoorFramerate = sample < MINOR_FRAMERATE_RISK
     if (this.isAtRisk && atRiskOfPoorFramerate) {
-      
-      // depending on how bad they're doing, just
-      // skip certain levels
-      let downgradeBy = 0;
-      if (sample < MAJOR_FRAMERATE_RISK) {
-        downgradeBy = 3;
-      }
-      else if (sample < NOTICABLE_FRAMERATE_RISK) {
-        downgradeBy = 2;
-      }
-      else if (sample < MINOR_FRAMERATE_RISK) {
-        downgradeBy = 1;
-      }
+      // // depending on how bad they're doing, just
+      // // skip certain levels
+      // let downgradeBy = 0
+      // if (sample < MAJOR_FRAMERATE_RISK) {
+      //   downgradeBy = 3
+      // }
+      // else if (sample < NOTICABLE_FRAMERATE_RISK) {
+      //   downgradeBy = 2
+      // }
+      // else if (sample < MINOR_FRAMERATE_RISK) {
+      //   downgradeBy = 1
+      // }
+
+      // only downgrade by one at a time
+      const downgradeBy = 1
       
       // reset the risk tracking and
       // try to race again
-      this.downgrades = Math.max(HIGH, downgradeBy - this.downgrades);
-      this.maxAllowedScore -= downgradeBy;
-
+      this.downgrades = Math.max(HIGH, downgradeBy - this.downgrades)
+      
       // update the score
-      this.setScore(this.maxAllowedScore);
-      this.isAtRisk = false;
+      this.setScore(this.maxAllowedScore - downgradeBy)
+      this.isAtRisk = false
     }
     // save if the player is at risk
     else {
-      this.isAtRisk = atRiskOfPoorFramerate;
+      this.isAtRisk = atRiskOfPoorFramerate
     }
-    
+
+    // save that this has happened
+    this.hasEvaluatedPerformance = true
   }
 
   // track the final 
   finalize = () => {
-    setCachedPerformanceScore(this.key, this.maxAllowedScore);
+    setCachedPerformanceScore(this.key, this.maxAllowedScore)
   }
 
   // updates the current score
   setScore = (score, notify = true) => {
-
     // cap the score
-    score = this.clampScore(score);
+    score = this.clampScore(score)
     this.maxAllowedScore = score
 
     // reassign changes
@@ -169,27 +176,25 @@ export default class DynamicPerformanceController {
         listener(this)
       }
     }
-
   }
-
 }
 
 // tries to find a previously cached score
 function getCachedPerformanceScore(key) {
   try {
-    let score = parseInt(localStorage.getItem(PERFORMANCE_PREFIX + key));
-    score = Math.max(Math.min(HIGH, score), MINIMAL);
-    return isNaN(score) ? null : score;
+    let score = parseInt(localStorage.getItem(PERFORMANCE_PREFIX + key))
+    score = Math.max(Math.min(HIGH, score), MINIMAL)
+    return isNaN(score) ? null : score
   }
   catch (ex) {
-    return null;
+    return null
   }
 }
 
 // saves a cached score
 function setCachedPerformanceScore(key, score) {
   try {
-    localStorage.setItem(PERFORMANCE_PREFIX + key, score);
+    localStorage.setItem(PERFORMANCE_PREFIX + key, score)
   }
   // don't fail
   catch (ex) { }

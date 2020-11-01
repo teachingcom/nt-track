@@ -83694,9 +83694,7 @@ function create(type, key, sprite) {
 
 
 function MissingSoundException() {}
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","howler":"../node_modules/howler/dist/howler.js","./sound":"audio/sound.js"}],"debug.js":[function(require,module,exports) {
-
-},{}],"utils/view.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","howler":"../node_modules/howler/dist/howler.js","./sound":"audio/sound.js"}],"utils/view.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -83755,7 +83753,7 @@ document.addEventListener('visibilitychange', updateViewActiveState);
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.NITRO_BLUR_REALTIVE_SIZE_SCALING = exports.NITRO_BLUR_DEFAULT_OFFSET_X = exports.NITRO_BLUR_OFFSET_Y = exports.NITRO_ACTIVATED_TRAIL_OPACITY = exports.NITRO_OFFSET_Y = exports.NITRO_OFFSET_X = exports.NITRO_SCALE = exports.TRAIL_SCALE = exports.STATIC_CAR_ROTATION_FIX = exports.CAR_404_ENHANCED_VERSION = exports.CAR_404_STATIC_VERSION = exports.CAR_NITRO_ADVANCEMENT_DISTANCE = exports.CAR_SHAKE_SHADOW_REDUCTION = exports.CAR_SHAKE_NITRO_BONUS = exports.CAR_SHAKE_DISTANCE = exports.CAR_DEFAULT_FRONT_BACK_OFFSET_X = exports.CAR_BODY_OFFSET_Y = exports.CAR_SHADOW_OFFSET_Y = exports.CAR_SHADOW_SCALE_ADJUST = exports.CAR_SHADOW_OPACITY = exports.CAR_SHADOW_BLUR = exports.CAR_DEFAULT_SHAKE_LEVEL = exports.NAMECARD_TETHER_DISTANCE = exports.NAMECARD_SCALE = exports.CROWD_ANIMATION_DURATION = exports.CROWD_ANIMATION_FRAME_COUNT = exports.CROWD_ANIMATION_VARIATIONS = exports.CROWD_DEFAULT_SCALE = exports.RACE_FINISH_FLASH_FADE_TIME = exports.RACE_SOUND_ERROR_MAX_INTERVAL = exports.RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL = exports.RACE_PROGRESS_TWEEN_TIMING = exports.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT = exports.RACE_FINISH_CAR_STOPPING_TIME = exports.RACE_START_NAMECARD_DELAY_TIME = exports.RACE_START_NAMECARD_ENTRY_TIME = exports.RACE_START_CAR_ENTRY_TIME = exports.RACE_AUTO_PROGRESS_DISTANCE = exports.RACE_OFF_SCREEN_FINISH_DISTANCE = exports.RACE_PLAYER_DISTANCE_MODIFIER = exports.RACE_ENDING_ANIMATION_THRESHOLD = exports.TRACK_OFFSCREEN_CAR_FINISH = exports.TRACK_NAMECARD_EDGE_PADDING = exports.TRACK_STARTING_LINE_POSITION = exports.TRACK_CAR_LANE_CENTER_OFFSET = exports.TRACK_CAR_SIZE_RELATIVE_TO_LANE = exports.TRACK_SHOULDER_SCALE = exports.TRACK_BOTTOM_SCALE = exports.TRACK_TOP_SCALE = exports.TRACK_ACCELERATION_RATE = exports.TRACK_MAXIMUM_TRAVEL_DISTANCE = exports.TRACK_MAXIMUM_SPEED = exports.TRACK_MAXIMUM_SPEED_DRAG_RATE = exports.TRACK_MAXIMUM_SPEED_BOOST_RATE = exports.TRACK_MAXIMUM_SCROLL_SPEED = void 0;
+exports.DEFAULT_PERFORMANCE_MONITORING_DELAY = exports.NITRO_BLUR_REALTIVE_SIZE_SCALING = exports.NITRO_BLUR_DEFAULT_OFFSET_X = exports.NITRO_BLUR_OFFSET_Y = exports.NITRO_ACTIVATED_TRAIL_OPACITY = exports.NITRO_OFFSET_Y = exports.NITRO_OFFSET_X = exports.NITRO_SCALE = exports.TRAIL_SCALE = exports.STATIC_CAR_ROTATION_FIX = exports.CAR_404_ENHANCED_VERSION = exports.CAR_404_STATIC_VERSION = exports.CAR_NITRO_ADVANCEMENT_DISTANCE = exports.CAR_SHAKE_SHADOW_REDUCTION = exports.CAR_SHAKE_NITRO_BONUS = exports.CAR_SHAKE_DISTANCE = exports.CAR_DEFAULT_FRONT_BACK_OFFSET_X = exports.CAR_BODY_OFFSET_Y = exports.CAR_SHADOW_OFFSET_Y = exports.CAR_SHADOW_SCALE_ADJUST = exports.CAR_SHADOW_OPACITY = exports.CAR_SHADOW_BLUR = exports.CAR_DEFAULT_SHAKE_LEVEL = exports.NAMECARD_TETHER_DISTANCE = exports.NAMECARD_SCALE = exports.CROWD_ANIMATION_DURATION = exports.CROWD_ANIMATION_FRAME_COUNT = exports.CROWD_ANIMATION_VARIATIONS = exports.CROWD_DEFAULT_SCALE = exports.RACE_FINISH_FLASH_FADE_TIME = exports.RACE_SOUND_ERROR_MAX_INTERVAL = exports.RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL = exports.RACE_PROGRESS_TWEEN_TIMING = exports.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT = exports.RACE_FINISH_CAR_STOPPING_TIME = exports.RACE_START_NAMECARD_DELAY_TIME = exports.RACE_START_NAMECARD_ENTRY_TIME = exports.RACE_START_CAR_ENTRY_TIME = exports.RACE_AUTO_PROGRESS_DISTANCE = exports.RACE_OFF_SCREEN_FINISH_DISTANCE = exports.RACE_PLAYER_DISTANCE_MODIFIER = exports.RACE_ENDING_ANIMATION_THRESHOLD = exports.TRACK_OFFSCREEN_CAR_FINISH = exports.TRACK_NAMECARD_EDGE_PADDING = exports.TRACK_STARTING_LINE_POSITION = exports.TRACK_CAR_LANE_CENTER_OFFSET = exports.TRACK_CAR_SIZE_RELATIVE_TO_LANE = exports.TRACK_SHOULDER_SCALE = exports.TRACK_BOTTOM_SCALE = exports.TRACK_TOP_SCALE = exports.TRACK_ACCELERATION_RATE = exports.TRACK_MAXIMUM_TRAVEL_DISTANCE = exports.TRACK_MAXIMUM_SPEED = exports.TRACK_MAXIMUM_SPEED_DRAG_RATE = exports.TRACK_MAXIMUM_SPEED_BOOST_RATE = exports.TRACK_MAXIMUM_SCROLL_SPEED = void 0;
 // tracks
 var TRACK_MAXIMUM_SCROLL_SPEED = 35;
 exports.TRACK_MAXIMUM_SCROLL_SPEED = TRACK_MAXIMUM_SCROLL_SPEED;
@@ -83827,7 +83825,7 @@ exports.NAMECARD_SCALE = NAMECARD_SCALE;
 var NAMECARD_TETHER_DISTANCE = 700; // cars
 
 exports.NAMECARD_TETHER_DISTANCE = NAMECARD_TETHER_DISTANCE;
-var CAR_DEFAULT_SHAKE_LEVEL = 0; // 0.25;
+var CAR_DEFAULT_SHAKE_LEVEL = 0; // 0.25
 
 exports.CAR_DEFAULT_SHAKE_LEVEL = CAR_DEFAULT_SHAKE_LEVEL;
 var CAR_SHADOW_BLUR = 25;
@@ -83873,14 +83871,11 @@ var NITRO_BLUR_OFFSET_Y = -10;
 exports.NITRO_BLUR_OFFSET_Y = NITRO_BLUR_OFFSET_Y;
 var NITRO_BLUR_DEFAULT_OFFSET_X = 0.75;
 exports.NITRO_BLUR_DEFAULT_OFFSET_X = NITRO_BLUR_DEFAULT_OFFSET_X;
-var NITRO_BLUR_REALTIVE_SIZE_SCALING = 0.9; // try to replace
+var NITRO_BLUR_REALTIVE_SIZE_SCALING = 0.9; // misc
 
 exports.NITRO_BLUR_REALTIVE_SIZE_SCALING = NITRO_BLUR_REALTIVE_SIZE_SCALING;
-
-try {
-  // debugging
-  window.NT_RENDER_QUALITY = PERFORMANCE_LEVEL;
-} catch (ex) {}
+var DEFAULT_PERFORMANCE_MONITORING_DELAY = 7000;
+exports.DEFAULT_PERFORMANCE_MONITORING_DELAY = DEFAULT_PERFORMANCE_MONITORING_DELAY;
 },{}],"phaser-fps.js":[function(require,module,exports) {
 "use strict";
 
@@ -84290,17 +84285,11 @@ var FpsMonitor = /*#__PURE__*/function () {
 
       _this.phaserFPS.stop();
     });
-    (0, _defineProperty2.default)(this, "getSample", function (count) {
-      var avg = 0;
-      var total = _this.pixiCache.length;
-      var limit = Math.min(count, total);
-      var start = total - limit; // gather up all frame data
-
-      for (var i = start; i < total; i++) {
-        avg += _this.pixiCache[i] + _this.phaserCache[i];
-      }
-
-      return avg / (limit * 2);
+    (0, _defineProperty2.default)(this, "getSample", function () {
+      // simulate poor framerates
+      // const diminish = 0.6 + (0.3 * Math.random());
+      // return this.phaserFPS.actualFps * diminish;
+      return _this.phaserFPS.actualFps;
     });
     // activate the phase
     this.phaserFPS = new _phaserFps.default(); // captures PIXI fps reporting
@@ -84358,13 +84347,15 @@ exports.HIGH = HIGH;
 var PERFORMANCE_LEVEL = ['minimal', 'low', 'medium', 'high']; // caching key for performance
 
 exports.PERFORMANCE_LEVEL = PERFORMANCE_LEVEL;
-var PERFORMANCE_PREFIX = 'nt:performance-';
-var DYNAMIC_SAMPLE_COUNT = 3; // the minimum FPS to get before considering the player
+var PERFORMANCE_PREFIX = 'nt:performance-'; // const DYNAMIC_SAMPLE_COUNT = 3
+// the frequency in which to monitor performance changes
+
+var PERFORMANCE_MONITORING_INTERVAL = 3000; // the minimum FPS to get before considering the player
 // at risk of needing to be down graded on performance
 
-var MINOR_FRAMERATE_RISK = 48;
-var NOTICABLE_FRAMERATE_RISK = MINOR_FRAMERATE_RISK * 0.66;
-var MAJOR_FRAMERATE_RISK = MINOR_FRAMERATE_RISK * 0.33; // the amount to upscale for SSAA
+var MINOR_FRAMERATE_RISK = 42; // const NOTICABLE_FRAMERATE_RISK = MINOR_FRAMERATE_RISK * 0.66
+// const MAJOR_FRAMERATE_RISK = MINOR_FRAMERATE_RISK * 0.33
+// the amount to upscale for SSAA
 
 var SSAA_SCALING_AMOUNT = [1, 1.15, 1.5, 2]; // animation speeds
 
@@ -84384,6 +84375,8 @@ var DynamicPerformanceController = /*#__PURE__*/function () {
     var view = _ref.view,
         key = _ref.key,
         fps = _ref.fps,
+        _ref$delay = _ref.delay,
+        delay = _ref$delay === void 0 ? 0 : _ref$delay,
         onPerformanceChanged = _ref.onPerformanceChanged;
     (0, _classCallCheck2.default)(this, DynamicPerformanceController);
     (0, _defineProperty2.default)(this, "listeners", []);
@@ -84400,39 +84393,43 @@ var DynamicPerformanceController = /*#__PURE__*/function () {
       // view must be active
       if (!_this.view.isViewActive) {
         return;
-      } // get a sample of the last 5 track fps values
+      } // get a active sample of the track performance
 
 
-      var sample = _this.fps.getSample(DYNAMIC_SAMPLE_COUNT); // if below minimal value FPS, consider the player at risk
+      var sample = _this.fps.getSample(); // if below minimal value FPS, consider the player at risk
 
 
       var atRiskOfPoorFramerate = sample < MINOR_FRAMERATE_RISK;
 
       if (_this.isAtRisk && atRiskOfPoorFramerate) {
-        // depending on how bad they're doing, just
-        // skip certain levels
-        var downgradeBy = 0;
-
-        if (sample < MAJOR_FRAMERATE_RISK) {
-          downgradeBy = 3;
-        } else if (sample < NOTICABLE_FRAMERATE_RISK) {
-          downgradeBy = 2;
-        } else if (sample < MINOR_FRAMERATE_RISK) {
-          downgradeBy = 1;
-        } // reset the risk tracking and
+        // // depending on how bad they're doing, just
+        // // skip certain levels
+        // let downgradeBy = 0
+        // if (sample < MAJOR_FRAMERATE_RISK) {
+        //   downgradeBy = 3
+        // }
+        // else if (sample < NOTICABLE_FRAMERATE_RISK) {
+        //   downgradeBy = 2
+        // }
+        // else if (sample < MINOR_FRAMERATE_RISK) {
+        //   downgradeBy = 1
+        // }
+        // only downgrade by one at a time
+        var downgradeBy = 1; // reset the risk tracking and
         // try to race again
 
+        _this.downgrades = Math.max(HIGH, downgradeBy - _this.downgrades); // update the score
 
-        _this.downgrades = Math.max(HIGH, downgradeBy - _this.downgrades);
-        _this.maxAllowedScore -= downgradeBy; // update the score
-
-        _this.setScore(_this.maxAllowedScore);
+        _this.setScore(_this.maxAllowedScore - downgradeBy);
 
         _this.isAtRisk = false;
       } // save if the player is at risk
       else {
           _this.isAtRisk = atRiskOfPoorFramerate;
-        }
+        } // save that this has happened
+
+
+      _this.hasEvaluatedPerformance = true;
     });
     (0, _defineProperty2.default)(this, "finalize", function () {
       setCachedPerformanceScore(_this.key, _this.maxAllowedScore);
@@ -84474,15 +84471,16 @@ var DynamicPerformanceController = /*#__PURE__*/function () {
     this.fps = fps;
     this.view = view; // load the original score
 
-    this.init();
+    this.init(delay);
   } // shares the tracing 
 
 
   (0, _createClass2.default)(DynamicPerformanceController, [{
     key: "init",
-    value: function init() {
-      this.interval = setInterval(this.evaluatePerformance, 3000); // try and find a previous score to use
+    value: function init(delay) {
+      var _this2 = this;
 
+      // try and find a previous score to use
       var score = getCachedPerformanceScore(this.key);
 
       if (!(0, _utils.isNumber)(score)) {
@@ -84503,8 +84501,13 @@ var DynamicPerformanceController = /*#__PURE__*/function () {
       this.initialLevel = PERFORMANCE_LEVEL[score];
       this.cachedLevel = PERFORMANCE_LEVEL[score - this.upgrades]; //  get the original value
 
-      console.log('perf:', PERFORMANCE_LEVEL[score]);
-      this.setScore(score);
+      this.setScore(score); // activate monitoring
+
+      setTimeout(function () {
+        _this2.evaluatePerformance();
+
+        _this2.interval = setInterval(_this2.evaluatePerformance, PERFORMANCE_MONITORING_INTERVAL);
+      }, delay);
     } // handles updated performance values
 
   }, {
@@ -84565,8 +84568,6 @@ var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/ge
 
 var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
 
-var debug = _interopRequireWildcard(require("../debug"));
-
 var _view = require("../utils/view");
 
 var _ntAnimator = require("nt-animator");
@@ -84578,10 +84579,6 @@ var _config = require("../config");
 var _fps = _interopRequireDefault(require("../fps"));
 
 var _perf = _interopRequireDefault(require("../perf"));
-
-function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -84838,6 +84835,7 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
                     key: options.dynamicPerformanceCacheKey || 'animation',
                     view: this,
                     onPerformanceChanged: this.onPerformanceChanged,
+                    delay: options.dynamicPerformanceMonitoringDelay || _config.DEFAULT_PERFORMANCE_MONITORING_DELAY,
                     fps: this.fps
                   });
                 }
@@ -84966,7 +84964,7 @@ function createCanvasRenderer(instance) {
     view: renderer.view
   };
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../debug":"debug.js","../utils/view":"utils/view.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../utils":"utils/index.js","../config":"config.js","../fps":"fps.js","../perf":"perf.js"}],"../node_modules/@babel/runtime/helpers/arrayLikeToArray.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../utils/view":"utils/view.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../utils":"utils/index.js","../config":"config.js","../fps":"fps.js","../perf":"perf.js"}],"../node_modules/@babel/runtime/helpers/arrayLikeToArray.js":[function(require,module,exports) {
 function _arrayLikeToArray(arr, len) {
   if (len == null || len > arr.length) len = arr.length;
 
@@ -98639,7 +98637,8 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 return (0, _get2.default)((0, _getPrototypeOf2.default)(GarageView.prototype), "init", this).call(this, _objectSpread({
                   scale: {
                     DEFAULT_MAX_HEIGHT: DEFAULT_MAX_HEIGHT
-                  }
+                  },
+                  useDynamicPerformance: false
                 }, options));
 
               case 2:
@@ -98781,7 +98780,9 @@ function fadeIn(car) {
     }
   });
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/car":"components/car/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js"}],"index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/car":"components/car/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js"}],"views/preview/index.js":[function(require,module,exports) {
+
+},{}],"index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98831,5 +98832,5 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var Audio = AudioController;
 exports.Audio = Audio;
-},{"./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"debug.js","./audio":"audio/index.js"}]},{},["index.js"], null)
+},{"./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"views/preview/index.js","./audio":"audio/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

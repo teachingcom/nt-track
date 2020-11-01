@@ -1,9 +1,8 @@
-import * as debug from '../debug';
 
 import { isViewActive, onViewActiveStateChanged } from '../utils/view';
 import { Animator, EventEmitter, PIXI } from 'nt-animator';
 import { noop } from '../utils';
-import { PERFORMANCE_LEVEL } from '../config';
+import { DEFAULT_PERFORMANCE_MONITORING_DELAY, PERFORMANCE_LEVEL } from '../config';
 
 // dynamic management of performance
 import FpsMonitor from '../fps';
@@ -108,6 +107,7 @@ export class BaseView extends EventEmitter {
 				key: options.dynamicPerformanceCacheKey || 'animation',
 				view: this,
 				onPerformanceChanged: this.onPerformanceChanged,
+				delay: options.dynamicPerformanceMonitoringDelay || DEFAULT_PERFORMANCE_MONITORING_DELAY,
 				fps: this.fps,
 			});
 		}

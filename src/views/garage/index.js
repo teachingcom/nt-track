@@ -12,6 +12,7 @@ export default class GarageView extends BaseView {
 		// initialize the view
 		await super.init({
 			scale: { DEFAULT_MAX_HEIGHT },
+			useDynamicPerformance: false,
 			...options
 		});
 

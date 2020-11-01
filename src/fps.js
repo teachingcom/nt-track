@@ -27,19 +27,11 @@ export default class FpsMonitor {
 		this.phaserFPS.stop();
 	}
 
-	
-	getSample = count => {
-		let avg = 0;
-		const total = this.pixiCache.length;
-		const limit = Math.min(count, total);
-		const start = total - limit;
-
-		// gather up all frame data
-		for (let i = start; i < total; i++) {
-			avg += this.pixiCache[i] + this.phaserCache[i];
-		}		
-
-		return avg / (limit * 2);
+	getSample = () => {
+		// simulate poor framerates
+		// const diminish = 0.6 + (0.3 * Math.random());
+		// return this.phaserFPS.actualFps * diminish;
+		return this.phaserFPS.actualFps;
 	}
 
 	
@@ -52,7 +44,7 @@ export default class FpsMonitor {
 		// captures PIXI fps reporting
 		setInterval(() => {
 			if (!this.active) return;
-			
+
 			// copy PIXI fps
 			const fps = Math.round(PIXI.Ticker.shared.FPS);
 			this.pixiCache.push(fps);
