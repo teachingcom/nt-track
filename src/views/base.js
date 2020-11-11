@@ -13,7 +13,7 @@ export class BaseView extends EventEmitter {
 
 	/** handles initial setup of the rendering area */
 	async init(options) {
-		const { scale } = options;
+		const { scale, forceCanvas } = options;
 
 		// monitor visibility changes
 		this.isViewActive = isViewActive();
@@ -61,7 +61,7 @@ export class BaseView extends EventEmitter {
 		let renderer = this.canvasRenderer;
 
 		// create WebGL, if supported
-		if (PIXI.utils.isWebGLSupported()) {
+		if (!forceCanvas && PIXI.utils.isWebGLSupported()) {
 			try {
 				createWebGLRenderer(this);
 				
@@ -262,18 +262,13 @@ export class BaseView extends EventEmitter {
 		const ssaa = true;
 		
 		// get the updated bounds
-		const bounds = parent.getBoundingClientRect();
-		const preferred = bounds.width;
 		const upscale = this.ssaaScalingLevel;
+		const containerWidth = parent.clientWidth;
+		const containerHeight = parent.clientHeight;
 
-		// get the size of the view
-		let width = parent.clientWidth;
-		let height = parent.clientHeight;
-
-		// scale as required
-		width = Math.floor(width * (ssaa ? upscale : 1));
-		height = Math.floor(height * (ssaa ? upscale : 1));
-		const scale = ssaa ? (preferred / width) : 1;
+		// get the scaled size
+		const width = Math.floor(containerWidth * (ssaa ? upscale : 1));
+		const height = Math.floor(containerHeight * (ssaa ? upscale : 1));
 
 		// update the sizing
 		view.resize(width, height);
@@ -285,8 +280,8 @@ export class BaseView extends EventEmitter {
 		this.cy = height / 2;
 		
 		// update the DOM element
-		this.renderer.view.style.width = `${width * scale}px`;
-		this.renderer.view.style.height = `${height * scale}px`;
+		this.renderer.view.style.width = `${containerWidth}px`;
+		this.renderer.view.style.height = `${containerHeight}px`;
 
 		// notify of the resize
 		const { cx, cy } = this;
@@ -309,6 +304,7 @@ function createWebGLRenderer(instance) {
 	// conflict with getting the size of
 	// the container
 	renderer.view.width = renderer.view.height = 1;
+	renderer.view.setAttribute('mode', 'webgl');
 
 	// setup the renderer
 	renderer.plugins.interaction.destroy();
@@ -330,6 +326,7 @@ function createCanvasRenderer(instance) {
 	// conflict with getting the size of
 	// the container
 	renderer.view.width = renderer.view.height = 1;
+	renderer.view.setAttribute('mode', 'canvas');
 
 	// setup the renderer
 	renderer.plugins.interaction.destroy();

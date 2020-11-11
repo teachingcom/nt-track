@@ -1,5 +1,4 @@
 import * as audio from '../../audio'
-import { SELECTED_CROWD_URL } from '../../plugins/crowd'
 
 // handles preloading external assets
 export default class AssetPreloader {
@@ -12,42 +11,10 @@ export default class AssetPreloader {
 	}
 
 	// prepares the resource loading 
-	async preload() {
-		this._generateResourceList()
+	async preload(resources) {
+		this.resources = resources;
 		await this._preloadResources()
 		this._validateResources()
-	}
-
-	// determine which assets to preload
-	_generateResourceList = () => {
-		const { options, animator } = this
-
-		// create a list of resources to preload
-		const trackAssetsUrl = `tracks/${options.trackId}/${options.variantId}`
-		const resources = [
-
-			// preselected crowd image
-			{ type: 'image', src: SELECTED_CROWD_URL },
-
-			// unique track images
-			{ type: 'image', src: `${trackAssetsUrl}.png` },
-			{ type: 'image', src: `${trackAssetsUrl}.jpg` },
-			
-			// include other image files
-			{ type: 'image', src: 'extras/countdown.jpg' },
-			{ type: 'image', src: 'extras/countdown.png' },
-			{ type: 'image', src: 'particles.png' },
-			{ type: 'image', src: 'images.jpg' },
-			{ type: 'image', src: 'images.png' },
-
-			// common audio
-			{ type: 'audio', src: 'common', sprites: animator.manifest.sounds },
-
-			// TODO: allow tracks to define additional resources
-		]
-
-		// save the resources
-		this.resources = resources
 	}
 
 	// kick off all asset loading requests

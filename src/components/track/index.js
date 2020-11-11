@@ -4,7 +4,7 @@ import { TRACK_HEIGHT, TRACK_TOP } from '../../views/track/scaling';
 import { TRACK_MAXIMUM_TRAVEL_DISTANCE, TRACK_MAXIMUM_SCROLL_SPEED, TRACK_STARTING_LINE_POSITION } from '../../config';
 import { isArray, isNumber } from '../../utils';
 import Segment from './segment';
-import createCrowd from '../../plugins/crowd';
+import createCrowd, { SELECTED_CROWD_URL } from '../../plugins/crowd';
 import AmbientAudio from '../../audio/ambient';
 import AssetPreloader from './preload';
 
@@ -121,18 +121,40 @@ export default class Track {
 	// handles preloading track assets
 	async _preloadResources() {
 		const { view, options } = this
+		const { animator } = view
 		const { onLoadTrackAssets } = options
 		
 		// try to load external resources
 		const preloader = new AssetPreloader(this);
 		try {
-			await preloader.preload();
-			onLoadTrackAssets();
+			// create a list of resources to preload
+			const trackAssetsUrl = `tracks/${options.trackId}/${options.variantId}`
+			await preloader.preload([
+				// preselected crowd image
+				{ type: 'image', src: SELECTED_CROWD_URL },
+	
+				// unique track images
+				{ type: 'image', src: `${trackAssetsUrl}.png` },
+				{ type: 'image', src: `${trackAssetsUrl}.jpg` },
+				
+				// include other image files
+				{ type: 'image', src: 'extras/countdown.jpg' },
+				{ type: 'image', src: 'extras/countdown.png' },
+				{ type: 'image', src: 'particles.png' },
+				{ type: 'image', src: 'images.jpg' },
+				{ type: 'image', src: 'images.png' },
+	
+				// common audio
+				{ type: 'audio', src: 'common', sprites: animator.manifest.sounds }
+			])
+
+			// assets have loaded
+			onLoadTrackAssets()
 		}
 		// failed to load
 		catch (ex) {
-			view.setLoadingStatus('assets', preloader.status);
-			console.error(`failed to preload track resources`);
+			view.setLoadingStatus('assets', preloader.status)
+			console.error(`failed to preload track resources`)
 			throw ex;
 		}
 	}

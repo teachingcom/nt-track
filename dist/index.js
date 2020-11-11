@@ -74242,7 +74242,8 @@ function loadImage(url) {
     var request = function request() {
       img = document.createElement('img');
       img.onload = handle(true);
-      img.onerror = handle(false); // replace the image url
+      img.onerror = handle(false);
+      img.crossOrigin = 'anonymous'; // replace the image url
 
       setTimeout(function () {
         img.src = url;
@@ -74366,10 +74367,7 @@ function generateSprites(image, spritesheetId, spritesheet, ext) {
   for (var id in spritesheet) {
     var record = spritesheet[id]; // if this is not an array, skip it
 
-    if (!Array.isArray(record)) {
-      continue;
-    } // make sure it's for the image type used
-
+    if (!Array.isArray(record)) continue; // make sure it's for the image type used
 
     var _record = (0, _slicedToArray2.default)(record, 5),
         x = _record[0],
@@ -74378,10 +74376,7 @@ function generateSprites(image, spritesheetId, spritesheet, ext) {
         height = _record[3],
         type = _record[4];
 
-    if (type !== ext) {
-      continue;
-    } // save the texture
-
+    if (type !== ext) continue; // save the texture
 
     var rect = new _lib.PIXI.Rectangle(x, y, width, height);
     var texture = new _lib.PIXI.Texture(base, rect);
@@ -84713,16 +84708,12 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
       var surface = renderer.view;
       var ssaa = true; // get the updated bounds
 
-      var bounds = parent.getBoundingClientRect();
-      var preferred = bounds.width;
-      var upscale = _this.ssaaScalingLevel; // get the size of the view
+      var upscale = _this.ssaaScalingLevel;
+      var containerWidth = parent.clientWidth;
+      var containerHeight = parent.clientHeight; // get the scaled size
 
-      var width = parent.clientWidth;
-      var height = parent.clientHeight; // scale as required
-
-      width = Math.floor(width * (ssaa ? upscale : 1));
-      height = Math.floor(height * (ssaa ? upscale : 1));
-      var scale = ssaa ? preferred / width : 1; // update the sizing
+      var width = Math.floor(containerWidth * (ssaa ? upscale : 1));
+      var height = Math.floor(containerHeight * (ssaa ? upscale : 1)); // update the sizing
 
       view.resize(width, height); // resize the view
 
@@ -84731,8 +84722,8 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
       _this.cx = width / 2;
       _this.cy = height / 2; // update the DOM element
 
-      _this.renderer.view.style.width = "".concat(width * scale, "px");
-      _this.renderer.view.style.height = "".concat(height * scale, "px"); // notify of the resize
+      _this.renderer.view.style.width = "".concat(containerWidth, "px");
+      _this.renderer.view.style.height = "".concat(containerHeight, "px"); // notify of the resize
 
       var _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this),
           cx = _assertThisInitialize3.cx,
@@ -84757,12 +84748,12 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
     /** handles initial setup of the rendering area */
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(options) {
-        var scale, baseUrl, seed, manifest, DEFAULT_BACKGROUND_COLOR, transparent, hasBackgroundColor, clearBeforeRender, backgroundColor, renderer, gl, axes;
+        var scale, forceCanvas, baseUrl, seed, manifest, DEFAULT_BACKGROUND_COLOR, transparent, hasBackgroundColor, clearBeforeRender, backgroundColor, renderer, gl, axes;
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                scale = options.scale; // monitor visibility changes
+                scale = options.scale, forceCanvas = options.forceCanvas; // monitor visibility changes
 
                 this.isViewActive = (0, _view.isViewActive)();
                 (0, _view.onViewActiveStateChanged)(this.onViewActiveStateChanged); // save some options
@@ -84802,7 +84793,7 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
                 createCanvasRenderer(this);
                 renderer = this.canvasRenderer; // create WebGL, if supported
 
-                if (_ntAnimator.PIXI.utils.isWebGLSupported()) {
+                if (!forceCanvas && _ntAnimator.PIXI.utils.isWebGLSupported()) {
                   try {
                     createWebGLRenderer(this); // if it was successful, we want to monitor for
                     // any webGL context errors
@@ -84942,7 +84933,8 @@ function createWebGLRenderer(instance) {
   // conflict with getting the size of
   // the container
 
-  renderer.view.width = renderer.view.height = 1; // setup the renderer
+  renderer.view.width = renderer.view.height = 1;
+  renderer.view.setAttribute('mode', 'webgl'); // setup the renderer
 
   renderer.plugins.interaction.destroy();
   instance.webGLRenderer = {
@@ -84960,7 +84952,8 @@ function createCanvasRenderer(instance) {
   // conflict with getting the size of
   // the container
 
-  renderer.view.width = renderer.view.height = 1; // setup the renderer
+  renderer.view.width = renderer.view.height = 1;
+  renderer.view.setAttribute('mode', 'canvas'); // setup the renderer
 
   renderer.plugins.interaction.destroy();
   instance.canvasRenderer = {
@@ -94575,8 +94568,6 @@ var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/de
 
 var audio = _interopRequireWildcard(require("../../audio"));
 
-var _crowd = require("../../plugins/crowd");
-
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
@@ -94596,48 +94587,6 @@ var AssetPreloader = /*#__PURE__*/function () {
     var _this = this;
 
     (0, _classCallCheck2.default)(this, AssetPreloader);
-    (0, _defineProperty2.default)(this, "_generateResourceList", function () {
-      var options = _this.options,
-          animator = _this.animator; // create a list of resources to preload
-
-      var trackAssetsUrl = "tracks/".concat(options.trackId, "/").concat(options.variantId);
-      var resources = [// preselected crowd image
-      {
-        type: 'image',
-        src: _crowd.SELECTED_CROWD_URL
-      }, // unique track images
-      {
-        type: 'image',
-        src: "".concat(trackAssetsUrl, ".png")
-      }, {
-        type: 'image',
-        src: "".concat(trackAssetsUrl, ".jpg")
-      }, // include other image files
-      {
-        type: 'image',
-        src: 'extras/countdown.jpg'
-      }, {
-        type: 'image',
-        src: 'extras/countdown.png'
-      }, {
-        type: 'image',
-        src: 'particles.png'
-      }, {
-        type: 'image',
-        src: 'images.jpg'
-      }, {
-        type: 'image',
-        src: 'images.png'
-      }, // common audio
-      {
-        type: 'audio',
-        src: 'common',
-        sprites: animator.manifest.sounds
-      } // TODO: allow tracks to define additional resources
-      ]; // save the resources
-
-      _this.resources = resources;
-    });
     (0, _defineProperty2.default)(this, "_preloadResources", /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
       var resources, animator, pending, _iterator, _step, resource, type, src, sprites, task;
 
@@ -94750,13 +94699,12 @@ var AssetPreloader = /*#__PURE__*/function () {
   (0, _createClass2.default)(AssetPreloader, [{
     key: "preload",
     value: function () {
-      var _preload = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+      var _preload = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(resources) {
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                this._generateResourceList();
-
+                this.resources = resources;
                 _context2.next = 3;
                 return this._preloadResources();
 
@@ -94771,12 +94719,12 @@ var AssetPreloader = /*#__PURE__*/function () {
         }, _callee2, this);
       }));
 
-      function preload() {
+      function preload(_x) {
         return _preload.apply(this, arguments);
       }
 
       return preload;
-    }() // determine which assets to preload
+    }() // kick off all asset loading requests
 
   }]);
   return AssetPreloader;
@@ -94788,7 +94736,7 @@ exports.default = AssetPreloader;
 function AssetLoadingError() {}
 
 function InvalidResourceError() {}
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../audio":"audio/index.js","../../plugins/crowd":"plugins/crowd/index.js"}],"components/track/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../audio":"audio/index.js"}],"components/track/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -94820,11 +94768,15 @@ var _utils = require("../../utils");
 
 var _segment3 = _interopRequireDefault(require("./segment"));
 
-var _crowd = _interopRequireDefault(require("../../plugins/crowd"));
+var _crowd = _interopRequireWildcard(require("../../plugins/crowd"));
 
 var _ambient = _interopRequireDefault(require("../../audio/ambient"));
 
 var _preload = _interopRequireDefault(require("./preload"));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -95007,37 +94959,73 @@ var Track = /*#__PURE__*/function () {
     key: "_preloadResources",
     value: function () {
       var _preloadResources2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
-        var view, options, onLoadTrackAssets, preloader;
+        var view, options, animator, onLoadTrackAssets, preloader, trackAssetsUrl;
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
                 view = this.view, options = this.options;
+                animator = view.animator;
                 onLoadTrackAssets = options.onLoadTrackAssets; // try to load external resources
 
                 preloader = new _preload.default(this);
-                _context.prev = 3;
-                _context.next = 6;
-                return preloader.preload();
+                _context.prev = 4;
+                // create a list of resources to preload
+                trackAssetsUrl = "tracks/".concat(options.trackId, "/").concat(options.variantId);
+                _context.next = 8;
+                return preloader.preload([// preselected crowd image
+                {
+                  type: 'image',
+                  src: _crowd.SELECTED_CROWD_URL
+                }, // unique track images
+                {
+                  type: 'image',
+                  src: "".concat(trackAssetsUrl, ".png")
+                }, {
+                  type: 'image',
+                  src: "".concat(trackAssetsUrl, ".jpg")
+                }, // include other image files
+                {
+                  type: 'image',
+                  src: 'extras/countdown.jpg'
+                }, {
+                  type: 'image',
+                  src: 'extras/countdown.png'
+                }, {
+                  type: 'image',
+                  src: 'particles.png'
+                }, {
+                  type: 'image',
+                  src: 'images.jpg'
+                }, {
+                  type: 'image',
+                  src: 'images.png'
+                }, // common audio
+                {
+                  type: 'audio',
+                  src: 'common',
+                  sprites: animator.manifest.sounds
+                }]);
 
-              case 6:
+              case 8:
+                // assets have loaded
                 onLoadTrackAssets();
-                _context.next = 14;
+                _context.next = 16;
                 break;
 
-              case 9:
-                _context.prev = 9;
-                _context.t0 = _context["catch"](3);
+              case 11:
+                _context.prev = 11;
+                _context.t0 = _context["catch"](4);
                 view.setLoadingStatus('assets', preloader.status);
                 console.error("failed to preload track resources");
                 throw _context.t0;
 
-              case 14:
+              case 16:
               case "end":
                 return _context.stop();
             }
           }
-        }, _callee, this, [[3, 9]]);
+        }, _callee, this, [[4, 11]]);
       }));
 
       function _preloadResources() {
@@ -98427,7 +98415,8 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
 var DEFAULT_MAX_HEIGHT = 250;
-var EFFECTS_PADDING_SCALING = 0.8;
+var EFFECTS_PADDING_SCALING = 0.7;
+var TRANSITION_TIME = 350;
 
 var GarageView = /*#__PURE__*/function (_BaseView) {
   (0, _inherits2.default)(GarageView, _BaseView);
@@ -98643,7 +98632,8 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                   scale: {
                     DEFAULT_MAX_HEIGHT: DEFAULT_MAX_HEIGHT
                   },
-                  useDynamicPerformance: false
+                  useDynamicPerformance: false,
+                  forceCanvas: true
                 }, options));
 
               case 2:
@@ -98697,7 +98687,7 @@ function driveOut(car) {
 
   return new Promise(function (resolve) {
     (0, _ntAnimator.animate)({
-      duration: 500,
+      duration: TRANSITION_TIME,
       ease: 'linear',
       from: {
         x: car.relativeX,
@@ -98723,7 +98713,7 @@ function driveOut(car) {
 function driveIn(car) {
   car.relativeX = -1.5;
   car.animation = (0, _ntAnimator.animate)({
-    duration: 500,
+    duration: TRANSITION_TIME,
     ease: 'linear',
     from: {
       x: 1.5
@@ -98747,7 +98737,7 @@ function fadeOut(car) {
 
   return new Promise(function (resolve) {
     (0, _ntAnimator.animate)({
-      duration: 500,
+      duration: TRANSITION_TIME,
       ease: 'linear',
       from: {
         alpha: car.alpha
@@ -98771,7 +98761,7 @@ function fadeIn(car) {
   car.alpha = 0;
   car.relativeX = 0.5;
   car.animation = (0, _ntAnimator.animate)({
-    duration: 500,
+    duration: TRANSITION_TIME,
     ease: 'linear',
     from: {
       alpha: 0

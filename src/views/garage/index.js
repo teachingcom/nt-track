@@ -3,7 +3,8 @@ import { animate, getBoundsForRole, PIXI } from 'nt-animator';
 import { BaseView } from "../base";
 
 const DEFAULT_MAX_HEIGHT = 250;
-const EFFECTS_PADDING_SCALING = 0.8;
+const EFFECTS_PADDING_SCALING = 0.7;
+const TRANSITION_TIME = 350;
 
 export default class GarageView extends BaseView {
 
@@ -13,6 +14,7 @@ export default class GarageView extends BaseView {
 		await super.init({
 			scale: { DEFAULT_MAX_HEIGHT },
 			useDynamicPerformance: false,
+			forceCanvas: true,
 			...options
 		});
 
@@ -153,7 +155,7 @@ function driveOut(car) {
 
 	return new Promise(resolve => {
 		animate({
-			duration: 500,
+			duration: TRANSITION_TIME,
 			ease: 'linear',
 			from: { x: car.relativeX, alpha: car.alpha },
 			to: { x: car.relativeX - 1, alpha: 0 },
@@ -173,7 +175,7 @@ function driveOut(car) {
 function driveIn(car) {
 	car.relativeX = -1.5;
 	car.animation = animate({
-		duration: 500,
+		duration: TRANSITION_TIME,
 		ease: 'linear',
 		from: { x: 1.5 },
 		to: { x: 0.5 },
@@ -191,7 +193,7 @@ function fadeOut(car) {
 	// request the animation
 	return new Promise(resolve => {
 		animate({
-			duration: 500,
+			duration: TRANSITION_TIME,
 			ease: 'linear',
 			from: { alpha: car.alpha },
 			to: { alpha: 0 },
@@ -209,7 +211,7 @@ function fadeIn(car) {
 	car.alpha = 0;
 	car.relativeX = 0.5;
 	car.animation = animate({
-		duration: 500,
+		duration: TRANSITION_TIME,
 		ease: 'linear',
 		from: { alpha: 0 },
 		to: { alpha: 1 },
