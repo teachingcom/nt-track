@@ -71132,6 +71132,11 @@ var MAPPINGS = [// transforms
   apply: function apply(t, v) {
     return t.scale.y = v;
   }
+}, {
+  prop: 'scale',
+  apply: function apply(t, v) {
+    return t.scale.y = t.scale.x = v;
+  }
 }, // layer scaling
 {
   prop: 'skewX',
@@ -73813,6 +73818,7 @@ function animate(params) {
     targets: props,
     easing: params.ease || params.easing || params.easings || 'linear',
     duration: params.duration,
+    direction: params.direction,
     delay: params.delay || 0,
     autoplay: params.auto !== false && params.autoplay !== false,
     loop: params.loop !== false
@@ -85352,7 +85358,9 @@ var FURZE_SCREW_TANK = 220;
 var FURZE_HOVER_BIKE = 221;
 var FURZE_JET_BIKE = 222;
 var FROSTED_ROLLER = 192;
-var NT_GOLD = 175; // look up special animations
+var NT_GOLD = 175;
+var CHRISTMAS_TANK = 224;
+var WRAPPING_PAPER_PLANE = 223; // look up special animations
 
 function getCarAnimations(id) {
   return CAR_MAPPINGS[id] || id;
@@ -85372,7 +85380,7 @@ function getCarOverrides(type) {
 var CAR_PLUGINS = (_CAR_PLUGINS = {}, (0, _defineProperty2.default)(_CAR_PLUGINS, WAMPUS, wampus.extend), (0, _defineProperty2.default)(_CAR_PLUGINS, "wampus", wampus.extend), _CAR_PLUGINS); // mapping for advanced animation cars
 
 exports.CAR_PLUGINS = CAR_PLUGINS;
-var CAR_MAPPINGS = (_CAR_MAPPINGS = {}, (0, _defineProperty2.default)(_CAR_MAPPINGS, XCELSIOR, 'xcelsior'), (0, _defineProperty2.default)(_CAR_MAPPINGS, WAMPUS, 'wampus'), (0, _defineProperty2.default)(_CAR_MAPPINGS, FURZE_HOVER_BIKE, 'furze_hover_bike'), (0, _defineProperty2.default)(_CAR_MAPPINGS, FURZE_JET_BIKE, 'furze_jet_bike'), (0, _defineProperty2.default)(_CAR_MAPPINGS, FURZE_SCREW_TANK, 'furze_tank'), _CAR_MAPPINGS); // special transforms for cars depending on their sprites
+var CAR_MAPPINGS = (_CAR_MAPPINGS = {}, (0, _defineProperty2.default)(_CAR_MAPPINGS, XCELSIOR, 'xcelsior'), (0, _defineProperty2.default)(_CAR_MAPPINGS, WAMPUS, 'wampus'), (0, _defineProperty2.default)(_CAR_MAPPINGS, FURZE_HOVER_BIKE, 'furze_hover_bike'), (0, _defineProperty2.default)(_CAR_MAPPINGS, FURZE_JET_BIKE, 'furze_jet_bike'), (0, _defineProperty2.default)(_CAR_MAPPINGS, FURZE_SCREW_TANK, 'furze_tank'), (0, _defineProperty2.default)(_CAR_MAPPINGS, CHRISTMAS_TANK, 'christmas_tank'), (0, _defineProperty2.default)(_CAR_MAPPINGS, WRAPPING_PAPER_PLANE, 'wrapping_paper_plane'), _CAR_MAPPINGS); // special transforms for cars depending on their sprites
 
 exports.CAR_MAPPINGS = CAR_MAPPINGS;
 var CAR_OVERRIDES = (_CAR_OVERRIDES = {}, (0, _defineProperty2.default)(_CAR_OVERRIDES, FROSTED_ROLLER, {

@@ -9,6 +9,8 @@ const FURZE_HOVER_BIKE = 221
 const FURZE_JET_BIKE = 222
 const FROSTED_ROLLER = 192
 const NT_GOLD = 175
+const CHRISTMAS_TANK = 224
+const WRAPPING_PAPER_PLANE = 223
 
 // look up special animations
 export function getCarAnimations (id) {
@@ -37,7 +39,9 @@ export const CAR_MAPPINGS = {
   [WAMPUS]: 'wampus',
   [FURZE_HOVER_BIKE]: 'furze_hover_bike',
   [FURZE_JET_BIKE]: 'furze_jet_bike',
-  [FURZE_SCREW_TANK]: 'furze_tank'
+  [FURZE_SCREW_TANK]: 'furze_tank',
+  [CHRISTMAS_TANK]: 'christmas_tank',
+  [WRAPPING_PAPER_PLANE]: 'wrapping_paper_plane'
   // 15: 'xcelsior',
   // 3: 'grid',
 }
