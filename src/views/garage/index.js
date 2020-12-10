@@ -1,6 +1,7 @@
 import Car from "../../components/car";
-import { animate, getBoundsForRole, PIXI } from 'nt-animator';
+import { animate, findDisplayObjectsOfRole, getBoundsForRole, PIXI } from 'nt-animator';
 import { BaseView } from "../base";
+import { isNumber } from "../../utils";
 
 const DEFAULT_MAX_HEIGHT = 250;
 const EFFECTS_PADDING_SCALING = 0.7;
@@ -99,6 +100,7 @@ export default class GarageView extends BaseView {
 	// creates a new car instance
 	createCar = async config => {
 		const view = this;
+		const { tweaks = { } } = this.options;
 		const { type, hue } = config;
 
 		// create the new car
@@ -134,7 +136,21 @@ export default class GarageView extends BaseView {
 		container.rotation = Math.PI;
 
 		// car shadow fixes
-		car.moveShadow(0, -1);
+		if (isNumber(tweaks.rotation)) {
+			container.rotation += tweaks.rotation;
+		}
+
+		const shadowX = isNumber(tweaks.shadowX) ? tweaks.shadowX : 0;
+		const shadowY = isNumber(tweaks.shadowY) ? tweaks.shadowY : -1;
+		car.moveShadow(shadowX, shadowY);
+
+		// adjusting opacities
+		if (isNumber(tweaks.shadowOpacity)) {
+			const shadows = findDisplayObjectsOfRole(container, 'shadow');
+			for (const shadow of shadows) {
+				shadow.alpha *= tweaks.shadowOpacity;
+			}
+		}
 
 		return container;
 	}

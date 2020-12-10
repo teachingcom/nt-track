@@ -21,7 +21,7 @@ export default class Treadmill extends PIXI.Container {
 			// TODO: ideally we position in their correct locations as we go, but
 			// it's possible that the bounds of one group to the next are different
 			// so for now just do this in two passes
-			tile.x = i * tile.bounds.width;
+			tile.x = totalWidth;
 			totalWidth += tile.bounds.width;
 
 			// all road slices should be the same, but just
@@ -71,7 +71,7 @@ export default class Treadmill extends PIXI.Container {
 		const position = min.getBounds();
 		const wrapAt = horizontalWrap - (min.bounds.width * 2);
 		if (position.x < wrapAt) {
-			min.x = max.x + min.bounds.width;
+			min.x = max.x + min.bounds.width - 2;
 		}
 
 	}
@@ -81,56 +81,56 @@ export default class Treadmill extends PIXI.Container {
 	 */
 	fitTo(block, position) {
 
-		// TODO: if the road is a defined sequence, then we should
-		// move all rows so they're sorted by their sequence again
-		// this can probably be done by sorting positions first and
-		// then copying the final values and setting again
+		// // TODO: if the road is a defined sequence, then we should
+		// // move all rows so they're sorted by their sequence again
+		// // this can probably be done by sorting positions first and
+		// // then copying the final values and setting again
 
-		const { segments } = this;
-		const total = segments.length;
+		// const { segments } = this;
+		// const total = segments.length;
 
-		// start searching for the "split" of the treadmill (the position to insert at)
-		for (let i = 0; i < total; i++) {
-			const segment = segments[i];
-			const bounds = segment.getBounds();
+		// // start searching for the "split" of the treadmill (the position to insert at)
+		// for (let i = 0; i < total; i++) {
+		// 	const segment = segments[i];
+		// 	const bounds = segment.getBounds();
 
-			// found the "split" location
-			if (bounds.left > position) {
+		// 	// found the "split" location
+		// 	if (bounds.left > position) {
 
-				// shift the prior layer backwards
-				let shiftBack;
-				for (let j = i; j-- > 0;) {
-					const target = segments[j];
+		// 		// shift the prior layer backwards
+		// 		let shiftBack;
+		// 		for (let j = i; j-- > 0;) {
+		// 			const target = segments[j];
 
-					// if not set, figure out the amount to shift the layer by
-					if (isNaN(shiftBack)) {
-						shiftBack = target.bounds.right - block.bounds.left;
-					}
+		// 			// if not set, figure out the amount to shift the layer by
+		// 			if (isNaN(shiftBack)) {
+		// 				shiftBack = target.bounds.right - block.bounds.left;
+		// 			}
 
-					// move backwards
-					target.x -= shiftBack;
-				}
+		// 			// move backwards
+		// 			target.x -= shiftBack;
+		// 		}
 
-				// shift later layers forward
-				let shiftForward;
-				for (let j = i; j < total; j++) {
-					const target = segments[j];
+		// 		// shift later layers forward
+		// 		let shiftForward;
+		// 		for (let j = i; j < total; j++) {
+		// 			const target = segments[j];
 
-					// if not set, figure out the amount to shift the layer by
-					// TODO: verify this works in more scenarios
-					if (isNaN(shiftForward)) {
-						shiftForward = (block.bounds.right - target.bounds.left) - target.bounds.width;
-					}
+		// 			// if not set, figure out the amount to shift the layer by
+		// 			// TODO: verify this works in more scenarios
+		// 			if (isNaN(shiftForward)) {
+		// 				shiftForward = (block.bounds.right - target.bounds.left) - target.bounds.width;
+		// 			}
 
-					// move backwards
-					target.x += shiftForward;
-				}
+		// 			// move backwards
+		// 			target.x += shiftForward;
+		// 		}
 				
-				// no need to continue searching
-				break;
-			}
+		// 		// no need to continue searching
+		// 		break;
+		// 	}
 		
-		}
+		// }
 
 	}
 

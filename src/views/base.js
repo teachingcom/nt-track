@@ -4,6 +4,8 @@ import { Animator, EventEmitter, PIXI } from 'nt-animator';
 import { noop } from '../utils';
 import { DEFAULT_PERFORMANCE_MONITORING_DELAY, PERFORMANCE_LEVEL } from '../config';
 
+window.NTVIEWS = [ ]
+
 // dynamic management of performance
 import FpsMonitor from '../fps';
 import DynamicPerformanceController from '../perf';
@@ -14,6 +16,7 @@ export class BaseView extends EventEmitter {
 	/** handles initial setup of the rendering area */
 	async init(options) {
 		const { scale, forceCanvas } = options;
+		NTVIEWS.push(this)
 
 		// monitor visibility changes
 		this.isViewActive = isViewActive();

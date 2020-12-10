@@ -12,6 +12,10 @@ const NT_GOLD = 175
 const CHRISTMAS_TANK = 224
 const WRAPPING_PAPER_PLANE = 223
 
+// TEMP
+const N6SPORT = 300
+const DOMINATOR = 400
+
 // look up special animations
 export function getCarAnimations (id) {
   return CAR_MAPPINGS[id] || id
@@ -41,7 +45,11 @@ export const CAR_MAPPINGS = {
   [FURZE_JET_BIKE]: 'furze_jet_bike',
   [FURZE_SCREW_TANK]: 'furze_tank',
   [CHRISTMAS_TANK]: 'christmas_tank',
-  [WRAPPING_PAPER_PLANE]: 'wrapping_paper_plane'
+  [WRAPPING_PAPER_PLANE]: 'wrapping_paper_plane',
+  [DOMINATOR]: 'dominator',
+  [N6SPORT]: 'n6sport'
+
+  // temps
   // 15: 'xcelsior',
   // 3: 'grid',
 }

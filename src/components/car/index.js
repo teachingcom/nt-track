@@ -55,6 +55,7 @@ export default class Car extends PIXI.Container {
 		await instance._initFilters();
 
 		// return the created car
+		
 		return instance;
 	}
 	

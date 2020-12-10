@@ -512,12 +512,12 @@ export default class TrackView extends BaseView {
 			raceCompletedAnimation
 		} = this;
 
-		// if throttling
-		if (!this.shouldAnimateFrame && !force) return;
-		
 		// calculate the delta
 		state.delta = this.getDeltaTime(this.lastUpdate);
 		this.lastUpdate = +new Date;
+
+		// if throttling
+		if (!this.shouldAnimateFrame && !force) return;
 		
 		// gather some data
 		const { animateTrackMovement, trackMovementAmount } = state;
