@@ -48,19 +48,35 @@ export default class CruiseView extends BaseView {
 
     car.x = CAR_X
     car.y = CAR_Y
-
+    car.alpha = 0
+    
+    // this.container.alpha = 0
     this.container.pivot.x = 420
     this.container.pivot.y = 350
     this.container.y = this.view.height * 0.5
-    this.container.x = this.view.width * 0.25
+    this.container.x = -1.5
+  
+    
+    // fade in the car
+		animate({
+			from: { alpha: 0 },
+			to: { alpha: 1 },
+			ease: 'linear',
+      duration: 500,
+			loop: false,
+      update: props => car.alpha = props.alpha
+		});
 
     
-    // setup the main
-    // this.container.pivot.x = 200
-    // this.container.pivot.y = this.view.height / 2
-    // this.container.x = -100
-    // this.container.y = this.view.height
-
+    // pan the animation into view
+		animate({
+			from: { x: -1.5 },
+			to: { x: this.view.width * 0.25 },
+			ease: 'easeOutQuad',
+      duration: 1500,
+			loop: false,
+      update: props => this.container.x = props.x
+		});
     
 		// animate the player entry
 		animate({

@@ -78260,7 +78260,7 @@ var _lib = require("../lib");
 // this is a temporary solution that ensures animations play
 function createAnimatedSpriteHelper(sprite, props) {
   // determine how often to update the keyframes
-  var frequency = 1000 / (props.fps || 60); // keeping track of the next time to cycle
+  var frequency = 1000 / ((props === null || props === void 0 ? void 0 : props.fps) || 60); // keeping track of the next time to cycle
 
   var nextFrame = Date.now() + frequency; // do this when the frame is updated
 
@@ -78372,7 +78372,7 @@ function _createSprite() {
             // has strange behaviors when multiple
             // instances are active
 
-            if (isAnimated) {
+            if (isAnimated && layer.autoplay !== false) {
               (0, _animatedSprite.default)(sprite, layer.props);
             }
 
@@ -94146,7 +94146,7 @@ function _createCrowd() {
           case 7:
             // create the crowd
             sprite = new _ntAnimator.PIXI.AnimatedSprite(FRAMES);
-            sprite.animationSpeed = 0.2 + Math.random() * 0.1;
+            sprite.animationSpeed = 0.1 + Math.random() * 0.3;
             sprite.scale.x = sprite.scale.y = _config.CROWD_DEFAULT_SCALE;
             sprite.pivot.y = sprite.height * 0.375;
             sprite.gotoAndPlay(0 | Math.random() * sprite.totalFrames); // randomize direction?
@@ -99211,15 +99211,42 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
                 CAR_Y = 350;
                 car.x = CAR_X;
                 car.y = CAR_Y;
+                car.alpha = 0; // this.container.alpha = 0
+
                 this.container.pivot.x = 420;
                 this.container.pivot.y = 350;
                 this.container.y = this.view.height * 0.5;
-                this.container.x = this.view.width * 0.25; // setup the main
-                // this.container.pivot.x = 200
-                // this.container.pivot.y = this.view.height / 2
-                // this.container.x = -100
-                // this.container.y = this.view.height
-                // animate the player entry
+                this.container.x = -1.5; // fade in the car
+
+                (0, _ntAnimator.animate)({
+                  from: {
+                    alpha: 0
+                  },
+                  to: {
+                    alpha: 1
+                  },
+                  ease: 'linear',
+                  duration: 500,
+                  loop: false,
+                  update: function update(props) {
+                    return car.alpha = props.alpha;
+                  }
+                }); // pan the animation into view
+
+                (0, _ntAnimator.animate)({
+                  from: {
+                    x: -1.5
+                  },
+                  to: {
+                    x: this.view.width * 0.25
+                  },
+                  ease: 'easeOutQuad',
+                  duration: 1500,
+                  loop: false,
+                  update: function update(props) {
+                    return _this2.container.x = props.x;
+                  }
+                }); // animate the player entry
 
                 (0, _ntAnimator.animate)({
                   from: {
@@ -99254,7 +99281,7 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
 
                 this.startAutoRender();
 
-              case 24:
+              case 27:
               case "end":
                 return _context.stop();
             }
