@@ -85380,72 +85380,26 @@ function _extend() {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.getCarAnimations = getCarAnimations;
 exports.getCarPlugin = getCarPlugin;
-exports.getCarOverrides = getCarOverrides;
-exports.CAR_OVERRIDES = exports.CAR_MAPPINGS = exports.CAR_PLUGINS = void 0;
-
-var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+exports.CAR_PLUGINS = void 0;
 
 var wampus = _interopRequireWildcard(require("./plugins/cars/wampus"));
-
-var _CAR_PLUGINS, _CAR_MAPPINGS, _CAR_OVERRIDES;
 
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-// ID to car mappings
-// TODO: does this make sense to be part of the manifest?
-var WAMPUS = 97;
-var XCELSIOR = 86;
-var FURZE_SCREW_TANK = 220;
-var FURZE_HOVER_BIKE = 221;
-var FURZE_JET_BIKE = 222;
-var FROSTED_ROLLER = 192;
-var NT_GOLD = 175;
-var CHRISTMAS_TANK = 224;
-var WRAPPING_PAPER_PLANE = 223; // TEMP
-
-var N6SPORT = 300;
-var DOMINATOR = 400; // look up special animations
-
-function getCarAnimations(id) {
-  return CAR_MAPPINGS[id] || id;
-} // look up car plugins
-
-
+// look up car plugins
 function getCarPlugin(type) {
   return CAR_PLUGINS[type];
-} // look up car plugins
-
-
-function getCarOverrides(type) {
-  return CAR_OVERRIDES[type];
 } // various car plugins
 
 
-var CAR_PLUGINS = (_CAR_PLUGINS = {}, (0, _defineProperty2.default)(_CAR_PLUGINS, WAMPUS, wampus.extend), (0, _defineProperty2.default)(_CAR_PLUGINS, "wampus", wampus.extend), _CAR_PLUGINS); // mapping for advanced animation cars
-
+var CAR_PLUGINS = {
+  wampus: wampus.extend
+};
 exports.CAR_PLUGINS = CAR_PLUGINS;
-var CAR_MAPPINGS = (_CAR_MAPPINGS = {}, (0, _defineProperty2.default)(_CAR_MAPPINGS, XCELSIOR, 'xcelsior'), (0, _defineProperty2.default)(_CAR_MAPPINGS, WAMPUS, 'wampus'), (0, _defineProperty2.default)(_CAR_MAPPINGS, FURZE_HOVER_BIKE, 'furze_hover_bike'), (0, _defineProperty2.default)(_CAR_MAPPINGS, FURZE_JET_BIKE, 'furze_jet_bike'), (0, _defineProperty2.default)(_CAR_MAPPINGS, FURZE_SCREW_TANK, 'furze_tank'), (0, _defineProperty2.default)(_CAR_MAPPINGS, CHRISTMAS_TANK, 'christmas_tank'), (0, _defineProperty2.default)(_CAR_MAPPINGS, WRAPPING_PAPER_PLANE, 'wrapping_paper_plane'), (0, _defineProperty2.default)(_CAR_MAPPINGS, DOMINATOR, 'dominator'), (0, _defineProperty2.default)(_CAR_MAPPINGS, N6SPORT, 'n6sport'), _CAR_MAPPINGS); // special transforms for cars depending on their sprites
-
-exports.CAR_MAPPINGS = CAR_MAPPINGS;
-var CAR_OVERRIDES = (_CAR_OVERRIDES = {}, (0, _defineProperty2.default)(_CAR_OVERRIDES, FROSTED_ROLLER, {
-  flipY: true
-}), (0, _defineProperty2.default)(_CAR_OVERRIDES, NT_GOLD, {
-  rotation: -Math.PI
-}), (0, _defineProperty2.default)(_CAR_OVERRIDES, FURZE_HOVER_BIKE, {
-  noTrail: true
-}), (0, _defineProperty2.default)(_CAR_OVERRIDES, FURZE_SCREW_TANK, {
-  noTrail: true
-}), (0, _defineProperty2.default)(_CAR_OVERRIDES, FURZE_JET_BIKE, {
-  noTrail: true
-}), _CAR_OVERRIDES);
-exports.CAR_OVERRIDES = CAR_OVERRIDES;
-},{"@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","./plugins/cars/wampus":"plugins/cars/wampus.js"}],"components/car/create-static-car.js":[function(require,module,exports) {
+},{"./plugins/cars/wampus":"plugins/cars/wampus.js"}],"components/car/create-static-car.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
