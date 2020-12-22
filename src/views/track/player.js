@@ -3,7 +3,6 @@ import { PIXI, removeDisplayObject } from 'nt-animator';
 
 import { LANES, SCALED_CAR_HEIGHT, SCALED_NAMECARD_HEIGHT } from './scaling';
 import { NITRO_SCALE, NITRO_OFFSET_Y, TRAIL_SCALE, NAMECARD_TETHER_DISTANCE } from '../../config';
-import { getCarOverrides } from '../../car-mappings';
 
 import Car from '../../components/car';
 import Trail from '../../components/trail';
@@ -87,8 +86,7 @@ export default class Player extends PIXI.ResponsiveContainer {
 		return Car.create({
 			view,
 			baseHeight: SCALED_CAR_HEIGHT,
-			type: options.type,
-			hue: options.hue,
+			...options,
 
 			// check for nitro effects
 			hasNitro: !!mods.nitro
@@ -98,11 +96,10 @@ export default class Player extends PIXI.ResponsiveContainer {
 	// handles creating a trail
 	async _initTrail() {
 		const { options, mods } = this;
-		const { view, type } = options;
+		const { view, tweaks } = options;
 
 		// make sure this car has a trail
-		const overrides = getCarOverrides(type);
-		if (overrides?.noTrail) return;
+		if (tweaks?.noTrail) return;
 
 		// prepare to create loot items
 		if (!mods.trail) return;

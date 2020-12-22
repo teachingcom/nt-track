@@ -101,14 +101,12 @@ export default class GarageView extends BaseView {
 	createCar = async config => {
 		const view = this;
 		const { tweaks = { } } = this.options;
-		const { type, hue } = config;
 
 		// create the new car
 		const container = new PIXI.ResponsiveContainer();
 		const car = await Car.create({
 			view, 
-			type,
-			hue,
+			...config,
 			baseHeight: DEFAULT_MAX_HEIGHT
 		});
 		
@@ -137,7 +135,7 @@ export default class GarageView extends BaseView {
 
 		// car shadow fixes
 		if (isNumber(tweaks.rotation)) {
-			container.rotation += tweaks.rotation;
+			container.rotation += (Math.PI * 2) * tweaks.rotation;
 		}
 
 		const shadowX = isNumber(tweaks.shadowX) ? tweaks.shadowX : 0;

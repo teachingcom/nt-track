@@ -27,7 +27,7 @@ import {
 import ActivateNitroAnimation from '../../animations/activate-nitro';
 import generateTextures from './texture-generator';
 import hueShift from './hue-shift';
-import { getCarAnimations, getCarPlugin, getCarOverrides } from '../../car-mappings';
+import { getCarPlugin } from '../../car-mappings';
 
 export default class Car extends PIXI.Container {
 
@@ -44,8 +44,7 @@ export default class Car extends PIXI.Container {
 		const instance = new Car();
 		
 		// determine the type to create
-		const { view } = options;
-		const type = getCarAnimations(options.type);
+		const { view, type } = options;
 		const path = `cars/${type}`;
 		const config = view.animator.lookup(path);
 		merge(instance, { options, view, path, config });
@@ -61,7 +60,7 @@ export default class Car extends PIXI.Container {
 	// creates the car instance
 	async _initCar() {
 		const { path, config, view, options } = this;
-		const { type, baseHeight } = options;
+		const { type, tweaks, baseHeight } = options;
 		
 		// deciding textures to render
 		const includeNormalMap = view.options.includeNormalMaps;
@@ -72,7 +71,7 @@ export default class Car extends PIXI.Container {
 		// imageSource: used to identify the actual image for a car
 		const { car, height, imageSource, bounds } = config
 			? await this._createEnhancedCar(path)
-			: await this._createStaticCar(type);
+			: await this._createStaticCar(type, tweaks);
 			
 		// scale the car to match the preferred height, which is
 		// the height of the car relative to the base size of the
@@ -159,13 +158,10 @@ export default class Car extends PIXI.Container {
 	}
 
 	// creates a car from a static resource
-	_createStaticCar = async type => {
+	_createStaticCar = async (type, tweaks = { }) => {
 		const { view } = this;
 		const { getCarUrl } = view.options;
 		const car = new PIXI.Container();
-
-		// check for mods (rotation, flipping, etc)
-		const overrides = getCarOverrides(type);
 		
 		// get the sprite to render
 		let sprite;
@@ -194,10 +190,10 @@ export default class Car extends PIXI.Container {
 		sprite.rotation = STATIC_CAR_ROTATION_FIX;
 		
 		// adjust as required
-		if (overrides) {
-			sprite.rotation += overrides.rotation || 0;
-			sprite.scale.x *= overrides.flipX ? -1 : 1;
-			sprite.scale.y *= overrides.flipY ? -1 : 1;
+		if (tweaks) {
+			sprite.rotation += ((Math.PI * 2) * tweaks.rotation) || 0;
+			sprite.scale.x *= tweaks.flipX ? -1 : 1;
+			sprite.scale.y *= tweaks.flipY ? -1 : 1;
 		}
 
 		// adjust the center point
