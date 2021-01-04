@@ -1,7 +1,4 @@
 
-// TODO: anti aliasing isn't great - consider creating
-// multiple versions that are pre-scaled using canvas
-
 import { PIXI, findDisplayObjectsOfRole, createPlaceholderImage } from 'nt-animator';
 import { merge, isNumber, noop } from '../../utils';
 import { createStaticCar } from './create-static-car';
@@ -20,9 +17,9 @@ import {
 	NITRO_BLUR_DEFAULT_OFFSET_X,
 	CAR_SHAKE_NITRO_BONUS,
 	CAR_SHAKE_SHADOW_REDUCTION,
-	CAR_404_STATIC_VERSION
+	CAR_404_STATIC_VERSION,
+	CAR_DEFAULT_LIGHTING
 } from '../../config';
-
 // animations
 import ActivateNitroAnimation from '../../animations/activate-nitro';
 import generateTextures from './texture-generator';
@@ -60,7 +57,7 @@ export default class Car extends PIXI.Container {
 	// creates the car instance
 	async _initCar() {
 		const { path, config, view, options } = this;
-		const { type, tweaks, baseHeight } = options;
+		const { type, tweaks, baseHeight, lighting } = options;
 		
 		// deciding textures to render
 		const includeNormalMap = view.options.includeNormalMaps;
@@ -94,9 +91,12 @@ export default class Car extends PIXI.Container {
 
 		// load any textures
 		await this._initTextures();
-
+		
 		// add the car to the view
 		this.addChild(car);
+
+		// replace the shadow 
+		this.setShadow(lighting);
 
 		// initialize plugins as required
 		this.plugin = getCarPlugin(type);
@@ -340,11 +340,26 @@ export default class Car extends PIXI.Container {
 		}
 	}
 
-	moveShadow = (x, y) => {
+	// adjust the shadow for a car
+	setShadow = (light = CAR_DEFAULT_LIGHTING) => {
+		const { shadow } = this.config;
+		const offset = shadow?.offset || 1;
+		const offsetX = isNaN(shadow?.offsetX) ? offset : shadow.offsetX;
+		const offsetY = isNaN(shadow?.offsetY) ? offset : shadow.offsetY;
+
+		// update all shadow positions
 		const shadows = findDisplayObjectsOfRole(this, 'shadow');
 		for (const shadow of shadows) {
-			shadow.x *= x;
-			shadow.y *= y;
+			shadow.pivot.x = ((shadow.width / 2) / shadow.scale.x) - (light.x * offsetX);
+			shadow.pivot.y = ((shadow.height / 2) / shadow.scale.y) - (light.y * offsetY);
+
+			// each layer can define it's own shadow modifier, so save
+			// the original in case the shadow is changed again
+			if (isNaN(shadow.alphaModifier)) {
+				shadow.alphaModifier = shadow.alpha
+			}
+
+			shadow.alpha = shadow.alphaModifier * (isNumber(light.alpha) ? light.alpha : 0.5);
 		}
 	}
 

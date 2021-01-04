@@ -83798,7 +83798,7 @@ document.addEventListener('visibilitychange', updateViewActiveState);
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.DEFAULT_PERFORMANCE_MONITORING_DELAY = exports.NITRO_BLUR_REALTIVE_SIZE_SCALING = exports.NITRO_BLUR_DEFAULT_OFFSET_X = exports.NITRO_BLUR_OFFSET_Y = exports.NITRO_ACTIVATED_TRAIL_OPACITY = exports.NITRO_OFFSET_Y = exports.NITRO_OFFSET_X = exports.NITRO_SCALE = exports.TRAIL_SCALE = exports.STATIC_CAR_ROTATION_FIX = exports.CAR_404_ENHANCED_VERSION = exports.CAR_404_STATIC_VERSION = exports.CAR_NITRO_ADVANCEMENT_DISTANCE = exports.CAR_SHAKE_SHADOW_REDUCTION = exports.CAR_SHAKE_NITRO_BONUS = exports.CAR_SHAKE_DISTANCE = exports.CAR_DEFAULT_FRONT_BACK_OFFSET_X = exports.CAR_BODY_OFFSET_Y = exports.CAR_SHADOW_OFFSET_Y = exports.CAR_SHADOW_SCALE_ADJUST = exports.CAR_SHADOW_OPACITY = exports.CAR_SHADOW_BLUR = exports.CAR_DEFAULT_SHAKE_LEVEL = exports.NAMECARD_TETHER_DISTANCE = exports.NAMECARD_SCALE = exports.CROWD_ANIMATION_DURATION = exports.CROWD_ANIMATION_FRAME_COUNT = exports.CROWD_ANIMATION_VARIATIONS = exports.CROWD_DEFAULT_SCALE = exports.RACE_FINISH_FLASH_FADE_TIME = exports.RACE_SOUND_ERROR_MAX_INTERVAL = exports.RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL = exports.RACE_PROGRESS_TWEEN_TIMING = exports.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT = exports.RACE_FINISH_CAR_STOPPING_TIME = exports.RACE_START_NAMECARD_DELAY_TIME = exports.RACE_START_NAMECARD_ENTRY_TIME = exports.RACE_START_CAR_ENTRY_TIME = exports.RACE_AUTO_PROGRESS_DISTANCE = exports.RACE_OFF_SCREEN_FINISH_DISTANCE = exports.RACE_PLAYER_DISTANCE_MODIFIER = exports.RACE_ENDING_ANIMATION_THRESHOLD = exports.TRACK_OFFSCREEN_CAR_FINISH = exports.TRACK_NAMECARD_EDGE_PADDING = exports.TRACK_STARTING_LINE_POSITION = exports.TRACK_CAR_LANE_CENTER_OFFSET = exports.TRACK_CAR_SIZE_RELATIVE_TO_LANE = exports.TRACK_SHOULDER_SCALE = exports.TRACK_BOTTOM_SCALE = exports.TRACK_TOP_SCALE = exports.TRACK_ACCELERATION_RATE = exports.TRACK_MAXIMUM_TRAVEL_DISTANCE = exports.TRACK_MAXIMUM_SPEED = exports.TRACK_MAXIMUM_SPEED_DRAG_RATE = exports.TRACK_MAXIMUM_SPEED_BOOST_RATE = exports.TRACK_MAXIMUM_SCROLL_SPEED = void 0;
+exports.DEFAULT_PERFORMANCE_MONITORING_DELAY = exports.NITRO_BLUR_REALTIVE_SIZE_SCALING = exports.NITRO_BLUR_DEFAULT_OFFSET_X = exports.NITRO_BLUR_OFFSET_Y = exports.NITRO_ACTIVATED_TRAIL_OPACITY = exports.NITRO_OFFSET_Y = exports.NITRO_OFFSET_X = exports.NITRO_SCALE = exports.TRAIL_SCALE = exports.STATIC_CAR_ROTATION_FIX = exports.CAR_DEFAULT_LIGHTING = exports.CAR_404_ENHANCED_VERSION = exports.CAR_404_STATIC_VERSION = exports.CAR_NITRO_ADVANCEMENT_DISTANCE = exports.CAR_SHAKE_SHADOW_REDUCTION = exports.CAR_SHAKE_NITRO_BONUS = exports.CAR_SHAKE_DISTANCE = exports.CAR_DEFAULT_FRONT_BACK_OFFSET_X = exports.CAR_BODY_OFFSET_Y = exports.CAR_SHADOW_OFFSET_Y = exports.CAR_SHADOW_SCALE_ADJUST = exports.CAR_SHADOW_OPACITY = exports.CAR_SHADOW_BLUR = exports.CAR_DEFAULT_SHAKE_LEVEL = exports.NAMECARD_TETHER_DISTANCE = exports.NAMECARD_SCALE = exports.CROWD_ANIMATION_DURATION = exports.CROWD_ANIMATION_FRAME_COUNT = exports.CROWD_ANIMATION_VARIATIONS = exports.CROWD_DEFAULT_SCALE = exports.RACE_FINISH_FLASH_FADE_TIME = exports.RACE_SOUND_ERROR_MAX_INTERVAL = exports.RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL = exports.RACE_PROGRESS_TWEEN_TIMING = exports.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT = exports.RACE_FINISH_CAR_STOPPING_TIME = exports.RACE_START_NAMECARD_DELAY_TIME = exports.RACE_START_NAMECARD_ENTRY_TIME = exports.RACE_START_CAR_ENTRY_TIME = exports.RACE_AUTO_PROGRESS_DISTANCE = exports.RACE_OFF_SCREEN_FINISH_DISTANCE = exports.RACE_PLAYER_DISTANCE_MODIFIER = exports.RACE_ENDING_ANIMATION_THRESHOLD = exports.TRACK_OFFSCREEN_CAR_FINISH = exports.TRACK_NAMECARD_EDGE_PADDING = exports.TRACK_STARTING_LINE_POSITION = exports.TRACK_CAR_LANE_CENTER_OFFSET = exports.TRACK_CAR_SIZE_RELATIVE_TO_LANE = exports.TRACK_SHOULDER_SCALE = exports.TRACK_BOTTOM_SCALE = exports.TRACK_TOP_SCALE = exports.TRACK_ACCELERATION_RATE = exports.TRACK_MAXIMUM_TRAVEL_DISTANCE = exports.TRACK_MAXIMUM_SPEED = exports.TRACK_MAXIMUM_SPEED_DRAG_RATE = exports.TRACK_MAXIMUM_SPEED_BOOST_RATE = exports.TRACK_MAXIMUM_SCROLL_SPEED = void 0;
 // tracks
 var TRACK_MAXIMUM_SCROLL_SPEED = 35;
 exports.TRACK_MAXIMUM_SCROLL_SPEED = TRACK_MAXIMUM_SCROLL_SPEED;
@@ -83895,9 +83895,15 @@ var CAR_NITRO_ADVANCEMENT_DISTANCE = 0.125;
 exports.CAR_NITRO_ADVANCEMENT_DISTANCE = CAR_NITRO_ADVANCEMENT_DISTANCE;
 var CAR_404_STATIC_VERSION = '9_large_11';
 exports.CAR_404_STATIC_VERSION = CAR_404_STATIC_VERSION;
-var CAR_404_ENHANCED_VERSION = '/cars/missing'; // a rotation to apply to all legacy cars
-
+var CAR_404_ENHANCED_VERSION = '/cars/missing';
 exports.CAR_404_ENHANCED_VERSION = CAR_404_ENHANCED_VERSION;
+var CAR_DEFAULT_LIGHTING = {
+  alpha: 0.4,
+  x: -10,
+  y: 10
+}; // a rotation to apply to all legacy cars
+
+exports.CAR_DEFAULT_LIGHTING = CAR_DEFAULT_LIGHTING;
 var STATIC_CAR_ROTATION_FIX = Math.PI; // trails
 
 exports.STATIC_CAR_ROTATION_FIX = STATIC_CAR_ROTATION_FIX;
@@ -86559,7 +86565,13 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
         nitroBlur.y = _config.CAR_BODY_OFFSET_Y + _config.NITRO_BLUR_OFFSET_Y + y * 1.5;
       }
     });
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "moveShadow", function (x, y) {
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setShadow", function () {
+      var light = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _config.CAR_DEFAULT_LIGHTING;
+      var shadow = _this.config.shadow;
+      var offset = (shadow === null || shadow === void 0 ? void 0 : shadow.offset) || 1;
+      var offsetX = isNaN(shadow === null || shadow === void 0 ? void 0 : shadow.offsetX) ? offset : shadow.offsetX;
+      var offsetY = isNaN(shadow === null || shadow === void 0 ? void 0 : shadow.offsetY) ? offset : shadow.offsetY; // update all shadow positions
+
       var shadows = (0, _ntAnimator.findDisplayObjectsOfRole)((0, _assertThisInitialized2.default)(_this), 'shadow');
 
       var _iterator = _createForOfIteratorHelper(shadows),
@@ -86567,9 +86579,16 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
 
       try {
         for (_iterator.s(); !(_step = _iterator.n()).done;) {
-          var shadow = _step.value;
-          shadow.x *= x;
-          shadow.y *= y;
+          var _shadow = _step.value;
+          _shadow.pivot.x = _shadow.width / 2 / _shadow.scale.x - light.x * offsetX;
+          _shadow.pivot.y = _shadow.height / 2 / _shadow.scale.y - light.y * offsetY; // each layer can define it's own shadow modifier, so save
+          // the original in case the shadow is changed again
+
+          if (isNaN(_shadow.alphaModifier)) {
+            _shadow.alphaModifier = _shadow.alpha;
+          }
+
+          _shadow.alpha = _shadow.alphaModifier * ((0, _utils.isNumber)(light.alpha) ? light.alpha : 0.5);
         }
       } catch (err) {
         _iterator.e(err);
@@ -86642,14 +86661,14 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
     // creates the car instance
     value: function () {
       var _initCar2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
-        var path, config, view, options, type, tweaks, baseHeight, includeNormalMap, includeShadow, _ref4, car, height, imageSource, bounds, scaleBy, positions, front, id;
+        var path, config, view, options, type, tweaks, baseHeight, lighting, includeNormalMap, includeShadow, _ref4, car, height, imageSource, bounds, scaleBy, positions, front, id;
 
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
                 path = this.path, config = this.config, view = this.view, options = this.options;
-                type = options.type, tweaks = options.tweaks, baseHeight = options.baseHeight; // deciding textures to render
+                type = options.type, tweaks = options.tweaks, baseHeight = options.baseHeight, lighting = options.lighting; // deciding textures to render
 
                 includeNormalMap = view.options.includeNormalMaps;
                 includeShadow = true; // view.options.includeShadows;
@@ -86707,7 +86726,9 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
 
               case 28:
                 // add the car to the view
-                this.addChild(car); // initialize plugins as required
+                this.addChild(car); // replace the shadow 
+
+                this.setShadow(lighting); // initialize plugins as required
 
                 this.plugin = (0, _carMappings.getCarPlugin)(type);
 
@@ -86718,7 +86739,7 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
                   });
                 }
 
-              case 31:
+              case 32:
               case "end":
                 return _context4.stop();
             }
@@ -97352,6 +97373,10 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
 function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
@@ -97434,50 +97459,53 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "addPlayer", /*#__PURE__*/function () {
       var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(data, isInstant) {
-        var _assertThisInitialize2, activePlayers, state, stage, isViewActive, animator, playerOptions, isPlayer, id, lane, existing, player, _car$plugin, _player, car, namecard, container, _ref2, _ref2$enterSound, enterSound, entry;
+        var _assertThisInitialize2, activePlayers, state, stage, isViewActive, animator, lighting, playerOptions, isPlayer, id, lane, existing, player, _car$plugin, _player, car, namecard, container, _ref2, _ref2$enterSound, enterSound, entry;
 
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
                 _assertThisInitialize2 = (0, _assertThisInitialized2.default)(_this), activePlayers = _assertThisInitialize2.activePlayers, state = _assertThisInitialize2.state, stage = _assertThisInitialize2.stage, isViewActive = _assertThisInitialize2.isViewActive, animator = _assertThisInitialize2.animator;
-                playerOptions = (0, _utils.merge)({
+                lighting = _this.track.manifest.lighting;
+                playerOptions = _objectSpread(_objectSpread({
                   view: (0, _assertThisInitialized2.default)(_this)
-                }, data);
+                }, data), {}, {
+                  lighting: lighting
+                });
                 isPlayer = playerOptions.isPlayer, id = playerOptions.id, lane = playerOptions.lane; // check if a player already occupies the lane
 
                 existing = _this.getPlayerByLane(lane);
                 if (existing) _this.removePlayer(existing.id); // make sure this isn't a mistake
 
                 if (!activePlayers[data.id]) {
-                  _context.next = 7;
+                  _context.next = 8;
                   break;
                 }
 
                 return _context.abrupt("return");
 
-              case 7:
+              case 8:
                 activePlayers[data.id] = true; // increase the expected players
 
                 state.totalPlayers++; // create the player instance
 
-                _context.prev = 9;
-                _context.next = 12;
+                _context.prev = 10;
+                _context.next = 13;
                 return _player2.default.create(playerOptions);
 
-              case 12:
+              case 13:
                 player = _context.sent;
                 player.track = (0, _assertThisInitialized2.default)(_this); // if this player failed to load, abandon the
                 // attempt
 
                 if (!(isPlayer && !player.hasRequiredAssets)) {
-                  _context.next = 16;
+                  _context.next = 17;
                   break;
                 }
 
                 throw new PlayerAssetError();
 
-              case 16:
+              case 17:
                 // set the active player, if needed
                 if (isPlayer) {
                   _this.activePlayerId = id;
@@ -97489,11 +97517,11 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 _player = player, car = _player.car;
 
                 if (!((_car$plugin = car.plugin) === null || _car$plugin === void 0 ? void 0 : _car$plugin.extend)) {
-                  _context.next = 21;
+                  _context.next = 22;
                   break;
                 }
 
-                _context.next = 21;
+                _context.next = 22;
                 return car.plugin.extend({
                   animator: animator,
                   car: car,
@@ -97501,7 +97529,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   track: (0, _assertThisInitialized2.default)(_this)
                 });
 
-              case 21:
+              case 22:
                 // with the player, include their namecard
                 namecard = player.layers.namecard;
 
@@ -97544,12 +97572,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   state.playerHasEntered = true;
                 }
 
-                _context.next = 39;
+                _context.next = 40;
                 break;
 
-              case 32:
-                _context.prev = 32;
-                _context.t0 = _context["catch"](9);
+              case 33:
+                _context.prev = 33;
+                _context.t0 = _context["catch"](10);
                 delete activePlayers[data.id];
                 state.totalPlayers--; // if the player was created, try and remove it
 
@@ -97557,18 +97585,18 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 // a breaking exception
 
                 if (!isPlayer) {
-                  _context.next = 39;
+                  _context.next = 40;
                   break;
                 }
 
                 throw _context.t0;
 
-              case 39:
+              case 40:
               case "end":
                 return _context.stop();
             }
           }
-        }, _callee, null, [[9, 32]]);
+        }, _callee, null, [[10, 33]]);
       }));
 
       return function (_x, _x2) {
@@ -97587,7 +97615,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
             switch (_context2.prev = _context2.next) {
               case 0:
                 _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this), stage = _assertThisInitialize3.stage, animator = _assertThisInitialize3.animator;
-                trackOptions = (0, _utils.merge)({
+                trackOptions = _objectSpread({
                   view: (0, _assertThisInitialized2.default)(_this),
                   onLoadTrackAssets: _this.onLoadTrackAssets
                 }, options); // try and load the track instance

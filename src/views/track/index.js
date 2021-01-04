@@ -130,7 +130,8 @@ export default class TrackView extends BaseView {
 	/** adds a new car to the track */
 	addPlayer = async (data, isInstant) => {
 		const { activePlayers, state, stage, isViewActive, animator } = this;
-		const playerOptions = merge({ view: this }, data);
+		const { lighting } = this.track.manifest;
+		const playerOptions = { view: this, ...data, lighting };
 		const { isPlayer, id, lane } = playerOptions;
 
 		// check if a player already occupies the lane
@@ -236,10 +237,11 @@ export default class TrackView extends BaseView {
 	/** assigns the current track */
 	setTrack = async options => {
 		const { stage, animator } = this;
-		const trackOptions = merge({
+		const trackOptions = {
 			view: this,
-			onLoadTrackAssets: this.onLoadTrackAssets
-		}, options);
+			onLoadTrackAssets: this.onLoadTrackAssets,
+			...options
+		};
 
 		// try and load the track instance
 		let track

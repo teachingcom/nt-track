@@ -54,6 +54,11 @@ export const CAR_SHAKE_SHADOW_REDUCTION = 0.33
 export const CAR_NITRO_ADVANCEMENT_DISTANCE = 0.125
 export const CAR_404_STATIC_VERSION = '9_large_11'
 export const CAR_404_ENHANCED_VERSION = '/cars/missing'
+export const CAR_DEFAULT_LIGHTING = {
+  alpha: 0.4,
+  x: -10,
+  y: 10
+}
 
 // a rotation to apply to all legacy cars
 export const STATIC_CAR_ROTATION_FIX = Math.PI
