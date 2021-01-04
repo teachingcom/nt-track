@@ -341,11 +341,22 @@ export default class Car extends PIXI.Container {
 	}
 
 	// adjust the shadow for a car
+	// does not change the position, but instead adjusts the center point
+	// to offset the shadow
 	setShadow = (light = CAR_DEFAULT_LIGHTING) => {
+		// standard car with no configuration info
+		if (!this.config) {
+			return;
+		}
+
+		// gather shadow information
 		const { shadow } = this.config;
 		const offset = shadow?.offset || 1;
 		const offsetX = isNaN(shadow?.offsetX) ? offset : shadow.offsetX;
 		const offsetY = isNaN(shadow?.offsetY) ? offset : shadow.offsetY;
+
+		// TODO:? - Adjust shadow based on car rotation
+		// needs to be aware of its global rotation though
 
 		// update all shadow positions
 		const shadows = findDisplayObjectsOfRole(this, 'shadow');

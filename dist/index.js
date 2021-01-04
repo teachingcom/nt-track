@@ -83899,8 +83899,8 @@ var CAR_404_ENHANCED_VERSION = '/cars/missing';
 exports.CAR_404_ENHANCED_VERSION = CAR_404_ENHANCED_VERSION;
 var CAR_DEFAULT_LIGHTING = {
   alpha: 0.4,
-  x: -10,
-  y: 10
+  x: 10,
+  y: 0
 }; // a rotation to apply to all legacy cars
 
 exports.CAR_DEFAULT_LIGHTING = CAR_DEFAULT_LIGHTING;
@@ -86567,10 +86567,19 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setShadow", function () {
       var light = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _config.CAR_DEFAULT_LIGHTING;
+
+      // standard car with no configuration info
+      if (!_this.config) {
+        return;
+      } // gather shadow information
+
+
       var shadow = _this.config.shadow;
       var offset = (shadow === null || shadow === void 0 ? void 0 : shadow.offset) || 1;
       var offsetX = isNaN(shadow === null || shadow === void 0 ? void 0 : shadow.offsetX) ? offset : shadow.offsetX;
-      var offsetY = isNaN(shadow === null || shadow === void 0 ? void 0 : shadow.offsetY) ? offset : shadow.offsetY; // update all shadow positions
+      var offsetY = isNaN(shadow === null || shadow === void 0 ? void 0 : shadow.offsetY) ? offset : shadow.offsetY; // TODO:? - Adjust shadow based on car rotation
+      // needs to be aware of its global rotation though
+      // update all shadow positions
 
       var shadows = (0, _ntAnimator.findDisplayObjectsOfRole)((0, _assertThisInitialized2.default)(_this), 'shadow');
 
@@ -98455,12 +98464,6 @@ var _utils = require("../../utils");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
-
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -98617,7 +98620,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
     }());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "createCar", /*#__PURE__*/function () {
       var _ref4 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(config) {
-        var view, _this$options$tweaks, tweaks, container, car, bounds, display, target, scale, shadowX, shadowY, shadows, _iterator, _step, shadow;
+        var view, _this$options$tweaks, tweaks, container, car, bounds, display, target, scale;
 
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
@@ -98631,7 +98634,14 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 return _car.default.create(_objectSpread(_objectSpread({
                   view: view
                 }, config), {}, {
-                  baseHeight: DEFAULT_MAX_HEIGHT
+                  baseHeight: DEFAULT_MAX_HEIGHT,
+                  // lighting is flipped because the container
+                  // is rotated in the view
+                  lighting: {
+                    x: -3,
+                    y: -7,
+                    alpha: 0.3
+                  }
                 }));
 
               case 5:
@@ -98660,29 +98670,9 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                   container.rotation += Math.PI * 2 * tweaks.rotation;
                 }
 
-                shadowX = (0, _utils.isNumber)(tweaks.shadowX) ? tweaks.shadowX : 0;
-                shadowY = (0, _utils.isNumber)(tweaks.shadowY) ? tweaks.shadowY : -1;
-                car.moveShadow(shadowX, shadowY); // adjusting opacities
-
-                if ((0, _utils.isNumber)(tweaks.shadowOpacity)) {
-                  shadows = (0, _ntAnimator.findDisplayObjectsOfRole)(container, 'shadow');
-                  _iterator = _createForOfIteratorHelper(shadows);
-
-                  try {
-                    for (_iterator.s(); !(_step = _iterator.n()).done;) {
-                      shadow = _step.value;
-                      shadow.alpha *= tweaks.shadowOpacity;
-                    }
-                  } catch (err) {
-                    _iterator.e(err);
-                  } finally {
-                    _iterator.f();
-                  }
-                }
-
                 return _context4.abrupt("return", container);
 
-              case 24:
+              case 20:
               case "end":
                 return _context4.stop();
             }

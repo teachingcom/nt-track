@@ -107,7 +107,11 @@ export default class GarageView extends BaseView {
 		const car = await Car.create({
 			view, 
 			...config,
-			baseHeight: DEFAULT_MAX_HEIGHT
+			baseHeight: DEFAULT_MAX_HEIGHT,
+
+			// lighting is flipped because the container
+			// is rotated in the view
+			lighting: { x: -3, y: -7, alpha: 0.3 }
 		});
 		
 		// finds the bounds for a car - if nothing was
@@ -136,18 +140,6 @@ export default class GarageView extends BaseView {
 		// car shadow fixes
 		if (isNumber(tweaks.rotation)) {
 			container.rotation += (Math.PI * 2) * tweaks.rotation;
-		}
-
-		const shadowX = isNumber(tweaks.shadowX) ? tweaks.shadowX : 0;
-		const shadowY = isNumber(tweaks.shadowY) ? tweaks.shadowY : -1;
-		car.moveShadow(shadowX, shadowY);
-
-		// adjusting opacities
-		if (isNumber(tweaks.shadowOpacity)) {
-			const shadows = findDisplayObjectsOfRole(container, 'shadow');
-			for (const shadow of shadows) {
-				shadow.alpha *= tweaks.shadowOpacity;
-			}
 		}
 
 		return container;

@@ -56,8 +56,8 @@ export const CAR_404_STATIC_VERSION = '9_large_11'
 export const CAR_404_ENHANCED_VERSION = '/cars/missing'
 export const CAR_DEFAULT_LIGHTING = {
   alpha: 0.4,
-  x: -10,
-  y: 10
+  x: 10,
+  y: 0
 }
 
 // a rotation to apply to all legacy cars
