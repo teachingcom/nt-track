@@ -465,7 +465,7 @@ export default class TrackView extends BaseView {
 
 		// if the completion animation hasn't started
 		if (!raceCompletedAnimation)
-			this.finishRace();
+			return this.finishRace();
 
 		// finalize the result
 		raceCompletedAnimation.play({ });

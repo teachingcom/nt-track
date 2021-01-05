@@ -4407,8 +4407,14 @@ function create(type, key, sprite) {
 
   if (instance.isMusic) MUSIC.push(instance);else SFX.push(instance);
   return instance;
-} // exceptions
+}
 
+window.AUDIO = {
+  create: create,
+  audio: AUDIO,
+  sfx: SFX,
+  music: MUSIC
+}; // exceptions
 
 function MissingSoundException() {}
 },{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","howler":"../node_modules/howler/dist/howler.js","./sound":"audio/sound.js"}],"../node_modules/@babel/runtime/helpers/assertThisInitialized.js":[function(require,module,exports) {
@@ -83849,7 +83855,7 @@ var RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT = 1000;
 exports.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT = RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT;
 var RACE_PROGRESS_TWEEN_TIMING = 1000;
 exports.RACE_PROGRESS_TWEEN_TIMING = RACE_PROGRESS_TWEEN_TIMING;
-var RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL = 400;
+var RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL = 100;
 exports.RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL = RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL;
 var RACE_SOUND_ERROR_MAX_INTERVAL = 500;
 exports.RACE_SOUND_ERROR_MAX_INTERVAL = RACE_SOUND_ERROR_MAX_INTERVAL;
@@ -86021,7 +86027,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.VOLUME_ERROR_4 = exports.VOLUME_ERROR_3 = exports.VOLUME_ERROR_2 = exports.VOLUME_ERROR_1 = exports.VOLUME_ERROR_DEFAULT = exports.VOLUME_AMBIENT_AUDIO = exports.VOLUME_FINISH_LINE_STOP = exports.VOLUME_FINISH_LINE_CROWD = exports.VOLUME_NITRO = exports.VOLUME_COUNTDOWN_ANNOUNCER = exports.VOLUME_START_ACCELERATION = exports.VOLUME_COUNTDOWN = exports.VOLUME_DISQUALIFY = exports.VOLUME_WAMPUS_LAUGH = exports.VOLUME_CAR_ENTRY = void 0;
-var VOLUME_CAR_ENTRY = 0.3;
+var VOLUME_CAR_ENTRY = 0.5;
 exports.VOLUME_CAR_ENTRY = VOLUME_CAR_ENTRY;
 var VOLUME_WAMPUS_LAUGH = 0.8;
 exports.VOLUME_WAMPUS_LAUGH = VOLUME_WAMPUS_LAUGH;
@@ -86029,7 +86035,7 @@ var VOLUME_DISQUALIFY = 0.7;
 exports.VOLUME_DISQUALIFY = VOLUME_DISQUALIFY;
 var VOLUME_COUNTDOWN = 0.8;
 exports.VOLUME_COUNTDOWN = VOLUME_COUNTDOWN;
-var VOLUME_START_ACCELERATION = 0.1;
+var VOLUME_START_ACCELERATION = 0.7;
 exports.VOLUME_START_ACCELERATION = VOLUME_START_ACCELERATION;
 var VOLUME_COUNTDOWN_ANNOUNCER = 0.8;
 exports.VOLUME_COUNTDOWN_ANNOUNCER = VOLUME_COUNTDOWN_ANNOUNCER;
@@ -86037,9 +86043,9 @@ var VOLUME_NITRO = 0.5;
 exports.VOLUME_NITRO = VOLUME_NITRO;
 var VOLUME_FINISH_LINE_CROWD = 0.8;
 exports.VOLUME_FINISH_LINE_CROWD = VOLUME_FINISH_LINE_CROWD;
-var VOLUME_FINISH_LINE_STOP = 0.8;
+var VOLUME_FINISH_LINE_STOP = 1;
 exports.VOLUME_FINISH_LINE_STOP = VOLUME_FINISH_LINE_STOP;
-var VOLUME_AMBIENT_AUDIO = 0.125;
+var VOLUME_AMBIENT_AUDIO = 0.5;
 exports.VOLUME_AMBIENT_AUDIO = VOLUME_AMBIENT_AUDIO;
 var VOLUME_ERROR_DEFAULT = 0.2;
 exports.VOLUME_ERROR_DEFAULT = VOLUME_ERROR_DEFAULT;
@@ -95853,20 +95859,20 @@ var CarFinishLineAnimation = /*#__PURE__*/function (_Animation) {
       if (player.hasShownFinishLineAnimation) return;
       player.hasShownFinishLineAnimation = true; // check for instant animations
 
-      if (elapsed > _config.RACE_FINISH_CAR_STOPPING_TIME) isInstant = true; // if this car is entering
+      isInstant = elapsed > _config.RACE_FINISH_CAR_STOPPING_TIME; // if this car is entering
 
       if (!isInstant) {
-        var stop = audio.create('sfx', 'common', 'car_stopping'); // make sure this hasn't played too recently to avoid
+        var sound = Math.ceil(Math.random() * 4);
+        var stop = audio.create('sfx', 'common', "car_stop_".concat(sound)); // make sure this hasn't played too recently to avoid
         // 5 car screeching noises all at once
 
-        setTimeout(function () {
-          var now = +new Date();
-          var nextAllowedPlay = stop.lastInstancePlay + _config.RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL;
-          if (nextAllowedPlay > now) return; // play the sound effect, if possible
+        var now = Date.now();
+        var nextAllowedPlay = stop.lastInstancePlay + _config.RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL; // play the sound effect, if possible
 
+        if (now > nextAllowedPlay) {
           stop.volume(_volume.VOLUME_FINISH_LINE_STOP);
           stop.play();
-        }, 500);
+        }
       } // starting and ending points
 
 
@@ -97878,7 +97884,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
           raceCompletedAnimation = _assertThisInitialize9.raceCompletedAnimation; // if the completion animation hasn't started
 
 
-      if (!raceCompletedAnimation) _this.finishRace(); // finalize the result
+      if (!raceCompletedAnimation) return _this.finishRace(); // finalize the result
 
       raceCompletedAnimation.play({});
     });
