@@ -77699,7 +77699,7 @@ var images = {};
  * @param {string} url The url of the image to load
 */
 
-function loadImage(url) {
+function loadImage(url, version) {
   return new Promise(function (resolve, reject) {
     // prevent accidental double slashes
     var parts = url.split('://');
@@ -77737,7 +77737,7 @@ function loadImage(url) {
       img.crossOrigin = 'anonymous'; // replace the image url
 
       setTimeout(function () {
-        img.src = url;
+        return img.src = "".concat(url).concat(version ? "?".concat(version) : '');
       });
     }; // create resolution actions
 
@@ -77818,7 +77818,7 @@ function _loadSpritesheet() {
             url = "".concat(animator.baseUrl).concat(spritesheetId, ".").concat(ext); // attempt to load the image
 
             _context.next = 3;
-            return (0, _loadImage.default)(url);
+            return (0, _loadImage.default)(url, spritesheet.version);
 
           case 3:
             image = _context.sent;
@@ -77858,7 +77858,10 @@ function generateSprites(image, spritesheetId, spritesheet, ext) {
   for (var id in spritesheet) {
     var record = spritesheet[id]; // if this is not an array, skip it
 
-    if (!Array.isArray(record)) continue; // make sure it's for the image type used
+    if (!Array.isArray(record)) {
+      continue;
+    } // make sure it's for the image type used
+
 
     var _record = (0, _slicedToArray2.default)(record, 5),
         x = _record[0],
@@ -77867,7 +77870,10 @@ function generateSprites(image, spritesheetId, spritesheet, ext) {
         height = _record[3],
         type = _record[4];
 
-    if (type !== ext) continue; // save the texture
+    if (type !== ext) {
+      continue;
+    } // save the texture
+
 
     var rect = new _lib.PIXI.Rectangle(x, y, width, height);
     var texture = new _lib.PIXI.Texture(base, rect);
@@ -82894,6 +82900,9 @@ var Animator = /*#__PURE__*/function (_EventEmitter) {
 
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "plugins", {});
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "imageCache", _assetCache.shared);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "preloadSpritesheet", function (spritesheetId) {
+      return _this.getSpritesheet(spritesheetId);
+    });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "getSpritesheet", /*#__PURE__*/function () {
       var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(id) {
         return _regenerator.default.wrap(function _callee$(_context) {
@@ -82916,19 +82925,24 @@ var Animator = /*#__PURE__*/function (_EventEmitter) {
     }());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "getSprite", /*#__PURE__*/function () {
       var _ref2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(spritesheetId, id) {
-        var texture;
+        var spritesheet, texture;
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
                 _context2.next = 2;
-                return (0, _getSprite.default)((0, _assertThisInitialized2.default)(_this), spritesheetId, id);
+                return _this.getSpritesheet(spritesheetId);
 
               case 2:
+                spritesheet = _context2.sent;
+                _context2.next = 5;
+                return (0, _getSprite.default)((0, _assertThisInitialized2.default)(_this), spritesheetId, id, spritesheet.version);
+
+              case 5:
                 texture = _context2.sent;
                 return _context2.abrupt("return", _lib.PIXI.Sprite.from(texture));
 
-              case 4:
+              case 7:
               case "end":
                 return _context2.stop();
             }
@@ -82942,34 +82956,35 @@ var Animator = /*#__PURE__*/function (_EventEmitter) {
     }());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "getImage", /*#__PURE__*/function () {
       var _ref3 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(spritesheetId, id) {
+        var spritesheet;
         return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
                 if (!id) {
-                  _context3.next = 6;
+                  _context3.next = 9;
                   break;
                 }
 
                 _context3.next = 3;
-                return (0, _getSprite.default)((0, _assertThisInitialized2.default)(_this), spritesheetId, id);
+                return _this.getSpritesheet(spritesheetId);
 
               case 3:
-                _context3.t0 = _context3.sent;
-                _context3.next = 9;
-                break;
+                spritesheet = _context3.sent;
+                _context3.next = 6;
+                return (0, _getSprite.default)((0, _assertThisInitialized2.default)(_this), spritesheetId, id, spritesheet.version);
 
               case 6:
-                _context3.next = 8;
-                return (0, _loadImage.default)("".concat(_this.baseUrl, "/").concat(spritesheetId));
-
-              case 8:
-                _context3.t0 = _context3.sent;
+                return _context3.abrupt("return", _context3.sent);
 
               case 9:
-                return _context3.abrupt("return", _context3.t0);
+                _context3.next = 11;
+                return (0, _loadImage.default)("".concat(_this.baseUrl, "/").concat(spritesheetId));
 
-              case 10:
+              case 11:
+                return _context3.abrupt("return", _context3.sent);
+
+              case 12:
               case "end":
                 return _context3.stop();
             }
@@ -83088,8 +83103,8 @@ var Animator = /*#__PURE__*/function (_EventEmitter) {
     key: "baseUrl",
     get: function get() {
       return this.options.baseUrl || '/';
-    }
-    /** handles loading a single sprite */
+    } // alias for get spritesheet, just to make it clearer
+    // what it's used for elsewhere
 
   }]);
   return Animator;
@@ -84648,8 +84663,6 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
-window.NTVIEWS = []; // dynamic management of performance
-
 /** creates a track instance */
 var BaseView = /*#__PURE__*/function (_EventEmitter) {
   (0, _inherits2.default)(BaseView, _EventEmitter);
@@ -84811,8 +84824,10 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                scale = options.scale, forceCanvas = options.forceCanvas;
-                NTVIEWS.push(this); // monitor visibility changes
+                scale = options.scale, forceCanvas = options.forceCanvas; // const { scale } = options;
+                // const forceCanvas = true;
+
+                window.VIEW = this; // monitor visibility changes
 
                 this.isViewActive = (0, _view.isViewActive)();
                 (0, _view.onViewActiveStateChanged)(this.onViewActiveStateChanged); // save some options
@@ -84839,8 +84854,7 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
                 clearBeforeRender = transparent || hasBackgroundColor;
                 backgroundColor = hasBackgroundColor ? options.backgroundColor : DEFAULT_BACKGROUND_COLOR;
                 this.config = {
-                  antialias: false,
-                  // doesn't appear to improve anything
+                  // antialias: false, // doesn't appear to improve anything
                   legacy: true,
                   preserveDrawingBuffer: true,
                   smoothProperty: 'none',
@@ -86605,7 +86619,7 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
         _iterator.f();
       }
     });
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "_establishPositions", function (bounds, scale) {
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "_establishPositions", function (bounds, car, scale) {
       var _assertThisInitialize5 = (0, _assertThisInitialized2.default)(_this),
           config = _assertThisInitialize5.config; // assign a value if is a number
 
@@ -86619,7 +86633,32 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
         back: bounds.width * scale * -_config.CAR_DEFAULT_FRONT_BACK_OFFSET_X,
         front: bounds.width * scale * _config.CAR_DEFAULT_FRONT_BACK_OFFSET_X,
         nitroBlurX: bounds.width * scale * _config.NITRO_BLUR_DEFAULT_OFFSET_X
-      }; // reuse a few values
+      }; // check for specialized positions
+      // TODO: this could be more robust to support y axis
+      // or dynamic so it can follow along with cars that
+      // are not 100% stationary while idle
+
+      var points = (0, _ntAnimator.findDisplayObjectsOfRole)(car, 'position');
+
+      var _iterator2 = _createForOfIteratorHelper(points),
+          _step2;
+
+      try {
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+          var point = _step2.value;
+
+          if (point.config.role.indexOf('back') !== -1) {
+            positions.back = point.x;
+          } else if (point.config.role.indexOf('front') !== -1) {
+            positions.front = point.x;
+          }
+        } // reuse a few values
+
+      } catch (err) {
+        _iterator2.e(err);
+      } finally {
+        _iterator2.f();
+      }
 
       positions.nitroX = positions.back; // check for customizations
 
@@ -86716,7 +86755,7 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
                 // stage itself - The ResponsiveContainer will handle the rest
                 scaleBy = car.scale.x = car.scale.y = baseHeight / height; // get positions to attach things
 
-                positions = this._establishPositions(bounds, scaleBy); // shift everything to align to the front of the car
+                positions = this._establishPositions(bounds, car, scaleBy); // shift everything to align to the front of the car
 
                 front = positions.front;
                 this.pivot.x = front;
@@ -86927,24 +86966,19 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
       this.hasNitro = !!nitro;
     }
     /** handles activating the car nitros */
+    // /** rattles a car by the amount provided */
+    // rattle(amount) {
+    // 	const { state } = this;
+    // 	const { isNitro } = state;
+    // 	// calculate the default amount to shake the car around
+    // 	let shake = ((CAR_SHAKE_DISTANCE * Math.random()) - (CAR_SHAKE_DISTANCE / 2)) * amount;
+    // 	if (isNitro) {
+    // 		shake *= CAR_SHAKE_NITRO_BONUS;
+    // 	}
+    // 	// update the y position
+    // 	this.setY(shake);
+    // }
 
-  }, {
-    key: "rattle",
-
-    /** rattles a car by the amount provided */
-    value: function rattle(amount) {
-      var state = this.state;
-      var isNitro = state.isNitro; // calculate the default amount to shake the car around
-
-      var shake = (_config.CAR_SHAKE_DISTANCE * Math.random() - _config.CAR_SHAKE_DISTANCE / 2) * amount;
-
-      if (isNitro) {
-        shake *= _config.CAR_SHAKE_NITRO_BONUS;
-      } // update the y position
-
-
-      this.setY(shake);
-    }
   }], [{
     key: "create",
 
@@ -94653,7 +94687,7 @@ var AssetPreloader = /*#__PURE__*/function () {
 
             case 5:
               if ((_step = _iterator.n()).done) {
-                _context.next = 21;
+                _context.next = 25;
                 break;
               }
 
@@ -94662,66 +94696,76 @@ var AssetPreloader = /*#__PURE__*/function () {
 
               task = void 0;
 
-              if (!(type === 'image')) {
+              if (!(type === 'spritesheet')) {
                 _context.next = 13;
                 break;
               }
 
-              task = animator.getImage(src);
-              _context.next = 18;
+              task = animator.preloadSpritesheet(src);
+              _context.next = 22;
               break;
 
             case 13:
-              if (!(type === 'audio')) {
+              if (!(type === 'image')) {
                 _context.next = 17;
                 break;
               }
 
-              task = audio.register(src, sprites);
-              _context.next = 18;
+              task = animator.getImage(src);
+              _context.next = 22;
               break;
 
             case 17:
-              throw new InvalidResourceError();
+              if (!(type === 'audio')) {
+                _context.next = 21;
+                break;
+              }
 
-            case 18:
-              // add the task
-              pending.push(task);
-
-            case 19:
-              _context.next = 5;
+              task = audio.register(src, sprites);
+              _context.next = 22;
               break;
 
             case 21:
-              _context.next = 26;
-              break;
+              throw new InvalidResourceError();
+
+            case 22:
+              // add the task
+              pending.push(task);
 
             case 23:
-              _context.prev = 23;
+              _context.next = 5;
+              break;
+
+            case 25:
+              _context.next = 30;
+              break;
+
+            case 27:
+              _context.prev = 27;
               _context.t0 = _context["catch"](3);
 
               _iterator.e(_context.t0);
 
-            case 26:
-              _context.prev = 26;
+            case 30:
+              _context.prev = 30;
 
               _iterator.f();
 
-              return _context.finish(26);
+              return _context.finish(30);
 
-            case 29:
-              _context.next = 31;
+            case 33:
+              _context.next = 35;
               return Promise.all(pending);
 
-            case 31:
+            case 35:
               _this.results = _context.sent;
 
-            case 32:
+            case 36:
             case "end":
               return _context.stop();
           }
         }
-      }, _callee, null, [[3, 23, 26, 29]]);
+      }, _callee, null, [[3, 27, 30, 33]]);
     })));
     (0, _defineProperty2.default)(this, "_validateResources", function () {
       var resources = _this.resources,
@@ -95028,27 +95072,18 @@ var Track = /*#__PURE__*/function () {
                   src: _crowd.SELECTED_CROWD_URL
                 }, // unique track images
                 {
-                  type: 'image',
-                  src: "".concat(trackAssetsUrl, ".png")
-                }, {
-                  type: 'image',
-                  src: "".concat(trackAssetsUrl, ".jpg")
+                  type: 'spritesheet',
+                  src: trackAssetsUrl
                 }, // include other image files
                 {
-                  type: 'image',
-                  src: 'extras/countdown.jpg'
+                  type: 'spritesheet',
+                  src: 'extras/countdown'
                 }, {
-                  type: 'image',
-                  src: 'extras/countdown.png'
+                  type: 'spritesheet',
+                  src: 'particles'
                 }, {
-                  type: 'image',
-                  src: 'particles.png'
-                }, {
-                  type: 'image',
-                  src: 'images.jpg'
-                }, {
-                  type: 'image',
-                  src: 'images.png'
+                  type: 'spritesheet',
+                  src: 'images'
                 }, // common audio
                 {
                   type: 'audio',
@@ -98155,6 +98190,10 @@ function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o =
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
@@ -98178,17 +98217,18 @@ var ComposerView = /*#__PURE__*/function (_BaseView) {
 
     _this = _super.call.apply(_super, [this].concat(_args));
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "init", function (options) {
-      options = (0, _utils.merge)(options, {
-        scale: {
-          height: PREFERRED_HEIGHT
-        },
-        includeShadows: true
-      }); // check for sound
-
+      // check for sound
       audio.configureSFX({
         enabled: !!options.silent
       });
-      (0, _get2.default)((_thisSuper = (0, _assertThisInitialized2.default)(_this), (0, _getPrototypeOf2.default)(ComposerView.prototype)), "init", _thisSuper).call(_thisSuper, options);
+      (0, _get2.default)((_thisSuper = (0, _assertThisInitialized2.default)(_this), (0, _getPrototypeOf2.default)(ComposerView.prototype)), "init", _thisSuper).call(_thisSuper, _objectSpread(_objectSpread({}, options), {}, {
+        scale: {
+          height: PREFERRED_HEIGHT
+        },
+        backgroundColor: 0x222835,
+        includeShadows: true,
+        autoRender: true
+      }));
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "compose", /*#__PURE__*/function () {
       var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(data) {
@@ -98203,7 +98243,15 @@ var ComposerView = /*#__PURE__*/function (_BaseView) {
                 view = new _ntAnimator.PIXI.ResponsiveContainer();
                 view.relativeX = 0.5;
                 view.relativeY = 0.5;
-                stage.addChild(view); // if there are comps, render those alone
+                stage.addChild(view); // // check for cars first
+                // for (const car of data.cars || []) {
+                // 	const instance = await Car.create({
+                // 		view: this,
+                // 		...car
+                // 	})
+                // 	view.addChild(instance);
+                // }
+                // if there are comps, render those alone
 
                 if (data.comps.length) _this.renderComps(data, view);else _this.renderScene(data, view);
 
@@ -98250,7 +98298,7 @@ var ComposerView = /*#__PURE__*/function (_BaseView) {
       };
     }());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "renderComps", /*#__PURE__*/function () {
-      var _ref3 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(data, stage) {
+      var _ref3 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(data, view) {
         var _assertThisInitialize3, animator, _iterator, _step, path, _this2, args, comp, _iterator2, _step2, sound;
 
         return _regenerator.default.wrap(function _callee3$(_context3) {
@@ -98289,7 +98337,7 @@ var ComposerView = /*#__PURE__*/function (_BaseView) {
 
               case 13:
                 comp = _context3.sent;
-                stage.addChild(comp);
+                view.addChild(comp);
 
               case 15:
                 _context3.next = 4;
@@ -98341,7 +98389,7 @@ var ComposerView = /*#__PURE__*/function (_BaseView) {
       };
     }());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "renderScene", /*#__PURE__*/function () {
-      var _ref4 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(data, stage) {
+      var _ref4 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(data, view) {
         var _data$cars, car, options, player;
 
         return _regenerator.default.wrap(function _callee4$(_context4) {
@@ -98363,7 +98411,7 @@ var ComposerView = /*#__PURE__*/function (_BaseView) {
 
                 ; // create the player
 
-                options = (0, _utils.merge)({
+                options = _objectSpread({
                   view: (0, _assertThisInitialized2.default)(_this),
                   baseHeight: PREFERRED_HEIGHT * 0.5
                 }, car);
@@ -98372,15 +98420,16 @@ var ComposerView = /*#__PURE__*/function (_BaseView) {
 
               case 6:
                 player = _context4.sent;
-                stage.addChild(player); // middle of screen
+                view.addChild(player); // middle of screen
 
                 player.relativeY = 0.5; // align for values
 
                 player.relativeX = car.mods.nitro ? 0.8 : car.mods.trail ? 0.65 : 0.5; // save the player preview
 
                 _this.player = player;
+                console.log(player);
 
-              case 11:
+              case 12:
               case "end":
                 return _context4.stop();
             }

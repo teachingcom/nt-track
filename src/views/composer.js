@@ -12,15 +12,15 @@ export default class ComposerView extends BaseView {
 
 	/** prepare the view */
 	init = options => {
-		options = merge(options, {
-			scale: { height: PREFERRED_HEIGHT },
-			includeShadows: true
-		});
-
 		// check for sound
 		audio.configureSFX({ enabled: !!options.silent });
 
-		super.init(options);
+		super.init({ ...options,
+			scale: { height: PREFERRED_HEIGHT },
+			backgroundColor: 0x222835,
+			includeShadows: true,
+			autoRender: true
+		});
 	}
 
 	/** composes anything found at each node */
@@ -32,6 +32,17 @@ export default class ComposerView extends BaseView {
 		view.relativeX = 0.5;
 		view.relativeY = 0.5;
 		stage.addChild(view);
+
+		// // check for cars first
+		// for (const car of data.cars || []) {
+		// 	const instance = await Car.create({
+		// 		view: this,
+		// 		...car
+		// 	})
+
+		// 	view.addChild(instance);
+		// }
+
 
 		// if there are comps, render those alone
 		if (data.comps.length) this.renderComps(data, view);
@@ -48,7 +59,7 @@ export default class ComposerView extends BaseView {
 	}
 
 	// renders general compositions
-	renderComps = async (data, stage) => {
+	renderComps = async (data, view) => {
 		const { animator } = this;
 		for (const path of data.comps) {
 
@@ -62,7 +73,7 @@ export default class ComposerView extends BaseView {
 
 			// creates a comp
 			const comp = await animator.create(path);
-			stage.addChild(comp);
+			view.addChild(comp);
 		}
 
 		// play sounds, if any
@@ -73,7 +84,7 @@ export default class ComposerView extends BaseView {
 	}
 
 	// renders game scenes like cars and tracks
-	renderScene = async (data, stage) => {
+	renderScene = async (data, view) => {
 
 		// ensure there's a car
 		let [ car ] = data.cars;
@@ -84,9 +95,9 @@ export default class ComposerView extends BaseView {
 		};
 
 		// create the player
-		const options = merge({ view: this, baseHeight: PREFERRED_HEIGHT * 0.5 }, car);
+		const options = { view: this, baseHeight: PREFERRED_HEIGHT * 0.5, ...car };
 		const player = await Player.create(options);
-		stage.addChild(player);
+		view.addChild(player);
 
 		// middle of screen
 		player.relativeY = 0.5;
@@ -98,6 +109,8 @@ export default class ComposerView extends BaseView {
 
 		// save the player preview
 		this.player = player;
+
+		console.log(player);
 	}
 
 	activateNitro() {

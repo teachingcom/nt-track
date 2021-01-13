@@ -134,15 +134,12 @@ export default class Track {
 				{ type: 'image', src: SELECTED_CROWD_URL },
 	
 				// unique track images
-				{ type: 'image', src: `${trackAssetsUrl}.png` },
-				{ type: 'image', src: `${trackAssetsUrl}.jpg` },
+				{ type: 'spritesheet', src: trackAssetsUrl },
 				
 				// include other image files
-				{ type: 'image', src: 'extras/countdown.jpg' },
-				{ type: 'image', src: 'extras/countdown.png' },
-				{ type: 'image', src: 'particles.png' },
-				{ type: 'image', src: 'images.jpg' },
-				{ type: 'image', src: 'images.png' },
+				{ type: 'spritesheet', src: 'extras/countdown' },
+				{ type: 'spritesheet', src: 'particles' },
+				{ type: 'spritesheet', src: 'images' },
 	
 				// common audio
 				{ type: 'audio', src: 'common', sprites: animator.manifest.sounds }
