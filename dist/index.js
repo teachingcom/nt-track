@@ -87453,7 +87453,7 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
     key: "_initIcons",
     value: function () {
       var _initIcons2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
-        var view, top3, gold, friend;
+        var view;
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
@@ -87468,27 +87468,51 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
               case 2:
                 view = this.view;
                 _context2.next = 5;
-                return view.animator.getImage('images', 'icon_top');
+                return view.animator.getImage('images', 'icon_top_3');
 
               case 5:
-                top3 = _context2.sent;
+                _context2.t0 = _context2.sent;
                 _context2.next = 8;
-                return view.animator.getImage('images', 'icon_gold');
+                return view.animator.getImage('images', 'icon_top_10');
 
               case 8:
-                gold = _context2.sent;
+                _context2.t1 = _context2.sent;
                 _context2.next = 11;
-                return view.animator.getImage('images', 'icon_friend');
+                return view.animator.getImage('images', 'icon_top_50');
 
               case 11:
-                friend = _context2.sent;
+                _context2.t2 = _context2.sent;
+                _context2.next = 14;
+                return view.animator.getImage('images', 'icon_top_100');
+
+              case 14:
+                _context2.t3 = _context2.sent;
+                _context2.next = 17;
+                return view.animator.getImage('images', 'icon_top_300');
+
+              case 17:
+                _context2.t4 = _context2.sent;
+                _context2.next = 20;
+                return view.animator.getImage('images', 'icon_gold');
+
+              case 20:
+                _context2.t5 = _context2.sent;
+                _context2.next = 23;
+                return view.animator.getImage('images', 'icon_friend');
+
+              case 23:
+                _context2.t6 = _context2.sent;
                 NameCard.ICONS = {
-                  top3: top3,
-                  gold: gold,
-                  friend: friend
+                  top3: _context2.t0,
+                  top10: _context2.t1,
+                  top50: _context2.t2,
+                  top100: _context2.t3,
+                  top300: _context2.t4,
+                  gold: _context2.t5,
+                  friend: _context2.t6
                 };
 
-              case 13:
+              case 25:
               case "end":
                 return _context2.stop();
             }
@@ -87512,9 +87536,12 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
 
       var options = this.options,
           isGoldNamecard = this.isGoldNamecard;
-      var isTop3 = options.isTop3,
+      var playerRank = options.playerRank,
           isGold = options.isGold,
-          isFriend = options.isFriend; // debug
+          isFriend = options.isFriend;
+      var playerRankIconId = "top".concat(playerRank);
+      var playerRankIcon = ICONS[playerRankIconId];
+      var hasPlayerRank = !!playerRankIcon; // debug
       // options.name = '|||||||ssssflskdfjlskdfj';
       // options.team = ' TALK ';
       // create the full name
@@ -87545,9 +87572,9 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
         ids.push('gold');
       }
 
-      if (isTop3) {
-        tallest = Math.max(tallest, ICONS.top3.height);
-        ids.push('top3');
+      if (hasPlayerRank) {
+        tallest = Math.max(tallest, playerRankIcon.height);
+        ids.push(playerRankIconId);
       }
 
       if (isFriend) {
@@ -88207,14 +88234,14 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
     key: "_initNameCard",
     value: function () {
       var _initNameCard2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
-        var options, mods, view, playerName, playerTeam, teamColor, isGold, isFriend, isTop3;
+        var options, mods, view, playerName, playerTeam, teamColor, isGold, isFriend, playerRank;
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
                 options = this.options, mods = this.mods;
                 view = options.view;
-                playerName = options.playerName, playerTeam = options.playerTeam, teamColor = options.teamColor, isGold = options.isGold, isFriend = options.isFriend, isTop3 = options.isTop3; // load a trail, if any
+                playerName = options.playerName, playerTeam = options.playerTeam, teamColor = options.teamColor, isGold = options.isGold, isFriend = options.isFriend, playerRank = options.playerRank; // load a trail, if any
 
                 return _context4.abrupt("return", _namecard.default.create({
                   view: view,
@@ -88225,7 +88252,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                   color: teamColor,
                   isGold: isGold,
                   isFriend: isFriend,
-                  isTop3: isTop3
+                  playerRank: playerRank
                 }));
 
               case 4:

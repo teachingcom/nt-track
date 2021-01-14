@@ -1,6 +1,6 @@
 // TODO: refactor this file after introducing SSAA
 
-import { merge } from '../../utils';
+import { isNumber, merge } from '../../utils';
 import { toRGBA } from '../../utils/color';
 import { PIXI, createContext, getBoundsForRole } from 'nt-animator';
 
@@ -104,10 +104,15 @@ export default class NameCard extends PIXI.Container {
 	async _initIcons() {
 		if (!!NameCard.ICONS) return;
 		const { view } = this;
-		const top3 = await view.animator.getImage('images', 'icon_top');
-		const gold = await view.animator.getImage('images', 'icon_gold');
-		const friend = await view.animator.getImage('images', 'icon_friend');
-		NameCard.ICONS = { top3, gold, friend };
+		NameCard.ICONS = {
+			top3: await view.animator.getImage('images', 'icon_top_3'),
+			top10: await view.animator.getImage('images', 'icon_top_10'),
+			top50: await view.animator.getImage('images', 'icon_top_50'),
+			top100: await view.animator.getImage('images', 'icon_top_100'),
+			top300: await view.animator.getImage('images', 'icon_top_300'),
+			gold: await view.animator.getImage('images', 'icon_gold'),
+			friend: await view.animator.getImage('images', 'icon_friend')
+		};
 	}
 
 	/** changes the visibility for a namecard */
@@ -192,7 +197,10 @@ export default class NameCard extends PIXI.Container {
 
 		// get info to show
 		const { options, isGoldNamecard } = this;
-		const { isTop3, isGold, isFriend } = options;
+		const { playerRank, isGold, isFriend } = options;
+		const playerRankIconId = `top${playerRank}`;
+		const playerRankIcon = ICONS[playerRankIconId];
+		const hasPlayerRank = !!playerRankIcon;
 		
 		// debug
 		// options.name = '|||||||ssssflskdfjlskdfj';
@@ -224,9 +232,9 @@ export default class NameCard extends PIXI.Container {
 			ids.push('gold');
 		}
 		
-		if (isTop3) {
-			tallest = Math.max(tallest, ICONS.top3.height);
-			ids.push('top3');
+		if (hasPlayerRank) {
+			tallest = Math.max(tallest, playerRankIcon.height);
+			ids.push(playerRankIconId);
 		}
 
 		if (isFriend) {
