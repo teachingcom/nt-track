@@ -197,7 +197,11 @@ export default class NameCard extends PIXI.Container {
 
 		// get info to show
 		const { options, isGoldNamecard } = this;
-		const { playerRank, isGold, isFriend } = options;
+		const { isTop3, isGold, isFriend } = options;
+		
+		// TODO: support for old style -- remove later and
+		// only use the playerRank
+		const playerRank = isTop3 ? 3 : options.playerRank;
 		const playerRankIconId = `top${playerRank}`;
 		const playerRankIcon = ICONS[playerRankIconId];
 		const hasPlayerRank = !!playerRankIcon;

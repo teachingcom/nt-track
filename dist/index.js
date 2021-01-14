@@ -87536,9 +87536,12 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
 
       var options = this.options,
           isGoldNamecard = this.isGoldNamecard;
-      var playerRank = options.playerRank,
+      var isTop3 = options.isTop3,
           isGold = options.isGold,
-          isFriend = options.isFriend;
+          isFriend = options.isFriend; // TODO: support for old style -- remove later and
+      // only use the playerRank
+
+      var playerRank = isTop3 ? 3 : options.playerRank;
       var playerRankIconId = "top".concat(playerRank);
       var playerRankIcon = ICONS[playerRankIconId];
       var hasPlayerRank = !!playerRankIcon; // debug
