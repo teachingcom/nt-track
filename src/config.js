@@ -42,6 +42,7 @@ export const NAMECARD_TETHER_DISTANCE = 700
 
 // cars
 export const CAR_DEFAULT_SHAKE_LEVEL = 0 // 0.25
+export const CAR_LANE_SCALE_ADJUSTMENT = 0.9
 export const CAR_SHADOW_BLUR = 25
 export const CAR_SHADOW_OPACITY = 0.8
 export const CAR_SHADOW_SCALE_ADJUST = 0.8

@@ -1,94 +1,98 @@
 
-import { Howl, Howler } from 'howler';
-import { Sound } from './sound';
+import { Howl, Howler } from 'howler'
+import { Sound } from './sound'
 
 /** keeps track of active audio files */
 const AUDIO = { }
-const MUSIC = [ ];
-const SFX = [ ];
+const MUSIC = []
+const SFX = []
 
 // default url to load sounds from
-let baseUrl = '/sounds';
+let baseUrl = '/sounds'
 
 // mute by default
-Sound.sfxEnabled = false;
-Sound.musicEnabled = false;
+Sound.sfxEnabled = false
+Sound.musicEnabled = false
 
 /** changes the sound effect state */
-export function configureSFX(config) {
-
-	// change enabled state
-	if ('enabled' in config) {
-		const enabled = !!config.enabled;
-		Howler.volume(enabled ? 1 : 0);
-	}
-
+export function configureSFX (config) {
+  // change enabled state
+  if ('enabled' in config) {
+    const enabled = !!config.enabled
+    Howler.volume(enabled ? 1 : 0)
+  }
 }
-	
+
 // unused
-export function configureMusic(config) {
+export function configureMusic (config) {
 }
 
 /** changes the root url to load audio from */
-export function setBaseUrl(url) {
-	baseUrl = url;
+export function setBaseUrl (url) {
+  baseUrl = url
 }
 
 /** includes a sound to be played */
-export async function register(key, sprites) {
-	return new Promise((resolve, reject) => {
+export async function register (key, sprites) {
+  return new Promise((resolve, reject) => {
+    // handle sound loading errors
+    const onFailed = () => {
+      console.error(`Failed to load sound: ${key}`)
+      reject(new MissingSoundException())
+    }
 
-		// handle sound loading errors
-		const onFailed = () => {
-			console.error(`Failed to load sound: ${key}`);
-			reject(new MissingSoundException());
-		};
-		
-		// handle finalizing the sound
-		const onLoaded = () => {
-			AUDIO[key] = sound;
-			resolve(true);
-		};
-		
-		// load the sound
-		const src = `${baseUrl}/${key}.mp3`.replace(/\/+/g, '/');
-		const sound = new Howl({
-			src,
-			sprite: sprites,
-			format: ['mp3'],
-			volume: 0,
-			preload: true,
-			autoplay: false,
-			onloaderror: onFailed,
-			onload: onLoaded
-		});
-	})
+    // handle finalizing the sound
+    const onLoaded = () => {
+      AUDIO[key] = sound
+      resolve(true)
+    }
+
+    // load the sound
+    let src = `${baseUrl}/${key}.mp3`.replace(/\/+/g, '/')
+
+    // check for a version
+    if (sprites.version) {
+      src += `?${sprites.version}`
+    }
+
+    // load the audio
+    const sound = new Howl({
+      src,
+      sprite: sprites,
+      format: ['mp3', 'ogg', 'm4a', 'ac3'],
+      volume: 0,
+      preload: true,
+      autoplay: false,
+      onloaderror: onFailed,
+      onload: onLoaded
+    })
+  })
 }
 
 // creates a new sound instance
-export function create(type, key, sprite) {
-	const sound = AUDIO[key];
-	
-	// no sound was found
-	if (!sound) {
-		console.warn(`Play request for ${key} failed: not found`);
-		return;
-	}
+export function create (type, key, sprite) {
+  const sound = AUDIO[key]
 
-	// start the audio
-	const id = sound.play(sprite);
-	
-	// creates a new sound instance
-	const instance = new Sound(type, sound, key, id, sprite);
-	instance.stop();
-	instance.reset();
+  // no sound was found
+  if (!sound) {
+    console.warn(`Play request for ${key} failed: not found`)
+    return
+  }
 
-	// save the audio
-	if (instance.isMusic) MUSIC.push(instance);
-	else SFX.push(instance);
+  // start the audio
+  const id = sound.play(sprite)
 
-	return instance;
+  // creates a new sound instance
+  const instance = new Sound(type, sound, key, id, sprite)
+  instance.stop()
+  instance.reset()
+
+  // save the audio
+  if (instance.isMusic) MUSIC.push(instance)
+  else SFX.push(instance)
+
+  return instance
 }
 
 // exceptions
-function MissingSoundException() { }
+function MissingSoundException () { }
