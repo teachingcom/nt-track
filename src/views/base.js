@@ -228,30 +228,23 @@ export class BaseView extends EventEmitter {
 	getQuality = () => PERFORMANCE_LEVEL
 
 	/** renders the current state of the view */
-	_render = () => this.render();
+	_autoRender = () => {
+		this._nextFrame = requestAnimationFrame(this._autoRender);
+		this.render();
+	}
+
+	// performs rendering
 	render() {
-
-		// auto rendering
-		if (this.autoRender) {
-			this.autoRender = requestAnimationFrame(this._render);
-		}
-
-		// start the rendering
 		const { renderer, view } = this;
 		renderer.render(view);
-		// const fast = new FastRenderer(this.renderer);
-		// fast.render(view);
 	}
 	
 	// turn on auto rendering
-	startAutoRender = () => {
-		this.autoRender = requestAnimationFrame(this._render);
-	}
+	startAutoRender = () => this._autoRender();
 
 	// turn off auto rendering
 	stopAutoRender = () => {
-		cancelAnimationFrame(this.autoRender);
-		delete this.autoRender;
+		cancelAnimationFrame(this._nextFrame);
 	}
 
 	getDisplaySize() {

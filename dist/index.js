@@ -84787,15 +84787,16 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "getQuality", function () {
       return _config.PERFORMANCE_LEVEL;
     });
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "_render", function () {
-      return _this.render();
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "_autoRender", function () {
+      _this._nextFrame = requestAnimationFrame(_this._autoRender);
+
+      _this.render();
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "startAutoRender", function () {
-      _this.autoRender = requestAnimationFrame(_this._render);
+      return _this._autoRender();
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "stopAutoRender", function () {
-      cancelAnimationFrame(_this.autoRender);
-      delete _this.autoRender;
+      cancelAnimationFrame(_this._nextFrame);
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "resize", function () {
       var _assertThisInitialize2 = (0, _assertThisInitialized2.default)(_this),
@@ -84990,17 +84991,11 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
 
   }, {
     key: "render",
+    // performs rendering
     value: function render() {
-      // auto rendering
-      if (this.autoRender) {
-        this.autoRender = requestAnimationFrame(this._render);
-      } // start the rendering
-
-
       var renderer = this.renderer,
           view = this.view;
-      renderer.render(view); // const fast = new FastRenderer(this.renderer);
-      // fast.render(view);
+      renderer.render(view);
     } // turn on auto rendering
 
   }, {
