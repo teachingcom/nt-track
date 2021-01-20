@@ -4,8 +4,6 @@ import { Animator, EventEmitter, PIXI } from 'nt-animator';
 import { noop } from '../utils';
 import { DEFAULT_PERFORMANCE_MONITORING_DELAY, PERFORMANCE_LEVEL } from '../config';
 
-window.NTVIEWS = [ ]
-
 // dynamic management of performance
 import FpsMonitor from '../fps';
 import DynamicPerformanceController from '../perf';
@@ -16,7 +14,9 @@ export class BaseView extends EventEmitter {
 	/** handles initial setup of the rendering area */
 	async init(options) {
 		const { scale, forceCanvas } = options;
-		NTVIEWS.push(this)
+		// const { scale } = options;
+		// const forceCanvas = true;
+		window.VIEW = this
 
 		// monitor visibility changes
 		this.isViewActive = isViewActive();
@@ -50,7 +50,7 @@ export class BaseView extends EventEmitter {
 		const backgroundColor = hasBackgroundColor ? options.backgroundColor : DEFAULT_BACKGROUND_COLOR;
 
 		this.config = {
-			antialias: false, // doesn't appear to improve anything
+			// antialias: false, // doesn't appear to improve anything
 			legacy: true,
 			preserveDrawingBuffer: true,
 			smoothProperty: 'none',
@@ -228,30 +228,23 @@ export class BaseView extends EventEmitter {
 	getQuality = () => PERFORMANCE_LEVEL
 
 	/** renders the current state of the view */
-	_render = () => this.render();
+	_autoRender = () => {
+		this._nextFrame = requestAnimationFrame(this._autoRender);
+		this.render();
+	}
+
+	// performs rendering
 	render() {
-
-		// auto rendering
-		if (this.autoRender) {
-			this.autoRender = requestAnimationFrame(this._render);
-		}
-
-		// start the rendering
 		const { renderer, view } = this;
 		renderer.render(view);
-		// const fast = new FastRenderer(this.renderer);
-		// fast.render(view);
 	}
 	
 	// turn on auto rendering
-	startAutoRender = () => {
-		this.autoRender = requestAnimationFrame(this._render);
-	}
+	startAutoRender = () => this._autoRender();
 
 	// turn off auto rendering
 	stopAutoRender = () => {
-		cancelAnimationFrame(this.autoRender);
-		delete this.autoRender;
+		cancelAnimationFrame(this._nextFrame);
 	}
 
 	getDisplaySize() {

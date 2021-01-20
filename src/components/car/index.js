@@ -76,7 +76,7 @@ export default class Car extends PIXI.Container {
 		const scaleBy = car.scale.x = car.scale.y = baseHeight / height;
 		
 		// get positions to attach things
-		const positions = this._establishPositions(bounds, scaleBy);
+		const positions = this._establishPositions(bounds, car, scaleBy);
 
 		// shift everything to align to the front of the car
 		const front = positions.front;
@@ -407,7 +407,7 @@ export default class Car extends PIXI.Container {
 	}
 
 	// identifies positions on a car
-	_establishPositions = (bounds, scale) => {
+	_establishPositions = (bounds, car, scale) => {
 		const { config } = this;
 
 		// assign a value if is a number
@@ -421,6 +421,19 @@ export default class Car extends PIXI.Container {
 			front: bounds.width * scale * CAR_DEFAULT_FRONT_BACK_OFFSET_X,
 			nitroBlurX: bounds.width * scale * NITRO_BLUR_DEFAULT_OFFSET_X,
 		};
+
+		// check for specialized positions
+		// TODO: this could be more robust to support y axis
+		// or dynamic so it can follow along with cars that
+		// are not 100% stationary while idle
+		const points = findDisplayObjectsOfRole(car, 'position')
+		for (const point of points) {
+			if (point.config.role.indexOf('back') !== -1) {
+				positions.back = point.x
+			} else if (point.config.role.indexOf('front') !== -1) {
+				positions.front = point.x
+			}
+		}
 
 		// reuse a few values
 		positions.nitroX = positions.back;
@@ -465,20 +478,20 @@ export default class Car extends PIXI.Container {
 		});
 	}
 	
-	/** rattles a car by the amount provided */
-	rattle(amount) {
-		const { state } = this;
-		const { isNitro } = state;
+	// /** rattles a car by the amount provided */
+	// rattle(amount) {
+	// 	const { state } = this;
+	// 	const { isNitro } = state;
 
-		// calculate the default amount to shake the car around
-		let shake = ((CAR_SHAKE_DISTANCE * Math.random()) - (CAR_SHAKE_DISTANCE / 2)) * amount;
-		if (isNitro) {
-			shake *= CAR_SHAKE_NITRO_BONUS;
-		}
+	// 	// calculate the default amount to shake the car around
+	// 	let shake = ((CAR_SHAKE_DISTANCE * Math.random()) - (CAR_SHAKE_DISTANCE / 2)) * amount;
+	// 	if (isNitro) {
+	// 		shake *= CAR_SHAKE_NITRO_BONUS;
+	// 	}
 
-		// update the y position
-		this.setY(shake);
-	}
+	// 	// update the y position
+	// 	this.setY(shake);
+	// }
 
 }
 

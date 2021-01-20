@@ -12,23 +12,26 @@ export default class AssetPreloader {
 
 	// prepares the resource loading 
 	async preload(resources) {
-		this.resources = resources;
+		this.resources = resources
 		await this._preloadResources()
 		this._validateResources()
 	}
 
 	// kick off all asset loading requests
 	_preloadResources = async () => {
-		const { resources, animator } = this;
-		const pending = [ ];
+		const { resources, animator } = this
+		const pending = [ ]
 		
 		// queue up all pending asset loading requests
 		for (const resource of resources) {
-			const { type, src, sprites } = resource;
+			const { type, src, sprites } = resource
 			
 			// loading image assets
-			let task;
-			if (type === 'image') {
+			let task
+			if (type === 'spritesheet') {
+				task = animator.preloadSpritesheet(src)
+			}
+			else if (type === 'image') {
 				task = animator.getImage(src)
 			}
 			// loading audio files

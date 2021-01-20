@@ -68,7 +68,7 @@ export default class AmbientAudio {
 		sound.fade(0, VOLUME_AMBIENT_AUDIO, 250);
 
 		// active the next section
-		setTimeout(this.next, 8000);
+		setTimeout(this.next, 10000);
 	}
 
 }
