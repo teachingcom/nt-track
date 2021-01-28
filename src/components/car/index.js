@@ -39,9 +39,18 @@ export default class Car extends PIXI.Container {
 	/** handles creating a new car */
 	static async create(options) {
 		const instance = new Car();
-		
+		const { view, type, isAnimated } = options;
+
+		// attempt to link external manifest files
+		if (isAnimated) {
+			try {
+				await view.animator.importManifest(`cars/${type}`)
+			} catch (ex) {
+				console.error('failed to load animation files for', type)
+			}
+		}
+
 		// determine the type to create
-		const { view, type } = options;
 		const path = `cars/${type}`;
 		const config = view.animator.lookup(path);
 		merge(instance, { options, view, path, config });
@@ -343,7 +352,9 @@ export default class Car extends PIXI.Container {
 	// adjust the shadow for a car
 	// does not change the position, but instead adjusts the center point
 	// to offset the shadow
-	setShadow = (light = CAR_DEFAULT_LIGHTING) => {
+	setShadow = (params = CAR_DEFAULT_LIGHTING) => {
+		const light = { ...CAR_DEFAULT_LIGHTING, ...params };
+
 		// standard car with no configuration info
 		if (!this.config) {
 			return;

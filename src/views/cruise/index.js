@@ -34,7 +34,8 @@ export default class CruiseView extends BaseView {
 			view: this, 
 			type: options.type,
 			hue: options.hue || 0,
-			baseHeight: 220
+      baseHeight: 220,
+      lighting: { x: -5, y: 7 }
 		});
 
     this.treadmill.pivot.x = 0
