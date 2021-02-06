@@ -94,5 +94,12 @@ export function create (type, key, sprite) {
   return instance
 }
 
+window.AUDIO = {
+	create,
+	audio: AUDIO,
+	sfx: SFX,
+	music: MUSIC
+}
+
 // exceptions
 function MissingSoundException () { }

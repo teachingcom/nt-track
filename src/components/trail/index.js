@@ -3,69 +3,57 @@ import { merge } from '../../utils';
 
 export default class Trail extends PIXI.DetatchedContainer {
 
-	/** handles creating the new trail instance */
-	static async create(options) {
-		const { type, view } = options;
-		const path = `trails/${type}`;
-		const config = view.animator.lookup(path);
+  /** handles creating the new trail instance */
+  static async create (options) {
+    const { type, view } = options
 
-		// if this doesn't exist, don't try and create
-		if (!config) return;
-		
-		// determine the type to create
-		const instance = new Trail();
-		merge(instance, { options, view, path, config });
-		
-		// initialize all car parts
-		await instance._initTrail();
+    // resolve the trail
+    const path = `trails/${type}`
+    await view.animator.importManifest(path)
+    const config = view.animator.lookup(path)
 
-		// if this didn't load for some reason
-		if (!instance.isValid) return;
-		
-		// give back the instance
-		return instance;
-	}
+    // if this doesn't exist, don't try and create
+    if (!config) return
 
-	// start creating loot
-	async _initTrail() {
-		const { view, options } = this;
-		const { type } = options;
+    // determine the type to create
+    const instance = new Trail()
+    merge(instance, { options, view, path, config })
 
-		// load the animation
-		const path = `trails/${type}`;
-		const trail = this.trail = await view.animator.create(path);
-		if (!trail) {
-			console.error(`Unable to create trail "${path}"`);
-			return;
-		}
+    // initialize all car parts
+    await instance._initTrail()
 
-		// // save the config
-		// const config = this.config = await view.animator.lookup(path);
+    // if this didn't load for some reason
+    if (!instance.isValid) return
 
-		// // use a color filter, if any
-		// if (isNumber(config.hue)) {
-		// 	const color = this.colorFilter = new PIXI.filters.ColorMatrixFilter();
-		// 	color.hue(config.hue || 0);
-			
-		// 	// create a color matrix
-		// 	for (const child of trail.children) {
-		// 		child.filters = [ color ];
-		// 	}
-		// }
+    // give back the instance
+    return instance
+  }
 
-		// save the trail instance
-		this.parts = trail.children.slice();
-		this.addChild(trail);
-	}
+  // start creating loot
+  async _initTrail () {
+    const { view, options } = this
+    const { type } = options
 
-	/** is a valid Trail instance */
-	get isValid() {
-		return this.parts && this.parts.length > 0;
-	}
+    // load the animation
+    const path = `trails/${type}`
+    const trail = this.trail = await view.animator.create(path)
+    if (!trail) {
+      console.error(`Unable to create trail "${path}"`)
+      return
+    }
 
-	/** deactivates the trail */
-	stop() {
-		this.trail.controller.stopEmitters();
-	}
+    // save the trail instance
+    this.parts = trail.children.slice()
+    this.addChild(trail)
+  }
 
+  /** is a valid Trail instance */
+  get isValid () {
+    return this.parts && this.parts.length > 0
+  }
+
+  /** deactivates the trail */
+  stop () {
+    this.trail.controller.stopEmitters()
+  }
 }

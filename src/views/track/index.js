@@ -284,6 +284,9 @@ export default class TrackView extends BaseView {
 				throw new CountdownAssetError();
 			}
 
+			// start the ambience
+			this.track.setAmbience('start');
+
 			// track is ready to go
 			this.resolveTask('load_track');
 		}
@@ -453,6 +456,9 @@ export default class TrackView extends BaseView {
 		if (countdown)
 			countdown.finish();
 
+		// change the ambience
+		this.track.setAmbience('race');
+
 		// start movement
 		state.animateTrackMovement = true;
 		state.trackMovementAmount = TRACK_ACCELERATION_RATE;
@@ -465,7 +471,7 @@ export default class TrackView extends BaseView {
 
 		// if the completion animation hasn't started
 		if (!raceCompletedAnimation)
-			this.finishRace();
+			return this.finishRace();
 
 		// finalize the result
 		raceCompletedAnimation.play({ });
@@ -482,9 +488,9 @@ export default class TrackView extends BaseView {
 		// already playing (this shouldn't happen)
 		if (raceCompletedAnimation) return;
 
-		// stop background noises
-		if (track.ambience)
-			track.ambience.stop();
+		// play the correct background noise
+		const victory = players.length === 1;
+		track.setAmbience(victory ? 'victory' : 'finish');
 
 		// stop the track
 		state.animateTrackMovement = false;

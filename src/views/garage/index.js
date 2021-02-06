@@ -111,7 +111,7 @@ export default class GarageView extends BaseView {
 
 			// lighting is flipped because the container
 			// is rotated in the view
-			lighting: { x: -3, y: -7, alpha: 0.3 }
+			lighting: { x: -3, y: -5, alpha: 0.33, ...tweaks.lighting }
 		});
 		
 		// finds the bounds for a car - if nothing was

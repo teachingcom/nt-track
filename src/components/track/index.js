@@ -163,12 +163,20 @@ export default class Track {
 
 		// create the ambient noise
 		try {
-			this.ambience = new AmbientAudio(ambience);
-			this.ambience.start();
+			this.ambience = { };
+
+			// create each possible racing ambience
+			for (const type of ['pre', 'racing', 'victory', 'defeat', 'default']) {
+				const sounds = ambience.sounds && ambience.sounds[type];
+				if (isArray(sounds)) {
+					this.ambience[type] = new AmbientAudio({ ...ambience, sounds });
+				}
+			}
 		}
 		// notify of this failure
 		// probably not reason enough to fail
 		catch (ex) {
+			console.error(ex);
 			console.error(`failed to create ambient audio`);
 		}
 	}
@@ -304,6 +312,38 @@ export default class Track {
 			this.foreground.relativeX = 0.5;
 			this.foreground.relativeY = this.relativeY;
 		}
+	}
+
+	stopAmbience = () => this.ambience?.current?.stop()
+
+	// changes the playing ambience
+	setAmbience = (type, options = { }) => {
+		if (!this.ambience) {
+			return;
+		}
+
+		// check for active
+		this.ambience.current?.stop();
+		
+		// start the next audio
+		if (type === 'start') {
+			this.ambience.current = this.ambience.pre || this.ambience.default;
+		}
+		// currently racing
+		else if (type === 'race') {
+			this.ambience.current = this.ambience.active || this.ambience.racing || this.ambience.default;
+		}
+		// currently racing
+		else if (type === 'victory') {
+			this.ambience.current = this.ambience.victory || this.ambience.default;
+		}
+		// currently racing
+		else if (type === 'finish') {
+			this.ambience.current = this.ambience.defeat || this.ambience.finish || this.ambience.default;
+		}
+
+		// start the new audio
+		this.ambience.current?.start();
 	}
 
 	// positional update 
