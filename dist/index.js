@@ -99148,7 +99148,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 return (0, _utils.wait)(TRANSITION_TIME);
 
               case 19:
-                if (remove.parent) {
+                if (remove !== null && remove !== void 0 && remove.parent) {
                   removeFromStage(remove);
                 }
 
@@ -99290,9 +99290,9 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
 exports.default = GarageView;
 
-function removeFromStage(car) {
-  if (car.parent) {
-    car.parent.removeChild(car);
+function removeFromStage(target) {
+  if (target.parent) {
+    target.parent.removeChild(target);
   }
 }
 

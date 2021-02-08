@@ -115,7 +115,7 @@ export default class GarageView extends BaseView {
 		// if for some reason, the old car is
 		// still lingering, remove it
 		await wait(TRANSITION_TIME);
-		if (remove.parent) { 
+		if (remove?.parent) { 
 			removeFromStage(remove);
 		}
 
@@ -171,9 +171,9 @@ export default class GarageView extends BaseView {
 
 }
 
-function removeFromStage(car) {
-	if (car.parent) {
-		car.parent.removeChild(car);
+function removeFromStage(target) {
+	if (target.parent) {
+		target.parent.removeChild(target);
 	}
 }
 
