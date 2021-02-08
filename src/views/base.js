@@ -4,6 +4,8 @@ import { Animator, EventEmitter, PIXI } from 'nt-animator';
 import { noop } from '../utils';
 import { DEFAULT_PERFORMANCE_MONITORING_DELAY, PERFORMANCE_LEVEL } from '../config';
 
+const MAXIMUM_DELTA = 4;
+
 // dynamic management of performance
 import FpsMonitor from '../fps';
 import DynamicPerformanceController from '../perf';
@@ -14,9 +16,6 @@ export class BaseView extends EventEmitter {
 	/** handles initial setup of the rendering area */
 	async init(options) {
 		const { scale, forceCanvas } = options;
-		// const { scale } = options;
-		// const forceCanvas = true;
-		window.VIEW = this
 
 		// monitor visibility changes
 		this.isViewActive = isViewActive();
@@ -187,11 +186,13 @@ export class BaseView extends EventEmitter {
 	}
 
 	/** calculates preferred times */
-	// TODO: make sure this is correct on 
-	getDeltaTime = relativeTo => {
-		const now = +new Date;
-		const elapsedMS = now - relativeTo;
-		return elapsedMS * PIXI.settings.TARGET_FPMS;
+	previousTime = Date.now()
+	preferredFps = 1000 / 60
+	getDeltaTime = () => {
+		const now = Date.now();
+		const diff = now - this.previousTime;
+		this.previousTime = now;
+		return diff / this.preferredFps;
 	}
 
 	/** includes a new task */

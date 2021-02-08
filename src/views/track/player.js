@@ -139,6 +139,7 @@ export default class Player extends PIXI.ResponsiveContainer {
 			view,
 			baseHeight: SCALED_NAMECARD_HEIGHT,
 			type: mods.card || 'default',
+			isAnimated: mods.isNamecardAnimated,
 			name: playerName,
 			team: playerTeam,
 			color: teamColor,
@@ -225,26 +226,47 @@ export default class Player extends PIXI.ResponsiveContainer {
 	dispose = () => {
 		const { car, namecard, shadow, trail } = this;
 
-		// remove emitters, animations, and objects
-		let phase;
-		try {
-			phase = 'removing car';
-			removeDisplayObject(car);
+		const removals = [
+			{ type: 'car', source: car, action: removeDisplayObject },
+			{ type: 'namecard', source: namecard, action: removeDisplayObject },
+			{ type: 'shadow', source: shadow, action: removeDisplayObject },
+			{ type: 'trail', source: trail, action: trail => trail.each(part => removeDisplayObject(part)) },
+			{ type: 'player', source: this, action: removeDisplayObject }
+		]
 
-			phase = 'removing namecard';
-			removeDisplayObject(namecard);
+		// perform the removal for each category
+		for (const remove of removals) { 
+			try {
+				if (remove.source) {
+					remove.action(remove.source)
+				}
+			}
+			catch (ex) {
+				console.error(`Failed to remove ${remove.type}`);
+				console.error(ex)
+			}
+		}
+
+		// // remove emitters, animations, and objects
+		// let phase;
+		// try {
+		// 	phase = 'removing car';
+		// 	removeDisplayObject(car);
+
+		// 	phase = 'removing namecard';
+		// 	removeDisplayObject(namecard);
 			
-			phase = 'removing shadow';
-			removeDisplayObject(shadow);
+		// 	phase = 'removing shadow';
+		// 	removeDisplayObject(shadow);
 
-			phase = 'removing trail';
-			if (trail)
-				trail.each(part => removeDisplayObject(part));
-		}
-		// do not crash for this
-		catch (ex) {
-			console.warn(`Failed at disposing player object: Error while ${phase}`);
-		}
+		// 	phase = 'removing trail';
+		// 	if (trail)
+		// 		trail.each(part => removeDisplayObject(part));
+		// }
+		// // do not crash for this
+		// catch (ex) {
+		// 	console.warn(`Failed at disposing player object: Error while ${phase}`);
+		// }
 	}
 
 	/** handles updating the car */

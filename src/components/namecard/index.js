@@ -31,28 +31,34 @@ export default class NameCard extends PIXI.Container {
 		instance.visible = false;
 		
 		// determine the type to create
-		const { type, view } = options;
+		const { type, view, isAnimated } = options;
+
+		// check for imported animations
+		if (isAnimated) {
+			const path = `namecards/${type}`
+			await view.animator.importManifest(path)
+		}
 		
 		// try and load
 		// const isDefault = /default/.test(type);
-		let path = `namecards/${type}`;
-		let config = view.animator.lookup(path);
+		let path = `namecards/${type}`
+		let config = view.animator.lookup(path)
 
 		// if missing, use the default
 		if (!config) {
-			path = 'namecards/default';
-			config = view.animator.lookup(path);
+			path = 'namecards/default'
+			config = view.animator.lookup(path)
 		}
 
 		// if still missing then there's not
 		// a name card that can be used
-		if (!config) return;
+		if (!config) return
 
 		// save the properties
-		const isGoldNamecard = /gold/i.test(type);
-		const isPlayerNamecard = /player/i.test(type);
-		const hasOverlay = config.overlay !== false;
-		merge(instance, { options, view, path, config, isGoldNamecard, isPlayerNamecard, hasOverlay });
+		const isGoldNamecard = /gold/i.test(type)
+		const isPlayerNamecard = /player/i.test(type)
+		const hasOverlay = config.overlay !== false
+		merge(instance, { options, view, path, config, isGoldNamecard, isPlayerNamecard, hasOverlay })
 
 		// attempt to add a namecard
 		try {
