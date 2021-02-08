@@ -4,4 +4,5 @@ export { default as Composer } from './views/composer'
 export { default as Garage } from './views/garage'
 export { default as Preview } from './views/preview'
 export { default as Cruise } from './views/cruise'
+export { default as Customizer } from './views/customizer'
 export const Audio = AudioController

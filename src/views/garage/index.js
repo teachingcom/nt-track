@@ -1,7 +1,8 @@
 import Car from "../../components/car";
-import { animate, findDisplayObjectsOfRole, getBoundsForRole, PIXI } from 'nt-animator';
-import { BaseView } from "../base";
-import { isNumber } from "../../utils";
+import { animate, getBoundsForRole, PIXI } from 'nt-animator';
+import { BaseView } from '../base';
+import { isNumber, wait } from '../../utils';
+import createActivityIndicator from '../../components/activity';
 
 const DEFAULT_MAX_HEIGHT = 250;
 const EFFECTS_PADDING_SCALING = 0.7;
@@ -9,6 +10,8 @@ const TRANSITION_TIME = 350;
 
 export default class GarageView extends BaseView {
 
+	loader = createActivityIndicator({ size: 120, opacity: 0.5, thickness: 10 });
+	
 	async init(options) {
 
 		// initialize the view
@@ -18,6 +21,10 @@ export default class GarageView extends BaseView {
 			forceCanvas: true,
 			...options
 		});
+
+		// center the loader in the view
+		this.loader.relativeX = this.loader.relativeY = 0.5;
+		this.stage.addChild(this.loader);
 
 		// automatically render
 		this.startAutoRender();
@@ -55,6 +62,7 @@ export default class GarageView extends BaseView {
 
 		// already has a car
 		if (hasActiveCar) {
+			fadeIn(this.loader);
 			await fadeOut(this.car);
 		}
 
@@ -62,6 +70,7 @@ export default class GarageView extends BaseView {
 		this.car = await this.createCar(config);
 		this.stage.addChild(this.car);
 		fadeIn(this.car);
+		fadeOut(this.loader, true);
 	}
 	
 	// shows a different car
@@ -76,25 +85,40 @@ export default class GarageView extends BaseView {
 		}
 
 		// create the new car, but put it off screen
+		await wait(100);
+		fadeIn(this.loader);
 		const car = await this.createCar(config);
-
+		
 		// check if this is still the active car
 		if (config !== this.active) {
 			return;
 		}
 
 		// set the new car
+		let remove = this.car;
 		this.car = car;
 		
 		// choose the animation
-		let entryAction = hasActiveCar ? driveIn : fadeIn;
-		if (!useDrivingEffect) {
-			entryAction = fadeIn;
+		let entryAction
+		if (hasActiveCar) {
+			entryAction = driveIn
+		} else {
+			entryAction = fadeIn
+			car.relativeX = 0.5
 		}
 		
 		// display the car
 		this.stage.addChild(car);
+		fadeOut(this.loader, true);
 		entryAction(car);
+
+		// if for some reason, the old car is
+		// still lingering, remove it
+		await wait(TRANSITION_TIME);
+		if (remove.parent) { 
+			removeFromStage(remove);
+		}
+
 	}
 
 	// creates a new car instance
@@ -147,7 +171,7 @@ export default class GarageView extends BaseView {
 
 }
 
-function removeCar(car) {
+function removeFromStage(car) {
 	if (car.parent) {
 		car.parent.removeChild(car);
 	}
@@ -155,8 +179,8 @@ function removeCar(car) {
 
 function driveOut(car) {
 	// cancel animations
-	if (car.animation) {
-		car.animation.stop();
+	if (car.__transition) {
+		car.__transition.stop();
 	}
 
 	return new Promise(resolve => {
@@ -171,7 +195,7 @@ function driveOut(car) {
 				car.relativeX = props.x;
 			},
 			complete: () => {
-				removeCar(car)
+				removeFromStage(car)
 				resolve();
 			},
 		});
@@ -180,7 +204,7 @@ function driveOut(car) {
 
 function driveIn(car) {
 	car.relativeX = -1.5;
-	car.animation = animate({
+	car.__transition = animate({
 		duration: TRANSITION_TIME,
 		ease: 'linear',
 		from: { x: 1.5 },
@@ -190,10 +214,10 @@ function driveIn(car) {
 	});
 }
 
-function fadeOut(car) {
+function fadeOut(target, skipRemove) {
 	// cancel animations
-	if (car.animation) {
-		car.animation.stop();
+	if (target.__transition) {
+		target.__transition.stop();
 	}
 
 	// request the animation
@@ -201,27 +225,29 @@ function fadeOut(car) {
 		animate({
 			duration: TRANSITION_TIME,
 			ease: 'linear',
-			from: { alpha: car.alpha },
+			from: { alpha: target.alpha },
 			to: { alpha: 0 },
 			loop: false,
-			update: props => car.alpha = props.alpha,
+			update: props => target.alpha = props.alpha,
 			complete: () => {
-				removeCar(car);
+				if (!skipRemove) { 
+					removeFromStage(target);
+				}
 				setTimeout(resolve, 100);
 			},
 		});
 	});
 }
 
-function fadeIn(car) {
-	car.alpha = 0;
-	car.relativeX = 0.5;
-	car.animation = animate({
+function fadeIn(target) {
+	target.alpha = 0;
+	target.__transition = animate({
 		duration: TRANSITION_TIME,
 		ease: 'linear',
 		from: { alpha: 0 },
 		to: { alpha: 1 },
 		loop: false,
-		update: props => car.alpha = props.alpha
+		update: props => target.alpha = props.alpha
 	});
 }
+
