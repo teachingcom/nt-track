@@ -86023,7 +86023,7 @@ function _hueShift() {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            if (hue) {
+            if (!isNaN(hue)) {
               _context.next = 2;
               break;
             }
@@ -86032,7 +86032,7 @@ function _hueShift() {
 
           case 2:
             // find all textures to work with
-            textures = (0, _utils.findTextures)(target); // kick off all work
+            textures = target.__paintableTextures = target.__paintableTextures || (0, _utils.findTextures)(target); // kick off all work
 
             pending = [];
 
@@ -86068,8 +86068,9 @@ function _applyHueShift() {
         switch (_context2.prev = _context2.next) {
           case 0:
             return _context2.abrupt("return", new Promise(function (resolve) {
-              // // find the base texture
+              var worker; // // find the base texture
               // let { texture } = sprites[0]
+
               var safety = 10;
 
               while (texture.baseTexture && --safety > 0) {
@@ -86085,24 +86086,12 @@ function _applyHueShift() {
 
               canvas.width = width;
               canvas.height = height;
-              ctx.drawImage(texture.resource.source, 0, 0); // get the pixels to use
+              ctx.drawImage(texture.resource.source, 0, 0); // handle applying the texture
 
-              var pixels = ctx.getImageData(0, 0, width, height); // perform the work async
-
-              var worker = (0, _utils.createWorker)(HSLShiftWorker);
-              worker.postMessage({
-                hue: hue,
-                pixels: pixels.data
-              }, [pixels.data.buffer]); // wait for the finished result
-
-              worker.onmessage = function (msg) {
-                // replace the canvas with the shifted texture
-                var replacement = ctx.createImageData(width, height);
-                replacement.data.set(msg.data.updated);
-                ctx.putImageData(replacement, 0, 0); // create thw new texture
-
+              function applyTexture() {
+                // create thw new texture
                 var texture = _ntAnimator.PIXI.Texture.from(canvas); // HACK?: PIXI would throw errors when using the
-                // canvas renderer trying to find the texxture
+                // canvas renderer trying to find the texture
                 // by calling a missing function. Providing the canvas
                 // to the replacement texture solves the problem
 
@@ -86144,7 +86133,7 @@ function _applyHueShift() {
                       target[index] = target[index].clone();
                       target[index].baseTexture = texture;
                     }
-                  } // all finished
+                  } // cleanup
 
                 } catch (err) {
                   _iterator.e(err);
@@ -86152,14 +86141,44 @@ function _applyHueShift() {
                   _iterator.f();
                 }
 
-                resolve();
-              }; // don't crash for this
+                if (worker) {
+                  try {
+                    worker.terminate();
+                  } catch (ex) {// nothing to do, don't crash
+                  }
+                } // all finished
 
 
-              worker.onerror = function () {
-                console.warn('Failed to perform hue shift');
                 resolve();
-              };
+              } // no hue shift (maybe returning to 0)
+
+
+              if (hue === 0) {
+                applyTexture(); // apply the hue shift
+              } else {
+                var pixels = ctx.getImageData(0, 0, width, height); // perform the work async
+
+                worker = (0, _utils.createWorker)(HSLShiftWorker);
+                worker.postMessage({
+                  hue: hue,
+                  pixels: pixels.data
+                }, [pixels.data.buffer]); // wait for the finished result
+
+                worker.onmessage = function (msg) {
+                  // replace the canvas with the shifted texture
+                  var replacement = ctx.createImageData(width, height);
+                  replacement.data.set(msg.data.updated);
+                  ctx.putImageData(replacement, 0, 0); // draw the new texture
+
+                  applyTexture();
+                }; // don't crash for this
+
+
+                worker.onerror = function () {
+                  console.warn('Failed to perform hue shift');
+                  resolve();
+                };
+              }
             }));
 
           case 1:
@@ -87046,46 +87065,68 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
     }() // creates a car when the resource is missing
 
   }, {
-    key: "_initFilters",
-    // setup visual filters
+    key: "repaintCar",
+    // repaints the current car
     value: function () {
-      var _initFilters2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
-        var options, car, _options$hue, hue;
-
+      var _repaintCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(hue) {
+        var car;
         return _regenerator.default.wrap(function _callee5$(_context5) {
           while (1) {
             switch (_context5.prev = _context5.next) {
               case 0:
-                options = this.options, car = this.car;
-                _options$hue = options.hue, hue = _options$hue === void 0 ? 0 : _options$hue; // no shifting was required
+                car = this.car;
+                _context5.next = 3;
+                return (0, _hueShift.default)(car, 0 | hue);
 
-                if (hue) {
-                  _context5.next = 4;
-                  break;
-                }
-
-                return _context5.abrupt("return");
-
-              case 4:
-                _context5.prev = 4;
-                _context5.next = 7;
-                return (0, _hueShift.default)(car, hue);
-
-              case 7:
-                _context5.next = 12;
-                break;
-
-              case 9:
-                _context5.prev = 9;
-                _context5.t0 = _context5["catch"](4);
-                console.warn('failed', _context5.t0);
-
-              case 12:
+              case 3:
               case "end":
                 return _context5.stop();
             }
           }
-        }, _callee5, this, [[4, 9]]);
+        }, _callee5, this);
+      }));
+
+      function repaintCar(_x3) {
+        return _repaintCar.apply(this, arguments);
+      }
+
+      return repaintCar;
+    }() // setup visual filters
+
+  }, {
+    key: "_initFilters",
+    value: function () {
+      var _initFilters2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
+        var options, _options$hue, hue;
+
+        return _regenerator.default.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                options = this.options;
+                _options$hue = options.hue, hue = _options$hue === void 0 ? 0 : _options$hue; // no shifting was required
+
+                if (hue) {
+                  _context6.next = 4;
+                  break;
+                }
+
+                return _context6.abrupt("return");
+
+              case 4:
+                // recolor as needed
+                try {
+                  this.repaintCar(hue);
+                } catch (ex) {
+                  console.warn('failed', ex);
+                }
+
+              case 5:
+              case "end":
+                return _context6.stop();
+            }
+          }
+        }, _callee6, this);
       }));
 
       function _initFilters() {
@@ -87098,19 +87139,19 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
   }, {
     key: "_initTextures",
     value: function () {
-      var _initTextures2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
+      var _initTextures2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7() {
         var car, view, nitroBlur, nitroBlurContainer, ratio;
-        return _regenerator.default.wrap(function _callee6$(_context6) {
+        return _regenerator.default.wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
                 car = this.car, view = this.view; // create textures for this vehicle
 
-                _context6.next = 3;
+                _context7.next = 3;
                 return view.animator.getSprite('images', 'nitro_blur');
 
               case 3:
-                nitroBlur = _context6.sent;
+                nitroBlur = _context7.sent;
 
                 // nitro blurs should be put into another container
                 // since they will be scaled and animated
@@ -87132,10 +87173,10 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
 
               case 5:
               case "end":
-                return _context6.stop();
+                return _context7.stop();
             }
           }
-        }, _callee6, this);
+        }, _callee7, this);
       }));
 
       function _initTextures() {
@@ -87227,31 +87268,31 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
 
     /** handles creating a new car */
     value: function () {
-      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(options) {
+      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(options) {
         var instance, view, type, isAnimated, path, config;
-        return _regenerator.default.wrap(function _callee7$(_context7) {
+        return _regenerator.default.wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
                 instance = new Car();
                 view = options.view, type = options.type, isAnimated = options.isAnimated; // attempt to link external manifest files
 
                 if (!isAnimated) {
-                  _context7.next = 11;
+                  _context8.next = 11;
                   break;
                 }
 
-                _context7.prev = 3;
-                _context7.next = 6;
+                _context8.prev = 3;
+                _context8.next = 6;
                 return view.animator.importManifest("cars/".concat(type));
 
               case 6:
-                _context7.next = 11;
+                _context8.next = 11;
                 break;
 
               case 8:
-                _context7.prev = 8;
-                _context7.t0 = _context7["catch"](3);
+                _context8.prev = 8;
+                _context8.t0 = _context8["catch"](3);
                 console.error('failed to load animation files for', type);
 
               case 11:
@@ -87265,25 +87306,25 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
                   config: config
                 }); // initialize the car
 
-                _context7.next = 16;
+                _context8.next = 16;
                 return instance._initCar();
 
               case 16:
-                _context7.next = 18;
+                _context8.next = 18;
                 return instance._initFilters();
 
               case 18:
-                return _context7.abrupt("return", instance);
+                return _context8.abrupt("return", instance);
 
               case 19:
               case "end":
-                return _context7.stop();
+                return _context8.stop();
             }
           }
-        }, _callee7, null, [[3, 8]]);
+        }, _callee8, null, [[3, 8]]);
       }));
 
-      function create(_x3) {
+      function create(_x4) {
         return _create.apply(this, arguments);
       }
 
@@ -88667,7 +88708,12 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
       }
 
       return _assemble;
-    }() // cancels animating progress
+    }()
+  }, {
+    key: "repaintCar",
+    value: function repaintCar(hue) {
+      this.car.repaintCar(hue);
+    } // cancels animating progress
 
   }, {
     key: "updateTransform",
@@ -99862,15 +99908,15 @@ exports.default = void 0;
 
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
-var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
-
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
 
 var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
 
-var _get2 = _interopRequireDefault(require("@babel/runtime/helpers/get"));
+var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
+
+var _get3 = _interopRequireDefault(require("@babel/runtime/helpers/get"));
 
 var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
 
@@ -99878,11 +99924,15 @@ var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime
 
 var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
 
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
 var _base = require("../base");
 
 var _ntAnimator = require("nt-animator");
 
 var _player = _interopRequireDefault(require("../track/player"));
+
+var _treadmill = _interopRequireDefault(require("../../components/treadmill"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -99902,40 +99952,69 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
   var _super = _createSuper(CustomizerView);
 
   function CustomizerView() {
+    var _this;
+
     (0, _classCallCheck2.default)(this, CustomizerView);
-    return _super.apply(this, arguments);
+
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    _this = _super.call.apply(_super, [this].concat(args));
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "step", 0);
+    return _this;
   }
 
   (0, _createClass2.default)(CustomizerView, [{
     key: "init",
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(options) {
+        var _this2 = this;
+
+        var tr;
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                console.log('di in', options);
-                _context.next = 3;
-                return (0, _get2.default)((0, _getPrototypeOf2.default)(CustomizerView.prototype), "init", this).call(this, _objectSpread({
+                _context.next = 2;
+                return (0, _get3.default)((0, _getPrototypeOf2.default)(CustomizerView.prototype), "init", this).call(this, _objectSpread({
                   scale: {
                     DEFAULT_MAX_HEIGHT: DEFAULT_MAX_HEIGHT
                   },
                   backgroundColor: 0x222835
                 }, options));
 
-              case 3:
+              case 2:
                 // automatically render
                 this.workspace = new _ntAnimator.PIXI.ResponsiveContainer();
-                this.container = new _ntAnimator.PIXI.Container();
+                this.container = new _ntAnimator.PIXI.Container(); // create segments
+
+                _context.next = 6;
+                return _treadmill.default.create({
+                  totalSegments: 10,
+                  fitToHeight: 700,
+                  onCreateSegment: function onCreateSegment() {
+                    return _this2.animator.create('extras/cruise');
+                  }
+                });
+
+              case 6:
+                this.treadmill = _context.sent;
                 this.workspace.scaleX = 1;
                 this.workspace.scaleY = 1;
                 this.workspace.relativeX = 0.275;
                 this.workspace.relativeY = 0.5;
+                tr = new _ntAnimator.PIXI.Container();
+                tr.addChild(this.treadmill);
+                this.treadmill.y = -220;
+                this.treadmill.scale.x = this.treadmill.scale.y = 0.7;
+                this.container.addChild(tr);
+                tr.x = -400;
                 this.workspace.addChild(this.container);
                 this.stage.addChild(this.workspace);
                 this.startAutoRender();
 
-              case 12:
+              case 20:
               case "end":
                 return _context.stop();
             }
@@ -99955,7 +100034,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "setFocus",
     value: function setFocus(zone) {
-      var _this = this;
+      var _this3 = this;
 
       if (this._transition) {
         this._transition.stop();
@@ -99990,24 +100069,23 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
         to: end,
         loop: false,
         update: function update(props) {
-          _this.container.x = props.x;
-          _this.container.y = props.y;
-          _this.container.scale.x = _this.container.scale.y = props.scale;
+          _this3.container.x = props.x;
+          _this3.container.y = props.y;
+          _this3.container.scale.x = _this3.container.scale.y = props.scale;
         }
       });
     }
   }, {
-    key: "updateCar",
+    key: "replaceCar",
     value: function () {
-      var _updateCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(_ref) {
-        var carId, isCarAnimated, hue, trailId, namecardId, isNamecardAnimated, player, nc;
+      var _replaceCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(_ref) {
+        var carId, hue, isCarAnimated, playerName, playerTeam, trailId, namecardId, isNamecardAnimated;
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                carId = _ref.carId, isCarAnimated = _ref.isCarAnimated, hue = _ref.hue, trailId = _ref.trailId, namecardId = _ref.namecardId, isNamecardAnimated = _ref.isNamecardAnimated;
+                carId = _ref.carId, hue = _ref.hue, isCarAnimated = _ref.isCarAnimated, playerName = _ref.playerName, playerTeam = _ref.playerTeam, trailId = _ref.trailId, namecardId = _ref.namecardId, isNamecardAnimated = _ref.isNamecardAnimated;
 
-                // check for things that require a full rebuild
                 if (this.player) {
                   this.player.dispose();
                 }
@@ -100017,21 +100095,80 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                   view: this,
                   type: carId,
                   hue: hue,
-                  playerName: 'BOSS MAN',
-                  playerTeam: 'NTRO',
+                  playerName: playerName,
+                  playerTeam: playerTeam,
                   isAnimated: isCarAnimated,
-                  mods: {
-                    trail: trailId,
-                    card: namecardId,
-                    isNamecardAnimated: isNamecardAnimated
+                  mods: {// trail: trailId,
+                    // card: namecardId,
+                    // isNamecardAnimated
                   }
                 });
 
               case 4:
-                player = this.player = _context2.sent;
+                this.player = _context2.sent;
+                return _context2.abrupt("return", this.player);
+
+              case 6:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function replaceCar(_x2) {
+        return _replaceCar.apply(this, arguments);
+      }
+
+      return replaceCar;
+    }()
+  }, {
+    key: "repaintCar",
+    value: function repaintCar(hue) {
+      this.player.repaintCar(hue);
+    }
+  }, {
+    key: "updateCar",
+    value: function () {
+      var _updateCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(_ref2) {
+        var carId, isCarAnimated, hue, player, nc;
+        return _regenerator.default.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                carId = _ref2.carId, isCarAnimated = _ref2.isCarAnimated, hue = _ref2.hue;
+                player = this.player;
+
+                if (!(this.carId !== carId)) {
+                  _context3.next = 8;
+                  break;
+                }
+
+                _context3.next = 5;
+                return this.replaceCar({
+                  carId: carId,
+                  hue: hue,
+                  isCarAnimated: isCarAnimated
+                });
+
+              case 5:
+                player = _context3.sent;
+                _context3.next = 9;
+                break;
+
+              case 8:
+                if (this.hue !== hue) {
+                  player.repaintCar(hue);
+                }
+
+              case 9:
+                this.carId = carId;
+                this.hue = hue;
+                this.player = player; // check for things that require a full rebuild
                 // finds the bounds for a car - if nothing was
                 // found then it's most likely a simple car.
                 // use the sprite height of the car
+
                 this.bounds = (0, _ntAnimator.getBoundsForRole)(player.car, 'base') || player.car; // calculate scale - include some extra
                 // padding to make sure effects (if any) are visible
                 // const display = this.getDisplaySize()
@@ -100051,8 +100188,8 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 // container.rotation = Math.PI
                 // console.log(player);
 
-                player.scaleX = 1;
-                player.scaleY = 1;
+                player.scaleX = 0.7;
+                player.scaleY = 0.7;
                 player.relativeX = 0.1;
                 player.relativeY = 0;
                 nc = player.namecard;
@@ -100065,15 +100202,15 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 this.container.addChild(player);
                 this.container.addChild(nc);
 
-              case 18:
+              case 25:
               case "end":
-                return _context2.stop();
+                return _context3.stop();
             }
           }
-        }, _callee2, this);
+        }, _callee3, this);
       }));
 
-      function updateCar(_x2) {
+      function updateCar(_x3) {
         return _updateCar.apply(this, arguments);
       }
 
@@ -100096,14 +100233,34 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
     value: function focusOnTrail() {}
   }, {
     key: "focusOnNamecard",
-    value: function focusOnNamecard() {} // focusOnCelebrations () { }
+    value: function focusOnNamecard() {}
+  }, {
+    key: "render",
+    value: function render() {
+      var _get2;
+
+      if (this.treadmill) {
+        var delta = this.getDeltaTime(); // this.container.rotation = (Math.sin(this.step++ / 300) / 5) + (Math.PI * -0.2)
+
+        this.treadmill.update({
+          diff: -45 * delta,
+          horizontalWrap: -200
+        });
+      }
+
+      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+
+      (_get2 = (0, _get3.default)((0, _getPrototypeOf2.default)(CustomizerView.prototype), "render", this)).call.apply(_get2, [this].concat(args));
+    } // focusOnCelebrations () { }
 
   }]);
   return CustomizerView;
 }(_base.BaseView);
 
 exports.default = CustomizerView;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","../base":"views/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../track/player":"views/track/player.js"}],"index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../base":"views/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../track/player":"views/track/player.js","../../components/treadmill":"components/treadmill.js"}],"index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {

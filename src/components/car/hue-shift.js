@@ -4,10 +4,10 @@ import { createWorker, findTextures } from '../../utils'
 /** performs a hue shift on a car */
 export default async function hueShift (target, hue) {
   // make sure there's a hue
-  if (!hue) return
+  if (isNaN(hue)) return
 
   // find all textures to work with
-  const textures = findTextures(target)
+  const textures = target.__paintableTextures = target.__paintableTextures || findTextures(target)
 
   // kick off all work
   const pending = []
@@ -24,6 +24,8 @@ export default async function hueShift (target, hue) {
 // performs the hue shifting operation for a target
 async function applyHueShift (texture, targets, hue) {
   return new Promise(resolve => {
+    let worker
+
     // // find the base texture
     // let { texture } = sprites[0]
     let safety = 10
@@ -41,25 +43,13 @@ async function applyHueShift (texture, targets, hue) {
     canvas.height = height
     ctx.drawImage(texture.resource.source, 0, 0)
 
-    // get the pixels to use
-    const pixels = ctx.getImageData(0, 0, width, height)
-
-    // perform the work async
-    const worker = createWorker(HSLShiftWorker)
-    worker.postMessage({ hue, pixels: pixels.data }, [pixels.data.buffer])
-
-    // wait for the finished result
-    worker.onmessage = msg => {
-      // replace the canvas with the shifted texture
-      const replacement = ctx.createImageData(width, height)
-      replacement.data.set(msg.data.updated)
-      ctx.putImageData(replacement, 0, 0)
-
+    // handle applying the texture
+    function applyTexture () {
       // create thw new texture
       const texture = PIXI.Texture.from(canvas)
 
       // HACK?: PIXI would throw errors when using the
-      // canvas renderer trying to find the texxture
+      // canvas renderer trying to find the texture
       // by calling a missing function. Providing the canvas
       // to the replacement texture solves the problem
       texture.getDrawableSource = () => canvas
@@ -91,15 +81,50 @@ async function applyHueShift (texture, targets, hue) {
         }
       }
 
+      // cleanup
+      if (worker) {
+        try {
+          worker.terminate()
+        } catch (ex) {
+          // nothing to do, don't crash
+        }
+      }
+
       // all finished
       resolve()
     }
 
-    // don't crash for this
-    worker.onerror = () => {
-      console.warn('Failed to perform hue shift')
-      resolve()
+    // no hue shift (maybe returning to 0)
+    if (hue === 0) {
+      applyTexture()
+
+    // apply the hue shift
+    } else {
+      const pixels = ctx.getImageData(0, 0, width, height)
+
+      // perform the work async
+      worker = createWorker(HSLShiftWorker)
+      worker.postMessage({ hue, pixels: pixels.data }, [pixels.data.buffer])
+
+      // wait for the finished result
+      worker.onmessage = msg => {
+        // replace the canvas with the shifted texture
+        const replacement = ctx.createImageData(width, height)
+        replacement.data.set(msg.data.updated)
+        ctx.putImageData(replacement, 0, 0)
+
+        // draw the new texture
+        applyTexture()
+      }
+
+      // don't crash for this
+      worker.onerror = () => {
+        console.warn('Failed to perform hue shift')
+        resolve()
+      }
     }
+
+
   })
 }
 

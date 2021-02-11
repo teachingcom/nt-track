@@ -269,10 +269,15 @@ export default class Car extends PIXI.Container {
 		return { car, height, bounds, imageSource };
 	}
 
+	// repaints the current car
+	async repaintCar(hue) { 
+		const { car } = this;
+		await hueShift(car, 0 | hue);
+	}
 
 	// setup visual filters
 	async _initFilters() {
-		const { options, car } = this;
+		const { options } = this;
 		const { hue = 0 } = options;
 
 		// no shifting was required
@@ -280,7 +285,7 @@ export default class Car extends PIXI.Container {
 
 		// recolor as needed
 		try {
-			await hueShift(car, hue);
+			this.repaintCar(hue)
 		}
 		catch (ex) {
 			console.warn('failed', ex);

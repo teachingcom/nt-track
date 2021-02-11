@@ -215,6 +215,10 @@ export default class Player extends PIXI.ResponsiveContainer {
 		this.sortChildren();
 	}
 
+	repaintCar (hue) {
+		this.car.repaintCar(hue)
+	}
+
 	// cancels animating progress
 	stopProgressAnimation = () => {
 		if (!this._progress) return;

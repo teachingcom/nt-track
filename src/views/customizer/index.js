@@ -2,12 +2,12 @@ import { BaseView } from '../base'
 import { animate, findDisplayObjectsOfRole, getBoundsForRole, PIXI } from 'nt-animator'
 
 import Player from '../track/player'
+import Treadmill from '../../components/treadmill'
 
 const DEFAULT_MAX_HEIGHT = 250
 
 export default class CustomizerView extends BaseView {
   async init (options) {
-    console.log('di in', options)
     await super.init({
       scale: { DEFAULT_MAX_HEIGHT },
       backgroundColor: 0x222835,
@@ -20,10 +20,25 @@ export default class CustomizerView extends BaseView {
     this.workspace = new PIXI.ResponsiveContainer()
     this.container = new PIXI.Container()
 
+    // create segments
+    this.treadmill = await Treadmill.create({
+      totalSegments: 10,
+      fitToHeight: 700,
+      onCreateSegment: () => this.animator.create('extras/cruise')
+    })
+
     this.workspace.scaleX = 1
     this.workspace.scaleY = 1
     this.workspace.relativeX = 0.275
     this.workspace.relativeY = 0.5
+
+    const tr = new PIXI.Container()
+    tr.addChild(this.treadmill)
+    this.treadmill.y = -220
+    this.treadmill.scale.x = this.treadmill.scale.y = 0.7
+
+    this.container.addChild(tr)
+    tr.x = -400
 
     this.workspace.addChild(this.container)
     this.stage.addChild(this.workspace)
@@ -65,7 +80,7 @@ export default class CustomizerView extends BaseView {
       end.y = 0
       end.scale = 1
     }
-    
+
     this._transition = animate({
       duration: 500,
       ease: 'easeInOutQuad',
@@ -81,27 +96,49 @@ export default class CustomizerView extends BaseView {
 
   }
 
-  async updateCar ({ carId, isCarAnimated, hue, trailId, namecardId, isNamecardAnimated }) {
-
-    // check for things that require a full rebuild
+  async replaceCar({ carId, hue, isCarAnimated, playerName, playerTeam, trailId, namecardId, isNamecardAnimated }) {
 
     if (this.player) {
       this.player.dispose()
     }
 
-    const player = this.player = await Player.create({
+    this.player = await Player.create({
       view: this,
       type: carId,
       hue,
-      playerName: 'BOSS MAN',
-      playerTeam: 'NTRO',
+      playerName,
+      playerTeam,
       isAnimated: isCarAnimated,
       mods: {
-        trail: trailId,
-        card: namecardId,
-        isNamecardAnimated
+        // trail: trailId,
+        // card: namecardId,
+        // isNamecardAnimated
       }
     })
+
+    return this.player;
+  }
+
+  repaintCar (hue) {
+    this.player.repaintCar(hue)
+  }
+
+  async updateCar ({ carId, isCarAnimated, hue }) {
+
+    let player = this.player;
+    if (this.carId !== carId) {
+      player = await this.replaceCar({ carId, hue, isCarAnimated })
+    }
+    else if (this.hue !== hue) { 
+      player.repaintCar(hue)
+    }
+    
+    this.carId = carId
+    this.hue = hue
+    this.player = player
+
+    // check for things that require a full rebuild
+
 
     // finds the bounds for a car - if nothing was
     // found then it's most likely a simple car.
@@ -130,8 +167,8 @@ export default class CustomizerView extends BaseView {
 
     // console.log(player);
 
-    player.scaleX = 1
-    player.scaleY = 1
+    player.scaleX = 0.7
+    player.scaleY = 0.7
     player.relativeX = 0.1
     player.relativeY = 0
 
@@ -170,6 +207,17 @@ export default class CustomizerView extends BaseView {
 
   focusOnNamecard () {
 
+  }
+  
+  step = 0
+
+  render (...args) {
+    if (this.treadmill) {
+      const delta = this.getDeltaTime()
+      // this.container.rotation = (Math.sin(this.step++ / 300) / 5) + (Math.PI * -0.2)
+      this.treadmill.update({ diff: -45 * delta, horizontalWrap: -200 })
+    }
+    super.render(...args)
   }
 
   // focusOnCelebrations () { }
