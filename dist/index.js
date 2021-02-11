@@ -86360,14 +86360,16 @@ function extend(_x) {
 
 function _extend() {
   _extend = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(_ref) {
-    var animator, car, laughSound, _findDisplayObjectsOf, _findDisplayObjectsOf2, head, _findDisplayObjectsOf3, _findDisplayObjectsOf4, headWinner, _findDisplayObjectsOf5, _findDisplayObjectsOf6, headLoser, _findDisplayObjectsOf7, _findDisplayObjectsOf8, laughEffect, _findDisplayObjectsOf9, _findDisplayObjectsOf10, panicEffect1, panicEffect2, isWinner, animation;
+    var animator, car, laughSound, winSound, loseSound, _findDisplayObjectsOf, _findDisplayObjectsOf2, head, _findDisplayObjectsOf3, _findDisplayObjectsOf4, headWinner, _findDisplayObjectsOf5, _findDisplayObjectsOf6, headLoser, _findDisplayObjectsOf7, _findDisplayObjectsOf8, laughEffect, _findDisplayObjectsOf9, _findDisplayObjectsOf10, panicEffect1, panicEffect2, isWinner, animation;
 
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
             animator = _ref.animator, car = _ref.car;
-            laughSound = audio.create('sfx', 'common', 'wampus'); // find parts
+            laughSound = audio.create('sfx', 'common', 'wampus');
+            winSound = audio.create('sfx', 'common', 'wampus_win');
+            loseSound = audio.create('sfx', 'common', 'wampus_lose'); // find parts
 
             _findDisplayObjectsOf = (0, _ntAnimator.findDisplayObjectsOfRole)(car, 'head'), _findDisplayObjectsOf2 = (0, _slicedToArray2.default)(_findDisplayObjectsOf, 1), head = _findDisplayObjectsOf2[0];
             _findDisplayObjectsOf3 = (0, _ntAnimator.findDisplayObjectsOfRole)(car, 'head_winner'), _findDisplayObjectsOf4 = (0, _slicedToArray2.default)(_findDisplayObjectsOf3, 1), headWinner = _findDisplayObjectsOf4[0];
@@ -86382,13 +86384,13 @@ function _extend() {
             if (panicEffect2) panicEffect2.visible = false; // if missing layers then the effect can't play
 
             if (panicEffect1 && panicEffect2 && laughEffect) {
-              _context.next = 14;
+              _context.next = 16;
               break;
             }
 
             return _context.abrupt("return");
 
-          case 14:
+          case 16:
             // keep track if this is the winner or not
             isWinner = false; // play the laughing entry
 
@@ -86396,7 +86398,7 @@ function _extend() {
               setTimeout(function () {
                 laughSound.volume(_volume.VOLUME_WAMPUS_LAUGH);
                 laughSound.play();
-              }, 750);
+              }, 350);
             } // get the head animation
 
 
@@ -86412,12 +86414,16 @@ function _extend() {
               if (finishedBeforePlayer) {
                 laughEffect.visible = true;
                 head.visible = false;
-                headWinner.visible = true; // show the crying animation
+                headWinner.visible = true;
+                winSound.volume(_volume.VOLUME_WAMPUS_LAUGH);
+                winSound.play(); // show the crying animation
               } else {
                 head.visible = false;
                 headLoser.visible = true;
                 panicEffect1.visible = true;
                 panicEffect2.visible = true;
+                loseSound.volume(_volume.VOLUME_WAMPUS_LAUGH);
+                loseSound.play();
               }
             }; // handle race progress
 
@@ -86467,7 +86473,7 @@ function _extend() {
               }
             };
 
-          case 19:
+          case 21:
           case "end":
             return _context.stop();
         }
@@ -96171,7 +96177,7 @@ var CarEntryAnimation = /*#__PURE__*/function (_Animation) {
     var _this;
 
     var _player = _ref.player,
-        _enterSound = _ref.enterSound,
+        enterSound = _ref.enterSound,
         namecard = _ref.namecard,
         track = _ref.track;
     (0, _classCallCheck2.default)(this, CarEntryAnimation);
@@ -96233,9 +96239,23 @@ var CarEntryAnimation = /*#__PURE__*/function (_Animation) {
       // don't play duplicate sounds too close together
 
       try {
-        var rev = audio.create('sfx', 'common', "entry_".concat(enterSound));
+        var _player$options;
+
+        var goldEntry;
+
+        if ((_player$options = player.options) !== null && _player$options !== void 0 && _player$options.isGold) {
+          goldEntry = audio.create('sfx', 'common', 'gold_enter');
+          goldEntry.volume(_volume.VOLUME_CAR_ENTRY);
+          goldEntry.loop(false);
+        }
+
         var now = +new Date();
-        var canPlayTimestamp = rev.lastInstancePlay + _config.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT; // try and play
+        var canPlayTimestamp = rev.lastInstancePlay + _config.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT;
+
+        if (goldEntry) {
+          goldEntry.play();
+        } // try and play
+
 
         if (rev && now > canPlayTimestamp) {
           rev.volume(_volume.VOLUME_CAR_ENTRY);
@@ -96249,7 +96269,7 @@ var CarEntryAnimation = /*#__PURE__*/function (_Animation) {
     _this.player = _player;
     _this.track = track;
     _this.namecard = namecard;
-    _this.enterSound = _enterSound;
+    _this.enterSound = enterSound;
     return _this;
   }
 

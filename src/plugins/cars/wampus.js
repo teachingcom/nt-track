@@ -5,6 +5,8 @@ import { VOLUME_WAMPUS_LAUGH } from '../../audio/volume'
 /** additional wampus behavior */
 export async function extend ({ animator, car }) {
   const laughSound = audio.create('sfx', 'common', 'wampus')
+  const winSound = audio.create('sfx', 'common', 'wampus_win')
+  const loseSound = audio.create('sfx', 'common', 'wampus_lose')
 
   // find parts
   const [head] = findDisplayObjectsOfRole(car, 'head')
@@ -33,7 +35,7 @@ export async function extend ({ animator, car }) {
     setTimeout(() => {
       laughSound.volume(VOLUME_WAMPUS_LAUGH)
       laughSound.play()
-    }, 750)
+    }, 350)
   }
 
   // get the head animation
@@ -51,12 +53,18 @@ export async function extend ({ animator, car }) {
       head.visible = false
       headWinner.visible = true
 
+      winSound.volume(VOLUME_WAMPUS_LAUGH)
+      winSound.play()
+
     // show the crying animation
     } else {
       head.visible = false
       headLoser.visible = true
       panicEffect1.visible = true
       panicEffect2.visible = true
+
+      loseSound.volume(VOLUME_WAMPUS_LAUGH)
+      loseSound.play()
     }
   }
 

@@ -69,15 +69,27 @@ export default class CarEntryAnimation extends Animation {
 		// play the entry sound, if possible
 		// don't play duplicate sounds too close together
 		try {
-			const rev = audio.create('sfx', 'common', `entry_${enterSound}`);
+
+			let goldEntry
+			if (player.options?.isGold) {
+				goldEntry = audio.create('sfx', 'common', 'gold_enter');
+				goldEntry.volume(VOLUME_CAR_ENTRY)
+				goldEntry.loop(false);
+			}
+			
 			const now = +new Date;
 			const canPlayTimestamp = rev.lastInstancePlay + RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT;
+			
+			if (goldEntry) {
+				goldEntry.play();
+			}
 
 			// try and play
 			if (rev && now > canPlayTimestamp) {
 				rev.volume(VOLUME_CAR_ENTRY)
 				rev.loop(false);
 				rev.play();
+
 			}
 		}
 		catch (ex) {
