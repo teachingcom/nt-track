@@ -96675,8 +96675,7 @@ var CarFinishLineAnimation = /*#__PURE__*/function (_Animation) {
       isInstant = elapsed > _config.RACE_FINISH_CAR_STOPPING_TIME; // if this car is entering
 
       if (!isInstant) {
-        var sound = Math.ceil(Math.random() * 4);
-        var stop = audio.create('sfx', 'common', "car_stop_".concat(sound)); // make sure this hasn't played too recently to avoid
+        var stop = audio.create('sfx', 'common', 'car_stopping'); // make sure this hasn't played too recently to avoid
         // 5 car screeching noises all at once
 
         var now = Date.now();
