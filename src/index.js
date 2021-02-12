@@ -7,4 +7,4 @@ export { default as Cruise } from './views/cruise'
 export { default as Customizer } from './views/customizer'
 export const Audio = AudioController
 
-try { window.NT_TRACK = '1.0.5' } catch (ex) { }
+try { window.NT_TRACK = '1.0.6' } catch (ex) { }
