@@ -213,7 +213,8 @@ export default class CustomizerView extends BaseView {
 
   render (...args) {
     if (this.treadmill) {
-      const delta = this.getDeltaTime()
+      const now = Date.now()
+      const delta = this.getDeltaTime(now)
       // this.container.rotation = (Math.sin(this.step++ / 300) / 5) + (Math.PI * -0.2)
       this.treadmill.update({ diff: -45 * delta, horizontalWrap: -200 })
     }

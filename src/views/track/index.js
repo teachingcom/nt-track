@@ -41,6 +41,12 @@ import CountdownAnimation from '../../animations/countdown';
 /** creates a track view that supports multiple cars for racing */
 export default class TrackView extends BaseView {
 
+	constructor(...args) { 
+		// do not anti-alias - this will be done using SSAA
+		PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
+		super(...args);
+	}
+
 	// global effect filter
 	colorFilter = new PIXI.filters.ColorMatrixFilter()
 	frame = 0
@@ -510,7 +516,18 @@ export default class TrackView extends BaseView {
 
 	// handle rendering the track in the requested state
 	render(force) {
-
+		
+		// calculate the delta
+		const now = Date.now();
+		// const diff = now - this.previousTime;
+		// if (diff < this.maxRenderingSpeed) {
+		// 	console.log('did skip frame', diff, this.maxRenderingSpeed);
+		// 	return;
+		// }
+		// else {
+		// 	console.log('REN', diff)
+		// }
+		
 		// increment the frame counter
 		this.frame++;
 		const {
@@ -520,9 +537,9 @@ export default class TrackView extends BaseView {
 			raceCompletedAnimation
 		} = this;
 
-		// calculate the delta
-		state.delta = this.getDeltaTime(this.lastUpdate);
-		this.lastUpdate = +new Date;
+		state.delta = this.getDeltaTime(now);
+		// console.log('delta', state.delta)
+		this.lastUpdate = now;
 
 		// if throttling
 		if (!this.shouldAnimateFrame && !force) return;
@@ -535,6 +552,8 @@ export default class TrackView extends BaseView {
 		state.speed = animateTrackMovement
 			? Math.max(0, Math.min(TRACK_MAXIMUM_SPEED, state.speed + (trackMovementAmount * state.delta)))
 			: 0;
+
+		// console.log('will travel', diff, ((0 | (state.speed * 100)) / 100), ((0 | (state.delta * 100)) / 100))
 
 		// increase the track movement by the speed bonus
 		// allows up to an extra 75% of the normal speed

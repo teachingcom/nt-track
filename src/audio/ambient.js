@@ -55,7 +55,7 @@ export default class AmbientAudio {
 			const current = this.sounds[at];
 
 			// fade out the current sound
-			current.fade(VOLUME_AMBIENT_AUDIO, 0, 250);
+			current.fade(VOLUME_AMBIENT_AUDIO, 0, 1000);
 		}
 
 		// increment to the next sound
@@ -65,10 +65,12 @@ export default class AmbientAudio {
 
 		// fade in the next
 		sound.source.seek(0, sound.id);
-		sound.fade(0, VOLUME_AMBIENT_AUDIO, 250);
+		sound.fade(0, VOLUME_AMBIENT_AUDIO, 500);
 
 		// active the next section
-		setTimeout(this.next, 10000);
+		// TODO: this is a hack - the duration needs to
+		// come from the sound being played
+		setTimeout(this.next, 8000);
 	}
 
 }

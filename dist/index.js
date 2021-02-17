@@ -74577,7 +74577,7 @@ var BaseRelativeTo = /*#__PURE__*/function () {
     (0, _classCallCheck2.default)(this, BaseRelativeTo);
     this.mapping = mappings.lookup(prop); // gather arguments
 
-    this.isVisibility = this.prop === 'visible';
+    this.isVisibility = prop === 'visible';
     this.flip = args.indexOf('flip') > -1;
     this.toInt = args.indexOf('int') > -1;
     this.min = args[0];
@@ -74591,15 +74591,15 @@ var BaseRelativeTo = /*#__PURE__*/function () {
       var percent; // flips at center
 
       if (this.flip) {
-        var cx = relativeTo / 2;
-        percent = Math.abs((at - cx) / cx); // full range
+        var mid = relativeTo / 2;
+        percent = Math.abs((at - mid) / mid); // full range
       } else {
         percent = at / relativeTo;
       } // specials
 
 
       if (this.isVisibility) {
-        this.visible = percent > this.min && percent < this.max;
+        target.visible = percent > this.min && percent < this.max;
         return;
       }
 
@@ -82290,9 +82290,9 @@ exports.createPlaceholderImage = createPlaceholderImage;
 var _converters = require("../animation/converters");
 
 /** creates a rendering surface */
-function createContext() {
+function createContext(options) {
   var canvas = document.createElement('canvas');
-  var ctx = canvas.getContext('2d');
+  var ctx = canvas.getContext('2d', options);
 
   function reset() {
     canvas.width = canvas.width;
@@ -83233,13 +83233,13 @@ function importManifest(_x) {
 
 function _importManifest() {
   _importManifest = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(_ref) {
-    var manifest, path, baseUrl, timeout, parts, key, target, _iterator, _step, part, data, attempts, url;
+    var manifest, version, path, baseUrl, timeout, parts, key, target, _iterator, _step, part, data, attempts, url;
 
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            manifest = _ref.manifest, path = _ref.path, baseUrl = _ref.baseUrl, timeout = _ref.timeout;
+            manifest = _ref.manifest, version = _ref.version, path = _ref.path, baseUrl = _ref.baseUrl, timeout = _ref.timeout;
             _context.prev = 1;
             // get the manifest sub path and then
             // the resource key (which is the last value)
@@ -83270,7 +83270,7 @@ function _importManifest() {
 
           case 9:
             attempts = 3;
-            url = "".concat(baseUrl, "/").concat(path, ".json").replace(/([^:]\/)\/+/g, '$1');
+            url = "".concat(baseUrl, "/").concat(path, ".json?").concat(version).replace(/([^:]\/)\/+/g, '$1');
 
           case 11:
             if (!(attempts > 0)) {
@@ -83566,6 +83566,7 @@ var Animator = /*#__PURE__*/function (_EventEmitter) {
                 _context4.next = 3;
                 return (0, _importManifest.default)({
                   manifest: _this.manifest,
+                  version: _this.manifest.version,
                   path: path,
                   baseUrl: baseUrl,
                   timeout: timeout
@@ -84987,7 +84988,7 @@ var MINOR_FRAMERATE_RISK = 42; // const NOTICABLE_FRAMERATE_RISK = MINOR_FRAMERA
 // const MAJOR_FRAMERATE_RISK = MINOR_FRAMERATE_RISK * 0.33
 // the amount to upscale for SSAA
 
-var SSAA_SCALING_AMOUNT = [1, 1.15, 1.5, 2]; // animation speeds
+var SSAA_SCALING_AMOUNT = [1, 1.25, 1.5, 2]; // animation speeds
 
 var ANIMATION_RENDERING_INTERVAL = [3, 2, 2, 1];
 var ANIMATION_PARTICLE_UPDATE_FREQUENCY = [4, 3, 2, 1];
@@ -85227,8 +85228,6 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
-var MAXIMUM_DELTA = 4; // dynamic management of performance
-
 /** creates a track instance */
 var BaseView = /*#__PURE__*/function (_EventEmitter) {
   (0, _inherits2.default)(BaseView, _EventEmitter);
@@ -85317,10 +85316,10 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "previousTime", Date.now());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "preferredFps", 1000 / 60);
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "getDeltaTime", function () {
-      var now = Date.now();
-      var diff = now - _this.previousTime;
-      _this.previousTime = now;
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "maxRenderingSpeed", _this.preferredFps * 0.9);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "getDeltaTime", function (asOf) {
+      var diff = asOf - _this.previousTime;
+      _this.previousTime = asOf;
       return diff / _this.preferredFps;
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setWindowVisibilityState", function () {
@@ -85330,15 +85329,17 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
       return _config.PERFORMANCE_LEVEL;
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "_autoRender", function () {
-      _this._nextFrame = requestAnimationFrame(_this._autoRender);
+      cancelAnimationFrame(_this._nextFrame);
 
       _this.render();
+
+      _this._nextFrame = requestAnimationFrame(_this._autoRender);
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "startAutoRender", function () {
       return _this._autoRender();
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "stopAutoRender", function () {
-      cancelAnimationFrame(_this._nextFrame);
+      return cancelAnimationFrame(_this._nextFrame);
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "resize", function () {
       var _assertThisInitialize2 = (0, _assertThisInitialized2.default)(_this),
@@ -85421,10 +85422,15 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
                 clearBeforeRender = transparent || hasBackgroundColor;
                 backgroundColor = hasBackgroundColor ? options.backgroundColor : DEFAULT_BACKGROUND_COLOR;
                 this.config = {
-                  // antialias: false, // doesn't appear to improve anything
-                  legacy: true,
-                  preserveDrawingBuffer: true,
+                  // TODO: how can we improve visuals
+                  // antialias: false, 
+                  // resolution: window.devicePixelRatio,
+                  // autoDensity: true,
+                  antialias: true,
+                  // doesn't appear to improve anything
                   smoothProperty: 'none',
+                  // doesn't appear to improve anything
+                  preserveDrawingBuffer: true,
                   transparent: transparent,
                   clearBeforeRender: clearBeforeRender,
                   backgroundColor: backgroundColor
@@ -86633,7 +86639,7 @@ var VOLUME_FINISH_LINE_CROWD = 0.8;
 exports.VOLUME_FINISH_LINE_CROWD = VOLUME_FINISH_LINE_CROWD;
 var VOLUME_FINISH_LINE_STOP = 1;
 exports.VOLUME_FINISH_LINE_STOP = VOLUME_FINISH_LINE_STOP;
-var VOLUME_AMBIENT_AUDIO = 0.5;
+var VOLUME_AMBIENT_AUDIO = 0.33;
 exports.VOLUME_AMBIENT_AUDIO = VOLUME_AMBIENT_AUDIO;
 var VOLUME_ERROR_DEFAULT = 0.2;
 exports.VOLUME_ERROR_DEFAULT = VOLUME_ERROR_DEFAULT;
@@ -87920,8 +87926,8 @@ var DEFAULT_CENTER_PADDING = 8;
 var DEFAULT_LEFT_MARGIN = 25;
 var DEFAULT_TOP_MARGIN = 10;
 var NAMECARD_ICON_GAP = 10;
-var NAMECARD_MAXIMUM_WIDTH = 550;
-var DEFAULT_NAMECARD_FONT_SIZE = 52;
+var NAMECARD_MAXIMUM_WIDTH = 200;
+var DEFAULT_NAMECARD_FONT_SIZE = 54;
 var DEFAULT_NAMECARD_FONT_NAME = 'montserrat';
 var DEFAULT_NAMECARD_FONT_WEIGHT = 600;
 var DEFAULT_NAMECARD_FONT = {
@@ -87950,7 +87956,8 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
       return _this.visible = visible;
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setPosition", function (x) {
-      return _this.x = x;
+      _this.x = 0 | x;
+      _this.y = 0 | _this.y;
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "_renderOverlay", function () {
       var _assertThisInitialize = (0, _assertThisInitialized2.default)(_this),
@@ -95310,7 +95317,7 @@ var AmbientAudio = function AmbientAudio(options) {
       var at = _this.index % _this.sounds.length;
       var current = _this.sounds[at]; // fade out the current sound
 
-      current.fade(_volume.VOLUME_AMBIENT_AUDIO, 0, 250);
+      current.fade(_volume.VOLUME_AMBIENT_AUDIO, 0, 1000);
     } // increment to the next sound
     // TODO: support for random orders?
 
@@ -95319,9 +95326,11 @@ var AmbientAudio = function AmbientAudio(options) {
     var sound = _this.sounds[next]; // fade in the next
 
     sound.source.seek(0, sound.id);
-    sound.fade(0, _volume.VOLUME_AMBIENT_AUDIO, 250); // active the next section
+    sound.fade(0, _volume.VOLUME_AMBIENT_AUDIO, 500); // active the next section
+    // TODO: this is a hack - the duration needs to
+    // come from the sound being played
 
-    setTimeout(_this.next, 10000);
+    setTimeout(_this.next, 8000);
   });
   var order = options.order,
       sounds = options.sounds,
@@ -95632,36 +95641,40 @@ var Track = /*#__PURE__*/function () {
       return (_this$ambience = _this.ambience) === null || _this$ambience === void 0 ? void 0 : (_this$ambience$curren = _this$ambience.current) === null || _this$ambience$curren === void 0 ? void 0 : _this$ambience$curren.stop();
     });
     (0, _defineProperty2.default)(this, "setAmbience", function (type) {
-      var _this$ambience$curren2, _this$ambience$curren3;
-
       var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var ambience = _this.ambience;
 
-      if (!_this.ambience) {
+      if (!ambience) {
         return;
-      } // check for active
+      } // get the current audio
 
 
-      (_this$ambience$curren2 = _this.ambience.current) === null || _this$ambience$curren2 === void 0 ? void 0 : _this$ambience$curren2.stop(); // start the next audio
+      var playing = ambience.current; // start the next audio
 
       if (type === 'start') {
-        _this.ambience.current = _this.ambience.pre || _this.ambience.default;
+        ambience.current = ambience.pre || ambience.default;
       } // currently racing
       else if (type === 'race') {
-          _this.ambience.current = _this.ambience.active || _this.ambience.racing || _this.ambience.default;
+          ambience.current = ambience.active || ambience.racing || ambience.default;
         } // currently racing
         else if (type === 'victory') {
-            _this.ambience.current = _this.ambience.victory || _this.ambience.default;
+            ambience.current = ambience.victory || ambience.default;
           } // currently racing
           else if (type === 'finish') {
-              _this.ambience.current = _this.ambience.defeat || _this.ambience.finish || _this.ambience.default;
+              ambience.current = ambience.defeat || ambience.finish || ambience.default;
             } // start the new audio
 
 
-      (_this$ambience$curren3 = _this.ambience.current) === null || _this$ambience$curren3 === void 0 ? void 0 : _this$ambience$curren3.start();
+      if (playing !== ambience.current) {
+        var _ambience$current;
+
+        playing === null || playing === void 0 ? void 0 : playing.stop();
+        (_ambience$current = ambience.current) === null || _ambience$current === void 0 ? void 0 : _ambience$current.start();
+      }
     });
     (0, _defineProperty2.default)(this, "update", function (state) {
       // cap the maximum scroll speed
-      var distance = Math.max(state.speed * -_config.TRACK_MAXIMUM_SCROLL_SPEED * state.delta, -_config.TRACK_MAXIMUM_TRAVEL_DISTANCE);
+      var distance = Math.max(state.speed * -_config.TRACK_MAXIMUM_SCROLL_SPEED, -_config.TRACK_MAXIMUM_TRAVEL_DISTANCE);
 
       _this._cycleTrack(distance);
     });
@@ -98216,6 +98229,8 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     var _this;
 
     (0, _classCallCheck2.default)(this, TrackView);
+    // do not anti-alias - this will be done using SSAA
+    _ntAnimator.PIXI.settings.SCALE_MODE = _ntAnimator.PIXI.SCALE_MODES.NEAREST;
 
     for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];
@@ -98745,7 +98760,8 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       }
     });
     return _this;
-  }
+  } // global effect filter
+
 
   (0, _createClass2.default)(TrackView, [{
     key: "init",
@@ -98847,15 +98863,25 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     key: "render",
     // handle rendering the track in the requested state
     value: function render(force) {
+      // calculate the delta
+      var now = Date.now(); // const diff = now - this.previousTime;
+      // if (diff < this.maxRenderingSpeed) {
+      // 	console.log('did skip frame', diff, this.maxRenderingSpeed);
+      // 	return;
+      // }
+      // else {
+      // 	console.log('REN', diff)
+      // }
       // increment the frame counter
+
       this.frame++;
       var state = this.state,
           track = this.track,
           raceProgressAnimation = this.raceProgressAnimation,
-          raceCompletedAnimation = this.raceCompletedAnimation; // calculate the delta
+          raceCompletedAnimation = this.raceCompletedAnimation;
+      state.delta = this.getDeltaTime(now); // console.log('delta', state.delta)
 
-      state.delta = this.getDeltaTime(this.lastUpdate);
-      this.lastUpdate = +new Date(); // if throttling
+      this.lastUpdate = now; // if throttling
 
       if (!this.shouldAnimateFrame && !force) return; // gather some data
 
@@ -98863,7 +98889,8 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
           trackMovementAmount = state.trackMovementAmount;
       var isRaceActive = state.isStarted && !state.isFinished; // speeding up the view
 
-      state.speed = animateTrackMovement ? Math.max(0, Math.min(_config.TRACK_MAXIMUM_SPEED, state.speed + trackMovementAmount * state.delta)) : 0; // increase the track movement by the speed bonus
+      state.speed = animateTrackMovement ? Math.max(0, Math.min(_config.TRACK_MAXIMUM_SPEED, state.speed + trackMovementAmount * state.delta)) : 0; // console.log('will travel', diff, ((0 | (state.speed * 100)) / 100), ((0 | (state.delta * 100)) / 100))
+      // increase the track movement by the speed bonus
       // allows up to an extra 75% of the normal speed
 
       if (isRaceActive) {
@@ -100202,7 +100229,8 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
       var _get2;
 
       if (this.treadmill) {
-        var delta = this.getDeltaTime();
+        var now = Date.now();
+        var delta = this.getDeltaTime(now);
         this.container.rotation = Math.sin(this.step++ / 300) / 5 + Math.PI * -0.2;
         this.treadmill.update({
           diff: -25 * delta,
@@ -100563,7 +100591,8 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
       var _get2;
 
       if (this.treadmill) {
-        var delta = this.getDeltaTime(); // this.container.rotation = (Math.sin(this.step++ / 300) / 5) + (Math.PI * -0.2)
+        var now = Date.now();
+        var delta = this.getDeltaTime(now); // this.container.rotation = (Math.sin(this.step++ / 300) / 5) + (Math.PI * -0.2)
 
         this.treadmill.update({
           diff: -45 * delta,
@@ -100651,7 +100680,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NT_TRACK = '1.0.6';
+  window.NT_TRACK = '1.0.6@ipad-perf';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"views/preview/index.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
