@@ -85426,11 +85426,11 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
                   // antialias: false, 
                   // resolution: window.devicePixelRatio,
                   // autoDensity: true,
-                  antialias: true,
-                  // doesn't appear to improve anything
+                  antialias: false,
+                  // doesn't appear to change anything
                   smoothProperty: 'none',
-                  // doesn't appear to improve anything
-                  preserveDrawingBuffer: true,
+                  // doesn't appear to change anything
+                  preserveDrawingBuffer: false,
                   transparent: transparent,
                   clearBeforeRender: clearBeforeRender,
                   backgroundColor: backgroundColor
@@ -98231,6 +98231,10 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     (0, _classCallCheck2.default)(this, TrackView);
     // do not anti-alias - this will be done using SSAA
     _ntAnimator.PIXI.settings.SCALE_MODE = _ntAnimator.PIXI.SCALE_MODES.NEAREST;
+    _ntAnimator.PIXI.settings.PRECISION_VERTEX = _ntAnimator.PIXI.PRECISION.LOW;
+    _ntAnimator.PIXI.settings.PRECISION_FRAGMENT = _ntAnimator.PIXI.PRECISION.HIGH;
+    _ntAnimator.PIXI.settings.PRECISION_VERTEX = _ntAnimator.PIXI.PRECISION.LOW;
+    _ntAnimator.PIXI.settings.MIPMAP_TEXTURES = _ntAnimator.PIXI.MIPMAP_MODES.OFF;
 
     for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];

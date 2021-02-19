@@ -51,9 +51,9 @@ export class BaseView extends EventEmitter {
 			// antialias: false, 
 			// resolution: window.devicePixelRatio,
 			// autoDensity: true,
-			antialias: true, // doesn't appear to improve anything
-			smoothProperty: 'none', // doesn't appear to improve anything
-			preserveDrawingBuffer: true,
+			antialias: false, // doesn't appear to change anything
+			smoothProperty: 'none', // doesn't appear to change anything
+			preserveDrawingBuffer: false,
 			transparent,
 			clearBeforeRender,
 			backgroundColor

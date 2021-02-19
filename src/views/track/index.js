@@ -43,8 +43,13 @@ export default class TrackView extends BaseView {
 
 	constructor(...args) { 
 		// do not anti-alias - this will be done using SSAA
-		PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
-		super(...args);
+		PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
+		PIXI.settings.PRECISION_VERTEX = PIXI.PRECISION.LOW
+		PIXI.settings.PRECISION_FRAGMENT = PIXI.PRECISION.HIGH
+		PIXI.settings.PRECISION_VERTEX = PIXI.PRECISION.LOW
+		PIXI.settings.MIPMAP_TEXTURES = PIXI.MIPMAP_MODES.OFF
+
+		super(...args)
 	}
 
 	// global effect filter
