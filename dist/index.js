@@ -84988,7 +84988,7 @@ var MINOR_FRAMERATE_RISK = 42; // const NOTICABLE_FRAMERATE_RISK = MINOR_FRAMERA
 // const MAJOR_FRAMERATE_RISK = MINOR_FRAMERATE_RISK * 0.33
 // the amount to upscale for SSAA
 
-var SSAA_SCALING_AMOUNT = [1, 1.25, 1.5, 2]; // animation speeds
+var SSAA_SCALING_AMOUNT = [1, 1.15, 1.25, 2]; // animation speeds
 
 var ANIMATION_RENDERING_INTERVAL = [3, 2, 2, 1];
 var ANIMATION_PARTICLE_UPDATE_FREQUENCY = [4, 3, 2, 1];
@@ -98230,7 +98230,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
     (0, _classCallCheck2.default)(this, TrackView);
     // do not anti-alias - this will be done using SSAA
-    _ntAnimator.PIXI.settings.SCALE_MODE = _ntAnimator.PIXI.SCALE_MODES.NEAREST;
+    // PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
     _ntAnimator.PIXI.settings.PRECISION_VERTEX = _ntAnimator.PIXI.PRECISION.LOW;
     _ntAnimator.PIXI.settings.PRECISION_FRAGMENT = _ntAnimator.PIXI.PRECISION.HIGH;
     _ntAnimator.PIXI.settings.PRECISION_VERTEX = _ntAnimator.PIXI.PRECISION.LOW;
@@ -100684,7 +100684,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NT_TRACK = '1.0.6@ipad-perf';
+  window.NT_TRACK = '1.0.8@ipad-perf';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"views/preview/index.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
