@@ -10,8 +10,8 @@ const DEFAULT_CENTER_PADDING = 8;
 const DEFAULT_LEFT_MARGIN = 25;
 const DEFAULT_TOP_MARGIN = 10;
 const NAMECARD_ICON_GAP = 10;
-const NAMECARD_MAXIMUM_WIDTH = 550;
-const DEFAULT_NAMECARD_FONT_SIZE = 52;
+const NAMECARD_MAXIMUM_WIDTH = 200;
+const DEFAULT_NAMECARD_FONT_SIZE = 54;
 const DEFAULT_NAMECARD_FONT_NAME = 'montserrat';
 const DEFAULT_NAMECARD_FONT_WEIGHT = 600;
 const DEFAULT_NAMECARD_FONT = {
@@ -125,7 +125,10 @@ export default class NameCard extends PIXI.Container {
 	setVisibility = visible => this.visible = visible;
 
 	/** changes the position and makes the namecard visible */
-	setPosition = x => this.x = x;
+	setPosition = x => {
+		this.x = 0 | x;
+		this.y = 0 | this.y;
+	}
 
 	// generates the overlay content
 	_renderOverlay = () => {

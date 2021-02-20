@@ -20,7 +20,7 @@ const MINOR_FRAMERATE_RISK = 42
 // const MAJOR_FRAMERATE_RISK = MINOR_FRAMERATE_RISK * 0.33
 
 // the amount to upscale for SSAA
-const SSAA_SCALING_AMOUNT = [1, 1.15, 1.5, 2]
+const SSAA_SCALING_AMOUNT = [1, 1.15, 1.25, 2]
 
 // animation speeds
 const ANIMATION_RENDERING_INTERVAL = [3, 2, 2, 1]

@@ -4,8 +4,6 @@ import { Animator, EventEmitter, PIXI } from 'nt-animator';
 import { noop } from '../utils';
 import { DEFAULT_PERFORMANCE_MONITORING_DELAY, PERFORMANCE_LEVEL } from '../config';
 
-const MAXIMUM_DELTA = 4;
-
 // dynamic management of performance
 import FpsMonitor from '../fps';
 import DynamicPerformanceController from '../perf';
@@ -49,10 +47,13 @@ export class BaseView extends EventEmitter {
 		const backgroundColor = hasBackgroundColor ? options.backgroundColor : DEFAULT_BACKGROUND_COLOR;
 
 		this.config = {
-			// antialias: false, // doesn't appear to improve anything
-			legacy: true,
-			preserveDrawingBuffer: true,
-			smoothProperty: 'none',
+			// TODO: how can we improve visuals
+			// antialias: false, 
+			// resolution: window.devicePixelRatio,
+			// autoDensity: true,
+			antialias: false, // doesn't appear to change anything
+			smoothProperty: 'none', // doesn't appear to change anything
+			preserveDrawingBuffer: false,
 			transparent,
 			clearBeforeRender,
 			backgroundColor
@@ -188,10 +189,10 @@ export class BaseView extends EventEmitter {
 	/** calculates preferred times */
 	previousTime = Date.now()
 	preferredFps = 1000 / 60
-	getDeltaTime = () => {
-		const now = Date.now();
-		const diff = now - this.previousTime;
-		this.previousTime = now;
+	maxRenderingSpeed = this.preferredFps * 0.9
+	getDeltaTime = (asOf) => {
+		const diff = asOf - this.previousTime;
+		this.previousTime = asOf;
 		return diff / this.preferredFps;
 	}
 
@@ -230,8 +231,9 @@ export class BaseView extends EventEmitter {
 
 	/** renders the current state of the view */
 	_autoRender = () => {
-		this._nextFrame = requestAnimationFrame(this._autoRender);
+		cancelAnimationFrame(this._nextFrame);
 		this.render();
+		this._nextFrame = requestAnimationFrame(this._autoRender);
 	}
 
 	// performs rendering
@@ -241,12 +243,10 @@ export class BaseView extends EventEmitter {
 	}
 	
 	// turn on auto rendering
-	startAutoRender = () => this._autoRender();
+	startAutoRender = () => this._autoRender()
 
 	// turn off auto rendering
-	stopAutoRender = () => {
-		cancelAnimationFrame(this._nextFrame);
-	}
+	stopAutoRender = () => cancelAnimationFrame(this._nextFrame)
 
 	getDisplaySize() {
 		return { width: this.width, height: this.height };
