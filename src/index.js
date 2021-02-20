@@ -7,4 +7,4 @@ export { default as Cruise } from './views/cruise'
 export { default as Customizer } from './views/customizer'
 export const Audio = AudioController
 
-try { window.NT_TRACK = '1.0.8@ipad-perf' } catch (ex) { }
+try { window.NTTRACK = '1.0.9' } catch (ex) { }
