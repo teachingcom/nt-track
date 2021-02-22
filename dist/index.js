@@ -100067,7 +100067,10 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
+// config
 var DEFAULT_MAX_HEIGHT = 250;
+var CAR_X = 660;
+var CAR_Y = 350; // creates a rolling view for an individual car
 
 var CruiseView = /*#__PURE__*/function (_BaseView) {
   (0, _inherits2.default)(CruiseView, _BaseView);
@@ -100086,6 +100089,19 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
     _this = _super.call.apply(_super, [this].concat(args));
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "step", 0);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "container", new _ntAnimator.PIXI.Container());
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "dispose", function () {
+      // cancel rendering
+      _this.stopAutoRender(); // stop animations
+
+
+      _this.__animate_fadeIn.stop();
+
+      _this.__animate_entry.stop();
+
+      _this.__animate_backForth.stop();
+
+      _this.__animate_upDown.stop();
+    });
     return _this;
   }
 
@@ -100093,9 +100109,6 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
     key: "init",
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(options) {
-        var _this2 = this;
-
-        var car, CAR_X, CAR_Y;
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
@@ -100110,110 +100123,19 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
 
               case 2:
                 _context.next = 4;
-                return _treadmill.default.create({
-                  totalSegments: 10,
-                  fitToHeight: 700,
-                  onCreateSegment: function onCreateSegment() {
-                    return _this2.animator.create('extras/cruise');
-                  }
-                });
+                return this._initCar(options);
 
               case 4:
-                this.treadmill = _context.sent;
-                _context.next = 7;
-                return _car.default.create({
-                  view: this,
-                  type: options.type,
-                  hue: options.hue || 0,
-                  baseHeight: 220,
-                  lighting: {
-                    x: -5,
-                    y: 7
-                  }
-                });
+                _context.next = 6;
+                return this._initView();
 
-              case 7:
-                car = _context.sent;
-                this.treadmill.pivot.x = 0;
-                this.treadmill.pivot.y = 0;
-                this.container.addChild(this.treadmill);
-                this.container.addChild(car);
-                this.view.addChild(this.container);
-                CAR_X = 660;
-                CAR_Y = 350;
-                car.x = CAR_X;
-                car.y = CAR_Y;
-                car.alpha = 0; // this.container.alpha = 0
+              case 6:
+                this._initAnimations(); // automatically render
 
-                this.container.pivot.x = 420;
-                this.container.pivot.y = 350;
-                this.container.y = this.view.height * 0.5;
-                this.container.x = -1.5; // fade in the car
-
-                (0, _ntAnimator.animate)({
-                  from: {
-                    alpha: 0
-                  },
-                  to: {
-                    alpha: 1
-                  },
-                  ease: 'linear',
-                  duration: 500,
-                  loop: false,
-                  update: function update(props) {
-                    return car.alpha = props.alpha;
-                  }
-                }); // pan the animation into view
-
-                (0, _ntAnimator.animate)({
-                  from: {
-                    x: -1.5
-                  },
-                  to: {
-                    x: this.view.width * 0.25
-                  },
-                  ease: 'easeOutQuad',
-                  duration: 1500,
-                  loop: false,
-                  update: function update(props) {
-                    return _this2.container.x = props.x;
-                  }
-                }); // animate the player entry
-
-                (0, _ntAnimator.animate)({
-                  from: {
-                    x: CAR_X - 100
-                  },
-                  to: {
-                    x: CAR_X + 150
-                  },
-                  ease: 'easeInOutQuad',
-                  duration: 3000,
-                  direction: 'alternate',
-                  loop: true,
-                  update: function update(props) {
-                    return car.x = props.x;
-                  }
-                });
-                (0, _ntAnimator.animate)({
-                  from: {
-                    y: CAR_Y - 100
-                  },
-                  to: {
-                    y: CAR_Y + 100
-                  },
-                  ease: 'easeInOutQuad',
-                  duration: 6000,
-                  direction: 'alternate',
-                  loop: true,
-                  update: function update(props) {
-                    return car.y = props.y;
-                  }
-                }); // automatically render
 
                 this.startAutoRender();
 
-              case 27:
+              case 8:
               case "end":
                 return _context.stop();
             }
@@ -100226,7 +100148,172 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
       }
 
       return init;
+    }() // creates the rolling track
+
+  }, {
+    key: "_initView",
+    value: function () {
+      var _initView2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+        var _this2 = this;
+
+        return _regenerator.default.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                _context2.next = 2;
+                return _treadmill.default.create({
+                  totalSegments: 10,
+                  fitToHeight: 700,
+                  onCreateSegment: function onCreateSegment() {
+                    return _this2.animator.create('extras/cruise');
+                  }
+                });
+
+              case 2:
+                this.treadmill = _context2.sent;
+                // reset the pivot
+                this.treadmill.pivot.x = 0;
+                this.treadmill.pivot.y = 0; // set the container positions
+                // this.container.alpha = 0
+
+                this.container.pivot.x = 420;
+                this.container.pivot.y = 350;
+                this.container.y = this.view.height * 0.5;
+                this.container.x = -1.5; // assemble the view
+
+                this.container.addChild(this.treadmill);
+                this.container.addChild(this.car);
+                this.view.addChild(this.container);
+
+              case 12:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function _initView() {
+        return _initView2.apply(this, arguments);
+      }
+
+      return _initView;
+    }() // creates the car to display
+
+  }, {
+    key: "_initCar",
+    value: function () {
+      var _initCar2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(options) {
+        var car;
+        return _regenerator.default.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                _context3.next = 2;
+                return _car.default.create({
+                  view: this,
+                  type: options.type,
+                  isAnimated: options.isAnimated,
+                  hue: options.hue || 0,
+                  baseHeight: 220,
+                  lighting: {
+                    x: -5,
+                    y: 7
+                  }
+                });
+
+              case 2:
+                car = _context3.sent;
+                // set positions
+                car.x = CAR_X;
+                car.y = CAR_Y;
+                car.alpha = 0; // add the
+
+                this.car = car;
+
+              case 7:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function _initCar(_x2) {
+        return _initCar2.apply(this, arguments);
+      }
+
+      return _initCar;
     }()
+  }, {
+    key: "_initAnimations",
+    value: function _initAnimations() {
+      var car = this.car,
+          view = this.view,
+          container = this.container; // fade in the car
+
+      this.__animate_fadeIn = (0, _ntAnimator.animate)({
+        from: {
+          alpha: 0
+        },
+        to: {
+          alpha: 1
+        },
+        ease: 'linear',
+        duration: 500,
+        loop: false,
+        update: function update(props) {
+          return car.alpha = props.alpha;
+        }
+      }); // pan the animation into view
+
+      this.__animate_entry = (0, _ntAnimator.animate)({
+        from: {
+          x: -1.5
+        },
+        to: {
+          x: view.width * 0.25
+        },
+        ease: 'easeOutQuad',
+        duration: 1500,
+        loop: false,
+        update: function update(props) {
+          return container.x = props.x;
+        }
+      }); // animate the player entry
+
+      this.__animate_backForth = (0, _ntAnimator.animate)({
+        from: {
+          x: CAR_X - 100
+        },
+        to: {
+          x: CAR_X + 150
+        },
+        ease: 'easeInOutQuad',
+        duration: 3000,
+        direction: 'alternate',
+        loop: true,
+        update: function update(props) {
+          return car.x = props.x;
+        }
+      });
+      this.__animate_upDown = (0, _ntAnimator.animate)({
+        from: {
+          y: CAR_Y - 100
+        },
+        to: {
+          y: CAR_Y + 100
+        },
+        ease: 'easeInOutQuad',
+        duration: 6000,
+        direction: 'alternate',
+        loop: true,
+        update: function update(props) {
+          return car.y = props.y;
+        }
+      });
+    } // cleanup
+
   }, {
     key: "render",
     value: function render() {
@@ -100238,7 +100325,7 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
         this.container.rotation = Math.sin(this.step++ / 300) / 5 + Math.PI * -0.2;
         this.treadmill.update({
           diff: -25 * delta,
-          horizontalWrap: -200
+          horizontalWrap: -500
         });
       }
 
@@ -100684,7 +100771,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NT_TRACK = '1.0.8@ipad-perf';
+  window.NTTRACK = '1.0.9';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"views/preview/index.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
