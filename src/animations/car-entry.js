@@ -70,26 +70,34 @@ export default class CarEntryAnimation extends Animation {
 		// don't play duplicate sounds too close together
 		try {
 
-			let goldEntry
+			console.log(this.enterSound);
+
+			let rev
+
+			// check for a gold player
 			if (player.options?.isGold) {
-				goldEntry = audio.create('sfx', 'common', 'gold_enter');
-				goldEntry.volume(VOLUME_CAR_ENTRY)
-				goldEntry.loop(false);
+				console.log('want to play fold')
+				rev = audio.create('sfx', 'common', 'gold_enter');
+			}
+			// create the sound
+			else {
+				let entry = this.enterSound
+				if (entry === 'sports') {
+					entry = 'sport'
+				}
+				
+				// create the audio
+				rev = audio.create('sfx', 'common', `entry_${entry}`)
 			}
 			
 			const now = +new Date;
 			const canPlayTimestamp = rev.lastInstancePlay + RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT;
-			
-			if (goldEntry) {
-				goldEntry.play();
-			}
 
 			// try and play
 			if (rev && now > canPlayTimestamp) {
 				rev.volume(VOLUME_CAR_ENTRY)
 				rev.loop(false);
 				rev.play();
-
 			}
 		}
 		catch (ex) {

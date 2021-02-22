@@ -3,8 +3,12 @@ import { animate, getBoundsForRole, PIXI } from 'nt-animator'
 import { BaseView } from '../base'
 import Treadmill from '../../components/treadmill'
 
+// config
 const DEFAULT_MAX_HEIGHT = 250
+const CAR_X = 660
+const CAR_Y = 350
 
+// creates a rolling view for an individual car
 export default class CruiseView extends BaseView {
 
   step = 0
@@ -18,48 +22,65 @@ export default class CruiseView extends BaseView {
       ...options
     })
 
-    // container for all things
+    // prepare the view
+    await this._initCar(options);
+    await this._initView()
+    this._initAnimations()
     
-    // load all resources
-    // await this.animator.getSpritesheet('extras/cruise')
+    // automatically render
+    this.startAutoRender()
+  }
 
-    // create segments
+  // creates the rolling track
+  async _initView() {
     this.treadmill = await Treadmill.create({
       totalSegments: 10,
       fitToHeight: 700,
       onCreateSegment: () => this.animator.create('extras/cruise')
     })
 
-    const car = await Car.create({
-			view: this, 
-			type: options.type,
-			hue: options.hue || 0,
-      baseHeight: 220,
-      lighting: { x: -5, y: 7 }
-		});
-
+    // reset the pivot
     this.treadmill.pivot.x = 0
     this.treadmill.pivot.y = 0
-    this.container.addChild(this.treadmill)
-    this.container.addChild(car)
-    this.view.addChild(this.container)
-
-    const CAR_X = 660
-    const CAR_Y = 350
-
-    car.x = CAR_X
-    car.y = CAR_Y
-    car.alpha = 0
     
+    // set the container positions
     // this.container.alpha = 0
     this.container.pivot.x = 420
     this.container.pivot.y = 350
     this.container.y = this.view.height * 0.5
     this.container.x = -1.5
-  
-    
+
+    // assemble the view
+    this.container.addChild(this.treadmill)
+    this.container.addChild(this.car)
+    this.view.addChild(this.container)
+  }
+
+  // creates the car to display
+  async _initCar(options) {
+    const car = await Car.create({
+			view: this, 
+      type: options.type,
+      isAnimated: options.isAnimated,
+			hue: options.hue || 0,
+      baseHeight: 220,
+      lighting: { x: -5, y: 7 }
+    });
+
+    // set positions
+    car.x = CAR_X
+    car.y = CAR_Y
+    car.alpha = 0
+
+    // add the
+    this.car = car
+  }
+
+  _initAnimations() {
+    const { car, view, container } = this
+
     // fade in the car
-		animate({
+		this.__animate_fadeIn = animate({
 			from: { alpha: 0 },
 			to: { alpha: 1 },
 			ease: 'linear',
@@ -70,17 +91,17 @@ export default class CruiseView extends BaseView {
 
     
     // pan the animation into view
-		animate({
+		this.__animate_entry = animate({
 			from: { x: -1.5 },
-			to: { x: this.view.width * 0.25 },
+			to: { x: view.width * 0.25 },
 			ease: 'easeOutQuad',
       duration: 1500,
 			loop: false,
-      update: props => this.container.x = props.x
+      update: props => container.x = props.x
 		});
     
 		// animate the player entry
-		animate({
+		this.__animate_backForth = animate({
 			from: { x: CAR_X - 100 },
 			to: { x: CAR_X + 150 },
 			ease: 'easeInOutQuad',
@@ -90,7 +111,7 @@ export default class CruiseView extends BaseView {
 			update: props => car.x = props.x
 		});
     
-		animate({
+		this.__animate_upDown = animate({
       from: { y: CAR_Y - 100 },
 			to: { y: CAR_Y + 100 },
 			ease: 'easeInOutQuad',
@@ -99,17 +120,26 @@ export default class CruiseView extends BaseView {
 			loop: true,
 			update: props => car.y = props.y
 		});
-    
+  }
 
-    // automatically render
-    this.startAutoRender()
+  // cleanup
+  dispose = () => {
+    // cancel rendering
+    this.stopAutoRender()
+    
+    // stop animations
+    this.__animate_fadeIn.stop()
+    this.__animate_entry.stop()
+    this.__animate_backForth.stop()
+    this.__animate_upDown.stop()
   }
   
   render(...args) {
     if (this.treadmill) {
-      const delta = this.getDeltaTime();
+      const now = Date.now();
+      const delta = this.getDeltaTime(now);
       this.container.rotation = (Math.sin(this.step++ / 300) / 5) + (Math.PI * -0.2)
-      this.treadmill.update({ diff: -25 * delta, horizontalWrap: -200 })
+      this.treadmill.update({ diff: -25 * delta, horizontalWrap: -500 })
     }
     super.render(...args)
   }

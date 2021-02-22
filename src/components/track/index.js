@@ -318,32 +318,36 @@ export default class Track {
 
 	// changes the playing ambience
 	setAmbience = (type, options = { }) => {
-		if (!this.ambience) {
+		const { ambience } = this;
+		if (!ambience) {
 			return;
 		}
 
-		// check for active
-		this.ambience.current?.stop();
+		// get the current audio
+		const playing = ambience.current;
 		
 		// start the next audio
 		if (type === 'start') {
-			this.ambience.current = this.ambience.pre || this.ambience.default;
+			ambience.current = ambience.pre || ambience.default;
 		}
 		// currently racing
 		else if (type === 'race') {
-			this.ambience.current = this.ambience.active || this.ambience.racing || this.ambience.default;
+			ambience.current = ambience.active || ambience.racing || ambience.default;
 		}
 		// currently racing
 		else if (type === 'victory') {
-			this.ambience.current = this.ambience.victory || this.ambience.default;
+			ambience.current = ambience.victory || ambience.default;
 		}
 		// currently racing
 		else if (type === 'finish') {
-			this.ambience.current = this.ambience.defeat || this.ambience.finish || this.ambience.default;
+			ambience.current = ambience.defeat || ambience.finish || ambience.default;
 		}
 
 		// start the new audio
-		this.ambience.current?.start();
+		if (playing !== ambience.current) {
+			playing?.stop();
+			ambience.current?.start();
+		}
 	}
 
 	// positional update 
@@ -351,7 +355,7 @@ export default class Track {
 
 		// cap the maximum scroll speed
 		const distance = Math.max(
-			(state.speed * -TRACK_MAXIMUM_SCROLL_SPEED) * state.delta,
+			(state.speed * -TRACK_MAXIMUM_SCROLL_SPEED),
 			-TRACK_MAXIMUM_TRAVEL_DISTANCE
 		);
 

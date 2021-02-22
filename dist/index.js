@@ -118,7 +118,6 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   return newRequire;
 })({"../node_modules/regenerator-runtime/runtime.js":[function(require,module,exports) {
-var define;
 /**
  * Copyright (c) 2014-present, Facebook, Inc.
  *
@@ -136,24 +135,6 @@ var runtime = (function (exports) {
   var iteratorSymbol = $Symbol.iterator || "@@iterator";
   var asyncIteratorSymbol = $Symbol.asyncIterator || "@@asyncIterator";
   var toStringTagSymbol = $Symbol.toStringTag || "@@toStringTag";
-
-  function define(obj, key, value) {
-    Object.defineProperty(obj, key, {
-      value: value,
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-    return obj[key];
-  }
-  try {
-    // IE 8 has a broken Object.defineProperty that only works on DOM objects.
-    define({}, "");
-  } catch (err) {
-    define = function(obj, key, value) {
-      return obj[key] = value;
-    };
-  }
 
   function wrap(innerFn, outerFn, self, tryLocsList) {
     // If outerFn provided and outerFn.prototype is a Generator, then outerFn.prototype instanceof Generator.
@@ -225,19 +206,16 @@ var runtime = (function (exports) {
     Generator.prototype = Object.create(IteratorPrototype);
   GeneratorFunction.prototype = Gp.constructor = GeneratorFunctionPrototype;
   GeneratorFunctionPrototype.constructor = GeneratorFunction;
-  GeneratorFunction.displayName = define(
-    GeneratorFunctionPrototype,
-    toStringTagSymbol,
-    "GeneratorFunction"
-  );
+  GeneratorFunctionPrototype[toStringTagSymbol] =
+    GeneratorFunction.displayName = "GeneratorFunction";
 
   // Helper for defining the .next, .throw, and .return methods of the
   // Iterator interface in terms of a single ._invoke method.
   function defineIteratorMethods(prototype) {
     ["next", "throw", "return"].forEach(function(method) {
-      define(prototype, method, function(arg) {
+      prototype[method] = function(arg) {
         return this._invoke(method, arg);
-      });
+      };
     });
   }
 
@@ -256,7 +234,9 @@ var runtime = (function (exports) {
       Object.setPrototypeOf(genFun, GeneratorFunctionPrototype);
     } else {
       genFun.__proto__ = GeneratorFunctionPrototype;
-      define(genFun, toStringTagSymbol, "GeneratorFunction");
+      if (!(toStringTagSymbol in genFun)) {
+        genFun[toStringTagSymbol] = "GeneratorFunction";
+      }
     }
     genFun.prototype = Object.create(Gp);
     return genFun;
@@ -526,7 +506,7 @@ var runtime = (function (exports) {
   // unified ._invoke helper method.
   defineIteratorMethods(Gp);
 
-  define(Gp, toStringTagSymbol, "Generator");
+  Gp[toStringTagSymbol] = "Generator";
 
   // A Generator should always return itself as the iterator object when the
   // @@iterator function is called on it. Some browsers' implementations of the
@@ -4391,8 +4371,9 @@ function _register() {
 
               if (sprites.version) {
                 src += "?".concat(sprites.version);
-              } // load the audio
+              }
 
+              console.log(sprites); // load the audio
 
               var sound = new _howler.Howl({
                 src: src,
@@ -4548,7 +4529,7 @@ function _typeof(obj) {
 
 module.exports = _typeof;
 },{}],"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js":[function(require,module,exports) {
-var _typeof = require("@babel/runtime/helpers/typeof");
+var _typeof = require("../helpers/typeof");
 
 var assertThisInitialized = require("./assertThisInitialized");
 
@@ -4561,7 +4542,7 @@ function _possibleConstructorReturn(self, call) {
 }
 
 module.exports = _possibleConstructorReturn;
-},{"@babel/runtime/helpers/typeof":"../node_modules/@babel/runtime/helpers/typeof.js","./assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js"}],"../node_modules/base64-js/index.js":[function(require,module,exports) {
+},{"../helpers/typeof":"../node_modules/@babel/runtime/helpers/typeof.js","./assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js"}],"../node_modules/base64-js/index.js":[function(require,module,exports) {
 'use strict'
 
 exports.byteLength = byteLength
@@ -4689,7 +4670,9 @@ function fromByteArray (uint8) {
 
   // go through the array every three bytes, we'll deal with trailing stuff later
   for (var i = 0, len2 = len - extraBytes; i < len2; i += maxChunkLength) {
-    parts.push(encodeChunk(uint8, i, (i + maxChunkLength) > len2 ? len2 : (i + maxChunkLength)))
+    parts.push(encodeChunk(
+      uint8, i, (i + maxChunkLength) > len2 ? len2 : (i + maxChunkLength)
+    ))
   }
 
   // pad the end with zeros, but make sure to not forget the extra bytes
@@ -4714,7 +4697,6 @@ function fromByteArray (uint8) {
 }
 
 },{}],"../node_modules/ieee754/index.js":[function(require,module,exports) {
-/*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = (nBytes * 8) - mLen - 1
@@ -73867,7 +73849,66 @@ function unpack(animator, root, source, prop) {
       }
     }
 }
-},{"fast-copy":"../node_modules/fast-copy/dist/fast-copy.js","deep-defaults":"../node_modules/deep-defaults/lib/index.js","../utils":"utils/index.js","./path":"animation/path.js","./errors":"animation/errors.js"}],"../node_modules/@babel/runtime/helpers/arrayWithHoles.js":[function(require,module,exports) {
+},{"fast-copy":"../node_modules/fast-copy/dist/fast-copy.js","deep-defaults":"../node_modules/deep-defaults/lib/index.js","../utils":"utils/index.js","./path":"animation/path.js","./errors":"animation/errors.js"}],"../node_modules/@babel/runtime/helpers/arrayLikeToArray.js":[function(require,module,exports) {
+function _arrayLikeToArray(arr, len) {
+  if (len == null || len > arr.length) len = arr.length;
+
+  for (var i = 0, arr2 = new Array(len); i < len; i++) {
+    arr2[i] = arr[i];
+  }
+
+  return arr2;
+}
+
+module.exports = _arrayLikeToArray;
+},{}],"../node_modules/@babel/runtime/helpers/arrayWithoutHoles.js":[function(require,module,exports) {
+var arrayLikeToArray = require("./arrayLikeToArray");
+
+function _arrayWithoutHoles(arr) {
+  if (Array.isArray(arr)) return arrayLikeToArray(arr);
+}
+
+module.exports = _arrayWithoutHoles;
+},{"./arrayLikeToArray":"../node_modules/@babel/runtime/helpers/arrayLikeToArray.js"}],"../node_modules/@babel/runtime/helpers/iterableToArray.js":[function(require,module,exports) {
+function _iterableToArray(iter) {
+  if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter);
+}
+
+module.exports = _iterableToArray;
+},{}],"../node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js":[function(require,module,exports) {
+var arrayLikeToArray = require("./arrayLikeToArray");
+
+function _unsupportedIterableToArray(o, minLen) {
+  if (!o) return;
+  if (typeof o === "string") return arrayLikeToArray(o, minLen);
+  var n = Object.prototype.toString.call(o).slice(8, -1);
+  if (n === "Object" && o.constructor) n = o.constructor.name;
+  if (n === "Map" || n === "Set") return Array.from(o);
+  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return arrayLikeToArray(o, minLen);
+}
+
+module.exports = _unsupportedIterableToArray;
+},{"./arrayLikeToArray":"../node_modules/@babel/runtime/helpers/arrayLikeToArray.js"}],"../node_modules/@babel/runtime/helpers/nonIterableSpread.js":[function(require,module,exports) {
+function _nonIterableSpread() {
+  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+}
+
+module.exports = _nonIterableSpread;
+},{}],"../node_modules/@babel/runtime/helpers/toConsumableArray.js":[function(require,module,exports) {
+var arrayWithoutHoles = require("./arrayWithoutHoles");
+
+var iterableToArray = require("./iterableToArray");
+
+var unsupportedIterableToArray = require("./unsupportedIterableToArray");
+
+var nonIterableSpread = require("./nonIterableSpread");
+
+function _toConsumableArray(arr) {
+  return arrayWithoutHoles(arr) || iterableToArray(arr) || unsupportedIterableToArray(arr) || nonIterableSpread();
+}
+
+module.exports = _toConsumableArray;
+},{"./arrayWithoutHoles":"../node_modules/@babel/runtime/helpers/arrayWithoutHoles.js","./iterableToArray":"../node_modules/@babel/runtime/helpers/iterableToArray.js","./unsupportedIterableToArray":"../node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js","./nonIterableSpread":"../node_modules/@babel/runtime/helpers/nonIterableSpread.js"}],"../node_modules/@babel/runtime/helpers/arrayWithHoles.js":[function(require,module,exports) {
 function _arrayWithHoles(arr) {
   if (Array.isArray(arr)) return arr;
 }
@@ -73902,32 +73943,7 @@ function _iterableToArrayLimit(arr, i) {
 }
 
 module.exports = _iterableToArrayLimit;
-},{}],"../node_modules/@babel/runtime/helpers/arrayLikeToArray.js":[function(require,module,exports) {
-function _arrayLikeToArray(arr, len) {
-  if (len == null || len > arr.length) len = arr.length;
-
-  for (var i = 0, arr2 = new Array(len); i < len; i++) {
-    arr2[i] = arr[i];
-  }
-
-  return arr2;
-}
-
-module.exports = _arrayLikeToArray;
-},{}],"../node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js":[function(require,module,exports) {
-var arrayLikeToArray = require("./arrayLikeToArray");
-
-function _unsupportedIterableToArray(o, minLen) {
-  if (!o) return;
-  if (typeof o === "string") return arrayLikeToArray(o, minLen);
-  var n = Object.prototype.toString.call(o).slice(8, -1);
-  if (n === "Object" && o.constructor) n = o.constructor.name;
-  if (n === "Map" || n === "Set") return Array.from(o);
-  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return arrayLikeToArray(o, minLen);
-}
-
-module.exports = _unsupportedIterableToArray;
-},{"./arrayLikeToArray":"../node_modules/@babel/runtime/helpers/arrayLikeToArray.js"}],"../node_modules/@babel/runtime/helpers/nonIterableRest.js":[function(require,module,exports) {
+},{}],"../node_modules/@babel/runtime/helpers/nonIterableRest.js":[function(require,module,exports) {
 function _nonIterableRest() {
   throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
 }
@@ -74163,7 +74179,12 @@ var MAPPINGS = [// transforms
     return t.animationSpeed = (0, _converters.toAnimationSpeed)(v);
   }
 }, // { prop: '// currentFrame', apply: ? }?
-// colors and styling
+{
+  prop: 'visible',
+  apply: function apply(t, v) {
+    return t.visible = !!v;
+  }
+}, // colors and styling
 {
   prop: 'alpha',
   apply: function apply(t, v) {
@@ -74288,13 +74309,419 @@ for (var _i = 0, _MAPPINGS = MAPPINGS; _i < _MAPPINGS.length; _i++) {
   var mapping = _MAPPINGS[_i];
   LOOKUP[mapping.prop] = mapping.apply;
 }
-},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","./converters":"animation/converters.js"}],"animation/expressions.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","./converters":"animation/converters.js"}],"randomizer.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.random = random;
 exports.setRandomizer = setRandomizer;
+// defaults to standard Math random function
+var randomizer = Math;
+
+function random() {
+  return randomizer.random();
+}
+/** assigns a randomizer to use for the random expression */
+
+
+function setRandomizer(val) {
+  randomizer = val;
+}
+},{}],"animation/dynamic-expressions/get-random.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var mappings = _interopRequireWildcard(require("../mappings"));
+
+var randomizer = _interopRequireWildcard(require("../../randomizer"));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var GetRandomExpression = function GetRandomExpression(prop, params) {
+  var _this = this;
+
+  (0, _classCallCheck2.default)(this, GetRandomExpression);
+  (0, _defineProperty2.default)(this, "next", function () {
+    var value = randomizer.random() * (_this.max - _this.min) + _this.min;
+
+    return _this.toInt ? 0 | value : value;
+  });
+  (0, _defineProperty2.default)(this, "update", function (sprite, stage) {
+    var next = _this.next();
+
+    _this.mapping(sprite, next);
+  });
+  this.mapping = mappings.lookup(prop); // sort out the params
+
+  this.toInt = !~params.indexOf('decimal');
+  this.isVariable = !!~params.indexOf('var'); // extract the range to work with
+
+  var _params = (0, _slicedToArray2.default)(params, 2),
+      min = _params[0],
+      max = _params[1];
+
+  if (isNaN(max)) {
+    max = min;
+    min = 0;
+  } // save the values
+
+
+  this.max = max;
+  this.min = min;
+
+  if (!this.isVariable) {
+    var value = this.next();
+
+    this.update = function (sprite) {
+      return _this.mapping(sprite, value);
+    };
+  }
+} // calculates the next value
+;
+
+exports.default = GetRandomExpression;
+},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../mappings":"animation/mappings.js","../../randomizer":"randomizer.js"}],"animation/dynamic-expressions/sine-expressions.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.SineExpression = exports.CosineExpression = void 0;
+
+var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
+
+var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
+
+var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var mappings = _interopRequireWildcard(require("../mappings"));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+var BaseSineExpression = function BaseSineExpression(prop, args) {
+  var _this = this;
+
+  (0, _classCallCheck2.default)(this, BaseSineExpression);
+  (0, _defineProperty2.default)(this, "offset", 0);
+  (0, _defineProperty2.default)(this, "scale", 1);
+  (0, _defineProperty2.default)(this, "update", function (target, stage) {
+    var ts = (Date.now() + _this.offset) * _this.scale;
+
+    var percent = (_this.calc(ts) + 1) / 2;
+    var value = percent * (_this.max - _this.min) + _this.min;
+
+    _this.mapping(target, _this.convertToInt ? 0 | value : value);
+  });
+  this.prop = prop;
+  this.mapping = mappings.lookup(prop);
+  var min = 0;
+  var max = 1;
+
+  var _iterator = _createForOfIteratorHelper(args),
+      _step;
+
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var arg = _step.value;
+
+      if (arg.min) {
+        min = arg.min;
+      } else if (arg.max) {
+        max = arg.max;
+      } else if (arg.scale) {
+        this.scale = arg.scale * 0.01;
+      } else if (arg.offset) {
+        this.offset = arg.offset * 1000;
+      } else if (arg === 'int') {
+        this.convertToInt = true;
+      }
+    } // if there's no max value then
+    // max the range from 0-min
+
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+
+  if (isNaN(max)) {
+    max = min;
+    min = 0;
+  } // save the args
+
+
+  this.min = min;
+  this.max = max; // extra conversions
+
+  this.convertBy = prop === 'rotation' ? Math.PI * 2 : 1;
+};
+
+var CosineExpression = /*#__PURE__*/function (_BaseSineExpression) {
+  (0, _inherits2.default)(CosineExpression, _BaseSineExpression);
+
+  var _super = _createSuper(CosineExpression);
+
+  function CosineExpression() {
+    var _this2;
+
+    (0, _classCallCheck2.default)(this, CosineExpression);
+
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    _this2 = _super.call.apply(_super, [this].concat(args));
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this2), "calc", Math.cos);
+    return _this2;
+  }
+
+  return CosineExpression;
+}(BaseSineExpression);
+
+exports.CosineExpression = CosineExpression;
+
+var SineExpression = /*#__PURE__*/function (_BaseSineExpression2) {
+  (0, _inherits2.default)(SineExpression, _BaseSineExpression2);
+
+  var _super2 = _createSuper(SineExpression);
+
+  function SineExpression() {
+    var _this3;
+
+    (0, _classCallCheck2.default)(this, SineExpression);
+
+    for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+      args[_key2] = arguments[_key2];
+    }
+
+    _this3 = _super2.call.apply(_super2, [this].concat(args));
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this3), "calc", Math.sin);
+    return _this3;
+  }
+
+  return SineExpression;
+}(BaseSineExpression);
+
+exports.SineExpression = SineExpression;
+},{"@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../mappings":"animation/mappings.js"}],"animation/dynamic-expressions/relative-expressions.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.RelativeToY = exports.RelativeToX = void 0;
+
+var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
+
+var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
+
+var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
+
+var mappings = _interopRequireWildcard(require("../mappings"));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+var BaseRelativeTo = /*#__PURE__*/function () {
+  function BaseRelativeTo(prop, args) {
+    (0, _classCallCheck2.default)(this, BaseRelativeTo);
+    this.mapping = mappings.lookup(prop); // gather arguments
+
+    this.isVisibility = prop === 'visible';
+    this.flip = args.indexOf('flip') > -1;
+    this.toInt = args.indexOf('int') > -1;
+    this.min = args[0];
+    this.max = args[1];
+  }
+
+  (0, _createClass2.default)(BaseRelativeTo, [{
+    key: "calculate",
+    value: function calculate(target, at, relativeTo) {
+      // calculate the percent
+      var percent; // flips at center
+
+      if (this.flip) {
+        var mid = relativeTo / 2;
+        percent = Math.abs((at - mid) / mid); // full range
+      } else {
+        percent = at / relativeTo;
+      } // specials
+
+
+      if (this.isVisibility) {
+        target.visible = percent > this.min && percent < this.max;
+        return;
+      }
+
+      var value = (this.max - this.min) * percent + this.min;
+
+      if (!isFinite(value) || isNaN(value)) {
+        return;
+      } // assign the value
+
+
+      this.mapping(target, this.toInt ? 0 | value : value);
+    }
+  }]);
+  return BaseRelativeTo;
+}();
+
+var RelativeToX = /*#__PURE__*/function (_BaseRelativeTo) {
+  (0, _inherits2.default)(RelativeToX, _BaseRelativeTo);
+
+  var _super = _createSuper(RelativeToX);
+
+  function RelativeToX() {
+    var _this;
+
+    (0, _classCallCheck2.default)(this, RelativeToX);
+
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    _this = _super.call.apply(_super, [this].concat(args));
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "update", function (target, stage) {
+      var bounds = target.getBounds();
+
+      _this.calculate(target, bounds.x, stage.width);
+    });
+    return _this;
+  }
+
+  return RelativeToX;
+}(BaseRelativeTo);
+
+exports.RelativeToX = RelativeToX;
+
+var RelativeToY = /*#__PURE__*/function (_BaseRelativeTo2) {
+  (0, _inherits2.default)(RelativeToY, _BaseRelativeTo2);
+
+  var _super2 = _createSuper(RelativeToY);
+
+  function RelativeToY() {
+    var _this2;
+
+    (0, _classCallCheck2.default)(this, RelativeToY);
+
+    for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+      args[_key2] = arguments[_key2];
+    }
+
+    _this2 = _super2.call.apply(_super2, [this].concat(args));
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this2), "update", function (target, stage) {
+      var bounds = target.getBounds();
+
+      _this2.calculate(target, bounds.y, stage.height);
+    });
+    return _this2;
+  }
+
+  return RelativeToY;
+}(BaseRelativeTo); // // extract args
+// export function getRelativeArgs(args) {
+//   let [min, max] = args;
+//   const param1 = args[2];
+//   const param2 = args[3];
+//   const flip = param1 === 'flip' || param2 === 'flip';
+//   const toInt = param1 === 'int' || param2 === 'int';
+//   return [min, max, flip, toInt]
+// }
+// // value is relative to the x position on screen
+// export function relativeX(obj, stage, prop, ...args) {
+//   const bounds = obj.getBounds();
+//   calculateRelative(obj, prop, args, bounds.x, stage.width);
+// }
+// // value is relative to the x position on screen
+// export function relativeY(obj, stage, prop, ...args) {
+//   const bounds = obj.getBounds();
+//   calculateRelative(obj, prop, args, bounds.y, stage.height);
+// }
+// // calculates a relative position from bounds and a relative value
+// function calculateRelative(obj, prop, args, at, relativeTo) {
+//   const [min, max, flip, toInt] = getRelativeArgs(args);
+//   // calculate the percent
+//   let percent;
+//   // flips at center
+//   if (flip) {
+//     const cx = relativeTo / 2;
+//     percent = Math.abs((at - cx) / cx);
+//   }
+//   // full range
+//   else {
+//     percent = at / relativeTo;
+//   }
+//   // specials
+//   if (prop === 'visible') {
+//     obj.visible = percent > min && percent < max;
+//     return;
+//   }
+//   const value = ((max - min) * percent) + min;
+//   if (!isFinite(value) || isNaN(value)) return;
+//   // assign the value
+//   const mapping = mappings.lookup(prop);
+//   mapping(obj, toInt ? 0 | value : value);
+// }
+
+
+exports.RelativeToY = RelativeToY;
+},{"@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","../mappings":"animation/mappings.js"}],"animation/expressions.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 exports.addTo = addTo;
 exports.subtractBy = subtractBy;
 exports.multiplyBy = multiplyBy;
@@ -74304,14 +74731,12 @@ exports.range = range;
 exports.expression = expression;
 exports.pick = pick;
 exports.sequence = sequence;
-exports.getRelativeArgs = getRelativeArgs;
-exports.relativeX = relativeX;
-exports.relativeY = relativeY;
-exports.getRandom = getRandom;
 exports.isExpression = isExpression;
 exports.isDynamic = isDynamic;
 exports.evaluateExpression = evaluateExpression;
 exports.createDynamicExpression = createDynamicExpression;
+
+var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
 
 var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
 
@@ -74319,38 +74744,71 @@ var _utils = require("../utils");
 
 var mappings = _interopRequireWildcard(require("./mappings"));
 
+var randomizer = _interopRequireWildcard(require("../randomizer"));
+
+var _getRandom = _interopRequireDefault(require("./dynamic-expressions/get-random"));
+
+var _sineExpressions = require("./dynamic-expressions/sine-expressions");
+
+var _relativeExpressions = require("./dynamic-expressions/relative-expressions");
+
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-// defaults to standard Math random function
-var randomizer = Math;
-/** assigns a randomizer to use for the random expression */
+// dynamic expressions
 
-function setRandomizer(val) {
-  randomizer = val;
-}
 /** expression types */
-
-
 var EXPRESSIONS = {
-  ':+': addTo,
-  ':-': subtractBy,
-  ':*': multiplyBy,
-  ':/': divideBy,
-  ':%': percentOf,
-  ':exp': expression,
-  ':pick': pick,
-  ':seq': sequence,
-  ':sequence': sequence,
-  ':range': range
+  ':+': {
+    func: addTo
+  },
+  ':-': {
+    func: subtractBy
+  },
+  ':*': {
+    func: multiplyBy
+  },
+  ':/': {
+    func: divideBy
+  },
+  ':%': {
+    func: percentOf
+  },
+  ':exp': {
+    func: expression
+  },
+  ':pick': {
+    func: pick
+  },
+  ':seq': {
+    func: sequence
+  },
+  ':sequence': {
+    func: sequence
+  },
+  ':range': {
+    func: range
+  }
 };
 var DYNAMICS = {
-  ':rnd': getRandom,
-  ':rx': relativeX,
-  ':ry': relativeY
+  ':cos': {
+    instance: _sineExpressions.CosineExpression
+  },
+  ':sin': {
+    instance: _sineExpressions.SineExpression
+  },
+  ':rnd': {
+    instance: _getRandom.default
+  },
+  ':rx': {
+    instance: _relativeExpressions.RelativeToX
+  },
+  ':ry': {
+    instance: _relativeExpressions.RelativeToY
+  }
 };
 
 function addTo(add, relativeTo) {
@@ -74445,115 +74903,6 @@ function sequence() {
   var selected = sequence.pop();
   sequence.unshift(selected);
   return selected;
-} // extract args
-
-
-function getRelativeArgs(args) {
-  var _args = (0, _slicedToArray2.default)(args, 2),
-      min = _args[0],
-      max = _args[1];
-
-  var param1 = args[2];
-  var param2 = args[3];
-  var flip = param1 === 'flip' || param2 === 'flip';
-  var toInt = param1 === 'int' || param2 === 'int';
-  return [min, max, flip, toInt];
-} // value is relative to the x position on screen
-
-
-function relativeX(obj, stage, prop) {
-  var bounds = obj.getBounds();
-
-  for (var _len5 = arguments.length, args = new Array(_len5 > 3 ? _len5 - 3 : 0), _key5 = 3; _key5 < _len5; _key5++) {
-    args[_key5 - 3] = arguments[_key5];
-  }
-
-  calculateRelative(obj, prop, args, bounds.x, stage.width);
-} // value is relative to the x position on screen
-
-
-function relativeY(obj, stage, prop) {
-  var bounds = obj.getBounds();
-
-  for (var _len6 = arguments.length, args = new Array(_len6 > 3 ? _len6 - 3 : 0), _key6 = 3; _key6 < _len6; _key6++) {
-    args[_key6 - 3] = arguments[_key6];
-  }
-
-  calculateRelative(obj, prop, args, bounds.y, stage.height);
-} // calculates a relative position from bounds and a relative value
-
-
-function calculateRelative(obj, prop, args, at, relativeTo) {
-  var _getRelativeArgs = getRelativeArgs(args),
-      _getRelativeArgs2 = (0, _slicedToArray2.default)(_getRelativeArgs, 4),
-      min = _getRelativeArgs2[0],
-      max = _getRelativeArgs2[1],
-      flip = _getRelativeArgs2[2],
-      toInt = _getRelativeArgs2[3]; // calculate the percent
-
-
-  var percent; // flips at center
-
-  if (flip) {
-    var cx = relativeTo / 2;
-    percent = Math.abs((at - cx) / cx);
-  } // full range
-  else {
-      percent = at / relativeTo;
-    } // specials
-
-
-  if (prop === 'visible') {
-    obj.visible = percent > min && percent < max;
-    return;
-  }
-
-  var value = (max - min) * percent + min;
-  if (!isFinite(value) || isNaN(value)) return; // assign the value
-
-  var mapping = mappings.lookup(prop);
-  mapping(obj, toInt ? 0 | value : value);
-}
-/** returns a random number in a range */
-
-
-function getRandom(obj, stage, prop) {
-  var mapping = mappings.lookup(prop); // check for a cached value
-
-  var cacheKey = "___cache_".concat(prop, "___");
-  var cached = obj[cacheKey]; // apply the cached value
-
-  if (cached !== undefined) {
-    mapping(obj, cached);
-    return;
-  } // sort out the params
-
-
-  for (var _len7 = arguments.length, params = new Array(_len7 > 3 ? _len7 - 3 : 0), _key7 = 3; _key7 < _len7; _key7++) {
-    params[_key7 - 3] = arguments[_key7];
-  }
-
-  var toInt = !~params.indexOf('decimal');
-  var isVariable = !!~params.indexOf('var'); // extract the value
-
-  var min = params[0],
-      max = params[1];
-
-  if (isNaN(max)) {
-    max = min;
-    min = 0;
-  } // randomize
-
-
-  var value = randomizer.random() * (max - min) + min;
-  var result = toInt ? 0 | value : value; // cache, if needed
-
-  if (!isVariable) {
-    obj[cacheKey] = result;
-  } // save the result
-
-
-  mapping(obj, result);
 }
 /** checks if a node appears to be an expression */
 
@@ -74579,8 +74928,8 @@ function evaluateExpression(expression) {
   var handler = EXPRESSIONS[token];
   var rest = expression.slice(1);
 
-  for (var _len8 = arguments.length, args = new Array(_len8 > 1 ? _len8 - 1 : 0), _key8 = 1; _key8 < _len8; _key8++) {
-    args[_key8 - 1] = arguments[_key8];
+  for (var _len5 = arguments.length, args = new Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
+    args[_key5 - 1] = arguments[_key5];
   }
 
   rest.push.apply(rest, args); // this expression will probably fail
@@ -74591,7 +74940,7 @@ function evaluateExpression(expression) {
   }
 
   try {
-    return handler.apply(this, rest);
+    return handler.func.apply(this, rest);
   } catch (ex) {
     console.error("Failed to evaluate expression ".concat(token, " with ").concat(rest.join(', ')));
     throw ex;
@@ -74609,24 +74958,31 @@ function createDynamicExpression(prop, source) {
       token = _expression2[0];
 
   var handler = DYNAMICS[token];
-  var rest = expression.slice(1); // include the property name to update
+  var rest = expression.slice(1);
 
-  rest.unshift(prop); // include any extra configs
-
-  for (var _len9 = arguments.length, args = new Array(_len9 > 2 ? _len9 - 2 : 0), _key9 = 2; _key9 < _len9; _key9++) {
-    args[_key9 - 2] = arguments[_key9];
+  for (var _len6 = arguments.length, args = new Array(_len6 > 2 ? _len6 - 2 : 0), _key6 = 2; _key6 < _len6; _key6++) {
+    args[_key6 - 2] = arguments[_key6];
   }
 
-  rest.push.apply(rest, args); // create the handler function
+  rest.push.apply(rest, args); // simple function handler
 
-  return function () {
-    for (var _len10 = arguments.length, params = new Array(_len10), _key10 = 0; _key10 < _len10; _key10++) {
-      params[_key10] = arguments[_key10];
-    }
+  if (handler.func) {
+    // include the property name to update
+    rest.unshift(prop); // create the handler
 
-    var args = [].concat(params).concat(rest);
-    return handler.apply(null, args);
-  };
+    return function () {
+      var _handler$func;
+
+      for (var _len7 = arguments.length, params = new Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
+        params[_key7] = arguments[_key7];
+      }
+
+      return (_handler$func = handler.func).call.apply(_handler$func, [null].concat(params, (0, _toConsumableArray2.default)(rest)));
+    }; // instance based updater
+  } else {
+    var instance = new handler.instance(prop, rest);
+    return instance.update;
+  }
 } // shuffle an array without changing the reference
 
 
@@ -74641,7 +74997,7 @@ function shuffle(items) {
 
   items.push.apply(items, shuffled);
 }
-},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","../utils":"utils/index.js","./mappings":"animation/mappings.js"}],"../node_modules/idb-keyval/dist/idb-keyval.mjs":[function(require,module,exports) {
+},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","../utils":"utils/index.js","./mappings":"animation/mappings.js","../randomizer":"randomizer.js","./dynamic-expressions/get-random":"animation/dynamic-expressions/get-random.js","./dynamic-expressions/sine-expressions":"animation/dynamic-expressions/sine-expressions.js","./dynamic-expressions/relative-expressions":"animation/dynamic-expressions/relative-expressions.js"}],"../node_modules/idb-keyval/dist/idb-keyval.mjs":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -75830,13 +76186,7 @@ function applyDynamicProperties(obj, props) {
     return __renderCanvas__.apply(obj, args);
   };
 }
-},{"../utils":"utils/index.js","./expressions":"animation/expressions.js","../pixi/stage":"pixi/stage.js","./mappings":"animation/mappings.js"}],"../node_modules/@babel/runtime/helpers/iterableToArray.js":[function(require,module,exports) {
-function _iterableToArray(iter) {
-  if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter);
-}
-
-module.exports = _iterableToArray;
-},{}],"../node_modules/@babel/runtime/helpers/toArray.js":[function(require,module,exports) {
+},{"../utils":"utils/index.js","./expressions":"animation/expressions.js","../pixi/stage":"pixi/stage.js","./mappings":"animation/mappings.js"}],"../node_modules/@babel/runtime/helpers/toArray.js":[function(require,module,exports) {
 var arrayWithHoles = require("./arrayWithHoles");
 
 var iterableToArray = require("./iterableToArray");
@@ -78755,9 +79105,10 @@ function _createSprite() {
             _context.prev = 44;
             _context.t0 = _context["catch"](3);
             console.error("Failed to create sprite ".concat(path, " while ").concat(phase));
+            console.error(_context.t0);
             throw _context.t0;
 
-          case 48:
+          case 49:
           case "end":
             return _context.stop();
         }
@@ -81940,9 +82291,9 @@ exports.createPlaceholderImage = createPlaceholderImage;
 var _converters = require("../animation/converters");
 
 /** creates a rendering surface */
-function createContext() {
+function createContext(options) {
   var canvas = document.createElement('canvas');
-  var ctx = canvas.getContext('2d');
+  var ctx = canvas.getContext('2d', options);
 
   function reset() {
     canvas.width = canvas.width;
@@ -82883,13 +83234,13 @@ function importManifest(_x) {
 
 function _importManifest() {
   _importManifest = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(_ref) {
-    var manifest, path, baseUrl, timeout, parts, key, target, _iterator, _step, part, data, attempts, url;
+    var manifest, version, path, baseUrl, timeout, parts, key, target, _iterator, _step, part, data, attempts, url;
 
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            manifest = _ref.manifest, path = _ref.path, baseUrl = _ref.baseUrl, timeout = _ref.timeout;
+            manifest = _ref.manifest, version = _ref.version, path = _ref.path, baseUrl = _ref.baseUrl, timeout = _ref.timeout;
             _context.prev = 1;
             // get the manifest sub path and then
             // the resource key (which is the last value)
@@ -82920,7 +83271,7 @@ function _importManifest() {
 
           case 9:
             attempts = 3;
-            url = "".concat(baseUrl, "/").concat(path, ".json").replace(/([^:]\/)\/+/g, '$1');
+            url = "".concat(baseUrl, "/").concat(path, ".json?").concat(version).replace(/([^:]\/)\/+/g, '$1');
 
           case 11:
             if (!(attempts > 0)) {
@@ -83077,6 +83428,8 @@ var _loadImage = _interopRequireDefault(require("./resources/loadImage"));
 
 var _importManifest = _interopRequireDefault(require("./importManifest"));
 
+var _randomizer = require("../randomizer");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
@@ -83214,6 +83567,7 @@ var Animator = /*#__PURE__*/function (_EventEmitter) {
                 _context4.next = 3;
                 return (0, _importManifest.default)({
                   manifest: _this.manifest,
+                  version: _this.manifest.version,
                   path: path,
                   baseUrl: baseUrl,
                   timeout: timeout
@@ -83328,7 +83682,7 @@ var Animator = /*#__PURE__*/function (_EventEmitter) {
     // could be accidentially replaced - consider refactoring
     // to make all of this more clear
 
-    (0, _expressions.setRandomizer)(_this.rng); // save the data file
+    (0, _randomizer.setRandomizer)(_this.rng); // save the data file
 
     _this.manifest = manifest;
     _this.options = options;
@@ -83349,35 +83703,7 @@ var Animator = /*#__PURE__*/function (_EventEmitter) {
 }(_eventEmitter.EventEmitter);
 
 exports.Animator = Animator;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../pixi/lib":"pixi/lib.js","../common/event-emitter":"common/event-emitter.js","./utils":"animation/utils.js","./path":"animation/path.js","./expressions":"animation/expressions.js","../utils/assetCache":"utils/assetCache.js","./rng":"animation/rng.js","./generators/controller":"animation/generators/controller.js","./generators":"animation/generators/index.js","./resources/getSprite":"animation/resources/getSprite.js","./resources/getSpritesheet":"animation/resources/getSpritesheet.js","./resources/loadImage":"animation/resources/loadImage.js","./importManifest":"animation/importManifest.js"}],"../node_modules/@babel/runtime/helpers/arrayWithoutHoles.js":[function(require,module,exports) {
-var arrayLikeToArray = require("./arrayLikeToArray");
-
-function _arrayWithoutHoles(arr) {
-  if (Array.isArray(arr)) return arrayLikeToArray(arr);
-}
-
-module.exports = _arrayWithoutHoles;
-},{"./arrayLikeToArray":"../node_modules/@babel/runtime/helpers/arrayLikeToArray.js"}],"../node_modules/@babel/runtime/helpers/nonIterableSpread.js":[function(require,module,exports) {
-function _nonIterableSpread() {
-  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-}
-
-module.exports = _nonIterableSpread;
-},{}],"../node_modules/@babel/runtime/helpers/toConsumableArray.js":[function(require,module,exports) {
-var arrayWithoutHoles = require("./arrayWithoutHoles");
-
-var iterableToArray = require("./iterableToArray");
-
-var unsupportedIterableToArray = require("./unsupportedIterableToArray");
-
-var nonIterableSpread = require("./nonIterableSpread");
-
-function _toConsumableArray(arr) {
-  return arrayWithoutHoles(arr) || iterableToArray(arr) || unsupportedIterableToArray(arr) || nonIterableSpread();
-}
-
-module.exports = _toConsumableArray;
-},{"./arrayWithoutHoles":"../node_modules/@babel/runtime/helpers/arrayWithoutHoles.js","./iterableToArray":"../node_modules/@babel/runtime/helpers/iterableToArray.js","./unsupportedIterableToArray":"../node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js","./nonIterableSpread":"../node_modules/@babel/runtime/helpers/nonIterableSpread.js"}],"pixi/detatched-container.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../pixi/lib":"pixi/lib.js","../common/event-emitter":"common/event-emitter.js","./utils":"animation/utils.js","./path":"animation/path.js","./expressions":"animation/expressions.js","../utils/assetCache":"utils/assetCache.js","./rng":"animation/rng.js","./generators/controller":"animation/generators/controller.js","./generators":"animation/generators/index.js","./resources/getSprite":"animation/resources/getSprite.js","./resources/getSpritesheet":"animation/resources/getSpritesheet.js","./resources/loadImage":"animation/resources/loadImage.js","./importManifest":"animation/importManifest.js","../randomizer":"randomizer.js"}],"pixi/detatched-container.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -83698,7 +84024,7 @@ var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
@@ -83942,7 +84268,7 @@ function findTextures(target) {
   var collection = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
   // skip this item
-  if ((_target$config = target.config) !== null && _target$config !== void 0 && _target$config.ignoreHueShift || (_target$emitter = target.emitter) !== null && _target$emitter !== void 0 && (_target$emitter$confi = _target$emitter.config) !== null && _target$emitter$confi !== void 0 && _target$emitter$confi.ignoreHueShift) {
+  if (((_target$config = target.config) === null || _target$config === void 0 ? void 0 : _target$config.ignoreHueShift) || ((_target$emitter = target.emitter) === null || _target$emitter === void 0 ? void 0 : (_target$emitter$confi = _target$emitter.config) === null || _target$emitter$confi === void 0 ? void 0 : _target$emitter$confi.ignoreHueShift)) {
     return;
   } // particle emitters keep textures in a separate array
 
@@ -84636,7 +84962,7 @@ var _utils = require("./utils");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
@@ -84663,7 +84989,7 @@ var MINOR_FRAMERATE_RISK = 42; // const NOTICABLE_FRAMERATE_RISK = MINOR_FRAMERA
 // const MAJOR_FRAMERATE_RISK = MINOR_FRAMERATE_RISK * 0.33
 // the amount to upscale for SSAA
 
-var SSAA_SCALING_AMOUNT = [1, 1.15, 1.5, 2]; // animation speeds
+var SSAA_SCALING_AMOUNT = [1, 1.15, 1.25, 2]; // animation speeds
 
 var ANIMATION_RENDERING_INTERVAL = [3, 2, 2, 1];
 var ANIMATION_PARTICLE_UPDATE_FREQUENCY = [4, 3, 2, 1];
@@ -84893,17 +85219,15 @@ var _perf = _interopRequireDefault(require("../perf"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
-
-var MAXIMUM_DELTA = 4; // dynamic management of performance
 
 /** creates a track instance */
 var BaseView = /*#__PURE__*/function (_EventEmitter) {
@@ -84993,10 +85317,10 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "previousTime", Date.now());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "preferredFps", 1000 / 60);
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "getDeltaTime", function () {
-      var now = Date.now();
-      var diff = now - _this.previousTime;
-      _this.previousTime = now;
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "maxRenderingSpeed", _this.preferredFps * 0.9);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "getDeltaTime", function (asOf) {
+      var diff = asOf - _this.previousTime;
+      _this.previousTime = asOf;
       return diff / _this.preferredFps;
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setWindowVisibilityState", function () {
@@ -85006,15 +85330,17 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
       return _config.PERFORMANCE_LEVEL;
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "_autoRender", function () {
-      _this._nextFrame = requestAnimationFrame(_this._autoRender);
+      cancelAnimationFrame(_this._nextFrame);
 
       _this.render();
+
+      _this._nextFrame = requestAnimationFrame(_this._autoRender);
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "startAutoRender", function () {
       return _this._autoRender();
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "stopAutoRender", function () {
-      cancelAnimationFrame(_this._nextFrame);
+      return cancelAnimationFrame(_this._nextFrame);
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "resize", function () {
       var _assertThisInitialize2 = (0, _assertThisInitialized2.default)(_this),
@@ -85097,10 +85423,15 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
                 clearBeforeRender = transparent || hasBackgroundColor;
                 backgroundColor = hasBackgroundColor ? options.backgroundColor : DEFAULT_BACKGROUND_COLOR;
                 this.config = {
-                  // antialias: false, // doesn't appear to improve anything
-                  legacy: true,
-                  preserveDrawingBuffer: true,
+                  // TODO: how can we improve visuals
+                  // antialias: false, 
+                  // resolution: window.devicePixelRatio,
+                  // autoDensity: true,
+                  antialias: false,
+                  // doesn't appear to change anything
                   smoothProperty: 'none',
+                  // doesn't appear to change anything
+                  preserveDrawingBuffer: false,
                   transparent: transparent,
                   clearBeforeRender: clearBeforeRender,
                   backgroundColor: backgroundColor
@@ -85508,7 +85839,7 @@ var _ntAnimator = require("nt-animator");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
@@ -86003,7 +86334,7 @@ var _utils = require("../../utils");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
@@ -86309,7 +86640,7 @@ var VOLUME_FINISH_LINE_CROWD = 0.8;
 exports.VOLUME_FINISH_LINE_CROWD = VOLUME_FINISH_LINE_CROWD;
 var VOLUME_FINISH_LINE_STOP = 1;
 exports.VOLUME_FINISH_LINE_STOP = VOLUME_FINISH_LINE_STOP;
-var VOLUME_AMBIENT_AUDIO = 0.5;
+var VOLUME_AMBIENT_AUDIO = 0.33;
 exports.VOLUME_AMBIENT_AUDIO = VOLUME_AMBIENT_AUDIO;
 var VOLUME_ERROR_DEFAULT = 0.2;
 exports.VOLUME_ERROR_DEFAULT = VOLUME_ERROR_DEFAULT;
@@ -86347,7 +86678,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
@@ -86553,7 +86884,7 @@ var _carMappings = require("../../car-mappings");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
@@ -86563,7 +86894,7 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
@@ -86930,7 +87261,7 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
 
       positions.nitroX = positions.back; // check for customizations
 
-      if (!!(config !== null && config !== void 0 && config.positions)) {
+      if (!!(config === null || config === void 0 ? void 0 : config.positions)) {
         assignIf(config.positions.back, 'back');
         assignIf(config.positions.back, 'nitroX');
         assignIf(config.positions.nitroX, 'nitroX');
@@ -87369,7 +87700,7 @@ var _utils = require("../../utils");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
@@ -87586,13 +87917,13 @@ var _ntAnimator = require("nt-animator");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
@@ -87602,8 +87933,8 @@ var DEFAULT_CENTER_PADDING = 8;
 var DEFAULT_LEFT_MARGIN = 25;
 var DEFAULT_TOP_MARGIN = 10;
 var NAMECARD_ICON_GAP = 10;
-var NAMECARD_MAXIMUM_WIDTH = 550;
-var DEFAULT_NAMECARD_FONT_SIZE = 52;
+var NAMECARD_MAXIMUM_WIDTH = 200;
+var DEFAULT_NAMECARD_FONT_SIZE = 54;
 var DEFAULT_NAMECARD_FONT_NAME = 'montserrat';
 var DEFAULT_NAMECARD_FONT_WEIGHT = 600;
 var DEFAULT_NAMECARD_FONT = {
@@ -87632,7 +87963,8 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
       return _this.visible = visible;
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setPosition", function (x) {
-      return _this.x = x;
+      _this.x = 0 | x;
+      _this.y = 0 | _this.y;
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "_renderOverlay", function () {
       var _assertThisInitialize = (0, _assertThisInitialized2.default)(_this),
@@ -88076,7 +88408,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
@@ -88363,7 +88695,7 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
@@ -88508,7 +88840,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                 options = this.options, mods = this.mods;
                 view = options.view, tweaks = options.tweaks; // make sure this car has a trail
 
-                if (!(tweaks !== null && tweaks !== void 0 && tweaks.noTrail)) {
+                if (!(tweaks === null || tweaks === void 0 ? void 0 : tweaks.noTrail)) {
                   _context2.next = 4;
                   break;
                 }
@@ -88811,7 +89143,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
     get: function get() {
       var _this$car;
 
-      return !((_this$car = this.car) !== null && _this$car !== void 0 && _this$car.isUsingMissingCar) && !!this.namecard;
+      return !((_this$car = this.car) === null || _this$car === void 0 ? void 0 : _this$car.isUsingMissingCar) && !!this.namecard;
     }
     /** handles creating a new player instance */
 
@@ -88871,7 +89203,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
 exports.default = Player;
 },{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","./scaling":"views/track/scaling.js","../../config":"config.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","../../components/namecard":"components/namecard/index.js","../../components/nitro":"components/nitro/index.js"}],"../node_modules/@babel/runtime/helpers/readOnlyError.js":[function(require,module,exports) {
 function _readOnlyError(name) {
-  throw new TypeError("\"" + name + "\" is read-only");
+  throw new Error("\"" + name + "\" is read-only");
 }
 
 module.exports = _readOnlyError;
@@ -94126,7 +94458,7 @@ var _config = require("../../config");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
@@ -94381,7 +94713,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
@@ -94954,7 +95286,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
@@ -94992,7 +95324,7 @@ var AmbientAudio = function AmbientAudio(options) {
       var at = _this.index % _this.sounds.length;
       var current = _this.sounds[at]; // fade out the current sound
 
-      current.fade(_volume.VOLUME_AMBIENT_AUDIO, 0, 250);
+      current.fade(_volume.VOLUME_AMBIENT_AUDIO, 0, 1000);
     } // increment to the next sound
     // TODO: support for random orders?
 
@@ -95001,9 +95333,11 @@ var AmbientAudio = function AmbientAudio(options) {
     var sound = _this.sounds[next]; // fade in the next
 
     sound.source.seek(0, sound.id);
-    sound.fade(0, _volume.VOLUME_AMBIENT_AUDIO, 250); // active the next section
+    sound.fade(0, _volume.VOLUME_AMBIENT_AUDIO, 500); // active the next section
+    // TODO: this is a hack - the duration needs to
+    // come from the sound being played
 
-    setTimeout(_this.next, 10000);
+    setTimeout(_this.next, 8000);
   });
   var order = options.order,
       sounds = options.sounds,
@@ -95067,7 +95401,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
@@ -95287,7 +95621,7 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
-function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
@@ -95314,36 +95648,40 @@ var Track = /*#__PURE__*/function () {
       return (_this$ambience = _this.ambience) === null || _this$ambience === void 0 ? void 0 : (_this$ambience$curren = _this$ambience.current) === null || _this$ambience$curren === void 0 ? void 0 : _this$ambience$curren.stop();
     });
     (0, _defineProperty2.default)(this, "setAmbience", function (type) {
-      var _this$ambience$curren2, _this$ambience$curren3;
-
       var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var ambience = _this.ambience;
 
-      if (!_this.ambience) {
+      if (!ambience) {
         return;
-      } // check for active
+      } // get the current audio
 
 
-      (_this$ambience$curren2 = _this.ambience.current) === null || _this$ambience$curren2 === void 0 ? void 0 : _this$ambience$curren2.stop(); // start the next audio
+      var playing = ambience.current; // start the next audio
 
       if (type === 'start') {
-        _this.ambience.current = _this.ambience.pre || _this.ambience.default;
+        ambience.current = ambience.pre || ambience.default;
       } // currently racing
       else if (type === 'race') {
-          _this.ambience.current = _this.ambience.active || _this.ambience.racing || _this.ambience.default;
+          ambience.current = ambience.active || ambience.racing || ambience.default;
         } // currently racing
         else if (type === 'victory') {
-            _this.ambience.current = _this.ambience.victory || _this.ambience.default;
+            ambience.current = ambience.victory || ambience.default;
           } // currently racing
           else if (type === 'finish') {
-              _this.ambience.current = _this.ambience.defeat || _this.ambience.finish || _this.ambience.default;
+              ambience.current = ambience.defeat || ambience.finish || ambience.default;
             } // start the new audio
 
 
-      (_this$ambience$curren3 = _this.ambience.current) === null || _this$ambience$curren3 === void 0 ? void 0 : _this$ambience$curren3.start();
+      if (playing !== ambience.current) {
+        var _ambience$current;
+
+        playing === null || playing === void 0 ? void 0 : playing.stop();
+        (_ambience$current = ambience.current) === null || _ambience$current === void 0 ? void 0 : _ambience$current.start();
+      }
     });
     (0, _defineProperty2.default)(this, "update", function (state) {
       // cap the maximum scroll speed
-      var distance = Math.max(state.speed * -_config.TRACK_MAXIMUM_SCROLL_SPEED * state.delta, -_config.TRACK_MAXIMUM_TRAVEL_DISTANCE);
+      var distance = Math.max(state.speed * -_config.TRACK_MAXIMUM_SCROLL_SPEED, -_config.TRACK_MAXIMUM_TRAVEL_DISTANCE);
 
       _this._cycleTrack(distance);
     });
@@ -96164,7 +96502,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
@@ -96241,21 +96579,26 @@ var CarEntryAnimation = /*#__PURE__*/function (_Animation) {
       try {
         var _player$options;
 
-        var goldEntry;
+        console.log(_this.enterSound);
+        var rev; // check for a gold player
 
-        if ((_player$options = player.options) !== null && _player$options !== void 0 && _player$options.isGold) {
-          goldEntry = audio.create('sfx', 'common', 'gold_enter');
-          goldEntry.volume(_volume.VOLUME_CAR_ENTRY);
-          goldEntry.loop(false);
-        }
+        if ((_player$options = player.options) === null || _player$options === void 0 ? void 0 : _player$options.isGold) {
+          console.log('want to play fold');
+          rev = audio.create('sfx', 'common', 'gold_enter');
+        } // create the sound
+        else {
+            var entry = _this.enterSound;
+
+            if (entry === 'sports') {
+              entry = 'sport';
+            } // create the audio
+
+
+            rev = audio.create('sfx', 'common', "entry_".concat(entry));
+          }
 
         var now = +new Date();
-        var canPlayTimestamp = rev.lastInstancePlay + _config.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT;
-
-        if (goldEntry) {
-          goldEntry.play();
-        } // try and play
-
+        var canPlayTimestamp = rev.lastInstancePlay + _config.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT; // try and play
 
         if (rev && now > canPlayTimestamp) {
           rev.volume(_volume.VOLUME_CAR_ENTRY);
@@ -96313,7 +96656,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
@@ -96363,8 +96706,7 @@ var CarFinishLineAnimation = /*#__PURE__*/function (_Animation) {
       isInstant = elapsed > _config.RACE_FINISH_CAR_STOPPING_TIME; // if this car is entering
 
       if (!isInstant) {
-        var sound = Math.ceil(Math.random() * 4);
-        var stop = audio.create('sfx', 'common', "car_stop_".concat(sound)); // make sure this hasn't played too recently to avoid
+        var stop = audio.create('sfx', 'common', 'car_stopping'); // make sure this hasn't played too recently to avoid
         // 5 car screeching noises all at once
 
         var now = Date.now();
@@ -96703,13 +97045,13 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
@@ -97061,13 +97403,13 @@ var _config = require("../config");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
@@ -97558,13 +97900,13 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
@@ -97893,13 +98235,13 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
-function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
@@ -97913,6 +98255,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     var _this;
 
     (0, _classCallCheck2.default)(this, TrackView);
+    // do not anti-alias - this will be done using SSAA
+    // PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
+    _ntAnimator.PIXI.settings.PRECISION_VERTEX = _ntAnimator.PIXI.PRECISION.LOW;
+    _ntAnimator.PIXI.settings.PRECISION_FRAGMENT = _ntAnimator.PIXI.PRECISION.HIGH;
+    _ntAnimator.PIXI.settings.PRECISION_VERTEX = _ntAnimator.PIXI.PRECISION.LOW;
+    _ntAnimator.PIXI.settings.MIPMAP_TEXTURES = _ntAnimator.PIXI.MIPMAP_MODES.OFF;
 
     for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];
@@ -98032,7 +98380,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
                 _player = player, car = _player.car;
 
-                if (!((_car$plugin = car.plugin) !== null && _car$plugin !== void 0 && _car$plugin.extend)) {
+                if (!((_car$plugin = car.plugin) === null || _car$plugin === void 0 ? void 0 : _car$plugin.extend)) {
                   _context.next = 22;
                   break;
                 }
@@ -98186,7 +98534,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 throw new CountdownAssetError();
 
               case 26:
-                if ((_this$countdown = _this.countdown) !== null && _this$countdown !== void 0 && _this$countdown.isReady) {
+                if ((_this$countdown = _this.countdown) === null || _this$countdown === void 0 ? void 0 : _this$countdown.isReady) {
                   _context2.next = 30;
                   break;
                 }
@@ -98329,7 +98677,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
       if (!player) return; // nothing to do
 
-      if (player !== null && player !== void 0 && player.isFinished) return; // tracking values
+      if (player === null || player === void 0 ? void 0 : player.isFinished) return; // tracking values
 
       player.progressUpdateCount = (player.progressUpdateCount || 0) + 1; // update the player
 
@@ -98442,7 +98790,8 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       }
     });
     return _this;
-  }
+  } // global effect filter
+
 
   (0, _createClass2.default)(TrackView, [{
     key: "init",
@@ -98544,15 +98893,25 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     key: "render",
     // handle rendering the track in the requested state
     value: function render(force) {
+      // calculate the delta
+      var now = Date.now(); // const diff = now - this.previousTime;
+      // if (diff < this.maxRenderingSpeed) {
+      // 	console.log('did skip frame', diff, this.maxRenderingSpeed);
+      // 	return;
+      // }
+      // else {
+      // 	console.log('REN', diff)
+      // }
       // increment the frame counter
+
       this.frame++;
       var state = this.state,
           track = this.track,
           raceProgressAnimation = this.raceProgressAnimation,
-          raceCompletedAnimation = this.raceCompletedAnimation; // calculate the delta
+          raceCompletedAnimation = this.raceCompletedAnimation;
+      state.delta = this.getDeltaTime(now); // console.log('delta', state.delta)
 
-      state.delta = this.getDeltaTime(this.lastUpdate);
-      this.lastUpdate = +new Date(); // if throttling
+      this.lastUpdate = now; // if throttling
 
       if (!this.shouldAnimateFrame && !force) return; // gather some data
 
@@ -98560,7 +98919,8 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
           trackMovementAmount = state.trackMovementAmount;
       var isRaceActive = state.isStarted && !state.isFinished; // speeding up the view
 
-      state.speed = animateTrackMovement ? Math.max(0, Math.min(_config.TRACK_MAXIMUM_SPEED, state.speed + trackMovementAmount * state.delta)) : 0; // increase the track movement by the speed bonus
+      state.speed = animateTrackMovement ? Math.max(0, Math.min(_config.TRACK_MAXIMUM_SPEED, state.speed + trackMovementAmount * state.delta)) : 0; // console.log('will travel', diff, ((0 | (state.speed * 100)) / 100), ((0 | (state.delta * 100)) / 100))
+      // increase the track movement by the speed bonus
       // allows up to an extra 75% of the normal speed
 
       if (isRaceActive) {
@@ -98663,7 +99023,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
@@ -98673,7 +99033,7 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
@@ -99056,7 +99416,7 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
@@ -99214,7 +99574,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 return (0, _utils.wait)(TRANSITION_TIME);
 
               case 19:
-                if (remove !== null && remove !== void 0 && remove.parent) {
+                if (remove === null || remove === void 0 ? void 0 : remove.parent) {
                   removeFromStage(remove);
                 }
 
@@ -99492,13 +99852,13 @@ var _ntAnimator = require("nt-animator");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
@@ -99729,11 +100089,14 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
+// config
 var DEFAULT_MAX_HEIGHT = 250;
+var CAR_X = 660;
+var CAR_Y = 350; // creates a rolling view for an individual car
 
 var CruiseView = /*#__PURE__*/function (_BaseView) {
   (0, _inherits2.default)(CruiseView, _BaseView);
@@ -99752,6 +100115,19 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
     _this = _super.call.apply(_super, [this].concat(args));
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "step", 0);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "container", new _ntAnimator.PIXI.Container());
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "dispose", function () {
+      // cancel rendering
+      _this.stopAutoRender(); // stop animations
+
+
+      _this.__animate_fadeIn.stop();
+
+      _this.__animate_entry.stop();
+
+      _this.__animate_backForth.stop();
+
+      _this.__animate_upDown.stop();
+    });
     return _this;
   }
 
@@ -99759,9 +100135,6 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
     key: "init",
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(options) {
-        var _this2 = this;
-
-        var car, CAR_X, CAR_Y;
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
@@ -99776,110 +100149,19 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
 
               case 2:
                 _context.next = 4;
-                return _treadmill.default.create({
-                  totalSegments: 10,
-                  fitToHeight: 700,
-                  onCreateSegment: function onCreateSegment() {
-                    return _this2.animator.create('extras/cruise');
-                  }
-                });
+                return this._initCar(options);
 
               case 4:
-                this.treadmill = _context.sent;
-                _context.next = 7;
-                return _car.default.create({
-                  view: this,
-                  type: options.type,
-                  hue: options.hue || 0,
-                  baseHeight: 220,
-                  lighting: {
-                    x: -5,
-                    y: 7
-                  }
-                });
+                _context.next = 6;
+                return this._initView();
 
-              case 7:
-                car = _context.sent;
-                this.treadmill.pivot.x = 0;
-                this.treadmill.pivot.y = 0;
-                this.container.addChild(this.treadmill);
-                this.container.addChild(car);
-                this.view.addChild(this.container);
-                CAR_X = 660;
-                CAR_Y = 350;
-                car.x = CAR_X;
-                car.y = CAR_Y;
-                car.alpha = 0; // this.container.alpha = 0
+              case 6:
+                this._initAnimations(); // automatically render
 
-                this.container.pivot.x = 420;
-                this.container.pivot.y = 350;
-                this.container.y = this.view.height * 0.5;
-                this.container.x = -1.5; // fade in the car
-
-                (0, _ntAnimator.animate)({
-                  from: {
-                    alpha: 0
-                  },
-                  to: {
-                    alpha: 1
-                  },
-                  ease: 'linear',
-                  duration: 500,
-                  loop: false,
-                  update: function update(props) {
-                    return car.alpha = props.alpha;
-                  }
-                }); // pan the animation into view
-
-                (0, _ntAnimator.animate)({
-                  from: {
-                    x: -1.5
-                  },
-                  to: {
-                    x: this.view.width * 0.25
-                  },
-                  ease: 'easeOutQuad',
-                  duration: 1500,
-                  loop: false,
-                  update: function update(props) {
-                    return _this2.container.x = props.x;
-                  }
-                }); // animate the player entry
-
-                (0, _ntAnimator.animate)({
-                  from: {
-                    x: CAR_X - 100
-                  },
-                  to: {
-                    x: CAR_X + 150
-                  },
-                  ease: 'easeInOutQuad',
-                  duration: 3000,
-                  direction: 'alternate',
-                  loop: true,
-                  update: function update(props) {
-                    return car.x = props.x;
-                  }
-                });
-                (0, _ntAnimator.animate)({
-                  from: {
-                    y: CAR_Y - 100
-                  },
-                  to: {
-                    y: CAR_Y + 100
-                  },
-                  ease: 'easeInOutQuad',
-                  duration: 6000,
-                  direction: 'alternate',
-                  loop: true,
-                  update: function update(props) {
-                    return car.y = props.y;
-                  }
-                }); // automatically render
 
                 this.startAutoRender();
 
-              case 27:
+              case 8:
               case "end":
                 return _context.stop();
             }
@@ -99892,18 +100174,184 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
       }
 
       return init;
+    }() // creates the rolling track
+
+  }, {
+    key: "_initView",
+    value: function () {
+      var _initView2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+        var _this2 = this;
+
+        return _regenerator.default.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                _context2.next = 2;
+                return _treadmill.default.create({
+                  totalSegments: 10,
+                  fitToHeight: 700,
+                  onCreateSegment: function onCreateSegment() {
+                    return _this2.animator.create('extras/cruise');
+                  }
+                });
+
+              case 2:
+                this.treadmill = _context2.sent;
+                // reset the pivot
+                this.treadmill.pivot.x = 0;
+                this.treadmill.pivot.y = 0; // set the container positions
+                // this.container.alpha = 0
+
+                this.container.pivot.x = 420;
+                this.container.pivot.y = 350;
+                this.container.y = this.view.height * 0.5;
+                this.container.x = -1.5; // assemble the view
+
+                this.container.addChild(this.treadmill);
+                this.container.addChild(this.car);
+                this.view.addChild(this.container);
+
+              case 12:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function _initView() {
+        return _initView2.apply(this, arguments);
+      }
+
+      return _initView;
+    }() // creates the car to display
+
+  }, {
+    key: "_initCar",
+    value: function () {
+      var _initCar2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(options) {
+        var car;
+        return _regenerator.default.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                _context3.next = 2;
+                return _car.default.create({
+                  view: this,
+                  type: options.type,
+                  isAnimated: options.isAnimated,
+                  hue: options.hue || 0,
+                  baseHeight: 220,
+                  lighting: {
+                    x: -5,
+                    y: 7
+                  }
+                });
+
+              case 2:
+                car = _context3.sent;
+                // set positions
+                car.x = CAR_X;
+                car.y = CAR_Y;
+                car.alpha = 0; // add the
+
+                this.car = car;
+
+              case 7:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function _initCar(_x2) {
+        return _initCar2.apply(this, arguments);
+      }
+
+      return _initCar;
     }()
+  }, {
+    key: "_initAnimations",
+    value: function _initAnimations() {
+      var car = this.car,
+          view = this.view,
+          container = this.container; // fade in the car
+
+      this.__animate_fadeIn = (0, _ntAnimator.animate)({
+        from: {
+          alpha: 0
+        },
+        to: {
+          alpha: 1
+        },
+        ease: 'linear',
+        duration: 500,
+        loop: false,
+        update: function update(props) {
+          return car.alpha = props.alpha;
+        }
+      }); // pan the animation into view
+
+      this.__animate_entry = (0, _ntAnimator.animate)({
+        from: {
+          x: -1.5
+        },
+        to: {
+          x: view.width * 0.25
+        },
+        ease: 'easeOutQuad',
+        duration: 1500,
+        loop: false,
+        update: function update(props) {
+          return container.x = props.x;
+        }
+      }); // animate the player entry
+
+      this.__animate_backForth = (0, _ntAnimator.animate)({
+        from: {
+          x: CAR_X - 100
+        },
+        to: {
+          x: CAR_X + 150
+        },
+        ease: 'easeInOutQuad',
+        duration: 3000,
+        direction: 'alternate',
+        loop: true,
+        update: function update(props) {
+          return car.x = props.x;
+        }
+      });
+      this.__animate_upDown = (0, _ntAnimator.animate)({
+        from: {
+          y: CAR_Y - 100
+        },
+        to: {
+          y: CAR_Y + 100
+        },
+        ease: 'easeInOutQuad',
+        duration: 6000,
+        direction: 'alternate',
+        loop: true,
+        update: function update(props) {
+          return car.y = props.y;
+        }
+      });
+    } // cleanup
+
   }, {
     key: "render",
     value: function render() {
       var _get2;
 
       if (this.treadmill) {
-        var delta = this.getDeltaTime();
+        var now = Date.now();
+        var delta = this.getDeltaTime(now);
         this.container.rotation = Math.sin(this.step++ / 300) / 5 + Math.PI * -0.2;
         this.treadmill.update({
           diff: -25 * delta,
-          horizontalWrap: -200
+          horizontalWrap: -500
         });
       }
 
@@ -99950,17 +100398,23 @@ var _base = require("../base");
 
 var _ntAnimator = require("nt-animator");
 
-var _player = _interopRequireDefault(require("../track/player"));
-
 var _treadmill = _interopRequireDefault(require("../../components/treadmill"));
 
+var _car = _interopRequireDefault(require("../../components/car"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
@@ -99981,7 +100435,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
     }
 
     _this = _super.call.apply(_super, [this].concat(args));
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "step", 0);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "offsetSpeed", 0);
     return _this;
   }
 
@@ -99989,9 +100443,6 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
     key: "init",
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(options) {
-        var _this2 = this;
-
-        var tr;
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
@@ -100005,36 +100456,26 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 }, options));
 
               case 2:
-                // automatically render
+                // setup the main view
                 this.workspace = new _ntAnimator.PIXI.ResponsiveContainer();
-                this.container = new _ntAnimator.PIXI.Container(); // create segments
-
-                _context.next = 6;
-                return _treadmill.default.create({
-                  totalSegments: 10,
-                  fitToHeight: 700,
-                  onCreateSegment: function onCreateSegment() {
-                    return _this2.animator.create('extras/cruise');
-                  }
-                });
-
-              case 6:
-                this.treadmill = _context.sent;
                 this.workspace.scaleX = 1;
                 this.workspace.scaleY = 1;
                 this.workspace.relativeX = 0.275;
-                this.workspace.relativeY = 0.5;
-                tr = new _ntAnimator.PIXI.Container();
-                tr.addChild(this.treadmill);
-                this.treadmill.y = -220;
-                this.treadmill.scale.x = this.treadmill.scale.y = 0.7;
-                this.container.addChild(tr);
-                tr.x = -400;
-                this.workspace.addChild(this.container);
-                this.stage.addChild(this.workspace);
+                this.workspace.relativeY = 0.5; // setup a container used for panning the view
+
+                this.viewport = new _ntAnimator.PIXI.Container(); // create containers
+
+                this.workspace.addChild(this.viewport);
+                this.stage.addChild(this.workspace); // attach elements
+
+                _context.next = 12;
+                return this._createTreadmill();
+
+              case 12:
+                // begin rendering
                 this.startAutoRender();
 
-              case 20:
+              case 13:
               case "end":
                 return _context.stop();
             }
@@ -100047,88 +100488,41 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
       }
 
       return init;
-    }()
+    }() // creates the scrolling treadmill area
+
   }, {
-    key: "setPaint",
-    value: function setPaint(hue) {}
-  }, {
-    key: "setFocus",
-    value: function setFocus(zone) {
-      var _this3 = this;
-
-      if (this._transition) {
-        this._transition.stop();
-      }
-
-      var start = {
-        x: this.container.x,
-        y: this.container.y,
-        scale: this.container.scale.x
-      };
-
-      var end = _objectSpread({}, start);
-
-      if (zone === 'back') {
-        end.x = this.bounds.width * 1.6;
-        end.y = 0;
-        end.scale = 0.75;
-      } else if (zone === 'namecard') {
-        end.x = -this.namecard.x * 2;
-        end.y = -this.namecard.y * 2;
-        end.scale = 2;
-      } else if (zone === 'car') {
-        end.x = 0;
-        end.y = 0;
-        end.scale = 1;
-      }
-
-      this._transition = (0, _ntAnimator.animate)({
-        duration: 500,
-        ease: 'easeInOutQuad',
-        from: start,
-        to: end,
-        loop: false,
-        update: function update(props) {
-          _this3.container.x = props.x;
-          _this3.container.y = props.y;
-          _this3.container.scale.x = _this3.container.scale.y = props.scale;
-        }
-      });
-    }
-  }, {
-    key: "replaceCar",
+    key: "_createTreadmill",
     value: function () {
-      var _replaceCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(_ref) {
-        var carId, hue, isCarAnimated, playerName, playerTeam, trailId, namecardId, isNamecardAnimated;
+      var _createTreadmill2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+        var _this2 = this;
+
+        var container;
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                carId = _ref.carId, hue = _ref.hue, isCarAnimated = _ref.isCarAnimated, playerName = _ref.playerName, playerTeam = _ref.playerTeam, trailId = _ref.trailId, namecardId = _ref.namecardId, isNamecardAnimated = _ref.isNamecardAnimated;
-
-                if (this.player) {
-                  this.player.dispose();
-                }
-
-                _context2.next = 4;
-                return _player.default.create({
-                  view: this,
-                  type: carId,
-                  hue: hue,
-                  playerName: playerName,
-                  playerTeam: playerTeam,
-                  isAnimated: isCarAnimated,
-                  mods: {// trail: trailId,
-                    // card: namecardId,
-                    // isNamecardAnimated
+                _context2.next = 2;
+                return _treadmill.default.create({
+                  totalSegments: 10,
+                  fitToHeight: 700,
+                  onCreateSegment: function onCreateSegment() {
+                    return _this2.animator.create('extras/cruise');
                   }
                 });
 
-              case 4:
-                this.player = _context2.sent;
-                return _context2.abrupt("return", this.player);
+              case 2:
+                this.treadmill = _context2.sent;
+                // set the position
+                this.treadmill.y = -250;
+                this.treadmill.scale.x = this.treadmill.scale.y = 0.7; // add the treadmill to the view
 
-              case 6:
+                container = new _ntAnimator.PIXI.Container();
+                container.addChild(this.treadmill);
+                container.x = -400; // add to the main view
+
+                this.viewport.addChild(container);
+
+              case 9:
               case "end":
                 return _context2.stop();
             }
@@ -100136,134 +100530,314 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
         }, _callee2, this);
       }));
 
-      function replaceCar(_x2) {
-        return _replaceCar.apply(this, arguments);
+      function _createTreadmill() {
+        return _createTreadmill2.apply(this, arguments);
       }
 
-      return replaceCar;
-    }()
+      return _createTreadmill;
+    }() // changes the paint for a car
+
   }, {
-    key: "repaintCar",
-    value: function repaintCar(hue) {
-      this.player.repaintCar(hue);
-    }
+    key: "setPaint",
+    value: function setPaint(hue) {
+      this.car.repaintCar(hue);
+    } // replaces the active car
+
   }, {
-    key: "updateCar",
+    key: "setCar",
     value: function () {
-      var _updateCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(_ref2) {
-        var carId, isCarAnimated, hue, player, nc;
+      var _setCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(_ref) {
+        var type, hue, isAnimated, _iterator, _step, _loop, _ret, car;
+
         return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
-                carId = _ref2.carId, isCarAnimated = _ref2.isCarAnimated, hue = _ref2.hue;
-                player = this.player;
+                type = _ref.type, hue = _ref.hue, isAnimated = _ref.isAnimated;
+                // remove all existing cars
+                _iterator = _createForOfIteratorHelper(this.viewport.children);
+                _context3.prev = 2;
 
-                if (!(this.carId !== carId)) {
-                  _context3.next = 8;
+                _loop = function _loop() {
+                  var child = _step.value;
+
+                  if (!child.car) {
+                    return "continue";
+                  } // remove the car
+
+
+                  (0, _ntAnimator.animate)({
+                    loop: false,
+                    duration: 200,
+                    easing: 'easeInQuad',
+                    from: {
+                      t: 1
+                    },
+                    to: {
+                      t: 0
+                    },
+                    update: function update(props) {
+                      child.x = (1 - props.t) * 400;
+                      child.alpha = props.t;
+                    },
+                    complete: function complete() {
+                      (0, _ntAnimator.removeDisplayObject)(child);
+                    }
+                  });
+                };
+
+                _iterator.s();
+
+              case 5:
+                if ((_step = _iterator.n()).done) {
+                  _context3.next = 11;
                   break;
                 }
 
-                _context3.next = 5;
-                return this.replaceCar({
-                  carId: carId,
-                  hue: hue,
-                  isCarAnimated: isCarAnimated
-                });
+                _ret = _loop();
 
-              case 5:
-                player = _context3.sent;
-                _context3.next = 9;
-                break;
-
-              case 8:
-                if (this.hue !== hue) {
-                  player.repaintCar(hue);
+                if (!(_ret === "continue")) {
+                  _context3.next = 9;
+                  break;
                 }
 
+                return _context3.abrupt("continue", 9);
+
               case 9:
-                this.carId = carId;
-                this.hue = hue;
-                this.player = player; // check for things that require a full rebuild
-                // finds the bounds for a car - if nothing was
-                // found then it's most likely a simple car.
-                // use the sprite height of the car
+                _context3.next = 5;
+                break;
 
-                this.bounds = (0, _ntAnimator.getBoundsForRole)(player.car, 'base') || player.car; // calculate scale - include some extra
-                // padding to make sure effects (if any) are visible
-                // const display = this.getDisplaySize()
-                // const target = display.height
-                // const scale = (target / bounds.height) // * EFFECTS_PADDING_SCALING
-                // setup the car
-                // container.addChild(car);
-                // car.pivot.x = 0.5;
-                // car.pivot.y = 0.5;
-                // car.scale.x = scale;
-                // car.scale.y = scale;
-                // setup the container
-                // container.scale.x = scale
-                // container.scale.y = scale
-                // container.relativeX = 0.5
-                // container.relativeY = 0.5
-                // container.rotation = Math.PI
-                // console.log(player);
+              case 11:
+                _context3.next = 16;
+                break;
 
-                player.scaleX = 0.7;
-                player.scaleY = 0.7;
-                player.relativeX = 0.1;
-                player.relativeY = 0;
-                nc = player.namecard;
-                nc.x = -200;
-                nc.y = -400;
-                nc.scale.x = 0.8;
-                nc.scale.y = 0.8;
-                this.namecard = nc; // container.addChild(player)
+              case 13:
+                _context3.prev = 13;
+                _context3.t0 = _context3["catch"](2);
 
-                this.container.addChild(player);
-                this.container.addChild(nc);
+                _iterator.e(_context3.t0);
 
-              case 25:
+              case 16:
+                _context3.prev = 16;
+
+                _iterator.f();
+
+                return _context3.finish(16);
+
+              case 19:
+                _context3.next = 21;
+                return _car.default.create({
+                  view: this,
+                  baseHeight: 140,
+                  type: type,
+                  isAnimated: isAnimated,
+                  hue: hue
+                });
+
+              case 21:
+                car = _context3.sent;
+                // cars have their pivot modified so they
+                // would look correct on the track - for
+                // now we'll just center it
+                car.pivot.x = 0.5;
+                car.y = -50;
+                car.alpha = 0; // add to the view
+
+                this.viewport.addChild(car);
+                this.car = car; // animate into view
+
+                return _context3.abrupt("return", new Promise(function (resolve) {
+                  (0, _ntAnimator.animate)({
+                    loop: false,
+                    duration: 500,
+                    easing: 'easeOutQuad',
+                    from: {
+                      t: 0
+                    },
+                    to: {
+                      t: 1
+                    },
+                    update: function update(props) {
+                      car.x = (1 - props.t) * -400;
+                      car.alpha = props.t;
+                    },
+                    completed: resolve
+                  });
+                }));
+
+              case 28:
               case "end":
                 return _context3.stop();
             }
           }
-        }, _callee3, this);
+        }, _callee3, this, [[2, 13, 16, 19]]);
       }));
 
-      function updateCar(_x3) {
-        return _updateCar.apply(this, arguments);
+      function setCar(_x2) {
+        return _setCar.apply(this, arguments);
       }
 
-      return updateCar;
-    }()
+      return setCar;
+    }() // NOT IMPLEMENTED YET
+    // setTrail () { }
+    // setNamecard () { }
+    // setNitro () { }
+    // setSpeedTrail () { }
+    // setCelebration () { }
+
   }, {
-    key: "setTrail",
-    value: function setTrail(trail) {}
-  }, {
-    key: "setNitro",
-    value: function setNitro(nitro) {}
-  }, {
-    key: "setNamecard",
-    value: function setNamecard(namecard) {}
-  }, {
-    key: "focusOnCar",
-    value: function focusOnCar() {}
-  }, {
-    key: "focusOnTrail",
-    value: function focusOnTrail() {}
-  }, {
-    key: "focusOnNamecard",
-    value: function focusOnNamecard() {}
+    key: "setFocus",
+    value: function setFocus(zone) {} // setFocus(zone) {
+    //   if (this._transition) {
+    //     this._transition.stop()
+    //   }
+    //   const start = { 
+    //     x: this.container.x,
+    //     y: this.container.y,
+    //     scale: this.container.scale.x,
+    //   }
+    //   const end = { ...start }
+    //   if (zone === 'back') {
+    //     end.x = this.bounds.width * 1.6
+    //     end.y = 0
+    //     end.scale = 0.75
+    //   }
+    //   else if (zone === 'namecard') {
+    //     end.x = -this.namecard.x * 2
+    //     end.y = -this.namecard.y * 2
+    //     end.scale = 2
+    //   }
+    //   else if (zone === 'car') {
+    //     end.x = 0
+    //     end.y = 0
+    //     end.scale = 1
+    //   }
+    //   this._transition = animate({
+    //     duration: 500,
+    //     ease: 'easeInOutQuad',
+    //     from: start,
+    //     to: end,
+    //     loop: false,
+    //     update: props => {
+    //       this.container.x = props.x
+    //       this.container.y = props.y
+    //       this.container.scale.x = this.container.scale.y = props.scale
+    //     }
+    //   })
+    // }
+    // async replaceCar({ carId, hue, isCarAnimated, playerName, playerTeam, trailId, namecardId, isNamecardAnimated }) {
+    //   this.removeCurrent();
+    //   const player = await Player.create({
+    //     view: this,
+    //     type: carId,
+    //     hue,
+    //     playerName,
+    //     playerTeam,
+    //     isAnimated: isCarAnimated,
+    //     mods: {
+    //       // trail: trailId,
+    //       // card: namecardId,
+    //       // isNamecardAnimated
+    //     }
+    //   })
+    //   return new Promise(resolve => { 
+    //     const dist = -400
+    //     player.car.x = dist
+    //     // player.car.alpha = 0
+    //     animate({
+    //       easing: 'easeOutQuad',
+    //       duration: 600,
+    //       from: { t: -500 },
+    //       to: { t: 0 },
+    //       loop: false,
+    //       update: props => {
+    //         console.log('fade in')
+    //         // player.car.alpha = props.t
+    //         // player.car.x = props.t
+    //       },
+    //       complete: () => {
+    //         this.player = player
+    //         resolve(this.player)
+    //       }
+    //     })
+    //   })
+    // }
+    // // removes the current car preview, if any
+    // async removeCurrent() {
+    //   // nothing to remove
+    //   if (!this.player) {
+    //     return null
+    //   }
+    //   const remove = this.player
+    //   return new Promise(resolve => {
+    //     animate({
+    //       from: { t: 1 },
+    //       to: { t: 0 },
+    //       easing: 'easeInQuad',
+    //       loop: false,
+    //       duration: 750,
+    //       update: props => {
+    //         remove.car.x = (1 - props.t) * 250 // Math.cos(props.t *)
+    //         // remove.car.skew.y = Math.cos(props.t)
+    //         remove.alpha = props.t
+    //       },
+    //       complete: () => {
+    //         console.log('all remove')
+    //         remove.dispose()
+    //         resolve()
+    //       }
+    //     })
+    //   });
+    // }
+    // repaintCar (hue) {
+    //   this.player.repaintCar(hue)
+    // }
+    // async updateCar ({ carId, isCarAnimated, hue }) {
+    //   let player = this.player;
+    //   if (this.carId !== carId) {
+    //     player = await this.replaceCar({ carId, hue, isCarAnimated })
+    //   }
+    //   else if (this.hue !== hue) { 
+    //     player.repaintCar(hue)
+    //   }
+    //   // 
+    //   this.carId = carId
+    //   this.hue = hue
+    //   this.player = player
+    //   // use the bounds to determine car positions
+    //   this.bounds = player.car.bounds
+    //   // scale the player to the view
+    //   player.scaleX = 0.7
+    //   player.scaleY = 0.7
+    //   player.relativeX = 0.1
+    //   player.relativeY = 0
+    //   // move the namecard off screen
+    //   const nc = player.namecard
+    //   nc.x = -200
+    //   nc.y = -400
+    //   nc.scale.x = 0.8
+    //   nc.scale.y = 0.8
+    //   this.namecard = nc
+    //   // container.addChild(player)
+    //   this.container.addChild(player)
+    //   this.container.addChild(nc)
+    // }
+    // setTrail (trail) {
+    // }
+    // setNitro (nitro) {
+    // }
+    // renders the view
+
   }, {
     key: "render",
     value: function render() {
       var _get2;
 
       if (this.treadmill) {
-        var delta = this.getDeltaTime(); // this.container.rotation = (Math.sin(this.step++ / 300) / 5) + (Math.PI * -0.2)
-
+        var now = Date.now();
+        var delta = Math.min(2, this.getDeltaTime(now));
         this.treadmill.update({
-          diff: -45 * delta,
+          diff: -(45 + this.offsetSpeed) * delta,
           horizontalWrap: -200
         });
       }
@@ -100273,14 +100847,13 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
       }
 
       (_get2 = (0, _get3.default)((0, _getPrototypeOf2.default)(CustomizerView.prototype), "render", this)).call.apply(_get2, [this].concat(args));
-    } // focusOnCelebrations () { }
-
+    }
   }]);
   return CustomizerView;
 }(_base.BaseView);
 
 exports.default = CustomizerView;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../base":"views/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../track/player":"views/track/player.js","../../components/treadmill":"components/treadmill.js"}],"index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../base":"views/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../components/treadmill":"components/treadmill.js","../../components/car":"components/car/index.js"}],"index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100346,5 +100919,9 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 var Audio = AudioController;
 exports.Audio = Audio;
+
+try {
+  window.NTTRACK = '1.0.10';
+} catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"views/preview/index.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

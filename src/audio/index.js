@@ -55,6 +55,8 @@ export async function register (key, sprites) {
       src += `?${sprites.version}`
     }
 
+    console.log(sprites)
+
     // load the audio
     const sound = new Howl({
       src,

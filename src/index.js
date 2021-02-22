@@ -6,3 +6,5 @@ export { default as Preview } from './views/preview'
 export { default as Cruise } from './views/cruise'
 export { default as Customizer } from './views/customizer'
 export const Audio = AudioController
+
+try { window.NTTRACK = '1.0.10' } catch (ex) { }
