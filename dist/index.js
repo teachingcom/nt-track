@@ -100372,11 +100372,17 @@ var _base = require("../base");
 
 var _ntAnimator = require("nt-animator");
 
-var _player = _interopRequireDefault(require("../track/player"));
-
 var _treadmill = _interopRequireDefault(require("../../components/treadmill"));
 
+var _car = _interopRequireDefault(require("../../components/car"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
@@ -100403,7 +100409,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
     }
 
     _this = _super.call.apply(_super, [this].concat(args));
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "step", 0);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "offsetSpeed", 0);
     return _this;
   }
 
@@ -100411,9 +100417,6 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
     key: "init",
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(options) {
-        var _this2 = this;
-
-        var tr;
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
@@ -100427,36 +100430,26 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 }, options));
 
               case 2:
-                // automatically render
+                // setup the main view
                 this.workspace = new _ntAnimator.PIXI.ResponsiveContainer();
-                this.container = new _ntAnimator.PIXI.Container(); // create segments
-
-                _context.next = 6;
-                return _treadmill.default.create({
-                  totalSegments: 10,
-                  fitToHeight: 700,
-                  onCreateSegment: function onCreateSegment() {
-                    return _this2.animator.create('extras/cruise');
-                  }
-                });
-
-              case 6:
-                this.treadmill = _context.sent;
                 this.workspace.scaleX = 1;
                 this.workspace.scaleY = 1;
                 this.workspace.relativeX = 0.275;
-                this.workspace.relativeY = 0.5;
-                tr = new _ntAnimator.PIXI.Container();
-                tr.addChild(this.treadmill);
-                this.treadmill.y = -220;
-                this.treadmill.scale.x = this.treadmill.scale.y = 0.7;
-                this.container.addChild(tr);
-                tr.x = -400;
-                this.workspace.addChild(this.container);
-                this.stage.addChild(this.workspace);
+                this.workspace.relativeY = 0.5; // setup a container used for panning the view
+
+                this.viewport = new _ntAnimator.PIXI.Container(); // create containers
+
+                this.workspace.addChild(this.viewport);
+                this.stage.addChild(this.workspace); // attach elements
+
+                _context.next = 12;
+                return this._createTreadmill();
+
+              case 12:
+                // begin rendering
                 this.startAutoRender();
 
-              case 20:
+              case 13:
               case "end":
                 return _context.stop();
             }
@@ -100469,88 +100462,41 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
       }
 
       return init;
-    }()
+    }() // creates the scrolling treadmill area
+
   }, {
-    key: "setPaint",
-    value: function setPaint(hue) {}
-  }, {
-    key: "setFocus",
-    value: function setFocus(zone) {
-      var _this3 = this;
-
-      if (this._transition) {
-        this._transition.stop();
-      }
-
-      var start = {
-        x: this.container.x,
-        y: this.container.y,
-        scale: this.container.scale.x
-      };
-
-      var end = _objectSpread({}, start);
-
-      if (zone === 'back') {
-        end.x = this.bounds.width * 1.6;
-        end.y = 0;
-        end.scale = 0.75;
-      } else if (zone === 'namecard') {
-        end.x = -this.namecard.x * 2;
-        end.y = -this.namecard.y * 2;
-        end.scale = 2;
-      } else if (zone === 'car') {
-        end.x = 0;
-        end.y = 0;
-        end.scale = 1;
-      }
-
-      this._transition = (0, _ntAnimator.animate)({
-        duration: 500,
-        ease: 'easeInOutQuad',
-        from: start,
-        to: end,
-        loop: false,
-        update: function update(props) {
-          _this3.container.x = props.x;
-          _this3.container.y = props.y;
-          _this3.container.scale.x = _this3.container.scale.y = props.scale;
-        }
-      });
-    }
-  }, {
-    key: "replaceCar",
+    key: "_createTreadmill",
     value: function () {
-      var _replaceCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(_ref) {
-        var carId, hue, isCarAnimated, playerName, playerTeam, trailId, namecardId, isNamecardAnimated;
+      var _createTreadmill2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+        var _this2 = this;
+
+        var container;
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                carId = _ref.carId, hue = _ref.hue, isCarAnimated = _ref.isCarAnimated, playerName = _ref.playerName, playerTeam = _ref.playerTeam, trailId = _ref.trailId, namecardId = _ref.namecardId, isNamecardAnimated = _ref.isNamecardAnimated;
-
-                if (this.player) {
-                  this.player.dispose();
-                }
-
-                _context2.next = 4;
-                return _player.default.create({
-                  view: this,
-                  type: carId,
-                  hue: hue,
-                  playerName: playerName,
-                  playerTeam: playerTeam,
-                  isAnimated: isCarAnimated,
-                  mods: {// trail: trailId,
-                    // card: namecardId,
-                    // isNamecardAnimated
+                _context2.next = 2;
+                return _treadmill.default.create({
+                  totalSegments: 10,
+                  fitToHeight: 700,
+                  onCreateSegment: function onCreateSegment() {
+                    return _this2.animator.create('extras/cruise');
                   }
                 });
 
-              case 4:
-                this.player = _context2.sent;
-                return _context2.abrupt("return", this.player);
+              case 2:
+                this.treadmill = _context2.sent;
+                // set the position
+                this.treadmill.y = -250;
+                this.treadmill.scale.x = this.treadmill.scale.y = 0.7; // add the treadmill to the view
 
-              case 6:
+                container = new _ntAnimator.PIXI.Container();
+                container.addChild(this.treadmill);
+                container.x = -400; // add to the main view
+
+                this.viewport.addChild(container);
+
+              case 9:
               case "end":
                 return _context2.stop();
             }
@@ -100558,124 +100504,304 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
         }, _callee2, this);
       }));
 
-      function replaceCar(_x2) {
-        return _replaceCar.apply(this, arguments);
+      function _createTreadmill() {
+        return _createTreadmill2.apply(this, arguments);
       }
 
-      return replaceCar;
-    }()
+      return _createTreadmill;
+    }() // changes the paint for a car
+
   }, {
-    key: "repaintCar",
-    value: function repaintCar(hue) {
-      this.player.repaintCar(hue);
-    }
+    key: "setPaint",
+    value: function setPaint(hue) {
+      this.car.repaintCar(hue);
+    } // replaces the active car
+
   }, {
-    key: "updateCar",
+    key: "setCar",
     value: function () {
-      var _updateCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(_ref2) {
-        var carId, isCarAnimated, hue, player, nc;
+      var _setCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(_ref) {
+        var type, hue, isAnimated, _iterator, _step, _loop, _ret, car;
+
         return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
-                carId = _ref2.carId, isCarAnimated = _ref2.isCarAnimated, hue = _ref2.hue;
-                player = this.player;
+                type = _ref.type, hue = _ref.hue, isAnimated = _ref.isAnimated;
+                // remove all existing cars
+                _iterator = _createForOfIteratorHelper(this.viewport.children);
+                _context3.prev = 2;
 
-                if (!(this.carId !== carId)) {
-                  _context3.next = 8;
+                _loop = function _loop() {
+                  var child = _step.value;
+
+                  if (!child.car) {
+                    return "continue";
+                  } // remove the car
+
+
+                  (0, _ntAnimator.animate)({
+                    loop: false,
+                    duration: 200,
+                    easing: 'easeInQuad',
+                    from: {
+                      t: 1
+                    },
+                    to: {
+                      t: 0
+                    },
+                    update: function update(props) {
+                      child.x = (1 - props.t) * 400;
+                      child.alpha = props.t;
+                    },
+                    complete: function complete() {
+                      (0, _ntAnimator.removeDisplayObject)(child);
+                    }
+                  });
+                };
+
+                _iterator.s();
+
+              case 5:
+                if ((_step = _iterator.n()).done) {
+                  _context3.next = 11;
                   break;
                 }
 
-                _context3.next = 5;
-                return this.replaceCar({
-                  carId: carId,
-                  hue: hue,
-                  isCarAnimated: isCarAnimated
-                });
+                _ret = _loop();
 
-              case 5:
-                player = _context3.sent;
-                _context3.next = 9;
-                break;
-
-              case 8:
-                if (this.hue !== hue) {
-                  player.repaintCar(hue);
+                if (!(_ret === "continue")) {
+                  _context3.next = 9;
+                  break;
                 }
 
+                return _context3.abrupt("continue", 9);
+
               case 9:
-                this.carId = carId;
-                this.hue = hue;
-                this.player = player; // check for things that require a full rebuild
-                // finds the bounds for a car - if nothing was
-                // found then it's most likely a simple car.
-                // use the sprite height of the car
+                _context3.next = 5;
+                break;
 
-                this.bounds = (0, _ntAnimator.getBoundsForRole)(player.car, 'base') || player.car; // calculate scale - include some extra
-                // padding to make sure effects (if any) are visible
-                // const display = this.getDisplaySize()
-                // const target = display.height
-                // const scale = (target / bounds.height) // * EFFECTS_PADDING_SCALING
-                // setup the car
-                // container.addChild(car);
-                // car.pivot.x = 0.5;
-                // car.pivot.y = 0.5;
-                // car.scale.x = scale;
-                // car.scale.y = scale;
-                // setup the container
-                // container.scale.x = scale
-                // container.scale.y = scale
-                // container.relativeX = 0.5
-                // container.relativeY = 0.5
-                // container.rotation = Math.PI
-                // console.log(player);
+              case 11:
+                _context3.next = 16;
+                break;
 
-                player.scaleX = 0.7;
-                player.scaleY = 0.7;
-                player.relativeX = 0.1;
-                player.relativeY = 0;
-                nc = player.namecard;
-                nc.x = -200;
-                nc.y = -400;
-                nc.scale.x = 0.8;
-                nc.scale.y = 0.8;
-                this.namecard = nc; // container.addChild(player)
+              case 13:
+                _context3.prev = 13;
+                _context3.t0 = _context3["catch"](2);
 
-                this.container.addChild(player);
-                this.container.addChild(nc);
+                _iterator.e(_context3.t0);
 
-              case 25:
+              case 16:
+                _context3.prev = 16;
+
+                _iterator.f();
+
+                return _context3.finish(16);
+
+              case 19:
+                _context3.next = 21;
+                return _car.default.create({
+                  view: this,
+                  baseHeight: 140,
+                  type: type,
+                  isAnimated: isAnimated,
+                  hue: hue
+                });
+
+              case 21:
+                car = _context3.sent;
+                // cars have their pivot modified so they
+                // would look correct on the track - for
+                // now we'll just center it
+                car.pivot.x = 0.5;
+                car.y = -50;
+                car.alpha = 0; // add to the view
+
+                this.viewport.addChild(car);
+                this.car = car; // animate into view
+
+                return _context3.abrupt("return", new Promise(function (resolve) {
+                  (0, _ntAnimator.animate)({
+                    loop: false,
+                    duration: 500,
+                    easing: 'easeOutQuad',
+                    from: {
+                      t: 0
+                    },
+                    to: {
+                      t: 1
+                    },
+                    update: function update(props) {
+                      car.x = (1 - props.t) * -400;
+                      car.alpha = props.t;
+                    },
+                    completed: resolve
+                  });
+                }));
+
+              case 28:
               case "end":
                 return _context3.stop();
             }
           }
-        }, _callee3, this);
+        }, _callee3, this, [[2, 13, 16, 19]]);
       }));
 
-      function updateCar(_x3) {
-        return _updateCar.apply(this, arguments);
+      function setCar(_x2) {
+        return _setCar.apply(this, arguments);
       }
 
-      return updateCar;
-    }()
+      return setCar;
+    }() // NOT IMPLEMENTED YET
+    // setTrail () { }
+    // setNamecard () { }
+    // setNitro () { }
+    // setSpeedTrail () { }
+    // setCelebration () { }
+
   }, {
-    key: "setTrail",
-    value: function setTrail(trail) {}
-  }, {
-    key: "setNitro",
-    value: function setNitro(nitro) {}
-  }, {
-    key: "setNamecard",
-    value: function setNamecard(namecard) {}
-  }, {
-    key: "focusOnCar",
-    value: function focusOnCar() {}
-  }, {
-    key: "focusOnTrail",
-    value: function focusOnTrail() {}
-  }, {
-    key: "focusOnNamecard",
-    value: function focusOnNamecard() {}
+    key: "setFocus",
+    value: function setFocus(zone) {} // setFocus(zone) {
+    //   if (this._transition) {
+    //     this._transition.stop()
+    //   }
+    //   const start = { 
+    //     x: this.container.x,
+    //     y: this.container.y,
+    //     scale: this.container.scale.x,
+    //   }
+    //   const end = { ...start }
+    //   if (zone === 'back') {
+    //     end.x = this.bounds.width * 1.6
+    //     end.y = 0
+    //     end.scale = 0.75
+    //   }
+    //   else if (zone === 'namecard') {
+    //     end.x = -this.namecard.x * 2
+    //     end.y = -this.namecard.y * 2
+    //     end.scale = 2
+    //   }
+    //   else if (zone === 'car') {
+    //     end.x = 0
+    //     end.y = 0
+    //     end.scale = 1
+    //   }
+    //   this._transition = animate({
+    //     duration: 500,
+    //     ease: 'easeInOutQuad',
+    //     from: start,
+    //     to: end,
+    //     loop: false,
+    //     update: props => {
+    //       this.container.x = props.x
+    //       this.container.y = props.y
+    //       this.container.scale.x = this.container.scale.y = props.scale
+    //     }
+    //   })
+    // }
+    // async replaceCar({ carId, hue, isCarAnimated, playerName, playerTeam, trailId, namecardId, isNamecardAnimated }) {
+    //   this.removeCurrent();
+    //   const player = await Player.create({
+    //     view: this,
+    //     type: carId,
+    //     hue,
+    //     playerName,
+    //     playerTeam,
+    //     isAnimated: isCarAnimated,
+    //     mods: {
+    //       // trail: trailId,
+    //       // card: namecardId,
+    //       // isNamecardAnimated
+    //     }
+    //   })
+    //   return new Promise(resolve => { 
+    //     const dist = -400
+    //     player.car.x = dist
+    //     // player.car.alpha = 0
+    //     animate({
+    //       easing: 'easeOutQuad',
+    //       duration: 600,
+    //       from: { t: -500 },
+    //       to: { t: 0 },
+    //       loop: false,
+    //       update: props => {
+    //         console.log('fade in')
+    //         // player.car.alpha = props.t
+    //         // player.car.x = props.t
+    //       },
+    //       complete: () => {
+    //         this.player = player
+    //         resolve(this.player)
+    //       }
+    //     })
+    //   })
+    // }
+    // // removes the current car preview, if any
+    // async removeCurrent() {
+    //   // nothing to remove
+    //   if (!this.player) {
+    //     return null
+    //   }
+    //   const remove = this.player
+    //   return new Promise(resolve => {
+    //     animate({
+    //       from: { t: 1 },
+    //       to: { t: 0 },
+    //       easing: 'easeInQuad',
+    //       loop: false,
+    //       duration: 750,
+    //       update: props => {
+    //         remove.car.x = (1 - props.t) * 250 // Math.cos(props.t *)
+    //         // remove.car.skew.y = Math.cos(props.t)
+    //         remove.alpha = props.t
+    //       },
+    //       complete: () => {
+    //         console.log('all remove')
+    //         remove.dispose()
+    //         resolve()
+    //       }
+    //     })
+    //   });
+    // }
+    // repaintCar (hue) {
+    //   this.player.repaintCar(hue)
+    // }
+    // async updateCar ({ carId, isCarAnimated, hue }) {
+    //   let player = this.player;
+    //   if (this.carId !== carId) {
+    //     player = await this.replaceCar({ carId, hue, isCarAnimated })
+    //   }
+    //   else if (this.hue !== hue) { 
+    //     player.repaintCar(hue)
+    //   }
+    //   // 
+    //   this.carId = carId
+    //   this.hue = hue
+    //   this.player = player
+    //   // use the bounds to determine car positions
+    //   this.bounds = player.car.bounds
+    //   // scale the player to the view
+    //   player.scaleX = 0.7
+    //   player.scaleY = 0.7
+    //   player.relativeX = 0.1
+    //   player.relativeY = 0
+    //   // move the namecard off screen
+    //   const nc = player.namecard
+    //   nc.x = -200
+    //   nc.y = -400
+    //   nc.scale.x = 0.8
+    //   nc.scale.y = 0.8
+    //   this.namecard = nc
+    //   // container.addChild(player)
+    //   this.container.addChild(player)
+    //   this.container.addChild(nc)
+    // }
+    // setTrail (trail) {
+    // }
+    // setNitro (nitro) {
+    // }
+    // renders the view
+
   }, {
     key: "render",
     value: function render() {
@@ -100683,10 +100809,9 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
 
       if (this.treadmill) {
         var now = Date.now();
-        var delta = this.getDeltaTime(now); // this.container.rotation = (Math.sin(this.step++ / 300) / 5) + (Math.PI * -0.2)
-
+        var delta = Math.min(2, this.getDeltaTime(now));
         this.treadmill.update({
-          diff: -45 * delta,
+          diff: -(45 + this.offsetSpeed) * delta,
           horizontalWrap: -200
         });
       }
@@ -100696,14 +100821,13 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
       }
 
       (_get2 = (0, _get3.default)((0, _getPrototypeOf2.default)(CustomizerView.prototype), "render", this)).call.apply(_get2, [this].concat(args));
-    } // focusOnCelebrations () { }
-
+    }
   }]);
   return CustomizerView;
 }(_base.BaseView);
 
 exports.default = CustomizerView;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../base":"views/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../track/player":"views/track/player.js","../../components/treadmill":"components/treadmill.js"}],"index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../base":"views/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../components/treadmill":"components/treadmill.js","../../components/car":"components/car/index.js"}],"index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100771,7 +100895,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '1.0.9';
+  window.NTTRACK = '1.0.10';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"views/preview/index.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
