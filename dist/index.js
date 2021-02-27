@@ -87926,8 +87926,8 @@ var DEFAULT_CENTER_PADDING = 8;
 var DEFAULT_LEFT_MARGIN = 25;
 var DEFAULT_TOP_MARGIN = 10;
 var NAMECARD_ICON_GAP = 10;
-var NAMECARD_MAXIMUM_WIDTH = 200;
-var DEFAULT_NAMECARD_FONT_SIZE = 54;
+var NAMECARD_MAXIMUM_WIDTH = 550;
+var DEFAULT_NAMECARD_FONT_SIZE = 52;
 var DEFAULT_NAMECARD_FONT_NAME = 'montserrat';
 var DEFAULT_NAMECARD_FONT_WEIGHT = 600;
 var DEFAULT_NAMECARD_FONT = {
@@ -100319,9 +100319,9 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
     value: function render() {
       var _get2;
 
-      if (this.treadmill) {
+      if (this.treadmill && this.isViewActive) {
         var now = Date.now();
-        var delta = this.getDeltaTime(now);
+        var delta = Math.min(2, this.getDeltaTime(now));
         this.container.rotation = Math.sin(this.step++ / 300) / 5 + Math.PI * -0.2;
         this.treadmill.update({
           diff: -25 * delta,
@@ -100895,7 +100895,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '1.0.10';
+  window.NTTRACK = '1.0.11';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"views/preview/index.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

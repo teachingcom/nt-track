@@ -135,9 +135,9 @@ export default class CruiseView extends BaseView {
   }
   
   render(...args) {
-    if (this.treadmill) {
+    if (this.treadmill && this.isViewActive) {
       const now = Date.now();
-      const delta = this.getDeltaTime(now);
+      const delta = Math.min(2, this.getDeltaTime(now));
       this.container.rotation = (Math.sin(this.step++ / 300) / 5) + (Math.PI * -0.2)
       this.treadmill.update({ diff: -25 * delta, horizontalWrap: -500 })
     }
