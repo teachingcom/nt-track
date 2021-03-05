@@ -100446,10 +100446,14 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 return this._createTreadmill();
 
               case 12:
+                _context.next = 14;
+                return this._createSprayer();
+
+              case 14:
                 // begin rendering
                 this.startAutoRender();
 
-              case 13:
+              case 15:
               case "end":
                 return _context.stop();
             }
@@ -100487,7 +100491,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
               case 2:
                 this.treadmill = _context2.sent;
                 // set the position
-                this.treadmill.y = -250;
+                this.treadmill.y = -190;
                 this.treadmill.scale.x = this.treadmill.scale.y = 0.7; // add the treadmill to the view
 
                 container = new _ntAnimator.PIXI.Container();
@@ -100509,28 +100513,72 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
       }
 
       return _createTreadmill;
+    }()
+  }, {
+    key: "_createSprayer",
+    value: function () {
+      var _createSprayer2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
+        var sprayer;
+        return _regenerator.default.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                _context3.next = 2;
+                return this.animator.create('extras/sprayer');
+
+              case 2:
+                sprayer = _context3.sent;
+                sprayer.y = -50;
+                sprayer.controller.stopEmitters();
+                this.sprayer = sprayer;
+                this.workspace.addChild(sprayer);
+
+              case 7:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function _createSprayer() {
+        return _createSprayer2.apply(this, arguments);
+      }
+
+      return _createSprayer;
     }() // changes the paint for a car
 
   }, {
     key: "setPaint",
     value: function setPaint(hue) {
-      this.car.repaintCar(hue);
+      var _this3 = this;
+
+      this.sprayer.controller.activateEmitters();
+      clearTimeout(this.__pendingHueShift);
+      clearTimeout(this.__clearSprayingEffect); // perform the switch
+
+      this.__pendingHueShift = setTimeout(function () {
+        return _this3.car.repaintCar(hue);
+      }, 300);
+      this.__clearSprayingEffect = setTimeout(function () {
+        return _this3.sprayer.controller.stopEmitters();
+      }, 1000);
     } // replaces the active car
 
   }, {
     key: "setCar",
     value: function () {
-      var _setCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(_ref) {
+      var _setCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(_ref) {
         var type, hue, isAnimated, _iterator, _step, _loop, _ret, car;
 
-        return _regenerator.default.wrap(function _callee3$(_context3) {
+        return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
-            switch (_context3.prev = _context3.next) {
+            switch (_context4.prev = _context4.next) {
               case 0:
                 type = _ref.type, hue = _ref.hue, isAnimated = _ref.isAnimated;
                 // remove all existing cars
                 _iterator = _createForOfIteratorHelper(this.viewport.children);
-                _context3.prev = 2;
+                _context4.prev = 2;
 
                 _loop = function _loop() {
                   var child = _step.value;
@@ -100564,42 +100612,42 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
 
               case 5:
                 if ((_step = _iterator.n()).done) {
-                  _context3.next = 11;
+                  _context4.next = 11;
                   break;
                 }
 
                 _ret = _loop();
 
                 if (!(_ret === "continue")) {
-                  _context3.next = 9;
+                  _context4.next = 9;
                   break;
                 }
 
-                return _context3.abrupt("continue", 9);
+                return _context4.abrupt("continue", 9);
 
               case 9:
-                _context3.next = 5;
+                _context4.next = 5;
                 break;
 
               case 11:
-                _context3.next = 16;
+                _context4.next = 16;
                 break;
 
               case 13:
-                _context3.prev = 13;
-                _context3.t0 = _context3["catch"](2);
+                _context4.prev = 13;
+                _context4.t0 = _context4["catch"](2);
 
-                _iterator.e(_context3.t0);
+                _iterator.e(_context4.t0);
 
               case 16:
-                _context3.prev = 16;
+                _context4.prev = 16;
 
                 _iterator.f();
 
-                return _context3.finish(16);
+                return _context4.finish(16);
 
               case 19:
-                _context3.next = 21;
+                _context4.next = 21;
                 return _car.default.create({
                   view: this,
                   baseHeight: 140,
@@ -100609,7 +100657,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 });
 
               case 21:
-                car = _context3.sent;
+                car = _context4.sent;
                 // cars have their pivot modified so they
                 // would look correct on the track - for
                 // now we'll just center it
@@ -100620,7 +100668,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 this.viewport.addChild(car);
                 this.car = car; // animate into view
 
-                return _context3.abrupt("return", new Promise(function (resolve) {
+                return _context4.abrupt("return", new Promise(function (resolve) {
                   (0, _ntAnimator.animate)({
                     loop: false,
                     duration: 500,
@@ -100641,10 +100689,10 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
 
               case 28:
               case "end":
-                return _context3.stop();
+                return _context4.stop();
             }
           }
-        }, _callee3, this, [[2, 13, 16, 19]]);
+        }, _callee4, this, [[2, 13, 16, 19]]);
       }));
 
       function setCar(_x2) {

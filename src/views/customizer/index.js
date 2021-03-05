@@ -34,7 +34,8 @@ export default class CustomizerView extends BaseView {
 
     // attach elements
     await this._createTreadmill()
-
+    await this._createSprayer()
+    
     // begin rendering
     this.startAutoRender()
   }
@@ -49,7 +50,7 @@ export default class CustomizerView extends BaseView {
     })
 
     // set the position
-    this.treadmill.y = -250
+    this.treadmill.y = -190
     this.treadmill.scale.x = this.treadmill.scale.y = 0.7
 
     // add the treadmill to the view
@@ -61,9 +62,24 @@ export default class CustomizerView extends BaseView {
     this.viewport.addChild(container)
   }
 
+  async _createSprayer() {
+    const sprayer = await this.animator.create('extras/sprayer')
+    sprayer.y = -50
+    sprayer.controller.stopEmitters()
+
+    this.sprayer = sprayer
+    this.workspace.addChild(sprayer)
+  }
+
   // changes the paint for a car
   setPaint (hue) {
-    this.car.repaintCar(hue)
+    this.sprayer.controller.activateEmitters()
+    clearTimeout(this.__pendingHueShift)
+    clearTimeout(this.__clearSprayingEffect)
+    
+    // perform the switch
+    this.__pendingHueShift = setTimeout(() => this.car.repaintCar(hue), 300)
+    this.__clearSprayingEffect = setTimeout(() => this.sprayer.controller.stopEmitters(), 1000)
   }
 
   // replaces the active car
