@@ -100393,6 +100393,8 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
 var DEFAULT_MAX_HEIGHT = 250;
+var CONTENT_Y = -20;
+var CONTENT_X = 125;
 
 var CustomizerView = /*#__PURE__*/function (_BaseView) {
   (0, _inherits2.default)(CustomizerView, _BaseView);
@@ -100447,13 +100449,17 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
 
               case 12:
                 _context.next = 14;
-                return this._createSprayer();
+                return this._createDriver();
 
               case 14:
+                _context.next = 16;
+                return this._createSprayer();
+
+              case 16:
                 // begin rendering
                 this.startAutoRender();
 
-              case 15:
+              case 17:
               case "end":
                 return _context.stop();
             }
@@ -100466,47 +100472,92 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
       }
 
       return init;
-    }() // creates the scrolling treadmill area
-
+    }()
   }, {
-    key: "_createTreadmill",
+    key: "_createDriver",
     value: function () {
-      var _createTreadmill2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
-        var _this2 = this;
-
-        var container;
+      var _createDriver2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
                 _context2.next = 2;
-                return _treadmill.default.create({
-                  totalSegments: 10,
-                  fitToHeight: 700,
-                  onCreateSegment: function onCreateSegment() {
-                    return _this2.animator.create('extras/cruise');
-                  }
-                });
+                return this.animator.getSprite('extras/customizer', 'driver');
 
               case 2:
-                this.treadmill = _context2.sent;
-                // set the position
-                this.treadmill.y = -120;
-                this.treadmill.x = 0; // this.treadmill.scale.x = this.treadmill.scale.y = 0.7
-                // add the treadmill to the view
+                this.driver = _context2.sent;
+                this.viewport.addChild(this.driver); // animate
 
-                container = new _ntAnimator.PIXI.Container();
-                container.addChild(this.treadmill); // add to the main view
+                this.driver.x = 9999;
+                this.driver.y = 170; // this.driver.scale.x = this.driver.scale.y = 1.1
 
-                this.viewport.addChild(container);
-                this.viewport.x = 125;
+                this.driverSlow = 0;
+                this.queuePassing();
 
-              case 9:
+              case 8:
               case "end":
                 return _context2.stop();
             }
           }
         }, _callee2, this);
+      }));
+
+      function _createDriver() {
+        return _createDriver2.apply(this, arguments);
+      }
+
+      return _createDriver;
+    }()
+  }, {
+    key: "queuePassing",
+    value: function queuePassing() {
+      var _this2 = this;
+
+      setTimeout(function () {
+        _this2.driver.x = 500;
+        _this2.driverSlow = Math.random() * 5 + 8;
+      }, 0 | 3000 + Math.random() * 4000);
+    } // creates the scrolling treadmill area
+
+  }, {
+    key: "_createTreadmill",
+    value: function () {
+      var _createTreadmill2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
+        var _this3 = this;
+
+        var container;
+        return _regenerator.default.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                _context3.next = 2;
+                return _treadmill.default.create({
+                  totalSegments: 10,
+                  fitToHeight: 700,
+                  onCreateSegment: function onCreateSegment() {
+                    return _this3.animator.create('extras/customizer');
+                  }
+                });
+
+              case 2:
+                this.treadmill = _context3.sent;
+                // set the position
+                this.treadmill.y = -140;
+                this.treadmill.x = 0;
+                this.treadmill.scale.x = this.treadmill.scale.y = 0.8; // add the treadmill to the view
+
+                container = new _ntAnimator.PIXI.Container();
+                container.addChild(this.treadmill); // add to the main view
+
+                this.viewport.addChild(container);
+                this.viewport.x = CONTENT_X;
+
+              case 10:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
       }));
 
       function _createTreadmill() {
@@ -100518,29 +100569,29 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "_createSprayer",
     value: function () {
-      var _createSprayer2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
+      var _createSprayer2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
         var sprayer;
-        return _regenerator.default.wrap(function _callee3$(_context3) {
+        return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
-            switch (_context3.prev = _context3.next) {
+            switch (_context4.prev = _context4.next) {
               case 0:
-                _context3.next = 2;
+                _context4.next = 2;
                 return this.animator.create('extras/sprayer');
 
               case 2:
-                sprayer = _context3.sent;
-                sprayer.y = 0;
-                sprayer.x = 125;
+                sprayer = _context4.sent;
+                sprayer.y = CONTENT_Y;
+                sprayer.x = CONTENT_X;
                 sprayer.controller.stopEmitters();
                 this.sprayer = sprayer;
                 this.workspace.addChild(sprayer);
 
               case 8:
               case "end":
-                return _context3.stop();
+                return _context4.stop();
             }
           }
-        }, _callee3, this);
+        }, _callee4, this);
       }));
 
       function _createSprayer() {
@@ -100553,36 +100604,36 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "setPaint",
     value: function setPaint(hue) {
-      var _this3 = this;
+      var _this4 = this;
 
       this.sprayer.controller.activateEmitters();
       clearTimeout(this.__pendingHueShift);
       clearTimeout(this.__clearSprayingEffect); // perform the switch
 
       this.__pendingHueShift = setTimeout(function () {
-        return _this3.car.repaintCar(hue);
+        return _this4.car.repaintCar(hue);
       }, 300);
       this.__clearSprayingEffect = setTimeout(function () {
-        return _this3.sprayer.controller.stopEmitters();
+        return _this4.sprayer.controller.stopEmitters();
       }, 1000);
     } // replaces the active car
 
   }, {
     key: "setCar",
     value: function () {
-      var _setCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(_ref) {
-        var _this4 = this;
+      var _setCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(_ref) {
+        var _this5 = this;
 
         var type, hue, isAnimated, _iterator, _step, _loop, _ret, car, mid;
 
-        return _regenerator.default.wrap(function _callee4$(_context4) {
+        return _regenerator.default.wrap(function _callee5$(_context5) {
           while (1) {
-            switch (_context4.prev = _context4.next) {
+            switch (_context5.prev = _context5.next) {
               case 0:
                 type = _ref.type, hue = _ref.hue, isAnimated = _ref.isAnimated;
                 // remove all existing cars
                 _iterator = _createForOfIteratorHelper(this.viewport.children);
-                _context4.prev = 2;
+                _context5.prev = 2;
 
                 _loop = function _loop() {
                   var child = _step.value;
@@ -100592,6 +100643,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                   } // remove the car
 
 
+                  child.ready = false;
                   (0, _ntAnimator.animate)({
                     loop: false,
                     duration: 200,
@@ -100616,42 +100668,42 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
 
               case 5:
                 if ((_step = _iterator.n()).done) {
-                  _context4.next = 11;
+                  _context5.next = 11;
                   break;
                 }
 
                 _ret = _loop();
 
                 if (!(_ret === "continue")) {
-                  _context4.next = 9;
+                  _context5.next = 9;
                   break;
                 }
 
-                return _context4.abrupt("continue", 9);
+                return _context5.abrupt("continue", 9);
 
               case 9:
-                _context4.next = 5;
+                _context5.next = 5;
                 break;
 
               case 11:
-                _context4.next = 16;
+                _context5.next = 16;
                 break;
 
               case 13:
-                _context4.prev = 13;
-                _context4.t0 = _context4["catch"](2);
+                _context5.prev = 13;
+                _context5.t0 = _context5["catch"](2);
 
-                _iterator.e(_context4.t0);
+                _iterator.e(_context5.t0);
 
               case 16:
-                _context4.prev = 16;
+                _context5.prev = 16;
 
                 _iterator.f();
 
-                return _context4.finish(16);
+                return _context5.finish(16);
 
               case 19:
-                _context4.next = 21;
+                _context5.next = 21;
                 return _car.default.create({
                   view: this,
                   baseHeight: 140,
@@ -100661,19 +100713,19 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 });
 
               case 21:
-                car = _context4.sent;
+                car = _context5.sent;
                 // cars have their pivot modified so they
                 // would look correct on the track - for
                 // now we'll just center it
                 car.pivot.x = 0.5;
-                car.y = 10;
+                car.y = CONTENT_Y;
                 car.alpha = 0; // add to the view
 
                 this.viewport.addChild(car);
                 this.car = car;
                 mid = Math.floor(this.width / this.ssaaScalingLevel / -2); // animate into view
 
-                return _context4.abrupt("return", new Promise(function (resolve) {
+                return _context5.abrupt("return", new Promise(function (resolve) {
                   (0, _ntAnimator.animate)({
                     loop: false,
                     duration: 500,
@@ -100689,16 +100741,17 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                       car.alpha = props.t;
                     },
                     // finishing
-                    completed: function completed() {
-                      // if there's a left over car
-                      var _iterator2 = _createForOfIteratorHelper(_this4.viewport.children),
+                    complete: function complete() {
+                      car.ready = true; // if there's a left over car
+
+                      var _iterator2 = _createForOfIteratorHelper(_this5.viewport.children),
                           _step2;
 
                       try {
                         for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
                           var child = _step2.value;
 
-                          if (child !== car) {
+                          if (child.car && child !== car) {
                             (0, _ntAnimator.removeDisplayObject)(child);
                           }
                         } // finish
@@ -100716,10 +100769,10 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
 
               case 29:
               case "end":
-                return _context4.stop();
+                return _context5.stop();
             }
           }
-        }, _callee4, this, [[2, 13, 16, 19]]);
+        }, _callee5, this, [[2, 13, 16, 19]]);
       }));
 
       function setCar(_x2) {
@@ -100882,8 +100935,32 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
     value: function render() {
       var _get2;
 
+      var now = Date.now();
+
+      if (this.driver) {
+        if (this.driver.x > -800) {
+          this.driver.x -= this.driverSlow;
+          this.driver.y = 180 + Math.sin(now * 0.0007) * 18;
+
+          if (this.driver.x < -800) {
+            this.queuePassing();
+          }
+        }
+      }
+
+      if (this.car) {
+        if (this.car.ready) {
+          this.car.offsetScale = Math.min(1, (this.car.offsetScale || 0) + 0.01);
+          this.car.y = CONTENT_Y + Math.cos(now * 0.0007) * 18 * this.car.offsetScale;
+          this.car.x = Math.sin(now * 0.001) * 30 * this.car.offsetScale;
+        } // if (this.car.ready) {
+        // }
+        // this.sprayer.x = this.car.x
+        // this.sprayer.y = this.car.y
+
+      }
+
       if (this.treadmill) {
-        var now = Date.now();
         var delta = Math.min(2, this.getDeltaTime(now));
         this.treadmill.update({
           diff: -(45 + this.offsetSpeed) * delta,
@@ -100970,7 +101047,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '1.0.12';
+  window.NTTRACK = '1.0.13';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"views/preview/index.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

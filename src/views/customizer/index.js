@@ -5,6 +5,8 @@ import Treadmill from '../../components/treadmill'
 import Car from '../../components/car'
 
 const DEFAULT_MAX_HEIGHT = 250
+const CONTENT_Y = -20
+const CONTENT_X = 125
 
 export default class CustomizerView extends BaseView {
   offsetSpeed = 0
@@ -34,10 +36,31 @@ export default class CustomizerView extends BaseView {
 
     // attach elements
     await this._createTreadmill()
+    await this._createDriver()
     await this._createSprayer()
     
     // begin rendering
     this.startAutoRender()
+  }
+
+  async _createDriver() {
+    this.driver = await this.animator.getSprite('extras/customizer', 'driver')
+    this.viewport.addChild(this.driver)
+
+    // animate
+    this.driver.x = 9999
+    this.driver.y = 170
+    // this.driver.scale.x = this.driver.scale.y = 1.1
+    this.driverSlow = 0
+
+    this.queuePassing()
+  }
+
+  queuePassing()  {
+    setTimeout(() => {
+      this.driver.x = 500
+      this.driverSlow = (Math.random() * 5) + 8
+    }, 0 | (3000 + (Math.random() * 4000)))
   }
 
   // creates the scrolling treadmill area
@@ -46,13 +69,13 @@ export default class CustomizerView extends BaseView {
     this.treadmill = await Treadmill.create({
       totalSegments: 10,
       fitToHeight: 700,
-      onCreateSegment: () => this.animator.create('extras/cruise')
+      onCreateSegment: () => this.animator.create('extras/customizer')
     })
 
     // set the position
-    this.treadmill.y = -120
+    this.treadmill.y = -140
     this.treadmill.x = 0
-    // this.treadmill.scale.x = this.treadmill.scale.y = 0.7
+    this.treadmill.scale.x = this.treadmill.scale.y = 0.8
 
     // add the treadmill to the view
     const container = new PIXI.Container()
@@ -60,13 +83,13 @@ export default class CustomizerView extends BaseView {
 
     // add to the main view
     this.viewport.addChild(container)
-    this.viewport.x = 125
+    this.viewport.x = CONTENT_X
   }
 
   async _createSprayer() {
     const sprayer = await this.animator.create('extras/sprayer')
-    sprayer.y = 0
-    sprayer.x = 125
+    sprayer.y = CONTENT_Y
+    sprayer.x = CONTENT_X
     sprayer.controller.stopEmitters()
 
     this.sprayer = sprayer
@@ -93,6 +116,7 @@ export default class CustomizerView extends BaseView {
       }
 
       // remove the car
+      child.ready = false
       animate({
         loop: false,
         duration: 200,
@@ -122,7 +146,7 @@ export default class CustomizerView extends BaseView {
     // would look correct on the track - for
     // now we'll just center it
     car.pivot.x = 0.5
-    car.y = 10
+    car.y = CONTENT_Y
     car.alpha = 0
 
     // add to the view
@@ -145,10 +169,12 @@ export default class CustomizerView extends BaseView {
         },
 
         // finishing
-        completed: () => {
+        complete: () => {
+          car.ready = true
+
           // if there's a left over car
           for (const child of this.viewport.children) {
-            if (child !== car) {
+            if (child.car && child !== car) {
               removeDisplayObject(child)
             }
           }
@@ -341,8 +367,34 @@ export default class CustomizerView extends BaseView {
   
   // renders the view
   render (...args) {
+    const now = Date.now()
+
+    if (this.driver) { 
+      if (this.driver.x > -800) {
+        this.driver.x -= this.driverSlow
+        this.driver.y = 180 + (Math.sin(now * 0.0007) * 18)
+
+        if (this.driver.x < -800) {
+          this.queuePassing()
+        }
+      }
+      
+    }
+
+    if (this.car) { 
+      
+      if (this.car.ready) {
+        this.car.offsetScale = Math.min(1, (this.car.offsetScale || 0) + 0.01)
+        this.car.y = CONTENT_Y + ((Math.cos(now * 0.0007) * 18) * this.car.offsetScale)
+        this.car.x = (Math.sin(now * 0.001) * 30) * this.car.offsetScale
+      }
+      // if (this.car.ready) {
+      // }
+      // this.sprayer.x = this.car.x
+      // this.sprayer.y = this.car.y
+    }
+
     if (this.treadmill) {
-      const now = Date.now()
       const delta = Math.min(2, this.getDeltaTime(now))
       this.treadmill.update({ diff: -(45 + this.offsetSpeed) * delta, horizontalWrap: -600 })
     }
