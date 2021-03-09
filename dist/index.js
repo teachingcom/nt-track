@@ -100491,14 +100491,15 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
               case 2:
                 this.treadmill = _context2.sent;
                 // set the position
-                this.treadmill.y = -190;
-                this.treadmill.scale.x = this.treadmill.scale.y = 0.7; // add the treadmill to the view
+                this.treadmill.y = -120;
+                this.treadmill.x = 0; // this.treadmill.scale.x = this.treadmill.scale.y = 0.7
+                // add the treadmill to the view
 
                 container = new _ntAnimator.PIXI.Container();
-                container.addChild(this.treadmill);
-                container.x = -400; // add to the main view
+                container.addChild(this.treadmill); // add to the main view
 
                 this.viewport.addChild(container);
+                this.viewport.x = 125;
 
               case 9:
               case "end":
@@ -100528,12 +100529,13 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
 
               case 2:
                 sprayer = _context3.sent;
-                sprayer.y = -50;
+                sprayer.y = 0;
+                sprayer.x = 125;
                 sprayer.controller.stopEmitters();
                 this.sprayer = sprayer;
                 this.workspace.addChild(sprayer);
 
-              case 7:
+              case 8:
               case "end":
                 return _context3.stop();
             }
@@ -100569,7 +100571,9 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
     key: "setCar",
     value: function () {
       var _setCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(_ref) {
-        var type, hue, isAnimated, _iterator, _step, _loop, _ret, car;
+        var _this4 = this;
+
+        var type, hue, isAnimated, _iterator, _step, _loop, _ret, car, mid;
 
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
@@ -100662,11 +100666,12 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 // would look correct on the track - for
                 // now we'll just center it
                 car.pivot.x = 0.5;
-                car.y = -50;
+                car.y = 10;
                 car.alpha = 0; // add to the view
 
                 this.viewport.addChild(car);
-                this.car = car; // animate into view
+                this.car = car;
+                mid = Math.floor(this.width / this.ssaaScalingLevel / -2); // animate into view
 
                 return _context4.abrupt("return", new Promise(function (resolve) {
                   (0, _ntAnimator.animate)({
@@ -100680,14 +100685,36 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                       t: 1
                     },
                     update: function update(props) {
-                      car.x = (1 - props.t) * -400;
+                      car.x = (1 - props.t) * mid;
                       car.alpha = props.t;
                     },
-                    completed: resolve
+                    // finishing
+                    completed: function completed() {
+                      // if there's a left over car
+                      var _iterator2 = _createForOfIteratorHelper(_this4.viewport.children),
+                          _step2;
+
+                      try {
+                        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+                          var child = _step2.value;
+
+                          if (child !== car) {
+                            (0, _ntAnimator.removeDisplayObject)(child);
+                          }
+                        } // finish
+
+                      } catch (err) {
+                        _iterator2.e(err);
+                      } finally {
+                        _iterator2.f();
+                      }
+
+                      resolve();
+                    }
                   });
                 }));
 
-              case 28:
+              case 29:
               case "end":
                 return _context4.stop();
             }
@@ -100860,7 +100887,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
         var delta = Math.min(2, this.getDeltaTime(now));
         this.treadmill.update({
           diff: -(45 + this.offsetSpeed) * delta,
-          horizontalWrap: -200
+          horizontalWrap: -600
         });
       }
 

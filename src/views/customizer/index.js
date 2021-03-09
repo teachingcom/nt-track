@@ -50,21 +50,23 @@ export default class CustomizerView extends BaseView {
     })
 
     // set the position
-    this.treadmill.y = -190
-    this.treadmill.scale.x = this.treadmill.scale.y = 0.7
+    this.treadmill.y = -120
+    this.treadmill.x = 0
+    // this.treadmill.scale.x = this.treadmill.scale.y = 0.7
 
     // add the treadmill to the view
     const container = new PIXI.Container()
     container.addChild(this.treadmill)
-    container.x = -400
 
     // add to the main view
     this.viewport.addChild(container)
+    this.viewport.x = 125
   }
 
   async _createSprayer() {
     const sprayer = await this.animator.create('extras/sprayer')
-    sprayer.y = -50
+    sprayer.y = 0
+    sprayer.x = 125
     sprayer.controller.stopEmitters()
 
     this.sprayer = sprayer
@@ -120,12 +122,14 @@ export default class CustomizerView extends BaseView {
     // would look correct on the track - for
     // now we'll just center it
     car.pivot.x = 0.5
-    car.y = -50
+    car.y = 10
     car.alpha = 0
 
     // add to the view
     this.viewport.addChild(car)
     this.car = car
+
+    const mid = Math.floor((this.width / this.ssaaScalingLevel) / -2)
 
     // animate into view
     return new Promise(resolve => {
@@ -136,10 +140,22 @@ export default class CustomizerView extends BaseView {
         from: { t: 0 },
         to: { t: 1 },
         update: props => {
-          car.x = (1 - props.t) * -400
+          car.x = (1 - props.t) * mid
           car.alpha = props.t
         },
-        completed: resolve
+
+        // finishing
+        completed: () => {
+          // if there's a left over car
+          for (const child of this.viewport.children) {
+            if (child !== car) {
+              removeDisplayObject(child)
+            }
+          }
+
+          // finish
+          resolve()
+        }
       })
     })
   }
@@ -328,7 +344,7 @@ export default class CustomizerView extends BaseView {
     if (this.treadmill) {
       const now = Date.now()
       const delta = Math.min(2, this.getDeltaTime(now))
-      this.treadmill.update({ diff: -(45 + this.offsetSpeed) * delta, horizontalWrap: -200 })
+      this.treadmill.update({ diff: -(45 + this.offsetSpeed) * delta, horizontalWrap: -600 })
     }
 
     super.render(...args)
