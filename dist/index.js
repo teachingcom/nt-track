@@ -100970,7 +100970,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '1.0.11';
+  window.NTTRACK = '1.0.12';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"views/preview/index.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
