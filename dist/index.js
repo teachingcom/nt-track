@@ -100393,7 +100393,7 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
 var DEFAULT_MAX_HEIGHT = 250;
-var CONTENT_Y = -20;
+var CONTENT_Y = -25;
 var CONTENT_X = 125;
 
 var CustomizerView = /*#__PURE__*/function (_BaseView) {
@@ -100489,12 +100489,14 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 this.viewport.addChild(this.driver); // animate
 
                 this.driver.x = 9999;
-                this.driver.y = 170; // this.driver.scale.x = this.driver.scale.y = 1.1
-
+                this.driver.y = 170;
+                this.driver.scale.x = this.driver.scale.y = 1.1;
+                this.driver.pivot.y = this.driver.height / 2;
+                this.driver.alpha = 0.7;
                 this.driverSlow = 0;
                 this.queuePassing();
 
-              case 8:
+              case 11:
               case "end":
                 return _context2.stop();
             }
@@ -100706,10 +100708,14 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 _context5.next = 21;
                 return _car.default.create({
                   view: this,
-                  baseHeight: 140,
+                  baseHeight: 130,
                   type: type,
                   isAnimated: isAnimated,
-                  hue: hue
+                  hue: hue,
+                  lighting: {
+                    x: -5,
+                    y: 7
+                  }
                 });
 
               case 21:
@@ -100742,8 +100748,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                     },
                     // finishing
                     complete: function complete() {
-                      car.ready = true; // if there's a left over car
-
+                      // if there's a left over car
                       var _iterator2 = _createForOfIteratorHelper(_this5.viewport.children),
                           _step2;
 
@@ -100751,7 +100756,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                         for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
                           var child = _step2.value;
 
-                          if (child.car && child !== car) {
+                          if (child.ready && child.car && child !== car) {
                             (0, _ntAnimator.removeDisplayObject)(child);
                           }
                         } // finish
@@ -100762,6 +100767,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                         _iterator2.f();
                       }
 
+                      car.ready = true;
                       resolve();
                     }
                   });
@@ -100940,7 +100946,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
       if (this.driver) {
         if (this.driver.x > -800) {
           this.driver.x -= this.driverSlow;
-          this.driver.y = 180 + Math.sin(now * 0.0007) * 18;
+          this.driver.y = 200 + Math.cos(now * 0.003) * 10;
 
           if (this.driver.x < -800) {
             this.queuePassing();
@@ -101047,7 +101053,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '1.0.13';
+  window.NTTRACK = '1.0.14';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"views/preview/index.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

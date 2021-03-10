@@ -5,7 +5,7 @@ import Treadmill from '../../components/treadmill'
 import Car from '../../components/car'
 
 const DEFAULT_MAX_HEIGHT = 250
-const CONTENT_Y = -20
+const CONTENT_Y = -25
 const CONTENT_X = 125
 
 export default class CustomizerView extends BaseView {
@@ -50,7 +50,9 @@ export default class CustomizerView extends BaseView {
     // animate
     this.driver.x = 9999
     this.driver.y = 170
-    // this.driver.scale.x = this.driver.scale.y = 1.1
+    this.driver.scale.x = this.driver.scale.y = 1.1
+    this.driver.pivot.y = this.driver.height / 2
+    this.driver.alpha = 0.7
     this.driverSlow = 0
 
     this.queuePassing()
@@ -136,10 +138,11 @@ export default class CustomizerView extends BaseView {
     // create the new car to view
     const car = await Car.create({
       view: this,
-      baseHeight: 140,
+      baseHeight: 130,
       type,
       isAnimated,
-      hue
+      hue,
+      lighting: { x: -5, y: 7 }
     })
 
     // cars have their pivot modified so they
@@ -170,16 +173,16 @@ export default class CustomizerView extends BaseView {
 
         // finishing
         complete: () => {
-          car.ready = true
-
+          
           // if there's a left over car
           for (const child of this.viewport.children) {
-            if (child.car && child !== car) {
+            if (child.ready && child.car && child !== car) {
               removeDisplayObject(child)
             }
           }
-
+          
           // finish
+          car.ready = true
           resolve()
         }
       })
@@ -372,7 +375,7 @@ export default class CustomizerView extends BaseView {
     if (this.driver) { 
       if (this.driver.x > -800) {
         this.driver.x -= this.driverSlow
-        this.driver.y = 180 + (Math.sin(now * 0.0007) * 18)
+        this.driver.y = 200 + (Math.cos(now * 0.003) * 10)
 
         if (this.driver.x < -800) {
           this.queuePassing()
