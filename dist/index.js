@@ -100946,7 +100946,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
       if (this.driver) {
         if (this.driver.x > -800) {
           this.driver.x -= this.driverSlow;
-          this.driver.y = 200 + Math.cos(now * 0.003) * 10;
+          this.driver.y = 210 + Math.cos(now * 0.003) * 10;
 
           if (this.driver.x < -800) {
             this.queuePassing();
@@ -100957,8 +100957,8 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
       if (this.car) {
         if (this.car.ready) {
           this.car.offsetScale = Math.min(1, (this.car.offsetScale || 0) + 0.01);
-          this.car.y = CONTENT_Y + Math.cos(now * 0.0007) * 18 * this.car.offsetScale;
-          this.car.x = Math.sin(now * 0.001) * 30 * this.car.offsetScale;
+          this.car.y = CONTENT_Y + Math.cos(now * 0.0007) * 11 * this.car.offsetScale;
+          this.car.x = Math.sin(now * 0.001) * 20 * this.car.offsetScale;
         } // if (this.car.ready) {
         // }
         // this.sprayer.x = this.car.x
@@ -100968,8 +100968,10 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
 
       if (this.treadmill) {
         var delta = Math.min(2, this.getDeltaTime(now));
+        var turn = Math.min(0, Math.cos(now * 0.00015)) * (Math.cos(now * 0.0005) * -(Math.PI * 0.05));
+        this.viewport.rotation = turn;
         this.treadmill.update({
-          diff: -(45 + this.offsetSpeed) * delta,
+          diff: (-(45 + this.offsetSpeed) + Math.abs(turn * 90)) * delta,
           horizontalWrap: -600
         });
       }
