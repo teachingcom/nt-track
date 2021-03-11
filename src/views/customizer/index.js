@@ -52,7 +52,7 @@ export default class CustomizerView extends BaseView {
     this.driver.y = 170
     this.driver.scale.x = this.driver.scale.y = 1.1
     this.driver.pivot.y = this.driver.height / 2
-    this.driver.alpha = 0.7
+    // this.driver.alpha = 0.7
     this.driverSlow = 0
 
     this.queuePassing()

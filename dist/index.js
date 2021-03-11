@@ -100491,12 +100491,12 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 this.driver.x = 9999;
                 this.driver.y = 170;
                 this.driver.scale.x = this.driver.scale.y = 1.1;
-                this.driver.pivot.y = this.driver.height / 2;
-                this.driver.alpha = 0.7;
+                this.driver.pivot.y = this.driver.height / 2; // this.driver.alpha = 0.7
+
                 this.driverSlow = 0;
                 this.queuePassing();
 
-              case 11:
+              case 10:
               case "end":
                 return _context2.stop();
             }
