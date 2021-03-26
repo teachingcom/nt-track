@@ -1,4 +1,4 @@
-import { PIXI } from 'nt-animator';
+import { PIXI, removeDisplayObject } from 'nt-animator';
 import { merge } from '../../utils';
 
 export default class Trail extends PIXI.DetatchedContainer {
@@ -29,6 +29,11 @@ export default class Trail extends PIXI.DetatchedContainer {
     return instance
   }
 
+  // syncs a trail position to a car
+  syncToCar(car) {
+
+  }
+
   // start creating loot
   async _initTrail () {
     const { view, options } = this
@@ -55,5 +60,10 @@ export default class Trail extends PIXI.DetatchedContainer {
   /** deactivates the trail */
   stop () {
     this.trail.controller.stopEmitters()
+  }
+
+  dispose() {
+    this.stop()
+    this.each(removeDisplayObject)
   }
 }

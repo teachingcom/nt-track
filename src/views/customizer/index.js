@@ -3,19 +3,24 @@ import { animate, PIXI, removeDisplayObject } from 'nt-animator'
 
 import Treadmill from '../../components/treadmill'
 import Car from '../../components/car'
+import Trail from '../../components/trail'
 
 const DEFAULT_MAX_HEIGHT = 250
+const OTHER_DRIVER_OFFSCREEN_DISTANCE = -1200
 const CONTENT_Y = -25
 const CONTENT_X = 125
 
 export default class CustomizerView extends BaseView {
-  offsetSpeed = 0
+
+  // the camera focus point
+  focus = { x: 130, y: 0 }
   
+  // initializes the view
   async init (options) {
     await super.init({
       scale: { DEFAULT_MAX_HEIGHT },
       backgroundColor: 0x222835,
-      // useDynamicPerformance: false,
+      useDynamicPerformance: false,
       // forceCanvas: true,
       ...options
     })
@@ -36,33 +41,28 @@ export default class CustomizerView extends BaseView {
 
     // attach elements
     await this._createTreadmill()
-    await this._createDriver()
+    await this._createOtherDriver()
     await this._createSprayer()
     
     // begin rendering
     this.startAutoRender()
+    this.ready = true
   }
 
-  async _createDriver() {
-    this.driver = await this.animator.getSprite('extras/customizer', 'driver')
-    this.viewport.addChild(this.driver)
+  async _createOtherDriver() {
+    this.otherDriver = await this.animator.getSprite('extras/customizer', 'driver')
+    this.viewport.addChild(this.otherDriver)
+    
+    // speed that the other driver passes at
+    this.passingSpeed = 0
 
     // animate
-    this.driver.x = 9999
-    this.driver.y = 170
-    this.driver.scale.x = this.driver.scale.y = 1.1
-    this.driver.pivot.y = this.driver.height / 2
-    // this.driver.alpha = 0.7
-    this.driverSlow = 0
+    this.otherDriver.visible = false
+    this.otherDriver.scale.x = this.otherDriver.scale.y = 1.1
+    this.otherDriver.pivot.y = this.otherDriver.height / 2
 
-    this.queuePassing()
-  }
-
-  queuePassing()  {
-    setTimeout(() => {
-      this.driver.x = 500
-      this.driverSlow = (Math.random() * 5) + 8
-    }, 0 | (3000 + (Math.random() * 4000)))
+    // queue the next pass attempt
+    this._queuePassing()
   }
 
   // creates the scrolling treadmill area
@@ -88,6 +88,7 @@ export default class CustomizerView extends BaseView {
     this.viewport.x = CONTENT_X
   }
 
+  // creates a paint spray effect
   async _createSprayer() {
     const sprayer = await this.animator.create('extras/sprayer')
     sprayer.y = CONTENT_Y
@@ -110,10 +111,130 @@ export default class CustomizerView extends BaseView {
   }
 
   // replaces the active car
-  async setCar ({ type, hue, isAnimated }) {
-    // remove all existing cars
+  async setCar ({ type, hue, isAnimated, trail }) {
+    this._removeExistingCars()
+
+    // create the new car instance
+    const car = await Car.create({
+      view: this,
+      baseHeight: 150,
+      type,
+      isAnimated,
+      hue,
+      lighting: { x: -5, y: 7 }
+    })
+
+    // put the car inside of a container that
+    // can be used to attach trails and 
+    // other effects to
+    const container = new PIXI.Container()
+    container.pivot.x = 0.5
+    container.scale.x = container.scale.y = 0.85
+    container.y = CONTENT_Y
+    container.alpha = 0
+    container.isCar = true
+
+    // add to the view
+    container.addChild(car)
+    this.viewport.addChild(container)
+    this.container = container
+    this.car = car
+
+    // set the trail to use, otherwise
+    // just dispose of the active one
+    delete this.trail
+    if (trail) {
+      await this.setTrail(trail)
+    }
+
+    // animate the new car into view
+    return this._animatePlayerCarIntoView(this.container)
+  }
+
+  async setTrail(type) {
+    this.trail?.dispose()
+
+    // if there's not a trail, they probably set
+    // it to none
+    if (!type) {
+      return
+    }
+
+    // set the trail
+    const trail = await Trail.create({
+      view: this,
+      baseHeight: 130,
+      type
+    })
+
+    // attach to the view
+    this.trail = trail
+    this.trail.attachTo(this.container)
+    this.trail.each(part => {
+      part.alpha = 0
+      part.x = this.car.positions.back
+    });
+
+    // also, fade in the trails
+    animate({
+      duration: 500,
+      from: { t: 0 },
+      to: { t: 1 },
+      loop: false,
+      update: update => {
+        trail.each(part =>  part.alpha = update.t)
+      }
+    })
+  }
+
+  // queues the next time the extra should pass
+  _queuePassing()  {
+    const nextPass = 0 | (3000 + (Math.random() * 4000))
+    setTimeout(() => {
+      this.otherDriver.visible = true
+      this.otherDriver.x = 500
+      this.passingSpeed = (Math.random() * 5) + 8
+    }, nextPass)
+  }
+
+  // animates an object into the center of the view
+  _animatePlayerCarIntoView(obj) {
+    return new Promise(resolve => {
+      // determine the middle section
+      const mid = Math.floor((this.width / this.ssaaScalingLevel) / -2)
+      animate({
+        loop: false,
+        duration: 500,
+        easing: 'easeOutQuad',
+        from: { t: 0 },
+        to: { t: 1 },
+        update: props => {
+          obj.x = (1 - props.t) * mid
+          obj.alpha = props.t
+        },
+
+        // finishing
+        complete: () => {
+          
+          // if there's a left over car
+          for (const child of this.viewport.children) {
+            if (child.ready && child.isCar && child !== obj) {
+              removeDisplayObject(child)
+            }
+          }
+          
+          // finish
+          obj.ready = true
+          resolve()
+        }
+      })
+    })
+  }
+
+  // removes all existing cars on the view
+  _removeExistingCars() {
     for (const child of this.viewport.children) {
-      if (!child.car) {
+      if (!child.isCar) {
         continue
       }
 
@@ -134,278 +255,83 @@ export default class CustomizerView extends BaseView {
         }
       })
     }
-
-    // create the new car to view
-    const car = await Car.create({
-      view: this,
-      baseHeight: 130,
-      type,
-      isAnimated,
-      hue,
-      lighting: { x: -5, y: 7 }
-    })
-
-    // cars have their pivot modified so they
-    // would look correct on the track - for
-    // now we'll just center it
-    car.pivot.x = 0.5
-    car.y = CONTENT_Y
-    car.alpha = 0
-
-    // add to the view
-    this.viewport.addChild(car)
-    this.car = car
-
-    const mid = Math.floor((this.width / this.ssaaScalingLevel) / -2)
-
-    // animate into view
-    return new Promise(resolve => {
-      animate({
-        loop: false,
-        duration: 500,
-        easing: 'easeOutQuad',
-        from: { t: 0 },
-        to: { t: 1 },
-        update: props => {
-          car.x = (1 - props.t) * mid
-          car.alpha = props.t
-        },
-
-        // finishing
-        complete: () => {
-          
-          // if there's a left over car
-          for (const child of this.viewport.children) {
-            if (child.ready && child.car && child !== car) {
-              removeDisplayObject(child)
-            }
-          }
-          
-          // finish
-          car.ready = true
-          resolve()
-        }
-      })
-    })
   }
 
   // NOT IMPLEMENTED YET
-  // setTrail () { }
   // setNamecard () { }
   // setNitro () { }
   // setSpeedTrail () { }
   // setCelebration () { }
-  setFocus (zone) { }
 
-  // setFocus(zone) {
+  getFocusForZone(zone) {
+    switch (zone) {
+      case 'trail':
+        const center = (this.car?.width || 240) / 2
+        return { x: CONTENT_X + 200 + center, y: 0 }
 
-  //   if (this._transition) {
-  //     this._transition.stop()
-  //   }
+      default:
+        return { x: CONTENT_X + 155, y: 0 }
+    }
+  }
 
-    
-  //   const start = { 
-  //     x: this.container.x,
-  //     y: this.container.y,
-  //     scale: this.container.scale.x,
-  //   }
+  // sets the current focal point
+  setFocus (zone) {
+    // cancel prior animations
+    this.__panViewport?.stop()
 
-  //   const end = { ...start }
+    // animate the next view
+    const { x, y } = this.getFocusForZone(zone)
+    this.__panViewport = animate({
+      from: { ...this.focus },
+      to: { x, y },
+      duration: 700,
+      easing: 'easeInOutQuad',
+      loop: false,
+      update: t => this.focus = t
+    })
+  }
 
-  //   if (zone === 'back') {
-  //     end.x = this.bounds.width * 1.6
-  //     end.y = 0
-  //     end.scale = 0.75
-  //   }
-  //   else if (zone === 'namecard') {
-  //     end.x = -this.namecard.x * 2
-  //     end.y = -this.namecard.y * 2
-  //     end.scale = 2
-  //   }
-  //   else if (zone === 'car') {
-  //     end.x = 0
-  //     end.y = 0
-  //     end.scale = 1
-  //   }
-
-  //   this._transition = animate({
-  //     duration: 500,
-  //     ease: 'easeInOutQuad',
-  //     from: start,
-  //     to: end,
-  //     loop: false,
-  //     update: props => {
-  //       this.container.x = props.x
-  //       this.container.y = props.y
-  //       this.container.scale.x = this.container.scale.y = props.scale
-  //     }
-  //   })
-
-  // }
-
-  // async replaceCar({ carId, hue, isCarAnimated, playerName, playerTeam, trailId, namecardId, isNamecardAnimated }) {
-
-  //   this.removeCurrent();
-  //   const player = await Player.create({
-  //     view: this,
-  //     type: carId,
-  //     hue,
-  //     playerName,
-  //     playerTeam,
-  //     isAnimated: isCarAnimated,
-  //     mods: {
-  //       // trail: trailId,
-  //       // card: namecardId,
-  //       // isNamecardAnimated
-  //     }
-  //   })
-
-
-  //   return new Promise(resolve => { 
-
-  //     const dist = -400
-  //     player.car.x = dist
-  //     // player.car.alpha = 0
-
-  //     animate({
-  //       easing: 'easeOutQuad',
-  //       duration: 600,
-  //       from: { t: -500 },
-  //       to: { t: 0 },
-  //       loop: false,
-  //       update: props => {
-  //         console.log('fade in')
-  //         // player.car.alpha = props.t
-  //         // player.car.x = props.t
-  //       },
-  //       complete: () => {
-  //         this.player = player
-  //         resolve(this.player)
-  //       }
-  //     })
-      
-  //   })
-  // }
-
-  // // removes the current car preview, if any
-  // async removeCurrent() {
-  //   // nothing to remove
-  //   if (!this.player) {
-  //     return null
-  //   }
-
-  //   const remove = this.player
-  //   return new Promise(resolve => {
-
-  //     animate({
-  //       from: { t: 1 },
-  //       to: { t: 0 },
-  //       easing: 'easeInQuad',
-  //       loop: false,
-  //       duration: 750,
-  //       update: props => {
-  //         remove.car.x = (1 - props.t) * 250 // Math.cos(props.t *)
-  //         // remove.car.skew.y = Math.cos(props.t)
-  //         remove.alpha = props.t
-  //       },
-  //       complete: () => {
-  //         console.log('all remove')
-  //         remove.dispose()
-  //         resolve()
-  //       }
-  //     })
-
-  //   });
-  // }
-
-  // repaintCar (hue) {
-  //   this.player.repaintCar(hue)
-  // }
-
-  // async updateCar ({ carId, isCarAnimated, hue }) {
-
-  //   let player = this.player;
-  //   if (this.carId !== carId) {
-  //     player = await this.replaceCar({ carId, hue, isCarAnimated })
-  //   }
-  //   else if (this.hue !== hue) { 
-  //     player.repaintCar(hue)
-  //   }
-
-  //   // 
-  //   this.carId = carId
-  //   this.hue = hue
-  //   this.player = player
-
-  //   // use the bounds to determine car positions
-  //   this.bounds = player.car.bounds
-
-  //   // scale the player to the view
-  //   player.scaleX = 0.7
-  //   player.scaleY = 0.7
-  //   player.relativeX = 0.1
-  //   player.relativeY = 0
-
-  //   // move the namecard off screen
-  //   const nc = player.namecard
-  //   nc.x = -200
-  //   nc.y = -400
-    
-  //   nc.scale.x = 0.8
-  //   nc.scale.y = 0.8
-
-  //   this.namecard = nc
-  //   // container.addChild(player)
-  //   this.container.addChild(player)
-  //   this.container.addChild(nc)
-  // }
-
-  // setTrail (trail) {
-
-  // }
-
-  // setNitro (nitro) {
-
-  // }
-  
   // renders the view
   render (...args) {
+    if (!this.ready) {
+      return
+    }
+
+    // get timings
     const now = Date.now()
+    const delta = Math.min(2, this.getDeltaTime(now))
+    
+    // match the viewport to the focal point
+    this.viewport.x = this.focus.x
+    this.viewport.y = this.focus.y
 
-    if (this.driver) { 
-      if (this.driver.x > -800) {
-        this.driver.x -= this.driverSlow
-        this.driver.y = 210 + (Math.cos(now * 0.003) * 10)
+    // show a car passing by
+    if (this.otherDriver.x > OTHER_DRIVER_OFFSCREEN_DISTANCE) {
+      this.otherDriver.x -= this.passingSpeed
+      this.otherDriver.y = 210 + (Math.cos(now * 0.003) * 10)
 
-        if (this.driver.x < -800) {
-          this.queuePassing()
-        }
+      if (this.otherDriver.x < OTHER_DRIVER_OFFSCREEN_DISTANCE) {
+        this._queuePassing()
       }
-      
     }
 
-    if (this.car) { 
-      
-      if (this.car.ready) {
-        this.car.offsetScale = Math.min(1, (this.car.offsetScale || 0) + 0.01)
-        this.car.y = CONTENT_Y + ((Math.cos(now * 0.0007) * 11) * this.car.offsetScale)
-        this.car.x = (Math.sin(now * 0.001) * 20) * this.car.offsetScale
-      }
-      // if (this.car.ready) {
-      // }
-      // this.sprayer.x = this.car.x
-      // this.sprayer.y = this.car.y
+    // check for the currently previewed car
+    // animates the car shifting back and forth
+    if (this.container?.ready) {
+      this.container.offsetScale = Math.min(1, (this.container.offsetScale || 0) + 0.01)
+      this.container.y = CONTENT_Y + ((Math.cos(now * 0.0007) * 11) * this.container.offsetScale)
+      this.container.x = (Math.sin(now * 0.001) * 20) * this.container.offsetScale
     }
+  
+    // cause the view to shift left and right  
+    const viewportTurnAngle = Math.min(0, Math.cos(now * 0.00015)) * (Math.cos(now * 0.0005) * -(Math.PI * 0.05))
+    this.viewport.rotation = viewportTurnAngle
 
-    if (this.treadmill) {
-      const delta = Math.min(2, this.getDeltaTime(now))
-      
-      const turn = Math.min(0, Math.cos(now * 0.00015)) * (Math.cos(now * 0.0005) * -(Math.PI * 0.05))
-      this.viewport.rotation = turn
-
-      this.treadmill.update({ diff: (-(45 + this.offsetSpeed) + Math.abs(turn * 90)) * delta, horizontalWrap: -600 })
-
-    }
+    // scroll the track
+    this.treadmill.update({
+      diff: (-45 + Math.abs(viewportTurnAngle * 90)) * delta,
+      horizontalWrap: -600
+    })
 
     super.render(...args)
   }
