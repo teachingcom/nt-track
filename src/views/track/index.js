@@ -470,6 +470,11 @@ export default class TrackView extends BaseView {
 		// change the ambience
 		this.track.setAmbience('race');
 
+		// toggle all start animations
+		for (const player of this.players) {
+			player.toggle.activate('moving')
+		}
+
 		// start movement
 		state.animateTrackMovement = true;
 		state.trackMovementAmount = TRACK_ACCELERATION_RATE;

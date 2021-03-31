@@ -74395,7 +74395,82 @@ var GetRandomExpression = function GetRandomExpression(prop, params) {
 ;
 
 exports.default = GetRandomExpression;
-},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../mappings":"animation/mappings.js","../../randomizer":"randomizer.js"}],"animation/dynamic-expressions/sine-expressions.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../mappings":"animation/mappings.js","../../randomizer":"randomizer.js"}],"animation/dynamic-expressions/mod-expression.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var mappings = _interopRequireWildcard(require("../mappings"));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+var ModExpression = function ModExpression(prop, args) {
+  var _this = this;
+
+  (0, _classCallCheck2.default)(this, ModExpression);
+  (0, _defineProperty2.default)(this, "offset", 0);
+  (0, _defineProperty2.default)(this, "scale", 1);
+  (0, _defineProperty2.default)(this, "flip", 1);
+  (0, _defineProperty2.default)(this, "update", function (target, stage) {
+    var ts = (Date.now() + _this.offset) * _this.scale; // calculate the current mod value
+
+
+    var value = ts % _this.modOf * _this.flip; // apply the value
+
+    _this.mapping(target, _this.convertToInt ? 0 | value : value);
+  });
+  this.prop = prop;
+  this.mapping = mappings.lookup(prop);
+  var modOf = 1;
+
+  var _iterator = _createForOfIteratorHelper(args),
+      _step;
+
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var arg = _step.value;
+
+      if (arg === 'int') {
+        this.convertToInt = true;
+      } else if (arg === 'invert') {
+        this.flip = -1;
+      } else if ('of' in arg) {
+        modOf = arg.of;
+      } else if (arg.scale) {
+        this.scale = arg.scale * 0.01;
+      } else if (arg.offset) {
+        this.offset = arg.offset * 1000;
+      }
+    } // save the args
+
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+
+  this.modOf = modOf;
+};
+
+exports.default = ModExpression;
+},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../mappings":"animation/mappings.js"}],"animation/dynamic-expressions/sine-expressions.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -74439,11 +74514,12 @@ var BaseSineExpression = function BaseSineExpression(prop, args) {
   (0, _classCallCheck2.default)(this, BaseSineExpression);
   (0, _defineProperty2.default)(this, "offset", 0);
   (0, _defineProperty2.default)(this, "scale", 1);
+  (0, _defineProperty2.default)(this, "flip", 1);
   (0, _defineProperty2.default)(this, "update", function (target, stage) {
     var ts = (Date.now() + _this.offset) * _this.scale;
 
     var percent = (_this.calc(ts) + 1) / 2;
-    var value = percent * (_this.max - _this.min) + _this.min;
+    var value = (percent * (_this.max - _this.min) + _this.min) * _this.flip;
 
     _this.mapping(target, _this.convertToInt ? 0 | value : value);
   });
@@ -74459,7 +74535,11 @@ var BaseSineExpression = function BaseSineExpression(prop, args) {
     for (_iterator.s(); !(_step = _iterator.n()).done;) {
       var arg = _step.value;
 
-      if (arg.min) {
+      if (arg === 'int') {
+        this.convertToInt = true;
+      } else if (arg === 'invert') {
+        this.flip = -1;
+      } else if (arg.min) {
         min = arg.min;
       } else if (arg.max) {
         max = arg.max;
@@ -74467,8 +74547,6 @@ var BaseSineExpression = function BaseSineExpression(prop, args) {
         this.scale = arg.scale * 0.01;
       } else if (arg.offset) {
         this.offset = arg.offset * 1000;
-      } else if (arg === 'int') {
-        this.convertToInt = true;
       }
     } // if there's no max value then
     // max the range from 0-min
@@ -74486,9 +74564,7 @@ var BaseSineExpression = function BaseSineExpression(prop, args) {
 
 
   this.min = min;
-  this.max = max; // extra conversions
-
-  this.convertBy = prop === 'rotation' ? Math.PI * 2 : 1;
+  this.max = max;
 };
 
 var CosineExpression = /*#__PURE__*/function (_BaseSineExpression) {
@@ -74747,6 +74823,8 @@ var randomizer = _interopRequireWildcard(require("../randomizer"));
 
 var _getRandom = _interopRequireDefault(require("./dynamic-expressions/get-random"));
 
+var _modExpression = _interopRequireDefault(require("./dynamic-expressions/mod-expression"));
+
 var _sineExpressions = require("./dynamic-expressions/sine-expressions");
 
 var _relativeExpressions = require("./dynamic-expressions/relative-expressions");
@@ -74793,6 +74871,9 @@ var EXPRESSIONS = {
   }
 };
 var DYNAMICS = {
+  ':mod': {
+    instance: _modExpression.default
+  },
   ':cos': {
     instance: _sineExpressions.CosineExpression
   },
@@ -74996,7 +75077,7 @@ function shuffle(items) {
 
   items.push.apply(items, shuffled);
 }
-},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","../utils":"utils/index.js","./mappings":"animation/mappings.js","../randomizer":"randomizer.js","./dynamic-expressions/get-random":"animation/dynamic-expressions/get-random.js","./dynamic-expressions/sine-expressions":"animation/dynamic-expressions/sine-expressions.js","./dynamic-expressions/relative-expressions":"animation/dynamic-expressions/relative-expressions.js"}],"../node_modules/idb-keyval/dist/idb-keyval.mjs":[function(require,module,exports) {
+},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","../utils":"utils/index.js","./mappings":"animation/mappings.js","../randomizer":"randomizer.js","./dynamic-expressions/get-random":"animation/dynamic-expressions/get-random.js","./dynamic-expressions/mod-expression":"animation/dynamic-expressions/mod-expression.js","./dynamic-expressions/sine-expressions":"animation/dynamic-expressions/sine-expressions.js","./dynamic-expressions/relative-expressions":"animation/dynamic-expressions/relative-expressions.js"}],"../node_modules/idb-keyval/dist/idb-keyval.mjs":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -78929,15 +79010,24 @@ var _lib = require("../lib");
 // for some reason, PIXI can cause animations animated sprites from playing
 // this is a temporary solution that ensures animations play
 function createAnimatedSpriteHelper(sprite, props) {
-  // determine how often to update the keyframes
-  var frequency = 1000 / ((props === null || props === void 0 ? void 0 : props.fps) || 60); // keeping track of the next time to cycle
-
-  var nextFrame = Date.now() + frequency; // do this when the frame is updated
+  var frequency;
+  var nextFrame;
+  var fps; // do this when the frame is updated
 
   sprite.updateTransform = function () {
-    var now = Date.now(); // move to the next frame, if needed
+    var now = Date.now(); // if the FPS has changed
 
-    if (now > nextFrame) {
+    if (fps !== (props === null || props === void 0 ? void 0 : props.fps)) {
+      fps = props.fps; // determine how often to update the keyframes
+
+      frequency = 1000 / ((props === null || props === void 0 ? void 0 : props.fps) || 60); // keeping track of the next time to cycle
+
+      nextFrame = now + frequency;
+    } // if not paused and it's time to move
+    // to the next frame, if needed
+
+
+    if (fps > 0 && now > nextFrame) {
       nextFrame = now + frequency;
       sprite.gotoAndStop(sprite.currentFrame + 1);
     } // use the normal update
@@ -83846,7 +83936,83 @@ var DetatchedContainer = /*#__PURE__*/function (_PIXI$Container) {
 }(_lib.PIXI.Container);
 
 exports.default = DetatchedContainer;
-},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../pixi/lib":"pixi/lib.js"}],"pixi/utils/remove.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../pixi/lib":"pixi/lib.js"}],"animation/toggle.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+var Toggle = /*#__PURE__*/function () {
+  function Toggle() {
+    (0, _classCallCheck2.default)(this, Toggle);
+    (0, _defineProperty2.default)(this, "modes", {});
+  }
+
+  (0, _createClass2.default)(Toggle, [{
+    key: "activate",
+    // activates a toggle
+    value: function activate(mode) {
+      var toggles = this.modes[mode];
+
+      if (!toggles) {
+        return;
+      } // activate the toggles
+
+
+      var _iterator = _createForOfIteratorHelper(toggles),
+          _step;
+
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var toggle = _step.value;
+          toggle();
+        }
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
+    } // adds a new toggle state
+
+  }, {
+    key: "add",
+    value: function add(state, obj, props) {
+      // create the new collection
+      if (!this.modes[state]) {
+        this.modes[state] = [];
+      } // TODO: this is a very simple version
+      // of this assignment - this will need to
+      // be updated to support more property
+      // types. For now, this works with FPS
+      // include the toggle state
+
+
+      this.modes[state].push(function () {
+        Object.assign(obj.config.props, props);
+      });
+    }
+  }]);
+  return Toggle;
+}();
+
+exports.default = Toggle;
+},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js"}],"pixi/utils/remove.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -83893,6 +84059,12 @@ Object.defineProperty(exports, "animate", {
   enumerable: true,
   get: function () {
     return _animate.default;
+  }
+});
+Object.defineProperty(exports, "ToggleHelper", {
+  enumerable: true,
+  get: function () {
+    return _toggle.default;
   }
 });
 Object.defineProperty(exports, "loadImage", {
@@ -83967,6 +84139,8 @@ var _stage = _interopRequireDefault(require("./pixi/stage"));
 
 var _detatchedContainer = _interopRequireDefault(require("./pixi/detatched-container"));
 
+var _toggle = _interopRequireDefault(require("./animation/toggle"));
+
 var _loadImage = _interopRequireDefault(require("./animation/resources/loadImage"));
 
 var _eventEmitter = require("./common/event-emitter");
@@ -83996,7 +84170,7 @@ var PIXI = _objectSpread(_objectSpread({}, _lib.PIXI), {}, {
 
 
 exports.PIXI = PIXI;
-},{"@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","./pixi/lib":"pixi/lib.js","./pixi/utils/skip-hello":"pixi/utils/skip-hello.js","./animation":"animation/index.js","./animate":"animate/index.js","./pixi/responsive":"pixi/responsive.js","./pixi/stage":"pixi/stage.js","./pixi/detatched-container":"pixi/detatched-container.js","./animation/resources/loadImage":"animation/resources/loadImage.js","./common/event-emitter":"common/event-emitter.js","./pixi/utils/get-bounds-of-role":"pixi/utils/get-bounds-of-role.js","./pixi/utils/find-objects-of-role":"pixi/utils/find-objects-of-role.js","./pixi/utils/animated-sprite":"pixi/utils/animated-sprite.js","./utils/graphics":"utils/graphics.js","./pixi/utils/remove":"pixi/utils/remove.js"}]},{},["index.js"], null)
+},{"@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","./pixi/lib":"pixi/lib.js","./pixi/utils/skip-hello":"pixi/utils/skip-hello.js","./animation":"animation/index.js","./animate":"animate/index.js","./pixi/responsive":"pixi/responsive.js","./pixi/stage":"pixi/stage.js","./pixi/detatched-container":"pixi/detatched-container.js","./animation/toggle":"animation/toggle.js","./animation/resources/loadImage":"animation/resources/loadImage.js","./common/event-emitter":"common/event-emitter.js","./pixi/utils/get-bounds-of-role":"pixi/utils/get-bounds-of-role.js","./pixi/utils/find-objects-of-role":"pixi/utils/find-objects-of-role.js","./pixi/utils/animated-sprite":"pixi/utils/animated-sprite.js","./utils/graphics":"utils/graphics.js","./pixi/utils/remove":"pixi/utils/remove.js"}]},{},["index.js"], null)
 
 },{"buffer":"../node_modules/buffer/index.js"}],"utils/index.js":[function(require,module,exports) {
 "use strict";
@@ -88695,6 +88869,12 @@ var _nitro = _interopRequireDefault(require("../../components/nitro"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -88723,6 +88903,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
     _this = _super.call.apply(_super, [this].concat(args));
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "state", {});
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "layers", {});
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "toggle", new _ntAnimator.ToggleHelper());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "stopProgressAnimation", function () {
       if (!_this._progress) return;
 
@@ -88998,7 +89179,14 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
 
 
                 if (trail) {
-                  layers.trail = trail; // TODO: trail scaling is hardcoded - we should
+                  layers.trail = trail; // NOTE: support for removing natural inbuilt trails
+                  // since there's a trail, remove any "natural" trails
+                  // that are part of the car itself
+                  // const trails = findDisplayObjectsOfRole(this, 'trail')
+                  // for (const obj of trails) {
+                  // 	removeDisplayObject(obj)
+                  // }
+                  // TODO: trail scaling is hardcoded - we should
                   // calculate this value
 
                   trail.attachTo(this, scale.x * _config.TRAIL_SCALE); // update the position of each
@@ -89050,7 +89238,35 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
       }
 
       return _assemble;
-    }()
+    }() // maps all toggles for this player, if any
+
+  }, {
+    key: "_assignToggles",
+    value: function _assignToggles() {
+      var objs = (0, _ntAnimator.findDisplayObjectsOfRole)(this, 'with-toggles'); // for each of the objects, save their toggle
+
+      var _iterator = _createForOfIteratorHelper(objs),
+          _step;
+
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var _obj$config;
+
+          var obj = _step.value;
+          var toggles = (_obj$config = obj.config) === null || _obj$config === void 0 ? void 0 : _obj$config.toggles;
+
+          if (toggles) {
+            for (var state in toggles) {
+              this.toggle.add(state, obj, toggles[state]);
+            }
+          }
+        }
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
+    }
   }, {
     key: "repaintCar",
     value: function repaintCar(hue) {
@@ -89178,7 +89394,10 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                 return instance._assemble.apply(instance, (0, _toConsumableArray2.default)(resolved));
 
               case 12:
-                // put the player in the correct lane
+                // after the instance is created, find all toggles
+                instance._assignToggles(); // put the player in the correct lane
+
+
                 instance.relativeY = _scaling.LANES[options.lane];
                 instance.relativeX = 0;
                 instance.zIndex = options.lane; // make sure there's a player ID
@@ -89186,7 +89405,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                 instance.id = options.id || "player_".concat(+new Date());
                 return _context6.abrupt("return", instance);
 
-              case 17:
+              case 18:
               case "end":
                 return _context6.stop();
             }
@@ -96573,6 +96792,8 @@ var CarEntryAnimation = /*#__PURE__*/function (_Animation) {
           return updateEntry(props);
         },
         complete: function complete() {
+          // set to idle
+          player.toggle.activate('idle');
           disposeViewStateWatcher();
 
           _complete();
@@ -98712,8 +98933,23 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
       if (countdown) countdown.finish(); // change the ambience
 
-      _this.track.setAmbience('race'); // start movement
+      _this.track.setAmbience('race'); // toggle all start animations
 
+
+      var _iterator3 = _createForOfIteratorHelper(_this.players),
+          _step3;
+
+      try {
+        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+          var player = _step3.value;
+          player.toggle.activate('moving');
+        } // start movement
+
+      } catch (err) {
+        _iterator3.e(err);
+      } finally {
+        _iterator3.f();
+      }
 
       state.animateTrackMovement = true;
       state.trackMovementAmount = _config.TRACK_ACCELERATION_RATE;

@@ -1,5 +1,5 @@
 
-import { PIXI, removeDisplayObject } from 'nt-animator';
+import { findDisplayObjectsOfRole, PIXI, removeDisplayObject, ToggleHelper } from 'nt-animator';
 
 import { LANES, SCALED_CAR_HEIGHT, SCALED_NAMECARD_HEIGHT } from './scaling';
 import { NITRO_SCALE, NITRO_OFFSET_Y, TRAIL_SCALE, NAMECARD_TETHER_DISTANCE } from '../../config';
@@ -19,6 +19,9 @@ export default class Player extends PIXI.ResponsiveContainer {
 
 	// layers that comprise a player
 	layers = { }
+
+	// toggle states
+	toggle = new ToggleHelper()
 
 	/** the players car layer */
 	get car() {
@@ -65,6 +68,9 @@ export default class Player extends PIXI.ResponsiveContainer {
 		// wait for the result
 		const resolved = await Promise.all([ car, trail, nitro, namecard ]);
 		await instance._assemble(...resolved);
+
+		// after the instance is created, find all toggles
+		instance._assignToggles()
 
 		// put the player in the correct lane
 		instance.relativeY = LANES[options.lane];
@@ -173,6 +179,14 @@ export default class Player extends PIXI.ResponsiveContainer {
 		if (trail) {
 			layers.trail = trail;
 
+			// NOTE: support for removing natural inbuilt trails
+			// since there's a trail, remove any "natural" trails
+			// that are part of the car itself
+			// const trails = findDisplayObjectsOfRole(this, 'trail')
+			// for (const obj of trails) {
+			// 	removeDisplayObject(obj)
+			// }
+
 			// TODO: trail scaling is hardcoded - we should
 			// calculate this value
 			trail.attachTo(this, scale.x * TRAIL_SCALE);
@@ -213,6 +227,21 @@ export default class Player extends PIXI.ResponsiveContainer {
 
 		// finalize order
 		this.sortChildren();
+	}
+
+	// maps all toggles for this player, if any
+	_assignToggles() { 
+		const objs = findDisplayObjectsOfRole(this, 'with-toggles')
+		
+		// for each of the objects, save their toggle
+		for (const obj of objs) {
+			const toggles = obj.config?.toggles
+			if (toggles) {
+				for (const state in toggles) {
+					this.toggle.add(state, obj, toggles[state])
+				}
+			}
+		}
 	}
 
 	repaintCar (hue) {

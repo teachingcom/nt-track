@@ -60,6 +60,10 @@ export default class CarEntryAnimation extends Animation {
 			loop: false,
 			update: props => updateEntry(props),
 			complete: () => {
+
+				// set to idle
+				player.toggle.activate('idle')
+
 				disposeViewStateWatcher();
 				complete();
 			}

@@ -11,7 +11,7 @@
   "license": "GPL-3.0-or-later",
   "peerDependencies": {
     "animejs": "^3.2.0",
-    "nt-animator": "https://github.com/teachingcom/nt-animator",
+    "nt-animator": "ssh://git@github.com:/teachingcom/nt-animator",
     "pixi-particles": "^4.2.0"
   },
   "dependencies": {
