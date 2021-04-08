@@ -85608,8 +85608,7 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
                   transparent: transparent,
                   clearBeforeRender: clearBeforeRender,
                   backgroundColor: backgroundColor
-                };
-                console.log('create with', this.config); // start with a canvas renderer
+                }; // start with a canvas renderer
 
                 createCanvasRenderer(this);
                 renderer = this.canvasRenderer; // create WebGL, if supported
@@ -85657,7 +85656,7 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
                   });
                 }
 
-              case 30:
+              case 29:
               case "end":
                 return _context.stop();
             }
@@ -87885,7 +87884,14 @@ var Trail = /*#__PURE__*/function (_PIXI$DetatchedContai) {
   (0, _createClass2.default)(Trail, [{
     key: "syncToCar",
     // syncs a trail position to a car
-    value: function syncToCar(car) {} // start creating loot
+    value: function syncToCar(car) {}
+  }, {
+    key: "alignTo",
+    value: function alignTo(car, position) {
+      this.each(function (part) {
+        part.x = car.positions[position] * car.pivot.x;
+      });
+    } // start creating loot
 
   }, {
     key: "_initTrail",
@@ -99611,7 +99617,7 @@ var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/creat
 
 var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
 
-var _get2 = _interopRequireDefault(require("@babel/runtime/helpers/get"));
+var _get3 = _interopRequireDefault(require("@babel/runtime/helpers/get"));
 
 var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
 
@@ -99631,6 +99637,8 @@ var _utils = require("../../utils");
 
 var _activity = _interopRequireDefault(require("../../components/activity"));
 
+var _trail = _interopRequireDefault(require("../../components/trail"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
@@ -99644,6 +99652,8 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 var DEFAULT_MAX_HEIGHT = 250;
 var EFFECTS_PADDING_SCALING = 0.7;
 var TRANSITION_TIME = 350;
+var TARGET_X_WITHOUT_TRAIL = 0.5;
+var TARGET_X_WITH_TRAIL = TARGET_X_WITHOUT_TRAIL - 0.1;
 
 var GarageView = /*#__PURE__*/function (_BaseView) {
   (0, _inherits2.default)(GarageView, _BaseView);
@@ -99660,11 +99670,44 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
     }
 
     _this = _super.call.apply(_super, [this].concat(args));
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "preferredFocusX", 0.5);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "focusX", 0.5);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "loader", (0, _activity.default)({
       size: 120,
       opacity: 0.5,
       thickness: 10
     }));
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setupInspectionMode", function (options) {
+      var container = options.container; // when not moused over, try and focus the
+      // view on the normal center
+
+      container.addEventListener('mouseleave', function () {
+        _this.preferredFocusX = 0.5;
+      });
+      container.addEventListener('mousemove', function (event) {
+        return _this.setFocus(event.layerX);
+      });
+      container.addEventListener('touchmove', function (event) {
+        return _this.setFocus(container.offsetWidth - event.layerX);
+      });
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setFocus", function (x) {
+      var _this$car;
+
+      var container = _this.options.container; // if this car doesn't have a trail, then there's
+      // no reason to adjust the view
+
+      if (!((_this$car = _this.car) === null || _this$car === void 0 ? void 0 : _this$car.hasTrail)) {
+        _this.preferredFocusX = 0.5;
+        return;
+      } // Focus on the hovered portion of the screen. Don't use
+      // exactly 50% since the front is not as important
+      // be able to look at
+
+
+      var percent = x / (container.offsetWidth / 2) - 0.4;
+      _this.preferredFocusX = percent * container.offsetWidth * 0.3;
+    });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "updateCar", /*#__PURE__*/function () {
       var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(config) {
         var previous;
@@ -99780,8 +99823,9 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 if (hasActiveCar) {
                   entryAction = driveIn;
                 } else {
-                  entryAction = fadeIn;
-                  car.relativeX = 0.5;
+                  entryAction = fadeIn; // set starting position
+
+                  car.relativeX = car.hasTrail ? TARGET_X_WITH_TRAIL : TARGET_X_WITHOUT_TRAIL;
                 } // display the car
 
 
@@ -99813,7 +99857,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
     }());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "createCar", /*#__PURE__*/function () {
       var _ref4 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(config) {
-        var view, _this$options$tweaks, tweaks, container, car, bounds, display, target, scale;
+        var view, _this$options$tweaks, tweaks, container, car, bounds, display, target, scale, trail;
 
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
@@ -99853,10 +99897,34 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 car.pivot.x = 0.5;
                 car.pivot.y = 0.5;
                 car.scale.x = scale;
-                car.scale.y = scale; // setup the container
+                car.scale.y = scale; // include the trail, if any
 
-                container.relativeX = 0.5;
+                if (!config.trail) {
+                  _context4.next = 22;
+                  break;
+                }
+
+                _context4.next = 18;
+                return _trail.default.create(_objectSpread(_objectSpread({
+                  view: view
+                }, config), {}, {
+                  baseHeight: DEFAULT_MAX_HEIGHT,
+                  type: config.trail
+                }));
+
+              case 18:
+                trail = _context4.sent;
+                // add to the view
+                trail.attachTo(car);
+                trail.alignTo(car, 'back'); // mark so it knows to make
+                // additional room for the trail
+
+                container.hasTrail = true;
+
+              case 22:
+                // setup the container
                 container.relativeY = 0.5;
+                container.relativeX = 0.5;
                 container.rotation = Math.PI; // car shadow fixes
 
                 if ((0, _utils.isNumber)(tweaks.rotation)) {
@@ -99865,7 +99933,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
                 return _context4.abrupt("return", container);
 
-              case 20:
+              case 27:
               case "end":
                 return _context4.stop();
             }
@@ -99889,7 +99957,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
             switch (_context5.prev = _context5.next) {
               case 0:
                 _context5.next = 2;
-                return (0, _get2.default)((0, _getPrototypeOf2.default)(GarageView.prototype), "init", this).call(this, _objectSpread({
+                return (0, _get3.default)((0, _getPrototypeOf2.default)(GarageView.prototype), "init", this).call(this, _objectSpread({
                   scale: {
                     DEFAULT_MAX_HEIGHT: DEFAULT_MAX_HEIGHT
                   },
@@ -99900,11 +99968,16 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
               case 2:
                 // center the loader in the view
                 this.loader.relativeX = this.loader.relativeY = 0.5;
-                this.stage.addChild(this.loader); // automatically render
+                this.stage.addChild(this.loader); // special mode for inspecting cars
+
+                this.isInspectMode = options.mode === 'inspect'; // if (this.isInspectMode) {
+
+                this.setupInspectionMode(options); // }
+                // automatically render
 
                 this.startAutoRender();
 
-              case 5:
+              case 7:
               case "end":
                 return _context5.stop();
             }
@@ -99920,6 +99993,22 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
     }() // shows an animated car entrance
 
   }, {
+    key: "render",
+    // align the stage as required
+    value: function render() {
+      var _get2;
+
+      if (this.isInspectMode) {
+        this.stage.pivot.x += (this.preferredFocusX - this.stage.pivot.x) * 0.1;
+      }
+
+      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+
+      (_get2 = (0, _get3.default)((0, _getPrototypeOf2.default)(GarageView.prototype), "render", this)).call.apply(_get2, [this].concat(args));
+    }
+  }, {
     key: "useDrivingEffect",
     get: function get() {
       return this.options.useDrivingEffect !== false;
@@ -99929,8 +100018,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
     key: "hasActiveCar",
     get: function get() {
       return !!this.car;
-    } // updates the view
-
+    }
   }]);
   return GarageView;
 }(_base.BaseView);
@@ -99976,6 +100064,7 @@ function driveOut(car) {
 
 function driveIn(car) {
   car.relativeX = -1.5;
+  var x = car.hasTrail ? TARGET_X_WITH_TRAIL : TARGET_X_WITHOUT_TRAIL;
   car.__transition = (0, _ntAnimator.animate)({
     duration: TRANSITION_TIME,
     ease: 'linear',
@@ -99983,7 +100072,7 @@ function driveIn(car) {
       x: 1.5
     },
     to: {
-      x: 0.5
+      x: x
     },
     loop: false,
     update: function update(props) {
@@ -100041,7 +100130,7 @@ function fadeIn(target) {
     }
   });
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/car":"components/car/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../utils":"utils/index.js","../../components/activity":"components/activity.js"}],"views/preview/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/car":"components/car/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../utils":"utils/index.js","../../components/activity":"components/activity.js","../../components/trail":"components/trail/index.js"}],"views/preview/index.js":[function(require,module,exports) {
 
 },{}],"components/treadmill.js":[function(require,module,exports) {
 "use strict";
@@ -101405,49 +101494,79 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
     key: "_initTrailPreview",
     value: function () {
       var _initTrailPreview2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
-        var bumper, trail, bg, contain;
+        var _this$options, getCarUrl, playerCar, bumper, url, img, back, texture, trail, bg, contain;
+
         return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
-                _context3.next = 2;
+                _this$options = this.options, getCarUrl = _this$options.getCarUrl, playerCar = _this$options.playerCar; // load the user car
+
+                if (!playerCar) {
+                  _context3.next = 15;
+                  break;
+                }
+
+                url = getCarUrl(playerCar.id, true, playerCar.hue);
+                _context3.next = 5;
+                return (0, _ntAnimator.loadImage)(url);
+
+              case 5:
+                img = _context3.sent;
+                back = createBumper(img); // load all assets used
+
+                texture = _ntAnimator.PIXI.Texture.from(back);
+                bumper = new _ntAnimator.PIXI.Sprite(texture); // align for car images
+
+                bumper.rotation = Math.PI;
+                bumper.scale.x = bumper.scale.y = 1.5;
+                bumper.pivot.x = bumper.width / 1.5 * 0.95;
+                bumper.pivot.y = bumper.height / 1.5 * 0.5;
+                _context3.next = 21;
+                break;
+
+              case 15:
+                _context3.next = 17;
                 return this.animator.getSprite('extras/shop', 'car_tail');
 
-              case 2:
+              case 17:
                 bumper = _context3.sent;
-                _context3.next = 5;
+                // align for the false car
+                bumper.pivot.x = bumper.width * 0.05;
+                bumper.pivot.y = bumper.height * 0.5;
+                bumper.scale.x = bumper.scale.y = 0.7;
+
+              case 21:
+                _context3.next = 23;
                 return _trail.default.create({
                   view: this,
                   baseHeight: this.preferredHeight,
                   type: this.options.path
                 });
 
-              case 5:
+              case 23:
                 trail = _context3.sent;
                 // setup the main container
                 this.container.scale.x = this.container.scale.y = this.options.scale || 1;
-                this.container.relativeX = 0.7; // align the number
-
-                bumper.pivot.x = bumper.width * 0.05;
-                bumper.pivot.y = bumper.height * 0.5; // set the position for the faded background
+                this.container.relativeX = 0.75; // set the position for the faded background
                 // to help the trails stand out more
 
                 if (this.options.hideBackground) {
-                  _context3.next = 18;
+                  _context3.next = 34;
                   break;
                 }
 
-                _context3.next = 13;
+                _context3.next = 29;
                 return this.animator.getSprite('extras/shop', 'asset_bg');
 
-              case 13:
+              case 29:
                 bg = _context3.sent;
                 bg.pivot.x = bg.width;
                 bg.pivot.y = bg.height * 0.5;
                 bg.alpha = 0.66;
-                bg.x = bg.width * 0.25;
+                bg.x = bg.width * 0.2;
 
-              case 18:
+              case 34:
                 // since we're using the trail class for the trail
                 // we need a shared container to help make sure
                 // the trail lines up correctly using the 
@@ -101462,7 +101581,7 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
 
                 this.container.addChild(contain);
 
-              case 23:
+              case 39:
               case "end":
                 return _context3.stop();
             }
@@ -101501,9 +101620,37 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
 
   }]);
   return AnimationView;
-}(_base.BaseView);
+}(_base.BaseView); // creates a car bumper from the provided image
+
 
 exports.default = AnimationView;
+var cache = {};
+
+function createBumper(img) {
+  if (cache[img.src]) {
+    return cache[img.src];
+  } // create the drawing surface
+
+
+  var fade = (0, _ntAnimator.createContext)();
+  var height = img.height;
+  var width = 80; // match the preferred size
+
+  fade.resize(width, height); // create a faded gradient to hide the rest of the car
+
+  var gradient = fade.ctx.createLinearGradient(0, 0, width, 0);
+  gradient.addColorStop(0, 'rgba(0,0,0,0)');
+  gradient.addColorStop(0.25, 'rgba(0,0,0,1)');
+  gradient.addColorStop(1, 'rgba(0,0,0,1)'); // draw the faded bumper
+
+  fade.ctx.fillStyle = gradient;
+  fade.ctx.fillRect(0, 0, width, height);
+  fade.ctx.globalCompositeOperation = 'source-in';
+  fade.ctx.drawImage(img, width - img.width, 0); // give back the faded version
+
+  cache[img.src] = fade.canvas;
+  return fade.canvas;
+}
 },{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../components/trail":"components/trail/index.js","../base":"views/base.js"}],"index.js":[function(require,module,exports) {
 "use strict";
 

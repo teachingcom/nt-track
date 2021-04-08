@@ -34,6 +34,12 @@ export default class Trail extends PIXI.DetatchedContainer {
 
   }
 
+  alignTo(car, position) {
+    this.each(part => {
+      part.x = car.positions[position] * car.pivot.x
+    });
+  }
+
   // start creating loot
   async _initTrail () {
     const { view, options } = this

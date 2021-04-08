@@ -59,9 +59,6 @@ export class BaseView extends EventEmitter {
 			backgroundColor
 		};
 
-
-		console.log('create with', this.config)
-
 		// start with a canvas renderer
 		createCanvasRenderer(this);
 		let renderer = this.canvasRenderer;

@@ -3,12 +3,18 @@ import { animate, getBoundsForRole, PIXI } from 'nt-animator';
 import { BaseView } from '../base';
 import { isNumber, wait } from '../../utils';
 import createActivityIndicator from '../../components/activity';
+import Trail from "../../components/trail";
 
 const DEFAULT_MAX_HEIGHT = 250;
 const EFFECTS_PADDING_SCALING = 0.7;
 const TRANSITION_TIME = 350;
+const TARGET_X_WITHOUT_TRAIL = 0.5
+const TARGET_X_WITH_TRAIL = TARGET_X_WITHOUT_TRAIL - 0.1
 
 export default class GarageView extends BaseView {
+
+	preferredFocusX = 0.5
+	focusX = 0.5
 
 	loader = createActivityIndicator({ size: 120, opacity: 0.5, thickness: 10 });
 	
@@ -26,6 +32,12 @@ export default class GarageView extends BaseView {
 		this.loader.relativeX = this.loader.relativeY = 0.5;
 		this.stage.addChild(this.loader);
 
+		// special mode for inspecting cars
+		this.isInspectMode = options.mode === 'inspect'
+		// if (this.isInspectMode) {
+			this.setupInspectionMode(options)
+		// }
+
 		// automatically render
 		this.startAutoRender();
 	}
@@ -38,6 +50,37 @@ export default class GarageView extends BaseView {
 	// checks if a car has been assigned
 	get hasActiveCar() {
 		return !!this.car;
+	}
+
+	setupInspectionMode = (options) => {
+		const { container } = options
+
+		// when not moused over, try and focus the
+		// view on the normal center
+		container.addEventListener('mouseleave', () => {
+			this.preferredFocusX = 0.5
+		});
+		
+		container.addEventListener('mousemove', event => this.setFocus(event.layerX));
+		container.addEventListener('touchmove', event => this.setFocus(container.offsetWidth - event.layerX));
+	}
+
+	// refocuses the view to the point provided
+	setFocus = x => {
+		const { container } = this.options
+
+		// if this car doesn't have a trail, then there's
+		// no reason to adjust the view
+		if (!this.car?.hasTrail) {
+			this.preferredFocusX = 0.5
+			return
+		}
+
+		// Focus on the hovered portion of the screen. Don't use
+		// exactly 50% since the front is not as important
+		// be able to look at
+		const percent = (x / (container.offsetWidth / 2)) - 0.4
+		this.preferredFocusX = (percent * container.offsetWidth) * 0.3
 	}
 
 	// updates the view
@@ -104,7 +147,11 @@ export default class GarageView extends BaseView {
 			entryAction = driveIn
 		} else {
 			entryAction = fadeIn
-			car.relativeX = 0.5
+
+			// set starting position
+			car.relativeX = car.hasTrail
+				? TARGET_X_WITH_TRAIL
+				: TARGET_X_WITHOUT_TRAIL
 		}
 		
 		// display the car
@@ -155,10 +202,28 @@ export default class GarageView extends BaseView {
 		car.pivot.y = 0.5;
 		car.scale.x = scale;
 		car.scale.y = scale;
+
+		// include the trail, if any
+		if (config.trail) {
+			const trail = await Trail.create({
+				view,
+				...config,
+				baseHeight: DEFAULT_MAX_HEIGHT,
+				type: config.trail
+			})
+
+			// add to the view
+			trail.attachTo(car)
+			trail.alignTo(car, 'back')
+
+			// mark so it knows to make
+			// additional room for the trail
+			container.hasTrail = true
+		}
 		
 		// setup the container
-		container.relativeX = 0.5;
 		container.relativeY = 0.5;
+		container.relativeX = 0.5;
 		container.rotation = Math.PI;
 
 		// car shadow fixes
@@ -167,6 +232,15 @@ export default class GarageView extends BaseView {
 		}
 
 		return container;
+	}
+
+	// align the stage as required
+	render(...args) {
+		if (this.isInspectMode) {
+			this.stage.pivot.x += (this.preferredFocusX - this.stage.pivot.x) * 0.1
+		}
+
+		super.render(...args);
 	}
 
 }
@@ -204,11 +278,13 @@ function driveOut(car) {
 
 function driveIn(car) {
 	car.relativeX = -1.5;
+	const x = car.hasTrail ? TARGET_X_WITH_TRAIL : TARGET_X_WITHOUT_TRAIL
+
 	car.__transition = animate({
 		duration: TRANSITION_TIME,
 		ease: 'linear',
 		from: { x: 1.5 },
-		to: { x: 0.5 },
+		to: { x },
 		loop: false,
 		update: props => car.relativeX = props.x
 	});

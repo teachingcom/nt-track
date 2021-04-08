@@ -1,4 +1,4 @@
-import { PIXI, removeDisplayObject } from 'nt-animator'
+import { createContext, loadImage, PIXI, removeDisplayObject } from 'nt-animator'
 import Trail from '../../components/trail'
 import { BaseView } from '../base'
 
@@ -61,9 +61,37 @@ export default class AnimationView extends BaseView {
 	// trails are shifted over and a fake car
 	// bumper is shown behind it
 	async _initTrailPreview() {
+		const { getCarUrl, playerCar } = this.options
 
-		// load all assets used
-		const bumper = await this.animator.getSprite('extras/shop', 'car_tail')
+		// load the user car
+		let bumper
+		if (playerCar) {
+			const url = getCarUrl(playerCar.id, true, playerCar.hue)
+			const img = await loadImage(url)
+			const back = createBumper(img)
+			
+			// load all assets used
+			const texture = PIXI.Texture.from(back)
+			bumper = new PIXI.Sprite(texture)
+
+			// align for car images
+			bumper.rotation = Math.PI
+			bumper.scale.x = bumper.scale.y = 1.5
+			bumper.pivot.x = (bumper.width / 1.5) * 0.95
+			bumper.pivot.y = (bumper.height / 1.5) * 0.5
+		}
+		// without a player car, create a false car
+		else {
+			bumper = await this.animator.getSprite('extras/shop', 'car_tail')
+			
+			// align for the false car
+			bumper.pivot.x = bumper.width * 0.05
+			bumper.pivot.y = bumper.height * 0.5
+			bumper.scale.x = bumper.scale.y = 0.7
+		}
+		
+
+		// create the trail
 		const trail = await Trail.create({
 			view: this,
 			baseHeight: this.preferredHeight,
@@ -72,11 +100,7 @@ export default class AnimationView extends BaseView {
 
 		// setup the main container
 		this.container.scale.x = this.container.scale.y = this.options.scale || 1
-		this.container.relativeX = 0.7
-
-		// align the number
-		bumper.pivot.x = bumper.width * 0.05
-		bumper.pivot.y = bumper.height * 0.5
+		this.container.relativeX = 0.75
 
 		// set the position for the faded background
 		// to help the trails stand out more
@@ -86,7 +110,7 @@ export default class AnimationView extends BaseView {
 			bg.pivot.x = bg.width
 			bg.pivot.y = bg.height * 0.5
 			bg.alpha = 0.66
-			bg.x = bg.width * 0.25
+			bg.x = bg.width * 0.2
 		}
 
 		// since we're using the trail class for the trail
@@ -118,4 +142,37 @@ export default class AnimationView extends BaseView {
 		removeDisplayObject(this.obj);
   }
   
+}
+
+
+// creates a car bumper from the provided image
+const cache = { }
+function createBumper(img) {
+	if (cache[img.src]) {
+		return cache[img.src]
+	}
+	
+	// create the drawing surface
+	const fade = createContext()
+	const { height } = img
+	const width = 80
+
+	// match the preferred size
+	fade.resize(width, height)
+	
+	// create a faded gradient to hide the rest of the car
+	const gradient = fade.ctx.createLinearGradient(0, 0, width, 0)
+	gradient.addColorStop(0, 'rgba(0,0,0,0)')
+	gradient.addColorStop(0.25, 'rgba(0,0,0,1)')
+	gradient.addColorStop(1, 'rgba(0,0,0,1)')
+	
+	// draw the faded bumper
+	fade.ctx.fillStyle = gradient
+	fade.ctx.fillRect(0, 0, width, height)
+	fade.ctx.globalCompositeOperation = 'source-in'
+	fade.ctx.drawImage(img, width - img.width, 0)
+
+	// give back the faded version
+	cache[img.src] = fade.canvas
+	return fade.canvas
 }
