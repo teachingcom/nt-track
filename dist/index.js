@@ -99641,6 +99641,12 @@ var _trail = _interopRequireDefault(require("../../components/trail"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -99716,9 +99722,9 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
             switch (_context.prev = _context.next) {
               case 0:
                 previous = _this.config;
-                _this.config = config; // change the car
+                _this.config = config; // check for reasons to reload the car
 
-                if ((previous === null || previous === void 0 ? void 0 : previous.type) !== config.type) {
+                if ((previous === null || previous === void 0 ? void 0 : previous.type) !== config.type || (previous === null || previous === void 0 ? void 0 : previous.trail) !== config.trail) {
                   _this.setCar(_this.config);
                 } // repaint the view
                 else if ((previous === null || previous === void 0 ? void 0 : previous.hue) !== config.hue) {
@@ -99857,7 +99863,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
     }());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "createCar", /*#__PURE__*/function () {
       var _ref4 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(config) {
-        var view, _this$options$tweaks, tweaks, container, car, bounds, display, target, scale, trail;
+        var view, _this$options$tweaks, tweaks, container, car, bounds, display, target, scale, trail, _this$options$contain, offsetWidth, offsetHeight, reversed, _iterator, _step, _obj$config$reverse, obj;
 
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
@@ -99893,18 +99899,17 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 target = display.height;
                 scale = target / bounds.height * EFFECTS_PADDING_SCALING; // setup the car
 
-                container.addChild(car);
                 car.pivot.x = 0.5;
                 car.pivot.y = 0.5;
                 car.scale.x = scale;
                 car.scale.y = scale; // include the trail, if any
 
                 if (!config.trail) {
-                  _context4.next = 22;
+                  _context4.next = 27;
                   break;
                 }
 
-                _context4.next = 18;
+                _context4.next = 17;
                 return _trail.default.create(_objectSpread(_objectSpread({
                   view: view
                 }, config), {}, {
@@ -99912,17 +99917,41 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                   type: config.trail
                 }));
 
-              case 18:
+              case 17:
                 trail = _context4.sent;
-                // add to the view
+                // include the backdrop
+                _this$options$contain = _this.options.container, offsetWidth = _this$options$contain.offsetWidth, offsetHeight = _this$options$contain.offsetHeight;
+                _this.backdrop = createTrailBackdrop(offsetWidth, offsetHeight);
+                container.addChild(_this.backdrop); // add to the view
+
                 trail.attachTo(car);
-                trail.alignTo(car, 'back'); // mark so it knows to make
-                // additional room for the trail
+                trail.alignTo(car, 'back'); // check for specials
+
+                reversed = (0, _ntAnimator.findDisplayObjectsOfRole)(car, 'reversable');
+                _iterator = _createForOfIteratorHelper(reversed);
+
+                try {
+                  for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                    obj = _step.value;
+
+                    // add more props as required
+                    if ((_obj$config$reverse = obj.config.reverse) === null || _obj$config$reverse === void 0 ? void 0 : _obj$config$reverse.flipY) {
+                      obj.scale.y *= -1;
+                    }
+                  } // mark so it knows to make
+                  // additional room for the trail
+
+                } catch (err) {
+                  _iterator.e(err);
+                } finally {
+                  _iterator.f();
+                }
 
                 container.hasTrail = true;
 
-              case 22:
+              case 27:
                 // setup the container
+                container.addChild(car);
                 container.relativeY = 0.5;
                 container.relativeX = 0.5;
                 container.rotation = Math.PI; // car shadow fixes
@@ -99933,7 +99962,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
                 return _context4.abrupt("return", container);
 
-              case 27:
+              case 33:
               case "end":
                 return _context4.stop();
             }
@@ -99962,7 +99991,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                     DEFAULT_MAX_HEIGHT: DEFAULT_MAX_HEIGHT
                   },
                   useDynamicPerformance: false,
-                  forceCanvas: true
+                  forceCanvas: !options.useWebGL
                 }, options));
 
               case 2:
@@ -99970,10 +99999,12 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 this.loader.relativeX = this.loader.relativeY = 0.5;
                 this.stage.addChild(this.loader); // special mode for inspecting cars
 
-                this.isInspectMode = options.mode === 'inspect'; // if (this.isInspectMode) {
+                this.isInspectMode = options.mode === 'inspect';
 
-                this.setupInspectionMode(options); // }
-                // automatically render
+                if (this.isInspectMode) {
+                  this.setupInspectionMode(options);
+                } // automatically render
+
 
                 this.startAutoRender();
 
@@ -100129,6 +100160,29 @@ function fadeIn(target) {
       return target.alpha = props.alpha;
     }
   });
+}
+
+function createTrailBackdrop(width, height) {
+  var backdrop = (0, _ntAnimator.createContext)();
+  backdrop.resize(width, height); // create the gradient pattern
+
+  var center = width / 2;
+  var gradient = backdrop.ctx.createRadialGradient(center, center, center / 2, center, center, center);
+  gradient.addColorStop(0, '#999999');
+  gradient.addColorStop(1, '#ffffff'); // fill the view
+
+  backdrop.ctx.scale(1, height / width);
+  backdrop.ctx.fillStyle = gradient;
+  backdrop.ctx.fillRect(0, 0, width, width); // create the PIXi object
+
+  var texture = _ntAnimator.PIXI.Texture.from(backdrop.canvas);
+
+  var sprite = new _ntAnimator.PIXI.Sprite(texture);
+  sprite.scale.x = 2;
+  sprite.scale.y = 1.3;
+  sprite.pivot.x = width * 0.75;
+  sprite.pivot.y = height * 0.5;
+  return sprite;
 }
 },{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/car":"components/car/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../utils":"utils/index.js","../../components/activity":"components/activity.js","../../components/trail":"components/trail/index.js"}],"views/preview/index.js":[function(require,module,exports) {
 

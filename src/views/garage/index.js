@@ -1,5 +1,5 @@
 import Car from "../../components/car";
-import { animate, getBoundsForRole, PIXI } from 'nt-animator';
+import { animate, createContext, findDisplayObjectsOfRole, getBoundsForRole, PIXI } from 'nt-animator';
 import { BaseView } from '../base';
 import { isNumber, wait } from '../../utils';
 import createActivityIndicator from '../../components/activity';
@@ -24,7 +24,7 @@ export default class GarageView extends BaseView {
 		await super.init({
 			scale: { DEFAULT_MAX_HEIGHT },
 			useDynamicPerformance: false,
-			forceCanvas: true,
+			forceCanvas: !options.useWebGL,
 			...options
 		});
 
@@ -34,9 +34,9 @@ export default class GarageView extends BaseView {
 
 		// special mode for inspecting cars
 		this.isInspectMode = options.mode === 'inspect'
-		// if (this.isInspectMode) {
+		if (this.isInspectMode) {
 			this.setupInspectionMode(options)
-		// }
+		}
 
 		// automatically render
 		this.startAutoRender();
@@ -88,8 +88,8 @@ export default class GarageView extends BaseView {
 		const previous = this.config;
 		this.config = config;
 
-		// change the car
-		if (previous?.type !== config.type) {
+		// check for reasons to reload the car
+		if (previous?.type !== config.type || previous?.trail !== config.trail) {
 			this.setCar(this.config);
 		}
 		
@@ -197,7 +197,6 @@ export default class GarageView extends BaseView {
 		const scale = (target / bounds.height) * EFFECTS_PADDING_SCALING;
 
 		// setup the car
-		container.addChild(car);
 		car.pivot.x = 0.5;
 		car.pivot.y = 0.5;
 		car.scale.x = scale;
@@ -212,9 +211,23 @@ export default class GarageView extends BaseView {
 				type: config.trail
 			})
 
+			// include the backdrop
+			const { offsetWidth, offsetHeight } = this.options.container
+			this.backdrop = createTrailBackdrop(offsetWidth, offsetHeight)
+			container.addChild(this.backdrop)
+
 			// add to the view
 			trail.attachTo(car)
 			trail.alignTo(car, 'back')
+
+			// check for specials
+			const reversed = findDisplayObjectsOfRole(car, 'reversable')
+			for (const obj of reversed) {
+				// add more props as required
+				if (obj.config.reverse?.flipY) {
+					obj.scale.y *= -1
+				}
+			}
 
 			// mark so it knows to make
 			// additional room for the trail
@@ -222,6 +235,7 @@ export default class GarageView extends BaseView {
 		}
 		
 		// setup the container
+		container.addChild(car);
 		container.relativeY = 0.5;
 		container.relativeX = 0.5;
 		container.rotation = Math.PI;
@@ -327,3 +341,27 @@ function fadeIn(target) {
 	});
 }
 
+function createTrailBackdrop(width, height) {
+	const backdrop = createContext()
+	backdrop.resize(width, height)
+
+	// create the gradient pattern
+	const center = width / 2
+	const gradient = backdrop.ctx.createRadialGradient(center, center, center / 2, center, center, center);
+	gradient.addColorStop(0, '#999999')
+	gradient.addColorStop(1, '#ffffff')
+
+	// fill the view
+	backdrop.ctx.scale(1, height / width)
+	backdrop.ctx.fillStyle = gradient
+	backdrop.ctx.fillRect(0, 0, width, width)
+
+	// create the PIXi object
+	const texture = PIXI.Texture.from(backdrop.canvas)
+	const sprite = new PIXI.Sprite(texture)
+	sprite.scale.x = 2
+	sprite.scale.y = 1.3
+	sprite.pivot.x = width * 0.75
+	sprite.pivot.y = height * 0.5
+	return sprite
+}

@@ -43,7 +43,6 @@ export default class AnimationView extends BaseView {
 		
 		// automatically render
     this.startAutoRender()
-    
   }
 
   // creates the rolling track
