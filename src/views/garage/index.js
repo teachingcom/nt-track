@@ -4,6 +4,7 @@ import { BaseView } from '../base';
 import { isNumber, wait } from '../../utils';
 import createActivityIndicator from '../../components/activity';
 import Trail from "../../components/trail";
+import { toRGB } from "../../utils/color";
 
 const DEFAULT_MAX_HEIGHT = 250;
 const EFFECTS_PADDING_SCALING = 0.7;
@@ -171,7 +172,7 @@ export default class GarageView extends BaseView {
 	// creates a new car instance
 	createCar = async config => {
 		const view = this;
-		const { tweaks = { } } = this.options;
+		const { tweaks = { }, backgroundColor = 0xffffff } = this.options;
 
 		// create the new car
 		const container = new PIXI.ResponsiveContainer();
@@ -202,6 +203,12 @@ export default class GarageView extends BaseView {
 		car.scale.x = scale;
 		car.scale.y = scale;
 
+		// create the trail backdrop, if needed
+		if (this.isInspectMode) {
+			const backdrop = createBackdrop(display, backgroundColor, config.trail)
+			container.addChild(backdrop)
+		}
+
 		// include the trail, if any
 		if (config.trail) {
 			const trail = await Trail.create({
@@ -210,11 +217,6 @@ export default class GarageView extends BaseView {
 				baseHeight: DEFAULT_MAX_HEIGHT,
 				type: config.trail
 			})
-
-			// include the backdrop
-			const { offsetWidth, offsetHeight } = this.options.container
-			this.backdrop = createTrailBackdrop(offsetWidth, offsetHeight)
-			container.addChild(this.backdrop)
 
 			// add to the view
 			trail.attachTo(car)
@@ -341,27 +343,34 @@ function fadeIn(target) {
 	});
 }
 
-function createTrailBackdrop(width, height) {
+function createBackdrop(display, background, hasTrail) {
+	const { width, height } = display
+
+	// create the rendering area
 	const backdrop = createContext()
 	backdrop.resize(width, height)
 
-	// create the gradient pattern
-	const center = width / 2
-	const gradient = backdrop.ctx.createRadialGradient(center, center, center / 2, center, center, center);
-	gradient.addColorStop(0, '#999999')
-	gradient.addColorStop(1, '#ffffff')
+	// set the default fill
+	// const [ r, g, b ] = toRGB(background, false)
+	// backdrop.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`
+	// backdrop.ctx.fillRect(0, 0, width, height)
 
-	// fill the view
-	backdrop.ctx.scale(1, height / width)
-	backdrop.ctx.fillStyle = gradient
-	backdrop.ctx.fillRect(0, 0, width, width)
+	// add some bonus contrast
+	if (hasTrail) {
+		const gradient = backdrop.ctx.createLinearGradient(0, 0, 0, height);
+		gradient.addColorStop(0, 'rgba(0,0,0,0)')
+		gradient.addColorStop(0.5, 'rgba(0,0,0,0.3)')
+		gradient.addColorStop(1, 'rgba(0,0,0,0)')
+		backdrop.ctx.fillStyle = gradient
+		backdrop.ctx.fillRect(0, 0, width, height)
+	}
 
 	// create the PIXi object
 	const texture = PIXI.Texture.from(backdrop.canvas)
 	const sprite = new PIXI.Sprite(texture)
-	sprite.scale.x = 2
-	sprite.scale.y = 1.3
-	sprite.pivot.x = width * 0.75
-	sprite.pivot.y = height * 0.5
+	sprite.anchor.x = 0.5
+	sprite.anchor.y = 0.5
+	sprite.width *= 2
+
 	return sprite
 }

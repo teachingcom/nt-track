@@ -99639,6 +99639,8 @@ var _activity = _interopRequireDefault(require("../../components/activity"));
 
 var _trail = _interopRequireDefault(require("../../components/trail"));
 
+var _color = require("../../utils/color");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
@@ -99863,14 +99865,14 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
     }());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "createCar", /*#__PURE__*/function () {
       var _ref4 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(config) {
-        var view, _this$options$tweaks, tweaks, container, car, bounds, display, target, scale, trail, _this$options$contain, offsetWidth, offsetHeight, reversed, _iterator, _step, _obj$config$reverse, obj;
+        var view, _this$options, _this$options$tweaks, tweaks, _this$options$backgro, backgroundColor, container, car, bounds, display, target, scale, backdrop, trail, reversed, _iterator, _step, _obj$config$reverse, obj;
 
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
                 view = (0, _assertThisInitialized2.default)(_this);
-                _this$options$tweaks = _this.options.tweaks, tweaks = _this$options$tweaks === void 0 ? {} : _this$options$tweaks; // create the new car
+                _this$options = _this.options, _this$options$tweaks = _this$options.tweaks, tweaks = _this$options$tweaks === void 0 ? {} : _this$options$tweaks, _this$options$backgro = _this$options.backgroundColor, backgroundColor = _this$options$backgro === void 0 ? 0xffffff : _this$options$backgro; // create the new car
 
                 container = new _ntAnimator.PIXI.ResponsiveContainer();
                 _context4.next = 5;
@@ -99902,14 +99904,20 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 car.pivot.x = 0.5;
                 car.pivot.y = 0.5;
                 car.scale.x = scale;
-                car.scale.y = scale; // include the trail, if any
+                car.scale.y = scale; // create the trail backdrop, if needed
+
+                if (_this.isInspectMode) {
+                  backdrop = createBackdrop(display, backgroundColor, config.trail);
+                  container.addChild(backdrop);
+                } // include the trail, if any
+
 
                 if (!config.trail) {
-                  _context4.next = 27;
+                  _context4.next = 25;
                   break;
                 }
 
-                _context4.next = 17;
+                _context4.next = 18;
                 return _trail.default.create(_objectSpread(_objectSpread({
                   view: view
                 }, config), {}, {
@@ -99917,13 +99925,9 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                   type: config.trail
                 }));
 
-              case 17:
+              case 18:
                 trail = _context4.sent;
-                // include the backdrop
-                _this$options$contain = _this.options.container, offsetWidth = _this$options$contain.offsetWidth, offsetHeight = _this$options$contain.offsetHeight;
-                _this.backdrop = createTrailBackdrop(offsetWidth, offsetHeight);
-                container.addChild(_this.backdrop); // add to the view
-
+                // add to the view
                 trail.attachTo(car);
                 trail.alignTo(car, 'back'); // check for specials
 
@@ -99949,7 +99953,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
                 container.hasTrail = true;
 
-              case 27:
+              case 25:
                 // setup the container
                 container.addChild(car);
                 container.relativeY = 0.5;
@@ -99962,7 +99966,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
                 return _context4.abrupt("return", container);
 
-              case 33:
+              case 31:
               case "end":
                 return _context4.stop();
             }
@@ -100162,29 +100166,36 @@ function fadeIn(target) {
   });
 }
 
-function createTrailBackdrop(width, height) {
+function createBackdrop(display, background, hasTrail) {
+  var width = display.width,
+      height = display.height; // create the rendering area
+
   var backdrop = (0, _ntAnimator.createContext)();
-  backdrop.resize(width, height); // create the gradient pattern
+  backdrop.resize(width, height); // set the default fill
+  // const [ r, g, b ] = toRGB(background, false)
+  // backdrop.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`
+  // backdrop.ctx.fillRect(0, 0, width, height)
+  // add some bonus contrast
 
-  var center = width / 2;
-  var gradient = backdrop.ctx.createRadialGradient(center, center, center / 2, center, center, center);
-  gradient.addColorStop(0, '#999999');
-  gradient.addColorStop(1, '#ffffff'); // fill the view
+  if (hasTrail) {
+    var gradient = backdrop.ctx.createLinearGradient(0, 0, 0, height);
+    gradient.addColorStop(0, 'rgba(0,0,0,0)');
+    gradient.addColorStop(0.5, 'rgba(0,0,0,0.3)');
+    gradient.addColorStop(1, 'rgba(0,0,0,0)');
+    backdrop.ctx.fillStyle = gradient;
+    backdrop.ctx.fillRect(0, 0, width, height);
+  } // create the PIXi object
 
-  backdrop.ctx.scale(1, height / width);
-  backdrop.ctx.fillStyle = gradient;
-  backdrop.ctx.fillRect(0, 0, width, width); // create the PIXi object
 
   var texture = _ntAnimator.PIXI.Texture.from(backdrop.canvas);
 
   var sprite = new _ntAnimator.PIXI.Sprite(texture);
-  sprite.scale.x = 2;
-  sprite.scale.y = 1.3;
-  sprite.pivot.x = width * 0.75;
-  sprite.pivot.y = height * 0.5;
+  sprite.anchor.x = 0.5;
+  sprite.anchor.y = 0.5;
+  sprite.width *= 2;
   return sprite;
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/car":"components/car/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../utils":"utils/index.js","../../components/activity":"components/activity.js","../../components/trail":"components/trail/index.js"}],"views/preview/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/car":"components/car/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../utils":"utils/index.js","../../components/activity":"components/activity.js","../../components/trail":"components/trail/index.js","../../utils/color":"utils/color.js"}],"views/preview/index.js":[function(require,module,exports) {
 
 },{}],"components/treadmill.js":[function(require,module,exports) {
 "use strict";
