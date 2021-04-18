@@ -99643,12 +99643,6 @@ var _color = require("../../utils/color");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
-
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -99661,7 +99655,7 @@ var DEFAULT_MAX_HEIGHT = 250;
 var EFFECTS_PADDING_SCALING = 0.7;
 var TRANSITION_TIME = 350;
 var TARGET_X_WITHOUT_TRAIL = 0.5;
-var TARGET_X_WITH_TRAIL = TARGET_X_WITHOUT_TRAIL - 0.1;
+var TARGET_X_WITH_TRAIL = TARGET_X_WITHOUT_TRAIL + 0.075;
 
 var GarageView = /*#__PURE__*/function (_BaseView) {
   (0, _inherits2.default)(GarageView, _BaseView);
@@ -99713,8 +99707,8 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
       // be able to look at
 
 
-      var percent = x / (container.offsetWidth / 2) - 0.4;
-      _this.preferredFocusX = percent * container.offsetWidth * 0.3;
+      var percent = 1 - (x / (container.offsetWidth / 2) - 0.4);
+      _this.preferredFocusX = 1 - percent * container.offsetWidth * 0.3;
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "updateCar", /*#__PURE__*/function () {
       var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(config) {
@@ -99865,7 +99859,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
     }());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "createCar", /*#__PURE__*/function () {
       var _ref4 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(config) {
-        var view, _this$options, _this$options$tweaks, tweaks, _this$options$backgro, backgroundColor, container, car, bounds, display, target, scale, backdrop, trail, reversed, _iterator, _step, _obj$config$reverse, obj;
+        var view, _this$options, _this$options$tweaks, tweaks, _this$options$backgro, backgroundColor, container, car, bounds, display, target, scale, backdrop, trail;
 
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
@@ -99913,7 +99907,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
 
                 if (!config.trail) {
-                  _context4.next = 25;
+                  _context4.next = 22;
                   break;
                 }
 
@@ -99929,36 +99923,26 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 trail = _context4.sent;
                 // add to the view
                 trail.attachTo(car);
-                trail.alignTo(car, 'back'); // check for specials
-
-                reversed = (0, _ntAnimator.findDisplayObjectsOfRole)(car, 'reversable');
-                _iterator = _createForOfIteratorHelper(reversed);
-
-                try {
-                  for (_iterator.s(); !(_step = _iterator.n()).done;) {
-                    obj = _step.value;
-
-                    // add more props as required
-                    if ((_obj$config$reverse = obj.config.reverse) === null || _obj$config$reverse === void 0 ? void 0 : _obj$config$reverse.flipY) {
-                      obj.scale.y *= -1;
-                    }
-                  } // mark so it knows to make
-                  // additional room for the trail
-
-                } catch (err) {
-                  _iterator.e(err);
-                } finally {
-                  _iterator.f();
-                }
+                trail.alignTo(car, 'back'); // This is intended to cause trails to face the
+                // correct direction when reversed. This may be done eventually
+                // // check for specials
+                // const reversed = findDisplayObjectsOfRole(car, 'reversable')
+                // for (const obj of reversed) {
+                // 	// add more props as required
+                // 	if (obj.config.reverse?.flipY) {
+                // 		obj.scale.y *= -1
+                // 	}
+                // }
+                // mark so it knows to make
+                // additional room for the trail
 
                 container.hasTrail = true;
 
-              case 25:
+              case 22:
                 // setup the container
                 container.addChild(car);
                 container.relativeY = 0.5;
-                container.relativeX = 0.5;
-                container.rotation = Math.PI; // car shadow fixes
+                container.relativeX = 0.5; // car shadow fixes
 
                 if ((0, _utils.isNumber)(tweaks.rotation)) {
                   container.rotation += Math.PI * 2 * tweaks.rotation;
@@ -99966,7 +99950,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
                 return _context4.abrupt("return", container);
 
-              case 31:
+              case 27:
               case "end":
                 return _context4.stop();
             }

@@ -10,7 +10,7 @@ const DEFAULT_MAX_HEIGHT = 250;
 const EFFECTS_PADDING_SCALING = 0.7;
 const TRANSITION_TIME = 350;
 const TARGET_X_WITHOUT_TRAIL = 0.5
-const TARGET_X_WITH_TRAIL = TARGET_X_WITHOUT_TRAIL - 0.1
+const TARGET_X_WITH_TRAIL = TARGET_X_WITHOUT_TRAIL + 0.075
 
 export default class GarageView extends BaseView {
 
@@ -80,8 +80,8 @@ export default class GarageView extends BaseView {
 		// Focus on the hovered portion of the screen. Don't use
 		// exactly 50% since the front is not as important
 		// be able to look at
-		const percent = (x / (container.offsetWidth / 2)) - 0.4
-		this.preferredFocusX = (percent * container.offsetWidth) * 0.3
+		const percent = 1 - ((x / (container.offsetWidth / 2)) - 0.4)
+		this.preferredFocusX = 1 - ((percent * container.offsetWidth) * 0.3)
 	}
 
 	// updates the view
@@ -222,14 +222,16 @@ export default class GarageView extends BaseView {
 			trail.attachTo(car)
 			trail.alignTo(car, 'back')
 
-			// check for specials
-			const reversed = findDisplayObjectsOfRole(car, 'reversable')
-			for (const obj of reversed) {
-				// add more props as required
-				if (obj.config.reverse?.flipY) {
-					obj.scale.y *= -1
-				}
-			}
+			// This is intended to cause trails to face the
+			// correct direction when reversed. This may be done eventually
+			// // check for specials
+			// const reversed = findDisplayObjectsOfRole(car, 'reversable')
+			// for (const obj of reversed) {
+			// 	// add more props as required
+			// 	if (obj.config.reverse?.flipY) {
+			// 		obj.scale.y *= -1
+			// 	}
+			// }
 
 			// mark so it knows to make
 			// additional room for the trail
@@ -240,7 +242,6 @@ export default class GarageView extends BaseView {
 		container.addChild(car);
 		container.relativeY = 0.5;
 		container.relativeX = 0.5;
-		container.rotation = Math.PI;
 
 		// car shadow fixes
 		if (isNumber(tweaks.rotation)) {
