@@ -56458,14 +56458,15 @@ var define;
   var undefined;
 
   /** Used as the semantic version number. */
-  var VERSION = '4.17.15';
+  var VERSION = '4.17.21';
 
   /** Used as the size to enable large array optimizations. */
   var LARGE_ARRAY_SIZE = 200;
 
   /** Error message constants. */
   var CORE_ERROR_TEXT = 'Unsupported core-js use. Try https://npms.io/search?q=ponyfill.',
-      FUNC_ERROR_TEXT = 'Expected a function';
+      FUNC_ERROR_TEXT = 'Expected a function',
+      INVALID_TEMPL_VAR_ERROR_TEXT = 'Invalid `variable` option passed into `_.template`';
 
   /** Used to stand-in for `undefined` hash values. */
   var HASH_UNDEFINED = '__lodash_hash_undefined__';
@@ -56598,10 +56599,11 @@ var define;
   var reRegExpChar = /[\\^$.*+?()[\]{}|]/g,
       reHasRegExpChar = RegExp(reRegExpChar.source);
 
-  /** Used to match leading and trailing whitespace. */
-  var reTrim = /^\s+|\s+$/g,
-      reTrimStart = /^\s+/,
-      reTrimEnd = /\s+$/;
+  /** Used to match leading whitespace. */
+  var reTrimStart = /^\s+/;
+
+  /** Used to match a single whitespace character. */
+  var reWhitespace = /\s/;
 
   /** Used to match wrap detail comments. */
   var reWrapComment = /\{(?:\n\/\* \[wrapped with .+\] \*\/)?\n?/,
@@ -56610,6 +56612,18 @@ var define;
 
   /** Used to match words composed of alphanumeric characters. */
   var reAsciiWord = /[^\x00-\x2f\x3a-\x40\x5b-\x60\x7b-\x7f]+/g;
+
+  /**
+   * Used to validate the `validate` option in `_.template` variable.
+   *
+   * Forbids characters which could potentially change the meaning of the function argument definition:
+   * - "()," (modification of function parameters)
+   * - "=" (default value)
+   * - "[]{}" (destructuring of function parameters)
+   * - "/" (beginning of a comment)
+   * - whitespace
+   */
+  var reForbiddenIdentifierChars = /[()=,{}\[\]\/\s]/;
 
   /** Used to match backslashes in property paths. */
   var reEscapeChar = /\\(\\)?/g;
@@ -57440,6 +57454,19 @@ var define;
   }
 
   /**
+   * The base implementation of `_.trim`.
+   *
+   * @private
+   * @param {string} string The string to trim.
+   * @returns {string} Returns the trimmed string.
+   */
+  function baseTrim(string) {
+    return string
+      ? string.slice(0, trimmedEndIndex(string) + 1).replace(reTrimStart, '')
+      : string;
+  }
+
+  /**
    * The base implementation of `_.unary` without support for storing metadata.
    *
    * @private
@@ -57770,6 +57797,21 @@ var define;
     return hasUnicode(string)
       ? unicodeToArray(string)
       : asciiToArray(string);
+  }
+
+  /**
+   * Used by `_.trim` and `_.trimEnd` to get the index of the last non-whitespace
+   * character of `string`.
+   *
+   * @private
+   * @param {string} string The string to inspect.
+   * @returns {number} Returns the index of the last non-whitespace character.
+   */
+  function trimmedEndIndex(string) {
+    var index = string.length;
+
+    while (index-- && reWhitespace.test(string.charAt(index))) {}
+    return index;
   }
 
   /**
@@ -60165,8 +60207,21 @@ var define;
      * @returns {Array} Returns the new sorted array.
      */
     function baseOrderBy(collection, iteratees, orders) {
+      if (iteratees.length) {
+        iteratees = arrayMap(iteratees, function(iteratee) {
+          if (isArray(iteratee)) {
+            return function(value) {
+              return baseGet(value, iteratee.length === 1 ? iteratee[0] : iteratee);
+            }
+          }
+          return iteratee;
+        });
+      } else {
+        iteratees = [identity];
+      }
+
       var index = -1;
-      iteratees = arrayMap(iteratees.length ? iteratees : [identity], baseUnary(getIteratee()));
+      iteratees = arrayMap(iteratees, baseUnary(getIteratee()));
 
       var result = baseMap(collection, function(value, key, collection) {
         var criteria = arrayMap(iteratees, function(iteratee) {
@@ -60423,6 +60478,10 @@ var define;
         var key = toKey(path[index]),
             newValue = value;
 
+        if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+          return object;
+        }
+
         if (index != lastIndex) {
           var objValue = nested[key];
           newValue = customizer ? customizer(objValue, key, nested) : undefined;
@@ -60575,11 +60634,14 @@ var define;
      *  into `array`.
      */
     function baseSortedIndexBy(array, value, iteratee, retHighest) {
-      value = iteratee(value);
-
       var low = 0,
-          high = array == null ? 0 : array.length,
-          valIsNaN = value !== value,
+          high = array == null ? 0 : array.length;
+      if (high === 0) {
+        return 0;
+      }
+
+      value = iteratee(value);
+      var valIsNaN = value !== value,
           valIsNull = value === null,
           valIsSymbol = isSymbol(value),
           valIsUndefined = value === undefined;
@@ -62064,10 +62126,11 @@ var define;
       if (arrLength != othLength && !(isPartial && othLength > arrLength)) {
         return false;
       }
-      // Assume cyclic values are equal.
-      var stacked = stack.get(array);
-      if (stacked && stack.get(other)) {
-        return stacked == other;
+      // Check that cyclic values are equal.
+      var arrStacked = stack.get(array);
+      var othStacked = stack.get(other);
+      if (arrStacked && othStacked) {
+        return arrStacked == other && othStacked == array;
       }
       var index = -1,
           result = true,
@@ -62229,10 +62292,11 @@ var define;
           return false;
         }
       }
-      // Assume cyclic values are equal.
-      var stacked = stack.get(object);
-      if (stacked && stack.get(other)) {
-        return stacked == other;
+      // Check that cyclic values are equal.
+      var objStacked = stack.get(object);
+      var othStacked = stack.get(other);
+      if (objStacked && othStacked) {
+        return objStacked == other && othStacked == object;
       }
       var result = true;
       stack.set(object, other);
@@ -65613,6 +65677,10 @@ var define;
      * // The `_.property` iteratee shorthand.
      * _.filter(users, 'active');
      * // => objects for ['barney']
+     *
+     * // Combining several predicates using `_.overEvery` or `_.overSome`.
+     * _.filter(users, _.overSome([{ 'age': 36 }, ['age', 40]]));
+     * // => objects for ['fred', 'barney']
      */
     function filter(collection, predicate) {
       var func = isArray(collection) ? arrayFilter : baseFilter;
@@ -66362,15 +66430,15 @@ var define;
      * var users = [
      *   { 'user': 'fred',   'age': 48 },
      *   { 'user': 'barney', 'age': 36 },
-     *   { 'user': 'fred',   'age': 40 },
+     *   { 'user': 'fred',   'age': 30 },
      *   { 'user': 'barney', 'age': 34 }
      * ];
      *
      * _.sortBy(users, [function(o) { return o.user; }]);
-     * // => objects for [['barney', 36], ['barney', 34], ['fred', 48], ['fred', 40]]
+     * // => objects for [['barney', 36], ['barney', 34], ['fred', 48], ['fred', 30]]
      *
      * _.sortBy(users, ['user', 'age']);
-     * // => objects for [['barney', 34], ['barney', 36], ['fred', 40], ['fred', 48]]
+     * // => objects for [['barney', 34], ['barney', 36], ['fred', 30], ['fred', 48]]
      */
     var sortBy = baseRest(function(collection, iteratees) {
       if (collection == null) {
@@ -68914,7 +68982,7 @@ var define;
       if (typeof value != 'string') {
         return value === 0 ? value : +value;
       }
-      value = value.replace(reTrim, '');
+      value = baseTrim(value);
       var isBinary = reIsBinary.test(value);
       return (isBinary || reIsOctal.test(value))
         ? freeParseInt(value.slice(2), isBinary ? 2 : 8)
@@ -71245,11 +71313,11 @@ var define;
 
       // Use a sourceURL for easier debugging.
       // The sourceURL gets injected into the source that's eval-ed, so be careful
-      // with lookup (in case of e.g. prototype pollution), and strip newlines if any.
-      // A newline wouldn't be a valid sourceURL anyway, and it'd enable code injection.
+      // to normalize all kinds of whitespace, so e.g. newlines (and unicode versions of it) can't sneak in
+      // and escape the comment, thus injecting code that gets evaled.
       var sourceURL = '//# sourceURL=' +
         (hasOwnProperty.call(options, 'sourceURL')
-          ? (options.sourceURL + '').replace(/[\r\n]/g, ' ')
+          ? (options.sourceURL + '').replace(/\s/g, ' ')
           : ('lodash.templateSources[' + (++templateCounter) + ']')
         ) + '\n';
 
@@ -71282,12 +71350,16 @@ var define;
 
       // If `variable` is not specified wrap a with-statement around the generated
       // code to add the data object to the top of the scope chain.
-      // Like with sourceURL, we take care to not check the option's prototype,
-      // as this configuration is a code injection vector.
       var variable = hasOwnProperty.call(options, 'variable') && options.variable;
       if (!variable) {
         source = 'with (obj) {\n' + source + '\n}\n';
       }
+      // Throw an error if a forbidden character was found in `variable`, to prevent
+      // potential command injection attacks.
+      else if (reForbiddenIdentifierChars.test(variable)) {
+        throw new Error(INVALID_TEMPL_VAR_ERROR_TEXT);
+      }
+
       // Cleanup code by stripping empty strings.
       source = (isEvaluating ? source.replace(reEmptyStringLeading, '') : source)
         .replace(reEmptyStringMiddle, '$1')
@@ -71401,7 +71473,7 @@ var define;
     function trim(string, chars, guard) {
       string = toString(string);
       if (string && (guard || chars === undefined)) {
-        return string.replace(reTrim, '');
+        return baseTrim(string);
       }
       if (!string || !(chars = baseToString(chars))) {
         return string;
@@ -71436,7 +71508,7 @@ var define;
     function trimEnd(string, chars, guard) {
       string = toString(string);
       if (string && (guard || chars === undefined)) {
-        return string.replace(reTrimEnd, '');
+        return string.slice(0, trimmedEndIndex(string) + 1);
       }
       if (!string || !(chars = baseToString(chars))) {
         return string;
@@ -71990,6 +72062,9 @@ var define;
      * values against any array or object value, respectively. See `_.isEqual`
      * for a list of supported value comparisons.
      *
+     * **Note:** Multiple values can be checked by combining several matchers
+     * using `_.overSome`
+     *
      * @static
      * @memberOf _
      * @since 3.0.0
@@ -72005,6 +72080,10 @@ var define;
      *
      * _.filter(objects, _.matches({ 'a': 4, 'c': 6 }));
      * // => [{ 'a': 4, 'b': 5, 'c': 6 }]
+     *
+     * // Checking for several possible values
+     * _.filter(objects, _.overSome([_.matches({ 'a': 1 }), _.matches({ 'a': 4 })]));
+     * // => [{ 'a': 1, 'b': 2, 'c': 3 }, { 'a': 4, 'b': 5, 'c': 6 }]
      */
     function matches(source) {
       return baseMatches(baseClone(source, CLONE_DEEP_FLAG));
@@ -72018,6 +72097,9 @@ var define;
      * **Note:** Partial comparisons will match empty array and empty object
      * `srcValue` values against any array or object value, respectively. See
      * `_.isEqual` for a list of supported value comparisons.
+     *
+     * **Note:** Multiple values can be checked by combining several matchers
+     * using `_.overSome`
      *
      * @static
      * @memberOf _
@@ -72035,6 +72117,10 @@ var define;
      *
      * _.find(objects, _.matchesProperty('a', 4));
      * // => { 'a': 4, 'b': 5, 'c': 6 }
+     *
+     * // Checking for several possible values
+     * _.filter(objects, _.overSome([_.matchesProperty('a', 1), _.matchesProperty('a', 4)]));
+     * // => [{ 'a': 1, 'b': 2, 'c': 3 }, { 'a': 4, 'b': 5, 'c': 6 }]
      */
     function matchesProperty(path, srcValue) {
       return baseMatchesProperty(path, baseClone(srcValue, CLONE_DEEP_FLAG));
@@ -72258,6 +72344,10 @@ var define;
      * Creates a function that checks if **all** of the `predicates` return
      * truthy when invoked with the arguments it receives.
      *
+     * Following shorthands are possible for providing predicates.
+     * Pass an `Object` and it will be used as an parameter for `_.matches` to create the predicate.
+     * Pass an `Array` of parameters for `_.matchesProperty` and the predicate will be created using them.
+     *
      * @static
      * @memberOf _
      * @since 4.0.0
@@ -72284,6 +72374,10 @@ var define;
      * Creates a function that checks if **any** of the `predicates` return
      * truthy when invoked with the arguments it receives.
      *
+     * Following shorthands are possible for providing predicates.
+     * Pass an `Object` and it will be used as an parameter for `_.matches` to create the predicate.
+     * Pass an `Array` of parameters for `_.matchesProperty` and the predicate will be created using them.
+     *
      * @static
      * @memberOf _
      * @since 4.0.0
@@ -72303,6 +72397,9 @@ var define;
      *
      * func(NaN);
      * // => false
+     *
+     * var matchesFunc = _.overSome([{ 'a': 1 }, { 'a': 2 }])
+     * var matchesPropertyFunc = _.overSome([['a', 1], ['a', 2]])
      */
     var overSome = createOver(arraySome);
 
@@ -78597,8 +78694,10 @@ function _loadSpritesheet() {
 }
 
 function generateSprites(image, spritesheetId, spritesheet, ext) {
-  var base = _lib.PIXI.Texture.from(image); // create each sprite slice
+  var base = _lib.PIXI.Texture.from(image);
 
+  base.baseTexture.wrapMode = _lib.PIXI.WRAP_MODES.CLAMP;
+  base.wrapMode = _lib.PIXI.WRAP_MODES.CLAMP; // create each sprite slice
 
   for (var id in spritesheet) {
     var record = spritesheet[id]; // if this is not an array, skip it
@@ -82832,7 +82931,7 @@ function createRepeater(_x, _x2, _x3, _x4, _x5) {
 
 function _createRepeater() {
   _createRepeater = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(animator, controller, path, composition, layer) {
-    var root, update, dispose, phase, _layer$props, _layer$props2, container, tiles, columns, rows, originX, originY, useOffsetX, offsetX, useOffsetY, offsetY, useJitterX, jitterX, useJitterY, jitterY, needBounds, bounds, i, col, row, instance, x, y, complete, _iterator2, _step2, child;
+    var root, update, dispose, phase, _layer$props, _layer$props2, container, tiles, columns, rows, originX, originY, expandWidth, expandHeight, useOffsetX, offsetX, useOffsetY, offsetY, useJitterX, jitterX, useJitterY, jitterY, needBounds, bounds, i, col, isLast, row, instance, x, y, complete, _iterator2, _step2, child;
 
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
@@ -82863,6 +82962,8 @@ function _createRepeater() {
             phase = 'creating repeater contents';
             tiles = new _lib.PIXI.Container(); // fix prop names
 
+            (0, _normalize.normalizeTo)(layer, 'expandWidth', 'expandX');
+            (0, _normalize.normalizeTo)(layer, 'expandHeight', 'expandY');
             (0, _normalize.normalizeTo)(layer, 'repeatX', 'cols', 'columns');
             (0, _normalize.normalizeTo)(layer, 'repeatY', 'rows');
             (0, _normalize.normalizeTo)(layer, 'jitterX', 'jitter.x');
@@ -82871,7 +82972,9 @@ function _createRepeater() {
             columns = (0, _utils.isNumber)(layer.repeatX) ? layer.repeatX : 1;
             rows = (0, _utils.isNumber)(layer.repeatY) ? layer.repeatY : 1;
             originX = (0, _expressions.evaluateExpression)(((_layer$props = layer.props) === null || _layer$props === void 0 ? void 0 : _layer$props.x) || 0);
-            originY = (0, _expressions.evaluateExpression)(((_layer$props2 = layer.props) === null || _layer$props2 === void 0 ? void 0 : _layer$props2.y) || 0); // check for defined distances
+            originY = (0, _expressions.evaluateExpression)(((_layer$props2 = layer.props) === null || _layer$props2 === void 0 ? void 0 : _layer$props2.y) || 0);
+            expandWidth = (0, _utils.isNumber)(layer.expandWidth) ? layer.expandWidth : 0;
+            expandHeight = (0, _utils.isNumber)(layer.expandHeight) ? layer.expandHeight : 0; // check for defined distances
 
             useOffsetX = false;
             offsetX = 0;
@@ -82911,19 +83014,20 @@ function _createRepeater() {
 
             i = 0;
 
-          case 34:
+          case 38:
             if (!(i < columns * rows)) {
-              _context.next = 56;
+              _context.next = 62;
               break;
             }
 
             col = i % columns;
+            isLast = col === columns - 1;
             row = Math.floor(i / columns); // create the layer
 
-            _context.next = 39;
+            _context.next = 44;
             return (0, _.default)(animator, controller, path, layer, root);
 
-          case 39:
+          case 44:
             instance = _context.sent;
             tiles.addChild(instance); // include the dispose function
 
@@ -82948,16 +83052,23 @@ function _createRepeater() {
             if (useJitterY) y += 0 | Math.random() * jitterY * 2 - jitterY; // include nudge
 
             x += (0, _expressions.evaluateExpression)(layer.nudgeX || 0);
-            y += (0, _expressions.evaluateExpression)(layer.nudgeY || 0);
+            y += (0, _expressions.evaluateExpression)(layer.nudgeY || 0); // special rules to avoid problems with
+            // tearing
+
+            if (!isLast) {
+              instance.width += expandWidth;
+              instance.height += expandHeight;
+            }
+
             instance.x = x;
             instance.y = y;
 
-          case 53:
+          case 59:
             i++;
-            _context.next = 34;
+            _context.next = 38;
             break;
 
-          case 56:
+          case 62:
             // sort the contents
             tiles.sortChildren(); // sync up shorthand names
 
@@ -83018,18 +83129,18 @@ function _createRepeater() {
               dispose: dispose
             }]);
 
-          case 78:
-            _context.prev = 78;
+          case 84:
+            _context.prev = 84;
             _context.t0 = _context["catch"](4);
             console.error("Failed to create group ".concat(path, " while ").concat(phase));
             throw _context.t0;
 
-          case 82:
+          case 88:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[4, 78]]);
+    }, _callee, null, [[4, 84]]);
   }));
   return _createRepeater.apply(this, arguments);
 }
@@ -100733,6 +100844,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
+var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
+
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
@@ -101084,7 +101197,8 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
         var _this$trail,
             _this4 = this;
 
-        var trail;
+        var trail, parts, _iterator, _step, part;
+
         return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
             switch (_context6.prev = _context6.next) {
@@ -101109,10 +101223,32 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
 
               case 5:
                 trail = _context6.sent;
-                // attach to the view
+
+                // in case of an unusual scenario where
+                // a trail might not be disposed, go ahead and target
+                // each trail part and remove it individually
+                try {
+                  parts = (0, _ntAnimator.findDisplayObjectsOfRole)(this.container, 'trail-part');
+                  _iterator = _createForOfIteratorHelper(parts);
+
+                  try {
+                    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                      part = _step.value;
+                      (0, _ntAnimator.removeDisplayObject)(part);
+                    }
+                  } catch (err) {
+                    _iterator.e(err);
+                  } finally {
+                    _iterator.f();
+                  }
+                } // nothing to do here
+                catch (ex) {} // attach to the view
+
+
                 this.trail = trail;
                 this.trail.attachTo(this.container);
                 this.trail.each(function (part) {
+                  part.role = ['trail-part'].concat((0, _toConsumableArray2.default)(part.role || []));
                   part.alpha = 0;
                   part.x = _this4.car.positions.back;
                 }); // also, fade in the trails
@@ -101133,7 +101269,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                   }
                 });
 
-              case 10:
+              case 11:
               case "end":
                 return _context6.stop();
             }
@@ -101186,12 +101322,12 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
           // finishing
           complete: function complete() {
             // if there's a left over car
-            var _iterator = _createForOfIteratorHelper(_this6.viewport.children),
-                _step;
+            var _iterator2 = _createForOfIteratorHelper(_this6.viewport.children),
+                _step2;
 
             try {
-              for (_iterator.s(); !(_step = _iterator.n()).done;) {
-                var child = _step.value;
+              for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+                var child = _step2.value;
 
                 if (child.ready && child.isCar && child !== obj) {
                   (0, _ntAnimator.removeDisplayObject)(child);
@@ -101199,9 +101335,9 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
               } // finish
 
             } catch (err) {
-              _iterator.e(err);
+              _iterator2.e(err);
             } finally {
-              _iterator.f();
+              _iterator2.f();
             }
 
             obj.ready = true;
@@ -101214,12 +101350,12 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "_removeExistingCars",
     value: function _removeExistingCars() {
-      var _iterator2 = _createForOfIteratorHelper(this.viewport.children),
-          _step2;
+      var _iterator3 = _createForOfIteratorHelper(this.viewport.children),
+          _step3;
 
       try {
         var _loop = function _loop() {
-          var child = _step2.value;
+          var child = _step3.value;
 
           if (!child.isCar) {
             return "continue";
@@ -101247,15 +101383,15 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
           });
         };
 
-        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
           var _ret = _loop();
 
           if (_ret === "continue") continue;
         }
       } catch (err) {
-        _iterator2.e(err);
+        _iterator3.e(err);
       } finally {
-        _iterator2.f();
+        _iterator3.f();
       }
     } // NOT IMPLEMENTED YET
     // setNamecard () { }
@@ -101365,7 +101501,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
 }(_base.BaseView);
 
 exports.default = CustomizerView;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../base":"views/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../components/treadmill":"components/treadmill.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js"}],"views/animation/index.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../base":"views/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../components/treadmill":"components/treadmill.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js"}],"views/animation/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {

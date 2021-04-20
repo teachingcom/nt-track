@@ -1,5 +1,5 @@
 import { BaseView } from '../base'
-import { animate, PIXI, removeDisplayObject } from 'nt-animator'
+import { animate, findDisplayObjectsOfRole, PIXI, removeDisplayObject } from 'nt-animator'
 
 import Treadmill from '../../components/treadmill'
 import Car from '../../components/car'
@@ -167,10 +167,23 @@ export default class CustomizerView extends BaseView {
       type
     })
 
+    // in case of an unusual scenario where
+    // a trail might not be disposed, go ahead and target
+    // each trail part and remove it individually
+    try {
+      const parts = findDisplayObjectsOfRole(this.container, 'trail-part')
+      for (const part of parts) {
+        removeDisplayObject(part)
+      }
+    }
+    // nothing to do here
+    catch (ex) { }
+
     // attach to the view
     this.trail = trail
     this.trail.attachTo(this.container)
     this.trail.each(part => {
+      part.role = ['trail-part', ...(part.role || [])]
       part.alpha = 0
       part.x = this.car.positions.back
     });
