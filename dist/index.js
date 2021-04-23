@@ -78149,7 +78149,14 @@ function animate(params) {
     delay: params.delay || 0,
     autoplay: params.auto !== false && params.autoplay !== false,
     loop: params.loop !== false
-  }; // update callback
+  }; // this is not quite right - I want to offset the
+  // animation starting point, but it doesn't work
+  // with animejs the way I want. Will have to review later
+
+  if (params.randomStart) {
+    config.delay = 0 | Math.random() * (config.duration || 1000);
+  } // update callback
+
 
   if (params.update) config.update = function () {
     return params.update(props);
@@ -78396,6 +78403,7 @@ function createAnimation(animator, path, composition, layer, instance) {
             yoyo = _animation$yoyo === void 0 ? 0 : _animation$yoyo,
             _animation$duration = animation.duration,
             duration = _animation$duration === void 0 ? 1000 : _animation$duration,
+            randomStart = animation.randomStart,
             _animation$delay = animation.delay,
             delay = _animation$delay === void 0 ? 0 : _animation$delay,
             ease = animation.ease;
@@ -78411,7 +78419,8 @@ function createAnimation(animator, path, composition, layer, instance) {
           values: keyframes || sequence || [],
           elapsed: (0, _expressions.evaluateExpression)(elapsed, duration) || 0,
           easings: easings,
-          duration: duration
+          duration: duration,
+          randomStart: randomStart
         }, repeatType, (0, _utils2.isNumber)(repeating) ? repeating : Infinity); // check for a few special flags
 
         if (loop === false) config.loop = false;
@@ -98606,6 +98615,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       typingSpeedModifierShift: 0,
       totalPlayers: 0
     });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "_waitingForTrack", []);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "onLoadTrackAssets", function () {
       _this.resolveTask('load_assets');
     });
@@ -98646,14 +98656,21 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "addPlayer", /*#__PURE__*/function () {
       var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(data, isInstant) {
-        var _assertThisInitialize2, activePlayers, state, stage, isViewActive, animator, lighting, playerOptions, isPlayer, id, lane, existing, player, _car$plugin, _player, car, namecard, container, _ref2, _ref2$enterSound, enterSound, entry;
+        var _track$manifest;
+
+        var _assertThisInitialize2, activePlayers, state, stage, isViewActive, animator, track, lighting, playerOptions, isPlayer, id, lane, existing, player, _car$plugin, _player, car, namecard, container, _ref2, _ref2$enterSound, enterSound, entry;
 
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
                 _assertThisInitialize2 = (0, _assertThisInitialized2.default)(_this), activePlayers = _assertThisInitialize2.activePlayers, state = _assertThisInitialize2.state, stage = _assertThisInitialize2.stage, isViewActive = _assertThisInitialize2.isViewActive, animator = _assertThisInitialize2.animator;
-                lighting = animator.manifest.lighting;
+                _context.next = 3;
+                return _this.getTrackInstance();
+
+              case 3:
+                track = _context.sent;
+                lighting = track === null || track === void 0 ? void 0 : (_track$manifest = track.manifest) === null || _track$manifest === void 0 ? void 0 : _track$manifest.lighting;
                 playerOptions = _objectSpread(_objectSpread({
                   view: (0, _assertThisInitialized2.default)(_this)
                 }, data), {}, {
@@ -98665,34 +98682,34 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 if (existing) _this.removePlayer(existing.id); // make sure this isn't a mistake
 
                 if (!activePlayers[data.id]) {
-                  _context.next = 8;
+                  _context.next = 11;
                   break;
                 }
 
                 return _context.abrupt("return");
 
-              case 8:
+              case 11:
                 activePlayers[data.id] = true; // increase the expected players
 
                 state.totalPlayers++; // create the player instance
 
-                _context.prev = 10;
-                _context.next = 13;
+                _context.prev = 13;
+                _context.next = 16;
                 return _player2.default.create(playerOptions);
 
-              case 13:
+              case 16:
                 player = _context.sent;
                 player.track = (0, _assertThisInitialized2.default)(_this); // if this player failed to load, abandon the
                 // attempt
 
                 if (!(isPlayer && !player.hasRequiredAssets)) {
-                  _context.next = 17;
+                  _context.next = 20;
                   break;
                 }
 
                 throw new PlayerAssetError();
 
-              case 17:
+              case 20:
                 // set the active player, if needed
                 if (isPlayer) {
                   _this.activePlayerId = id;
@@ -98704,11 +98721,11 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 _player = player, car = _player.car;
 
                 if (!((_car$plugin = car.plugin) === null || _car$plugin === void 0 ? void 0 : _car$plugin.extend)) {
-                  _context.next = 22;
+                  _context.next = 25;
                   break;
                 }
 
-                _context.next = 22;
+                _context.next = 25;
                 return car.plugin.extend({
                   animator: animator,
                   car: car,
@@ -98716,7 +98733,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   track: (0, _assertThisInitialized2.default)(_this)
                 });
 
-              case 22:
+              case 25:
                 // with the player, include their namecard
                 namecard = player.layers.namecard;
 
@@ -98759,12 +98776,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   state.playerHasEntered = true;
                 }
 
-                _context.next = 40;
+                _context.next = 43;
                 break;
 
-              case 33:
-                _context.prev = 33;
-                _context.t0 = _context["catch"](10);
+              case 36:
+                _context.prev = 36;
+                _context.t0 = _context["catch"](13);
                 delete activePlayers[data.id];
                 state.totalPlayers--; // if the player was created, try and remove it
 
@@ -98772,18 +98789,18 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 // a breaking exception
 
                 if (!isPlayer) {
-                  _context.next = 40;
+                  _context.next = 43;
                   break;
                 }
 
                 throw _context.t0;
 
-              case 40:
+              case 43:
               case "end":
                 return _context.stop();
             }
           }
-        }, _callee, null, [[10, 33]]);
+        }, _callee, null, [[13, 36]]);
       }));
 
       return function (_x, _x2) {
@@ -98892,9 +98909,11 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 track.overlay.zIndex = _layers.LAYER_TRACK_OVERLAY;
                 track.overlay.relativeX = 0.5; // sort the layers
 
-                stage.sortChildren();
+                stage.sortChildren(); // resolve waiting track requests
 
-              case 44:
+                _this.resolveWaitingTrackRequests();
+
+              case 45:
               case "end":
                 return _context2.stop();
             }
@@ -99187,6 +99206,68 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       }
 
       return init;
+    }() // allow waiting for the track to finish loading
+
+  }, {
+    key: "resolveWaitingTrackRequests",
+    value: function resolveWaitingTrackRequests() {
+      this.isTrackReady = true;
+
+      var _iterator4 = _createForOfIteratorHelper(this._waitingForTrack),
+          _step4;
+
+      try {
+        for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+          var resolve = _step4.value;
+
+          try {
+            resolve(this.track);
+          } catch (ex) {
+            console.warn('Failed to resolve track request');
+          }
+        }
+      } catch (err) {
+        _iterator4.e(err);
+      } finally {
+        _iterator4.f();
+      }
+    } // gets the currently loaded track instance
+
+  }, {
+    key: "getTrackInstance",
+    value: function () {
+      var _getTrackInstance = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
+        var _this2 = this;
+
+        return _regenerator.default.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                if (!this.isTrackReady) {
+                  _context5.next = 2;
+                  break;
+                }
+
+                return _context5.abrupt("return", this.track);
+
+              case 2:
+                return _context5.abrupt("return", new Promise(function (resolve) {
+                  _this2._waitingForTrack.push(resolve);
+                }));
+
+              case 3:
+              case "end":
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function getTrackInstance() {
+        return _getTrackInstance.apply(this, arguments);
+      }
+
+      return getTrackInstance;
     }() // when finishing preloading of assrets
 
   }, {

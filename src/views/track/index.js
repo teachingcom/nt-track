@@ -106,6 +106,32 @@ export default class TrackView extends BaseView {
 		// this.stage.filters = [ this.colorFilter ];
 	}
 
+	// allow waiting for the track to finish loading
+	_waitingForTrack = [ ]
+	resolveWaitingTrackRequests() {
+		this.isTrackReady = true;
+		for (const resolve of this._waitingForTrack) {
+			try {
+				resolve(this.track);
+			}
+			catch (ex) {
+				console.warn('Failed to resolve track request');
+			}
+		}
+	}
+
+	// gets the currently loaded track instance
+	async getTrackInstance() {
+		if (this.isTrackReady) {
+			return this.track;
+		}
+
+		// queue the request
+		return new Promise(resolve => {
+			this._waitingForTrack.push(resolve);
+		})
+	}
+
 	// when finishing preloading of assrets
 	onLoadTrackAssets = () => {
 		this.resolveTask('load_assets');
@@ -141,7 +167,9 @@ export default class TrackView extends BaseView {
 	/** adds a new car to the track */
 	addPlayer = async (data, isInstant) => {
 		const { activePlayers, state, stage, isViewActive, animator } = this;
-		const { lighting } = animator.manifest;
+
+		const track = await this.getTrackInstance();
+		const lighting = track?.manifest?.lighting;
 		const playerOptions = { view: this, ...data, lighting };
 		const { isPlayer, id, lane } = playerOptions;
 
@@ -318,6 +346,9 @@ export default class TrackView extends BaseView {
 		
 		// sort the layers
 		stage.sortChildren();
+
+		// resolve waiting track requests
+		this.resolveWaitingTrackRequests()
 	}
 
 	/** sets a player as ready to go */
