@@ -85680,10 +85680,7 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                scale = options.scale, forceCanvas = options.forceCanvas; // monitor visibility changes
-
-                this.isViewActive = (0, _view.isViewActive)();
-                (0, _view.onViewActiveStateChanged)(this.onViewActiveStateChanged); // save some options
+                scale = options.scale, forceCanvas = options.forceCanvas; // save some options
 
                 this.options = options;
                 this.scale = options.scale;
@@ -85730,8 +85727,8 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
                     // any webGL context errors
 
                     gl = this.webGLRenderer.renderer.gl;
-                    gl.canvas.addEventListener('webglcontextlost', this.onWebGLContextLost); // gl.canvas.addEventListener('webglcontextrestored', this.onWebGLContextRestored);
-                    // debugging failures
+                    gl.canvas.addEventListener('webglcontextlost', this.onWebGLContextLost); // debugging failures
+                    // gl.canvas.addEventListener('webglcontextrestored', this.onWebGLContextRestored);
                     // setTimeout(() => this.webGLRenderer.renderer.gl.getExtension('WEBGL_lose_context').loseContext(), 10000);
                     // replace the renderer
 
@@ -85753,7 +85750,10 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
                 this.stage = new _ntAnimator.PIXI.Container();
                 this.view.addChild(this.stage); // set the correct renderer
 
-                this.setRenderer(renderer); // tracking FPS
+                this.setRenderer(renderer); // monitor visibility changes
+
+                this.isViewActive = (0, _view.isViewActive)();
+                (0, _view.onViewActiveStateChanged)(this.onViewActiveStateChanged); // tracking FPS
 
                 this.fps = new _fps.default(); // allow for rendering to be adjusted dynamically
 
@@ -98653,7 +98653,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
             switch (_context.prev = _context.next) {
               case 0:
                 _assertThisInitialize2 = (0, _assertThisInitialized2.default)(_this), activePlayers = _assertThisInitialize2.activePlayers, state = _assertThisInitialize2.state, stage = _assertThisInitialize2.stage, isViewActive = _assertThisInitialize2.isViewActive, animator = _assertThisInitialize2.animator;
-                lighting = _this.track.manifest.lighting;
+                lighting = animator.manifest.lighting;
                 playerOptions = _objectSpread(_objectSpread({
                   view: (0, _assertThisInitialized2.default)(_this)
                 }, data), {}, {

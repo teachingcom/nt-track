@@ -15,10 +15,6 @@ export class BaseView extends EventEmitter {
 	async init(options) {
 		const { scale, forceCanvas } = options;
 
-		// monitor visibility changes
-		this.isViewActive = isViewActive();
-		onViewActiveStateChanged(this.onViewActiveStateChanged);
-
 		// save some options
 		this.options = options;
 		this.scale = options.scale;
@@ -72,9 +68,9 @@ export class BaseView extends EventEmitter {
 				// any webGL context errors
 				const { gl } = this.webGLRenderer.renderer;
 				gl.canvas.addEventListener('webglcontextlost', this.onWebGLContextLost);
-				// gl.canvas.addEventListener('webglcontextrestored', this.onWebGLContextRestored);
-
+				
 				// debugging failures
+				// gl.canvas.addEventListener('webglcontextrestored', this.onWebGLContextRestored);
 				// setTimeout(() => this.webGLRenderer.renderer.gl.getExtension('WEBGL_lose_context').loseContext(), 10000);
 				
 				// replace the renderer
@@ -100,6 +96,10 @@ export class BaseView extends EventEmitter {
 		
 		// set the correct renderer
 		this.setRenderer(renderer);
+
+		// monitor visibility changes
+		this.isViewActive = isViewActive();
+		onViewActiveStateChanged(this.onViewActiveStateChanged);
 
 		// tracking FPS
 		this.fps = new FpsMonitor();

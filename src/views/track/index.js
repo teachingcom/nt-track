@@ -141,7 +141,7 @@ export default class TrackView extends BaseView {
 	/** adds a new car to the track */
 	addPlayer = async (data, isInstant) => {
 		const { activePlayers, state, stage, isViewActive, animator } = this;
-		const { lighting } = this.track.manifest;
+		const { lighting } = animator.manifest;
 		const playerOptions = { view: this, ...data, lighting };
 		const { isPlayer, id, lane } = playerOptions;
 
