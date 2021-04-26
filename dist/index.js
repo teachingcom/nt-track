@@ -99889,8 +99889,21 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
       thickness: 10
     }));
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setupInspectionMode", function (options) {
-      var container = options.container; // when not moused over, try and focus the
+      var container = options.container; // create the trail backdrop, if needed
+
+      var display = _this.getDisplaySize();
+
+      var backdrop = createBackdrop(display);
+
+      _this.view.addChild(backdrop); // align the backdrop to the middle and place in the back
+
+
+      backdrop.y = display.height / 2;
+      backdrop.zIndex = -1;
+
+      _this.view.sortChildren(); // when not moused over, try and focus the
       // view on the normal center
+
 
       container.addEventListener('mouseleave', function () {
         _this.preferredFocusX = 0.5;
@@ -100068,7 +100081,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
     }());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "createCar", /*#__PURE__*/function () {
       var _ref4 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(config) {
-        var view, _this$options, _this$options$tweaks, tweaks, _this$options$backgro, backgroundColor, container, car, bounds, display, target, scale, backdrop, trail;
+        var view, _this$options, _this$options$tweaks, tweaks, _this$options$backgro, backgroundColor, container, car, bounds, display, target, scale, trail;
 
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
@@ -100107,20 +100120,14 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 car.pivot.x = 0.5;
                 car.pivot.y = 0.5;
                 car.scale.x = scale;
-                car.scale.y = scale; // create the trail backdrop, if needed
-
-                if (_this.isInspectMode) {
-                  backdrop = createBackdrop(display, backgroundColor, config.trail);
-                  container.addChild(backdrop);
-                } // include the trail, if any
-
+                car.scale.y = scale; // include the trail, if any
 
                 if (!config.trail) {
-                  _context4.next = 22;
+                  _context4.next = 21;
                   break;
                 }
 
-                _context4.next = 18;
+                _context4.next = 17;
                 return _trail.default.create(_objectSpread(_objectSpread({
                   view: view
                 }, config), {}, {
@@ -100128,7 +100135,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                   type: config.trail
                 }));
 
-              case 18:
+              case 17:
                 trail = _context4.sent;
                 // add to the view
                 trail.attachTo(car);
@@ -100147,7 +100154,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
                 container.hasTrail = true;
 
-              case 22:
+              case 21:
                 // setup the container
                 container.addChild(car);
                 container.relativeY = 0.5;
@@ -100159,7 +100166,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
                 return _context4.abrupt("return", container);
 
-              case 27:
+              case 26:
               case "end":
                 return _context4.stop();
             }
@@ -100274,7 +100281,7 @@ function driveOut(car) {
         alpha: car.alpha
       },
       to: {
-        x: car.relativeX - 1,
+        x: car.relativeX + 1,
         alpha: 0
       },
       loop: false,
@@ -100291,13 +100298,13 @@ function driveOut(car) {
 }
 
 function driveIn(car) {
-  car.relativeX = -1.5;
+  car.relativeX = 1.5;
   var x = car.hasTrail ? TARGET_X_WITH_TRAIL : TARGET_X_WITHOUT_TRAIL;
   car.__transition = (0, _ntAnimator.animate)({
     duration: TRANSITION_TIME,
     ease: 'linear',
     from: {
-      x: 1.5
+      x: -1.5
     },
     to: {
       x: x
@@ -100359,26 +100366,19 @@ function fadeIn(target) {
   });
 }
 
-function createBackdrop(display, background, hasTrail) {
+function createBackdrop(display) {
   var width = display.width,
       height = display.height; // create the rendering area
 
   var backdrop = (0, _ntAnimator.createContext)();
-  backdrop.resize(width, height); // set the default fill
-  // const [ r, g, b ] = toRGB(background, false)
-  // backdrop.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`
-  // backdrop.ctx.fillRect(0, 0, width, height)
-  // add some bonus contrast
+  backdrop.resize(width, height); // add some bonus contrast
 
-  if (hasTrail) {
-    var gradient = backdrop.ctx.createLinearGradient(0, 0, 0, height);
-    gradient.addColorStop(0, 'rgba(0,0,0,0)');
-    gradient.addColorStop(0.5, 'rgba(0,0,0,0.3)');
-    gradient.addColorStop(1, 'rgba(0,0,0,0)');
-    backdrop.ctx.fillStyle = gradient;
-    backdrop.ctx.fillRect(0, 0, width, height);
-  } // create the PIXi object
-
+  var gradient = backdrop.ctx.createLinearGradient(0, 0, 0, height);
+  gradient.addColorStop(0, 'rgba(0,0,0,0)');
+  gradient.addColorStop(0.5, 'rgba(0,0,0,0.3)');
+  gradient.addColorStop(1, 'rgba(0,0,0,0)');
+  backdrop.ctx.fillStyle = gradient;
+  backdrop.ctx.fillRect(0, 0, width, height); // create the PIXi object
 
   var texture = _ntAnimator.PIXI.Texture.from(backdrop.canvas);
 

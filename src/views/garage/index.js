@@ -56,6 +56,17 @@ export default class GarageView extends BaseView {
 	setupInspectionMode = (options) => {
 		const { container } = options
 
+
+		// create the trail backdrop, if needed
+		const display = this.getDisplaySize();
+		const backdrop = createBackdrop(display);
+		this.view.addChild(backdrop);
+
+		// align the backdrop to the middle and place in the back
+		backdrop.y = display.height / 2;
+		backdrop.zIndex = -1
+		this.view.sortChildren()
+
 		// when not moused over, try and focus the
 		// view on the normal center
 		container.addEventListener('mouseleave', () => {
@@ -203,12 +214,6 @@ export default class GarageView extends BaseView {
 		car.scale.x = scale;
 		car.scale.y = scale;
 
-		// create the trail backdrop, if needed
-		if (this.isInspectMode) {
-			const backdrop = createBackdrop(display, backgroundColor, config.trail)
-			container.addChild(backdrop)
-		}
-
 		// include the trail, if any
 		if (config.trail) {
 			const trail = await Trail.create({
@@ -279,7 +284,7 @@ function driveOut(car) {
 			duration: TRANSITION_TIME,
 			ease: 'linear',
 			from: { x: car.relativeX, alpha: car.alpha },
-			to: { x: car.relativeX - 1, alpha: 0 },
+			to: { x: car.relativeX + 1, alpha: 0 },
 			loop: false,
 			update: props => {
 				car.alpha = props.alpha;
@@ -294,13 +299,13 @@ function driveOut(car) {
 }
 
 function driveIn(car) {
-	car.relativeX = -1.5;
+	car.relativeX = 1.5;
 	const x = car.hasTrail ? TARGET_X_WITH_TRAIL : TARGET_X_WITHOUT_TRAIL
 
 	car.__transition = animate({
 		duration: TRANSITION_TIME,
 		ease: 'linear',
-		from: { x: 1.5 },
+		from: { x: -1.5 },
 		to: { x },
 		loop: false,
 		update: props => car.relativeX = props.x
@@ -344,27 +349,20 @@ function fadeIn(target) {
 	});
 }
 
-function createBackdrop(display, background, hasTrail) {
+function createBackdrop(display) {
 	const { width, height } = display
 
 	// create the rendering area
 	const backdrop = createContext()
 	backdrop.resize(width, height)
 
-	// set the default fill
-	// const [ r, g, b ] = toRGB(background, false)
-	// backdrop.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`
-	// backdrop.ctx.fillRect(0, 0, width, height)
-
 	// add some bonus contrast
-	if (hasTrail) {
-		const gradient = backdrop.ctx.createLinearGradient(0, 0, 0, height);
-		gradient.addColorStop(0, 'rgba(0,0,0,0)')
-		gradient.addColorStop(0.5, 'rgba(0,0,0,0.3)')
-		gradient.addColorStop(1, 'rgba(0,0,0,0)')
-		backdrop.ctx.fillStyle = gradient
-		backdrop.ctx.fillRect(0, 0, width, height)
-	}
+	const gradient = backdrop.ctx.createLinearGradient(0, 0, 0, height);
+	gradient.addColorStop(0, 'rgba(0,0,0,0)')
+	gradient.addColorStop(0.5, 'rgba(0,0,0,0.3)')
+	gradient.addColorStop(1, 'rgba(0,0,0,0)')
+	backdrop.ctx.fillStyle = gradient
+	backdrop.ctx.fillRect(0, 0, width, height)
 
 	// create the PIXi object
 	const texture = PIXI.Texture.from(backdrop.canvas)
