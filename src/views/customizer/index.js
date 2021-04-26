@@ -181,12 +181,11 @@ export default class CustomizerView extends BaseView {
 
     // attach to the view
     this.trail = trail
-    this.trail.attachTo(this.container)
-    this.trail.each(part => {
+    const { car, container } = this
+    this.trail.link({ car, container }, part => {
       part.role = ['trail-part', ...(part.role || [])]
       part.alpha = 0
-      part.x = this.car.positions.back
-    });
+    })
 
     // also, fade in the trails
     animate({

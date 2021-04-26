@@ -1,5 +1,5 @@
 import { PIXI, removeDisplayObject } from 'nt-animator';
-import { merge } from '../../utils';
+import { merge, noop } from '../../utils';
 
 export default class Trail extends PIXI.DetatchedContainer {
 
@@ -32,6 +32,20 @@ export default class Trail extends PIXI.DetatchedContainer {
   // syncs a trail position to a car
   syncToCar(car) {
 
+  }
+
+  // TODO: there's some mismatch in these behaviors (link/alignTo)
+
+  // links a trail to a car
+  link({ car, container = car }, action = noop) {
+    this.linkedTo = car;
+    this.attachTo(car)
+    this.each(part => {
+      action(part);
+
+      // sync to the back of the car
+      part.x = car.positions.back * (car.pivot.x / car.bounds.width)
+    });
   }
 
   alignTo(car, position) {

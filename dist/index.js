@@ -88004,7 +88004,24 @@ var Trail = /*#__PURE__*/function (_PIXI$DetatchedContai) {
   (0, _createClass2.default)(Trail, [{
     key: "syncToCar",
     // syncs a trail position to a car
-    value: function syncToCar(car) {}
+    value: function syncToCar(car) {} // TODO: there's some mismatch in these behaviors (link/alignTo)
+    // links a trail to a car
+
+  }, {
+    key: "link",
+    value: function link(_ref) {
+      var car = _ref.car,
+          _ref$container = _ref.container,
+          container = _ref$container === void 0 ? car : _ref$container;
+      var action = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _utils.noop;
+      this.linkedTo = car;
+      this.attachTo(car);
+      this.each(function (part) {
+        action(part); // sync to the back of the car
+
+        part.x = car.positions.back * (car.pivot.x / car.bounds.width);
+      });
+    }
   }, {
     key: "alignTo",
     value: function alignTo(car, position) {
@@ -100628,6 +100645,8 @@ var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/de
 
 var _car = _interopRequireDefault(require("../../components/car"));
 
+var _trail = _interopRequireDefault(require("../../components/trail"));
+
 var _ntAnimator = require("nt-animator");
 
 var _base = require("../base");
@@ -100645,9 +100664,7 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
 // config
-var DEFAULT_MAX_HEIGHT = 250;
-var CAR_X = 660;
-var CAR_Y = 350; // creates a rolling view for an individual car
+var DEFAULT_MAX_HEIGHT = 250; // creates a rolling view for an individual car
 
 var CruiseView = /*#__PURE__*/function (_BaseView) {
   (0, _inherits2.default)(CruiseView, _BaseView);
@@ -100666,6 +100683,8 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
     _this = _super.call.apply(_super, [this].concat(args));
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "step", 0);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "container", new _ntAnimator.PIXI.Container());
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "originX", 660);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "originY", 350);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "dispose", function () {
       // cancel rendering
       _this.stopAutoRender(); // stop animations
@@ -100756,13 +100775,21 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
                 this.container.pivot.x = 420;
                 this.container.pivot.y = 350;
                 this.container.y = this.view.height * 0.5;
-                this.container.x = -1.5; // assemble the view
+                this.container.x = -1.5; // slightly larger
+
+                this.container.scale.x = this.container.scale.y = 1.2; // if this is a trail preview, focus differently
+
+                if (this.options.focus === 'trail') {
+                  this.container.scale.x = this.container.scale.y = 1.5;
+                  this.container.pivot.x -= 250;
+                } // assemble the view
+
 
                 this.container.addChild(this.treadmill);
                 this.container.addChild(this.car);
                 this.view.addChild(this.container);
 
-              case 12:
+              case 14:
               case "end":
                 return _context2.stop();
             }
@@ -100781,34 +100808,58 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
     key: "_initCar",
     value: function () {
       var _initCar2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(options) {
-        var car;
+        var baseHeight, car, trail, container;
         return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
-                _context3.next = 2;
+                baseHeight = 200;
+                _context3.next = 3;
                 return _car.default.create({
                   view: this,
                   type: options.type,
                   isAnimated: options.isAnimated,
                   hue: options.hue || 0,
-                  baseHeight: 220,
+                  baseHeight: baseHeight,
                   lighting: {
                     x: -5,
                     y: 7
                   }
                 });
 
-              case 2:
+              case 3:
                 car = _context3.sent;
-                // set positions
-                car.x = CAR_X;
-                car.y = CAR_Y;
-                car.alpha = 0; // add the
 
-                this.car = car;
+                if (!options.trail) {
+                  _context3.next = 9;
+                  break;
+                }
+
+                _context3.next = 7;
+                return _trail.default.create({
+                  view: this,
+                  baseHeight: baseHeight * 1.2,
+                  type: options.trail
+                });
 
               case 7:
+                trail = _context3.sent;
+                trail.link({
+                  car: car
+                });
+
+              case 9:
+                // create the unified container
+                container = new _ntAnimator.PIXI.Container();
+                container.x = this.originX;
+                container.y = this.originY;
+                container.alpha = 0; // merge together
+
+                container.addChild(car); // add the car
+
+                this.car = container;
+
+              case 15:
               case "end":
                 return _context3.stop();
             }
@@ -100861,10 +100912,10 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
 
       this.__animate_backForth = (0, _ntAnimator.animate)({
         from: {
-          x: CAR_X - 100
+          x: this.originX - 100
         },
         to: {
-          x: CAR_X + 150
+          x: this.originX + 150
         },
         ease: 'easeInOutQuad',
         duration: 3000,
@@ -100876,10 +100927,10 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
       });
       this.__animate_upDown = (0, _ntAnimator.animate)({
         from: {
-          y: CAR_Y - 100
+          y: this.originY - 100
         },
         to: {
-          y: CAR_Y + 100
+          y: this.originY + 100
         },
         ease: 'easeInOutQuad',
         duration: 6000,
@@ -100902,7 +100953,7 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
         this.container.rotation = Math.sin(this.step++ / 300) / 5 + Math.PI * -0.2;
         this.treadmill.update({
           diff: -25 * delta,
-          horizontalWrap: -500
+          horizontalWrap: -1500
         });
       }
 
@@ -100917,7 +100968,7 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
 }(_base.BaseView);
 
 exports.default = CruiseView;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/car":"components/car/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../components/treadmill":"components/treadmill.js"}],"views/customizer/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../components/treadmill":"components/treadmill.js"}],"views/customizer/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101275,10 +101326,9 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
     key: "setTrail",
     value: function () {
       var _setTrail = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(type) {
-        var _this$trail,
-            _this4 = this;
+        var _this$trail;
 
-        var trail, parts, _iterator, _step, part;
+        var trail, parts, _iterator, _step, part, car, container;
 
         return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
@@ -101327,11 +101377,13 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
 
 
                 this.trail = trail;
-                this.trail.attachTo(this.container);
-                this.trail.each(function (part) {
+                car = this.car, container = this.container;
+                this.trail.link({
+                  car: car,
+                  container: container
+                }, function (part) {
                   part.role = ['trail-part'].concat((0, _toConsumableArray2.default)(part.role || []));
                   part.alpha = 0;
-                  part.x = _this4.car.positions.back;
                 }); // also, fade in the trails
 
                 (0, _ntAnimator.animate)({
@@ -101368,24 +101420,24 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "_queuePassing",
     value: function _queuePassing() {
-      var _this5 = this;
+      var _this4 = this;
 
       var nextPass = 0 | 3000 + Math.random() * 4000;
       setTimeout(function () {
-        _this5.otherDriver.visible = true;
-        _this5.otherDriver.x = 500;
-        _this5.passingSpeed = Math.random() * 5 + 8;
+        _this4.otherDriver.visible = true;
+        _this4.otherDriver.x = 500;
+        _this4.passingSpeed = Math.random() * 5 + 8;
       }, nextPass);
     } // animates an object into the center of the view
 
   }, {
     key: "_animatePlayerCarIntoView",
     value: function _animatePlayerCarIntoView(obj) {
-      var _this6 = this;
+      var _this5 = this;
 
       return new Promise(function (resolve) {
         // determine the middle section
-        var mid = Math.floor(_this6.width / _this6.ssaaScalingLevel / -2);
+        var mid = Math.floor(_this5.width / _this5.ssaaScalingLevel / -2);
         (0, _ntAnimator.animate)({
           loop: false,
           duration: 500,
@@ -101403,7 +101455,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
           // finishing
           complete: function complete() {
             // if there's a left over car
-            var _iterator2 = _createForOfIteratorHelper(_this6.viewport.children),
+            var _iterator2 = _createForOfIteratorHelper(_this5.viewport.children),
                 _step2;
 
             try {
@@ -101505,7 +101557,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
     key: "setFocus",
     value: function setFocus(zone) {
       var _this$__panViewport,
-          _this7 = this;
+          _this6 = this;
 
       // cancel prior animations
       (_this$__panViewport = this.__panViewport) === null || _this$__panViewport === void 0 ? void 0 : _this$__panViewport.stop(); // animate the next view
@@ -101524,7 +101576,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
         easing: 'easeInOutQuad',
         loop: false,
         update: function update(t) {
-          return _this7.focus = t;
+          return _this6.focus = t;
         }
       });
     } // renders the view

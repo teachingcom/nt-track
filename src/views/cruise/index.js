@@ -1,18 +1,21 @@
 import Car from '../../components/car'
+import Trail from '../../components/trail'
 import { animate, getBoundsForRole, PIXI } from 'nt-animator'
 import { BaseView } from '../base'
 import Treadmill from '../../components/treadmill'
 
 // config
 const DEFAULT_MAX_HEIGHT = 250
-const CAR_X = 660
-const CAR_Y = 350
 
 // creates a rolling view for an individual car
 export default class CruiseView extends BaseView {
 
   step = 0
   container = new PIXI.Container()
+
+  // preferred target locations
+  originX = 660
+  originY = 350
 
   async init (options) {
     // initialize the view
@@ -50,6 +53,15 @@ export default class CruiseView extends BaseView {
     this.container.y = this.view.height * 0.5
     this.container.x = -1.5
 
+    // slightly larger
+    this.container.scale.x = this.container.scale.y = 1.2;
+    
+    // if this is a trail preview, focus differently
+    if (this.options.focus === 'trail') {
+      this.container.scale.x = this.container.scale.y = 1.5;
+      this.container.pivot.x -= 250
+    }
+
     // assemble the view
     this.container.addChild(this.treadmill)
     this.container.addChild(this.car)
@@ -58,22 +70,37 @@ export default class CruiseView extends BaseView {
 
   // creates the car to display
   async _initCar(options) {
+    const baseHeight = 200
     const car = await Car.create({
 			view: this, 
       type: options.type,
       isAnimated: options.isAnimated,
 			hue: options.hue || 0,
-      baseHeight: 220,
+      baseHeight,
       lighting: { x: -5, y: 7 }
     });
 
-    // set positions
-    car.x = CAR_X
-    car.y = CAR_Y
-    car.alpha = 0
+    if (options.trail) {
+      const trail = await Trail.create({
+        view: this,
+        baseHeight: baseHeight * 1.2,
+        type: options.trail
+      })
 
-    // add the
-    this.car = car
+      trail.link({ car });
+    }
+
+    // create the unified container
+    const container = new PIXI.Container();
+    container.x = this.originX
+    container.y = this.originY
+    container.alpha = 0
+
+    // merge together
+    container.addChild(car)
+
+    // add the car
+    this.car = container
   }
 
   _initAnimations() {
@@ -102,8 +129,8 @@ export default class CruiseView extends BaseView {
     
 		// animate the player entry
 		this.__animate_backForth = animate({
-			from: { x: CAR_X - 100 },
-			to: { x: CAR_X + 150 },
+			from: { x: this.originX - 100 },
+			to: { x: this.originX + 150 },
 			ease: 'easeInOutQuad',
       duration: 3000,
       direction: 'alternate',
@@ -112,8 +139,8 @@ export default class CruiseView extends BaseView {
 		});
     
 		this.__animate_upDown = animate({
-      from: { y: CAR_Y - 100 },
-			to: { y: CAR_Y + 100 },
+      from: { y: this.originY - 100 },
+			to: { y: this.originY + 100 },
 			ease: 'easeInOutQuad',
 			duration: 6000,
       direction: 'alternate',
@@ -139,7 +166,7 @@ export default class CruiseView extends BaseView {
       const now = Date.now();
       const delta = Math.min(2, this.getDeltaTime(now));
       this.container.rotation = (Math.sin(this.step++ / 300) / 5) + (Math.PI * -0.2)
-      this.treadmill.update({ diff: -25 * delta, horizontalWrap: -500 })
+      this.treadmill.update({ diff: -25 * delta, horizontalWrap: -1500 })
     }
     super.render(...args)
   }
