@@ -80,16 +80,6 @@ export default class CruiseView extends BaseView {
       lighting: { x: -5, y: 7 }
     });
 
-    if (options.trail) {
-      const trail = await Trail.create({
-        view: this,
-        baseHeight: baseHeight * 1.2,
-        type: options.trail
-      })
-
-      trail.link({ car });
-    }
-
     // create the unified container
     const container = new PIXI.Container();
     container.x = this.originX
@@ -98,6 +88,17 @@ export default class CruiseView extends BaseView {
 
     // merge together
     container.addChild(car)
+
+    if (options.trail) {
+      const trail = await Trail.create({
+        view: this,
+        baseHeight: baseHeight * 1.2,
+        type: options.trail
+      })
+
+      // link to a car
+      trail.link({ car, container })
+    }
 
     // add the car
     this.car = container

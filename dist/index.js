@@ -74642,6 +74642,8 @@ var BaseSineExpression = function BaseSineExpression(prop, args) {
         max = arg.max;
       } else if (arg.scale) {
         this.scale = arg.scale * 0.01;
+      } else if (arg === 'stagger' || arg.stagger) {
+        this.offset += 0 | (arg.stagger || 10000) * Math.random();
       } else if (arg.offset) {
         this.offset = arg.offset * 1000;
       }
@@ -78703,10 +78705,8 @@ function _loadSpritesheet() {
 }
 
 function generateSprites(image, spritesheetId, spritesheet, ext) {
-  var base = _lib.PIXI.Texture.from(image);
+  var base = _lib.PIXI.Texture.from(image); // create each sprite slice
 
-  base.baseTexture.wrapMode = _lib.PIXI.WRAP_MODES.CLAMP;
-  base.wrapMode = _lib.PIXI.WRAP_MODES.CLAMP; // create each sprite slice
 
   for (var id in spritesheet) {
     var record = spritesheet[id]; // if this is not an array, skip it
@@ -88015,11 +88015,11 @@ var Trail = /*#__PURE__*/function (_PIXI$DetatchedContai) {
           container = _ref$container === void 0 ? car : _ref$container;
       var action = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _utils.noop;
       this.linkedTo = car;
-      this.attachTo(car);
+      this.attachTo(container);
       this.each(function (part) {
         action(part); // sync to the back of the car
 
-        part.x = car.positions.back * (car.pivot.x / car.bounds.width);
+        part.x = car.positions.back;
       });
     }
   }, {
@@ -100808,7 +100808,7 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
     key: "_initCar",
     value: function () {
       var _initCar2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(options) {
-        var baseHeight, car, trail, container;
+        var baseHeight, car, container, trail;
         return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
@@ -100829,34 +100829,36 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
 
               case 3:
                 car = _context3.sent;
-
-                if (!options.trail) {
-                  _context3.next = 9;
-                  break;
-                }
-
-                _context3.next = 7;
-                return _trail.default.create({
-                  view: this,
-                  baseHeight: baseHeight * 1.2,
-                  type: options.trail
-                });
-
-              case 7:
-                trail = _context3.sent;
-                trail.link({
-                  car: car
-                });
-
-              case 9:
                 // create the unified container
                 container = new _ntAnimator.PIXI.Container();
                 container.x = this.originX;
                 container.y = this.originY;
                 container.alpha = 0; // merge together
 
-                container.addChild(car); // add the car
+                container.addChild(car);
 
+                if (!options.trail) {
+                  _context3.next = 14;
+                  break;
+                }
+
+                _context3.next = 12;
+                return _trail.default.create({
+                  view: this,
+                  baseHeight: baseHeight * 1.2,
+                  type: options.trail
+                });
+
+              case 12:
+                trail = _context3.sent;
+                // link to a car
+                trail.link({
+                  car: car,
+                  container: container
+                });
+
+              case 14:
+                // add the car
                 this.car = container;
 
               case 15:
@@ -101326,9 +101328,10 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
     key: "setTrail",
     value: function () {
       var _setTrail = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(type) {
-        var _this$trail;
+        var _this$trail,
+            _this4 = this;
 
-        var trail, parts, _iterator, _step, part, car, container;
+        var trail, parts, _iterator, _step, part;
 
         return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
@@ -101377,13 +101380,11 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
 
 
                 this.trail = trail;
-                car = this.car, container = this.container;
-                this.trail.link({
-                  car: car,
-                  container: container
-                }, function (part) {
+                this.trail.attachTo(this.container);
+                this.trail.each(function (part) {
                   part.role = ['trail-part'].concat((0, _toConsumableArray2.default)(part.role || []));
                   part.alpha = 0;
+                  part.x = _this4.car.positions.back;
                 }); // also, fade in the trails
 
                 (0, _ntAnimator.animate)({
@@ -101420,24 +101421,24 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "_queuePassing",
     value: function _queuePassing() {
-      var _this4 = this;
+      var _this5 = this;
 
       var nextPass = 0 | 3000 + Math.random() * 4000;
       setTimeout(function () {
-        _this4.otherDriver.visible = true;
-        _this4.otherDriver.x = 500;
-        _this4.passingSpeed = Math.random() * 5 + 8;
+        _this5.otherDriver.visible = true;
+        _this5.otherDriver.x = 500;
+        _this5.passingSpeed = Math.random() * 5 + 8;
       }, nextPass);
     } // animates an object into the center of the view
 
   }, {
     key: "_animatePlayerCarIntoView",
     value: function _animatePlayerCarIntoView(obj) {
-      var _this5 = this;
+      var _this6 = this;
 
       return new Promise(function (resolve) {
         // determine the middle section
-        var mid = Math.floor(_this5.width / _this5.ssaaScalingLevel / -2);
+        var mid = Math.floor(_this6.width / _this6.ssaaScalingLevel / -2);
         (0, _ntAnimator.animate)({
           loop: false,
           duration: 500,
@@ -101455,7 +101456,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
           // finishing
           complete: function complete() {
             // if there's a left over car
-            var _iterator2 = _createForOfIteratorHelper(_this5.viewport.children),
+            var _iterator2 = _createForOfIteratorHelper(_this6.viewport.children),
                 _step2;
 
             try {
@@ -101557,7 +101558,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
     key: "setFocus",
     value: function setFocus(zone) {
       var _this$__panViewport,
-          _this6 = this;
+          _this7 = this;
 
       // cancel prior animations
       (_this$__panViewport = this.__panViewport) === null || _this$__panViewport === void 0 ? void 0 : _this$__panViewport.stop(); // animate the next view
@@ -101576,7 +101577,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
         easing: 'easeInOutQuad',
         loop: false,
         update: function update(t) {
-          return _this6.focus = t;
+          return _this7.focus = t;
         }
       });
     } // renders the view

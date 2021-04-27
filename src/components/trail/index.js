@@ -39,12 +39,12 @@ export default class Trail extends PIXI.DetatchedContainer {
   // links a trail to a car
   link({ car, container = car }, action = noop) {
     this.linkedTo = car;
-    this.attachTo(car)
+    this.attachTo(container)
     this.each(part => {
       action(part);
 
       // sync to the back of the car
-      part.x = car.positions.back * (car.pivot.x / car.bounds.width)
+      part.x = car.positions.back
     });
   }
 
