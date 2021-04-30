@@ -91,13 +91,13 @@ export default class Track {
 	_selectTrack()  {
 		const { view, rng, options } = this;
 		let { trackId, variantId } = options;
-
+		
 		// find all available tracks
 		const tracks = view.animator.lookup('tracks');
 		
 		// try and load the track and variant - if
 		// missing, use a random track
-		const zone = tracks[trackId];
+		let zone = tracks[trackId];
 		if (!zone) {
 			const ids = Object.keys(tracks);
 			trackId = rng.select(ids);
@@ -105,7 +105,7 @@ export default class Track {
 		}
 		
 		// select the variation of the track
-		const manifest = zone[variantId];
+		let manifest = zone[variantId];
 		if (!manifest) {
 			const ids = Object.keys(zone);
 			variantId = rng.select(ids);
@@ -128,7 +128,7 @@ export default class Track {
 		const preloader = new AssetPreloader(this);
 		try {
 			// create a list of resources to preload
-			const trackAssetsUrl = `tracks/${options.trackId}/${options.variantId}`
+			const trackAssetsUrl = this.path;
 			await preloader.preload([
 				// preselected crowd image
 				{ type: 'image', src: SELECTED_CROWD_URL },

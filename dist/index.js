@@ -73696,7 +73696,7 @@ exports.isNumber = isNumber;
 exports.isBoolean = isBoolean;
 exports.setDefaults = setDefaults;
 exports.appendFunc = appendFunc;
-exports.noop = exports.RAD = exports.TAU = void 0;
+exports.noop = exports.toPrecision = exports.RAD = exports.TAU = void 0;
 
 var _typeof2 = _interopRequireDefault(require("@babel/runtime/helpers/typeof"));
 
@@ -73757,8 +73757,16 @@ function isNumber(obj) {
 function isBoolean(obj) {
   return obj === true || obj === false;
 }
+/** rounds to a precision and avoids string casting, if possible */
+
+
+var toPrecision = function toPrecision(num, val) {
+  return val === 1 ? (0 | num * 10) / 10 : val === 2 ? (0 | num * 100) / 100 : val === 3 ? (0 | num * 1000) / 1000 : val === 4 ? (0 | num * 10000) / 10000 : parseFloat(num.toPrecision(val));
+};
 /** non-action function */
 
+
+exports.toPrecision = toPrecision;
 
 var noop = function noop() {};
 /** assigns default values to another object
@@ -74613,7 +74621,7 @@ var BaseSineExpression = function BaseSineExpression(prop, args) {
   (0, _defineProperty2.default)(this, "scale", 1);
   (0, _defineProperty2.default)(this, "flip", 1);
   (0, _defineProperty2.default)(this, "update", function (target, stage) {
-    var ts = (Date.now() + _this.offset) * _this.scale;
+    var ts = (Date.now() - BaseSineExpression.start + _this.offset) * _this.scale;
 
     var percent = (_this.calc(ts) + 1) / 2;
     var value = (percent * (_this.max - _this.min) + _this.min) * _this.flip;
@@ -74665,6 +74673,8 @@ var BaseSineExpression = function BaseSineExpression(prop, args) {
   this.min = min;
   this.max = max;
 };
+
+(0, _defineProperty2.default)(BaseSineExpression, "start", Date.now());
 
 var CosineExpression = /*#__PURE__*/function (_BaseSineExpression) {
   (0, _inherits2.default)(CosineExpression, _BaseSineExpression);
@@ -76281,6 +76291,10 @@ function assignDisplayObjectProps(target, props) {
 
 
 function applyExpressions(obj) {
+  if (!obj) {
+    return;
+  }
+
   for (var prop in obj) {
     obj[prop] = (0, _expressions.evaluateExpression)(obj[prop]);
   }
@@ -76311,16 +76325,26 @@ function applyDynamicProperties(obj, props) {
     hasDynamicProperties = true; // create the update function
 
     update = (0, _utils.appendFunc)(update, function (obj, stage) {
-      obj.scale.x = Math.min(10, obj.width / obj.getBounds().width * (props.scaleX || 1)) * (stage.scaleX || 1);
+      var currentScale = obj.width / obj.getBounds().width;
+      obj.scale.x = (0, _utils.toPrecision)(Math.min(10, currentScale * (props.scaleX || 1)) * (stage.scaleX || 1), 2);
     });
   } // check for special functions
 
 
   if (props.lockHeight) {
-    hasDynamicProperties = true; // create the update function
+    hasDynamicProperties = true; // locking height allows for sprites that are skewed
+    // to maintain their original height so they have the
+    // appearance of being leaned as opposed to skew/squashed
+    // this function will change the y-scale to maintain the original
+    // height for the object the entire time. This is only used in
+    // a few places (like signs)
+    // this also rounds scaling down to a smaller precision since
+    // the track uses "snap to pixel" and not rounding will cause
+    // these to bump up and down in size by 1 pixel slightly
 
     update = (0, _utils.appendFunc)(update, function (obj, stage) {
-      obj.scale.y = Math.min(10, obj.height / obj.getBounds().height * (props.scaleY || 1)) * (stage.scaleY || 1);
+      var currentScale = obj.height / obj.getBounds().height;
+      obj.scale.y = (0, _utils.toPrecision)(Math.min(10, currentScale * (props.scaleY || 1)) * (stage.scaleY || 1), 2);
     });
   } // if nothing was found, just skip
 
@@ -78873,7 +78897,7 @@ function resolveImages(_x, _x2, _x3, _x4) {
 
 function _resolveImages() {
   _resolveImages = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(animator, path, composition, layer) {
-    var config, relativeTo, parsed, images, _i, _arr, source, pending, _iterator, _step, item, imageId, spritesheetId, ref, url, _promise, promise;
+    var config, relativeTo, parsed, images, _i, _arr, source, expanded, _iterator, _step, item, append, i, pending, _iterator2, _step2, _item, imageId, spritesheetId, ref, url, _promise, promise;
 
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
@@ -78899,45 +78923,76 @@ function _resolveImages() {
               source = (0, _expressions.evaluateExpression)(source); // update
 
               if ((0, _utils.isString)(source)) images.push(source);else if ((0, _utils.isArray)(source)) images = images.concat(source);
-            } // unpack all image reference
+            } // check for any shorthand to fill longer complex animations
+            // when assigning images you can use the syntax of
+            // [5, t] to append [t,t,t,t,t]
+            // [3, t, u] to append [t,u,t,u,t,u]
 
+
+            expanded = [];
+            _iterator = _createForOfIteratorHelper(images);
+
+            try {
+              for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                item = _step.value;
+
+                // just a string
+                if ((0, _utils.isString)(item)) {
+                  expanded.push(item);
+                } // special syntax
+                else if ((0, _utils.isArray)(item)) {
+                    append = item.slice(1);
+
+                    for (i = 0; i < item[0]; i++) {
+                      expanded = expanded.concat(append);
+                    }
+                  }
+              } // replace the images
+
+            } catch (err) {
+              _iterator.e(err);
+            } finally {
+              _iterator.f();
+            }
+
+            images = expanded; // unpack all image reference
 
             delete layer.image;
             layer.images = images;
             (0, _utils2.unpack)(animator, composition, layer, 'images'); // with each image, handle loading the correct resource
 
             pending = [];
-            _iterator = _createForOfIteratorHelper(images);
-            _context.prev = 11;
+            _iterator2 = _createForOfIteratorHelper(images);
+            _context.prev = 15;
 
-            _iterator.s();
+            _iterator2.s();
 
-          case 13:
-            if ((_step = _iterator.n()).done) {
-              _context.next = 28;
+          case 17:
+            if ((_step2 = _iterator2.n()).done) {
+              _context.next = 32;
               break;
             }
 
-            item = _step.value;
+            _item = _step2.value;
             imageId = void 0;
             spritesheetId = void 0; // read the path
 
-            ref = (0, _path.parsePath)(item); // handle loading exernal image urls
+            ref = (0, _path.parsePath)(_item); // handle loading exernal image urls
 
             if (!ref.isUrl) {
-              _context.next = 23;
+              _context.next = 27;
               break;
             }
 
             url = (0, _path.createUrlFromRef)(ref);
             _promise = (0, _loadImage.default)(url);
             pending.push(_promise);
-            return _context.abrupt("continue", 26);
+            return _context.abrupt("continue", 30);
 
-          case 23:
+          case 27:
             // check for an image relative to the current resource
             if (ref.isLocal) {
-              imageId = item;
+              imageId = _item;
               spritesheetId = relativeTo || path;
             } // check for an image shared through the project
             else if (ref.isAbsolute) {
@@ -78949,40 +79004,40 @@ function _resolveImages() {
             promise = (0, _getSprite.default)(animator, spritesheetId, imageId);
             pending.push(promise);
 
-          case 26:
-            _context.next = 13;
-            break;
-
-          case 28:
-            _context.next = 33;
-            break;
-
           case 30:
-            _context.prev = 30;
-            _context.t0 = _context["catch"](11);
+            _context.next = 17;
+            break;
 
-            _iterator.e(_context.t0);
+          case 32:
+            _context.next = 37;
+            break;
 
-          case 33:
-            _context.prev = 33;
+          case 34:
+            _context.prev = 34;
+            _context.t0 = _context["catch"](15);
 
-            _iterator.f();
+            _iterator2.e(_context.t0);
 
-            return _context.finish(33);
+          case 37:
+            _context.prev = 37;
 
-          case 36:
-            _context.next = 38;
+            _iterator2.f();
+
+            return _context.finish(37);
+
+          case 40:
+            _context.next = 42;
             return Promise.all(pending);
 
-          case 38:
+          case 42:
             return _context.abrupt("return", _context.sent);
 
-          case 39:
+          case 43:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[11, 30, 33, 36]]);
+    }, _callee, null, [[15, 34, 37, 40]]);
   }));
   return _resolveImages.apply(this, arguments);
 }
@@ -79200,7 +79255,7 @@ function createSprite(_x, _x2, _x3, _x4, _x5) {
 
 function _createSprite() {
   _createSprite = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(animator, controller, path, composition, layer) {
-    var update, dispose, phase, type, isSprite, isMarker, sprite, _layer$props, textures, isAnimated, _layer$props2, _layer$props3;
+    var update, dispose, phase, type, isSprite, isMarker, sprite, _layer$props, _layer$props2, textures, isAnimated, startFrame, goto, _layer$props3, _layer$props4;
 
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
@@ -79217,7 +79272,7 @@ function _createSprite() {
             isMarker = !isSprite; // create the required sprite
 
             if (!isSprite) {
-              _context.next = 22;
+              _context.next = 24;
               break;
             }
 
@@ -79236,18 +79291,26 @@ function _createSprite() {
             sprite.loop = ((_layer$props = layer.props) === null || _layer$props === void 0 ? void 0 : _layer$props.loop) !== false;
             sprite.isSprite = true;
             sprite.autoPlay = false;
-            sprite.isAnimatedSprite = isAnimated; // do not use built in animation engine
+            sprite.isAnimatedSprite = isAnimated; // choose the correct starting frame
+
+            startFrame = (_layer$props2 = layer.props) === null || _layer$props2 === void 0 ? void 0 : _layer$props2.startFrame;
+
+            if (isAnimated && startFrame) {
+              goto = startFrame === 'random' ? 0 | Math.random() * textures.length : (0, _utils.isNumber)(startFrame) ? startFrame : 0;
+              sprite.gotoAndStop(goto);
+            } // do not use built in animation engine
             // has strange behaviors when multiple
             // instances are active
+
 
             if (isAnimated && layer.autoplay !== false) {
               (0, _animatedSprite.default)(sprite, layer.props);
             }
 
-            _context.next = 23;
+            _context.next = 25;
             break;
 
-          case 22:
+          case 24:
             // markers act like normal sprites and are used to define
             // bounds and positions without needing an actual sprite
             if (isMarker) {
@@ -79255,7 +79318,7 @@ function _createSprite() {
               sprite.visible = false;
             }
 
-          case 23:
+          case 25:
             // shared data
             sprite.role = (0, _utils2.toRole)(layer.role);
             sprite.path = path; // set some default values
@@ -79283,8 +79346,8 @@ function _createSprite() {
             if (isMarker) {
               sprite.alpha = layer.debug ? 0.5 : 0; // scale to match the preferred pixel sizes
 
-              sprite.scale.x = (((_layer$props2 = layer.props) === null || _layer$props2 === void 0 ? void 0 : _layer$props2.width) || sprite.width) / sprite.width;
-              sprite.scale.y = (((_layer$props3 = layer.props) === null || _layer$props3 === void 0 ? void 0 : _layer$props3.height) || sprite.height) / sprite.height;
+              sprite.scale.x = (((_layer$props3 = layer.props) === null || _layer$props3 === void 0 ? void 0 : _layer$props3.width) || sprite.width) / sprite.width;
+              sprite.scale.y = (((_layer$props4 = layer.props) === null || _layer$props4 === void 0 ? void 0 : _layer$props4.height) || sprite.height) / sprite.height;
             } // add to the controller
 
 
@@ -79298,19 +79361,19 @@ function _createSprite() {
               dispose: dispose
             }]);
 
-          case 44:
-            _context.prev = 44;
+          case 46:
+            _context.prev = 46;
             _context.t0 = _context["catch"](3);
             console.error("Failed to create sprite ".concat(path, " while ").concat(phase));
             console.error(_context.t0);
             throw _context.t0;
 
-          case 49:
+          case 51:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[3, 44]]);
+    }, _callee, null, [[3, 46]]);
   }));
   return _createSprite.apply(this, arguments);
 }
@@ -82445,11 +82508,12 @@ function _createGroup() {
 
             group.pivot.x = 0;
             group.pivot.y = 0; // bakes a layer to a single object
-            // if (layer.merge) {
-            // 	group.cacheAsBitmap = true;
-            // 	group.batch = 'merged';
-            // }
-            // include this instance
+
+            if (layer.merge) {
+              group.cacheAsBitmap = true;
+              group.batch = 'merged';
+            } // include this instance
+
 
             controller.register(container); // attach the update function
 
@@ -82460,18 +82524,18 @@ function _createGroup() {
               dispose: dispose
             }]);
 
-          case 37:
-            _context.prev = 37;
+          case 38:
+            _context.prev = 38;
             _context.t0 = _context["catch"](4);
             console.error("Failed to create group ".concat(path, " while ").concat(phase));
             throw _context.t0;
 
-          case 41:
+          case 42:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[4, 37]]);
+    }, _callee, null, [[4, 38]]);
   }));
   return _createGroup.apply(this, arguments);
 }
@@ -84728,7 +84792,7 @@ exports.RACE_SOUND_ERROR_MAX_INTERVAL = RACE_SOUND_ERROR_MAX_INTERVAL;
 var RACE_FINISH_FLASH_FADE_TIME = 300; // crowds
 
 exports.RACE_FINISH_FLASH_FADE_TIME = RACE_FINISH_FLASH_FADE_TIME;
-var CROWD_DEFAULT_SCALE = 1;
+var CROWD_DEFAULT_SCALE = 0.8;
 exports.CROWD_DEFAULT_SCALE = CROWD_DEFAULT_SCALE;
 var CROWD_ANIMATION_VARIATIONS = 5;
 exports.CROWD_ANIMATION_VARIATIONS = CROWD_ANIMATION_VARIATIONS;
@@ -89567,13 +89631,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
 }(_ntAnimator.PIXI.ResponsiveContainer);
 
 exports.default = Player;
-},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","./scaling":"views/track/scaling.js","../../config":"config.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","../../components/namecard":"components/namecard/index.js","../../components/nitro":"components/nitro/index.js"}],"../node_modules/@babel/runtime/helpers/readOnlyError.js":[function(require,module,exports) {
-function _readOnlyError(name) {
-  throw new Error("\"" + name + "\" is read-only");
-}
-
-module.exports = _readOnlyError;
-},{}],"../node_modules/json-stringify-safe/stringify.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","./scaling":"views/track/scaling.js","../../config":"config.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","../../components/namecard":"components/namecard/index.js","../../components/nitro":"components/nitro/index.js"}],"../node_modules/json-stringify-safe/stringify.js":[function(require,module,exports) {
 exports = module.exports = stringify
 exports.getSerialize = serializer
 
@@ -89944,24 +90002,7 @@ function Random(seed) {
     return rng.random();
   });
   (0, _defineProperty2.default)(this, "select", function (source) {
-    var rng = _this.rng; // this is an array of items
-
-    if (typeof source === 'array' || source instanceof Array) {
-      var index = _this.int(source.length);
-
-      return source[index] || source[0];
-    } // gather IDs if possible
-
-
-    var ids = [];
-
-    for (var _id in source) {
-      ids.push(_id);
-    }
-
-    var id = select(ids); // return the selection
-
-    return source[id];
+    return source[0 | _this.random() * source.length];
   });
   this.rng = _randomSeed.default.create(seed || "".concat(+new Date()));
 }
@@ -95951,8 +95992,6 @@ var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"))
 
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
-var _readOnlyError2 = _interopRequireDefault(require("@babel/runtime/helpers/readOnlyError"));
-
 var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
 
 var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
@@ -96180,7 +96219,7 @@ var Track = /*#__PURE__*/function () {
       if (!zone) {
         var ids = Object.keys(tracks);
         trackId = rng.select(ids);
-        zone = ((0, _readOnlyError2.default)("zone"), tracks[trackId]);
+        zone = tracks[trackId];
       } // select the variation of the track
 
 
@@ -96190,7 +96229,7 @@ var Track = /*#__PURE__*/function () {
         var _ids = Object.keys(zone);
 
         variantId = rng.select(_ids);
-        manifest = ((0, _readOnlyError2.default)("manifest"), zone[variantId]);
+        manifest = zone[variantId];
       } // save the working path
 
 
@@ -96215,7 +96254,7 @@ var Track = /*#__PURE__*/function () {
                 preloader = new _preload.default(this);
                 _context.prev = 4;
                 // create a list of resources to preload
-                trackAssetsUrl = "tracks/".concat(options.trackId, "/").concat(options.variantId);
+                trackAssetsUrl = this.path;
                 _context.next = 8;
                 return preloader.preload([// preselected crowd image
                 {
@@ -96828,7 +96867,7 @@ var getRightEdge = function getRightEdge(t) {
 var byRightEdge = function byRightEdge(a, b) {
   return getRightEdge(a) - getRightEdge(b);
 };
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/readOnlyError":"../node_modules/@babel/runtime/helpers/readOnlyError.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../rng":"rng.js","../../views/track/scaling":"views/track/scaling.js","../../config":"config.js","../../utils":"utils/index.js","./segment":"components/track/segment.js","../../plugins/crowd":"plugins/crowd/index.js","../../audio/ambient":"audio/ambient.js","./preload":"components/track/preload.js"}],"animations/car-entry.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../rng":"rng.js","../../views/track/scaling":"views/track/scaling.js","../../config":"config.js","../../utils":"utils/index.js","./segment":"components/track/segment.js","../../plugins/crowd":"plugins/crowd/index.js","../../audio/ambient":"audio/ambient.js","./preload":"components/track/preload.js"}],"animations/car-entry.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98594,6 +98633,8 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
+console.log(_ntAnimator.PIXI);
+
 /** creates a track view that supports multiple cars for racing */
 var TrackView = /*#__PURE__*/function (_BaseView) {
   (0, _inherits2.default)(TrackView, _BaseView);
@@ -98605,11 +98646,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
     (0, _classCallCheck2.default)(this, TrackView);
     // do not anti-alias - this will be done using SSAA
-    // PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
+    _ntAnimator.PIXI.settings.SCALE_MODE = _ntAnimator.PIXI.SCALE_MODES.NEAREST; // PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.LINEAR
+
     _ntAnimator.PIXI.settings.PRECISION_VERTEX = _ntAnimator.PIXI.PRECISION.LOW;
-    _ntAnimator.PIXI.settings.PRECISION_FRAGMENT = _ntAnimator.PIXI.PRECISION.HIGH;
-    _ntAnimator.PIXI.settings.PRECISION_VERTEX = _ntAnimator.PIXI.PRECISION.LOW;
+    _ntAnimator.PIXI.settings.PRECISION_FRAGMENT = _ntAnimator.PIXI.PRECISION.LOW;
     _ntAnimator.PIXI.settings.MIPMAP_TEXTURES = _ntAnimator.PIXI.MIPMAP_MODES.OFF;
+    _ntAnimator.PIXI.settings.ROUND_PIXELS = true;
 
     for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];

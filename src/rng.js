@@ -32,21 +32,7 @@ export default class Random {
 	
 	/** randomly selects a value from a collection */
 	select = (source) => {
-		const { rng } = this;
-	
-		// this is an array of items
-		if (typeof source === 'array' || source instanceof Array) {
-			const index = this.int(source.length);
-			return source[index] || source[0];
-		}
-	
-		// gather IDs if possible
-		const ids = [ ];
-		for (const id in source) ids.push(id);
-		const id = select(ids);
-	
-		// return the selection
-		return source[id];
+		return source[0 | (this.random() * source.length)];
 	}
 
 }
