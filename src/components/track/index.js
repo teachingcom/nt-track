@@ -1,4 +1,4 @@
-import { PIXI, getBoundsForRole } from 'nt-animator';
+import { PIXI, getBoundsForRole, findDisplayObjectsOfRole } from 'nt-animator';
 import Random from '../../rng';
 import { TRACK_HEIGHT, TRACK_TOP } from '../../views/track/scaling';
 import { TRACK_MAXIMUM_TRAVEL_DISTANCE, TRACK_MAXIMUM_SCROLL_SPEED, TRACK_STARTING_LINE_POSITION } from '../../config';
@@ -7,6 +7,7 @@ import Segment from './segment';
 import createCrowd, { SELECTED_CROWD_URL } from '../../plugins/crowd';
 import AmbientAudio from '../../audio/ambient';
 import AssetPreloader from './preload';
+import { loadScript, parseScriptArgs } from '../../scripts';
 
 // total number of road slices to create
 // consider making this calculated as needed
@@ -19,59 +20,84 @@ export default class Track {
 	/** creates a new track instance */
 	static async create(options) {
 		const { view, seed } = options;
+		let activity;
 		
 		// create the new track
 		const instance = new Track();
-		instance.options = options;
-		instance.view = view;
-		instance.container = new PIXI.Container();
-		
-		// include special plugins
-		view.setLoadingStatus('init', 'installing plugings');
-		view.animator.install('crowd', createCrowd);
+		try {
+			instance.options = options;
+			instance.view = view;
+			instance.container = new PIXI.Container();
+			
+			// include special plugins
+			activity = 'adding crowd';
+			view.setLoadingStatus('init', 'installing plugins');
+			view.animator.install('crowd', createCrowd);
+			
+			// assign the seed, if needed
+			activity = 'init rng';
+			view.setLoadingStatus('init', 'creating random number generator');
+			view.animator.rng.activate(seed);
+			instance.rng = new Random(seed);
+			
+			// align to the center
+			instance.relativeX = 0.5;
+			
+			// idenitfy the track to render
+			activity = 'selecting track';
+			view.setLoadingStatus('init', 'selecting track');
+			instance._selectTrack();
+			
+			// preload external files
+			activity = 'preloading resources';
+			view.setLoadingStatus('assets', 'preloading resources');
+			await instance._preloadResources();
+			
+			// setup each part
+			activity = 'assembling repeating road';
+			view.setLoadingStatus('init', 'creating road');
+			await instance._createRoad();
+			
+			activity = 'assembling starting line';
+			view.setLoadingStatus('init', 'creating starting line');
+			await instance._createStartingLine();
+			
+			// todo? create when needed?
+			activity = 'assembling finish line';
+			view.setLoadingStatus('init', 'creating finish line');
+			await instance._createFinishLine();
+			
+			// apply scripts, if any
+			activity = 'loading doodad scripts';
+			await instance.applyScripts();
+			
+			// ambience is nice, but not worth stalling over
+			activity = 'loading ambient sound';
+			view.setLoadingStatus('init', 'creating ambient sound');
+			instance._createAmbience();
+			// await instance._createForeground();
+			// await instance._createBackground();
+			
+			// set the y position
+			activity = 'aligning track';
+			view.setLoadingStatus('init', 'aligning track');
+			const y = TRACK_TOP + (TRACK_HEIGHT / 2);
+			instance.overlay.relativeY = y;
+			instance.ground.relativeY = y;
 
-		// assign the seed, if needed
-		view.setLoadingStatus('init', 'creating random number generator');
-		view.animator.rng.activate(seed);
-		instance.rng = new Random(seed);
+			// can render
+			instance.ready = true;
+		}
+		catch (ex) {
+			console.error(ex);
+			throw new Error(activity)
+		}
 
-		// align to the center
-		instance.relativeX = 0.5;
-		
-		// idenitfy the track to render
-		view.setLoadingStatus('init', 'selecting track');
-		instance._selectTrack();
-		
-		// preload external files
-		view.setLoadingStatus('assets', 'preloading resources');
-		await instance._preloadResources();
-		
-		// setup each part
-		view.setLoadingStatus('init', 'creating road');
-		await instance._createRoad();
-		
-		view.setLoadingStatus('init', 'creating starting line');
-		await instance._createStartingLine();
-		
-		view.setLoadingStatus('init', 'creating finish line');
-		await instance._createFinishLine();
-		
-		// ambience is nice, but not worth stalling over
-		view.setLoadingStatus('init', 'creating ambient sound');
-		instance._createAmbience();
-		// await instance._createForeground();
-		// await instance._createBackground();
-
-		// set the y position
-		view.setLoadingStatus('init', 'aligning track');
-		const y = TRACK_TOP + (TRACK_HEIGHT / 2);
-		instance.overlay.relativeY = y;
-		instance.ground.relativeY = y;
-
-		// can render
-		instance.ready = true;
 		return instance;
 	}
+
+	// scripted objects
+	scripts = [ ]
 
 	// track scrolling position
 	trackPosition = 0
@@ -314,6 +340,20 @@ export default class Track {
 		}
 	}
 
+	// TODO: optimize this, if possible
+	async applyScripts() {
+		for (const container of [this.overlay, this.ground /*, this.foreground, this.background */]) {
+			const objs = findDisplayObjectsOfRole(container, 'script');
+			for (const obj of objs) {
+				const [ name, args ] = parseScriptArgs(obj.config?.script);
+				const handler = await loadScript(name, args, obj, this.view, this.view.animator)
+				if (handler) {
+					this.scripts.push(handler);
+				}
+			}
+		}
+	}
+
 	stopAmbience = () => this.ambience?.current?.stop()
 
 	// changes the playing ambience
@@ -347,6 +387,13 @@ export default class Track {
 		if (playing !== ambience.current) {
 			playing?.stop();
 			ambience.current?.start();
+		}
+	}
+
+	// handles updating scripted components, if any
+	updateScripts = (state, event) => {
+		for (const script of this.scripts) {
+			script.update(state);
 		}
 	}
 

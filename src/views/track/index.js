@@ -294,6 +294,7 @@ export default class TrackView extends BaseView {
 			}
 			// failed to create the track in a timely fashion
 			catch (ex) {
+				console.log(ex)
 				throw new Error(`Failed to create new track instance`);
 			}
 			
@@ -333,6 +334,7 @@ export default class TrackView extends BaseView {
 		}
 		// any failures
 		catch (ex) {
+			console.log(ex)
 			throw new TrackCreationError();
 		}
 
@@ -430,6 +432,8 @@ export default class TrackView extends BaseView {
 
 	/** starts the game countdown */
 	startCountdown = async () => {
+		this.emit('race:countdown');
+
 		if (this.countdown)
 			this.countdown.start();
 	}
@@ -501,6 +505,7 @@ export default class TrackView extends BaseView {
 			countdown.finish();
 
 		// change the ambience
+		this.emit('race:start');
 		this.track.setAmbience('race');
 
 		// toggle all start animations
@@ -581,11 +586,13 @@ export default class TrackView extends BaseView {
 		} = this;
 
 		state.delta = this.getDeltaTime(now);
-		// console.log('delta', state.delta)
 		this.lastUpdate = now;
 
 		// if throttling
 		if (!this.shouldAnimateFrame && !force) return;
+
+		// update scripts, if any
+		this.track.updateScripts(state);
 		
 		// gather some data
 		const { animateTrackMovement, trackMovementAmount } = state;
