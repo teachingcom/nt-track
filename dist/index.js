@@ -96040,6 +96040,8 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
+var REACTION_DISTANCE = 400;
+
 var ReactiveGull = /*#__PURE__*/function (_GameScript) {
   (0, _inherits2.default)(ReactiveGull, _GameScript);
 
@@ -96058,9 +96060,13 @@ var ReactiveGull = /*#__PURE__*/function (_GameScript) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                this.checkInterval = 0;
-                this.idle = (0, _ntAnimator.findDisplayObjectsOfRole)(this.obj, 'idle')[0];
-                this.flee = (0, _ntAnimator.findDisplayObjectsOfRole)(this.obj, 'flee')[0];
+                this.checkInterval = 0; // the sprites
+
+                this.sprites = {
+                  idle: (0, _ntAnimator.findDisplayObjectsOfRole)(this.obj, 'idle')[0],
+                  flee: (0, _ntAnimator.findDisplayObjectsOfRole)(this.obj, 'flee')[0]
+                };
+                this.isIdle = true;
 
               case 3:
               case "end":
@@ -96078,37 +96084,40 @@ var ReactiveGull = /*#__PURE__*/function (_GameScript) {
     }()
   }, {
     key: "update",
-    value: function update() {
-      // return;
-      if (this.mode === 'flee') {
+    value: function update(state) {
+      if (!this.isIdle) {
         var _source = new _ntAnimator.PIXI.Point();
 
-        this.obj.getGlobalPosition(_source, true);
-        console.log(_source.x);
+        this.obj.getGlobalPosition(_source, true); // did it jump back to the front (as if it were being cycled again)
 
         if (_source.x > this.track.width) {
-          this.flee.y = 0;
-          this.flee.x = 0;
-          this.mode = 'idle';
-          this.idle.visible = true;
-          this.flee.visible = false;
-          return;
-        }
+          this.isIdle = true;
+          this.sprites.flee.y = 0;
+          this.sprites.flee.x = 0; // swap visibility
 
-        this.flee.y -= this.travelY;
-        this.flee.x += this.travelX;
+          this.sprites.idle.visible = true;
+          this.sprites.flee.visible = false;
+        } // otherwise, continue to flee away
+        else {
+            this.sprites.flee.y -= this.travelY;
+            this.sprites.flee.x += this.travelX;
+          }
+
         return;
-      }
+      } // throttle how often to perform hit detection
+
 
       this.checkInterval++;
 
       if (this.checkInterval % 10 !== 0) {
         return;
-      }
+      } // get the gull position
+
 
       var source = new _ntAnimator.PIXI.Point();
-      this.idle.getGlobalPosition(source, true); // console.log('will update')
-      // let max = 100;
+      this.sprites.idle.getGlobalPosition(source, true); // compare if close to any players
+
+      var reactionDistance = REACTION_DISTANCE; // * (1 * state.speed)
 
       var compareTo = new _ntAnimator.PIXI.Point();
 
@@ -96118,23 +96127,24 @@ var ReactiveGull = /*#__PURE__*/function (_GameScript) {
       try {
         for (_iterator.s(); !(_step = _iterator.n()).done;) {
           var player = _step.value;
-          // console.log(player)
           var car = player.car;
-          car.getGlobalPosition(compareTo, true);
+          car.getGlobalPosition(compareTo, true); // check the distance
+
           var x = compareTo.x - source.x;
           var y = compareTo.y - source.y;
           var dist = Math.hypot(x, y);
 
-          if (dist < 250) {
-            this.mode = 'flee';
-            this.idle.visible = false;
-            this.flee.visible = true;
-            this.travelX = 0 | Math.random() * 20;
-            this.travelY = 5 + (0 | Math.random() * 15);
-          } // console.log(dist)
-          // console.log(gullPosition, carPosition);
-          // this.update = () => { }
+          if (dist < reactionDistance) {
+            // make visible
+            this.isIdle = false;
+            this.sprites.idle.visible = false;
+            this.sprites.flee.visible = true; // choose a random speed
 
+            this.travelX = 0 | Math.random() * 20;
+            this.travelY = 15 + (0 | Math.random() * 20); // no need to check anymore
+
+            return;
+          }
         }
       } catch (err) {
         _iterator.e(err);
@@ -96185,36 +96195,35 @@ function _loadScript() {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            console.log(name, config, obj);
             Type = name === 'reactive_gull' ? _reactive_gull.default : null; // load if possible
 
             if (Type) {
-              _context.next = 4;
+              _context.next = 3;
               break;
             }
 
             return _context.abrupt("return", console.warn("script missing: ".concat(name)));
 
-          case 4:
+          case 3:
             instance = new Type(config, obj, track, animator);
 
             if (!instance.init) {
-              _context.next = 8;
+              _context.next = 7;
               break;
             }
 
-            _context.next = 8;
+            _context.next = 7;
             return instance.init();
 
-          case 8:
+          case 7:
             if (!instance.update) {
-              _context.next = 10;
+              _context.next = 9;
               break;
             }
 
             return _context.abrupt("return", instance);
 
-          case 10:
+          case 9:
           case "end":
             return _context.stop();
         }
@@ -99038,8 +99047,6 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
-console.log(_ntAnimator.PIXI);
-
 /** creates a track view that supports multiple cars for racing */
 var TrackView = /*#__PURE__*/function (_BaseView) {
   (0, _inherits2.default)(TrackView, _BaseView);
@@ -99801,9 +99808,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       state.delta = this.getDeltaTime(now);
       this.lastUpdate = now; // if throttling
 
-      if (!this.shouldAnimateFrame && !force) return; // update scripts, if any
-
-      this.track.updateScripts(state); // gather some data
+      if (!this.shouldAnimateFrame && !force) return; // gather some data
 
       var animateTrackMovement = state.animateTrackMovement,
           trackMovementAmount = state.trackMovementAmount;
@@ -99827,6 +99832,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
 
       if (track && isRaceActive) {
+        track.updateScripts(state);
         track.update(state);
         raceProgressAnimation.update();
       } // redraw		

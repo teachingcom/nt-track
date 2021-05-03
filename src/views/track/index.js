@@ -3,7 +3,6 @@ import { PIXI } from 'nt-animator';
 import { merge } from '../../utils';
 import * as audio from '../../audio';
 
-console.log(PIXI)
 import { BaseView } from '../base';
 import Player from './player';
 import Track from '../../components/track';
@@ -590,9 +589,6 @@ export default class TrackView extends BaseView {
 
 		// if throttling
 		if (!this.shouldAnimateFrame && !force) return;
-
-		// update scripts, if any
-		this.track.updateScripts(state);
 		
 		// gather some data
 		const { animateTrackMovement, trackMovementAmount } = state;
@@ -626,6 +622,7 @@ export default class TrackView extends BaseView {
 		// this is temporary check until
 		// garage and preview modes are done
 		if (track && isRaceActive) {
+			track.updateScripts(state);
 			track.update(state);
 			raceProgressAnimation.update();
 		}

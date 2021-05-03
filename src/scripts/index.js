@@ -2,7 +2,6 @@ import ReactiveGull from './reactive_gull';
 
 // loads a script as required
 export async function loadScript(name, config, obj, track, animator) {
-	console.log(name, config, obj)
 	const Type = name === 'reactive_gull' ? ReactiveGull
 		: null;
 

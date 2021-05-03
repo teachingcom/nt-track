@@ -1,7 +1,7 @@
 import { findDisplayObjectsOfRole, PIXI } from 'nt-animator'
 import { GameScript } from './base'
 
-const REACTION_DISTANCE = 300
+const REACTION_DISTANCE = 400
 
 export default class ReactiveGull extends GameScript {
 	
@@ -10,15 +10,15 @@ export default class ReactiveGull extends GameScript {
 
 		// the sprites
 		this.sprites = {
-			idle = findDisplayObjectsOfRole(this.obj, 'idle')[0],
-			flee = findDisplayObjectsOfRole(this.obj, 'flee')[0]
+			idle: findDisplayObjectsOfRole(this.obj, 'idle')[0],
+			flee: findDisplayObjectsOfRole(this.obj, 'flee')[0]
 		};
 
 		this.isIdle = true
 	}
 
 
-	update() {
+	update(state) {
 		if (!this.isIdle) {
 			const source = new PIXI.Point()
 			this.obj.getGlobalPosition(source, true)
@@ -54,6 +54,7 @@ export default class ReactiveGull extends GameScript {
 		this.sprites.idle.getGlobalPosition(source, true)
 
 		// compare if close to any players
+		const reactionDistance = REACTION_DISTANCE // * (1 * state.speed)
 		const compareTo = new PIXI.Point()
 		for (const player of this.track.players) {
 			const { car } = player
@@ -63,7 +64,7 @@ export default class ReactiveGull extends GameScript {
 			const x = compareTo.x - source.x
 			const y = compareTo.y - source.y
 			const dist = Math.hypot(x, y)
-			if (dist < REACTION_DISTANCE) {
+			if (dist < reactionDistance) {
 
 				// make visible
 				this.isIdle = false
