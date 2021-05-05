@@ -54,7 +54,7 @@ export default class ComposerView extends BaseView {
 	playSfx = async (type, source, sprite) => {
 		const { options } = this;
 		await audio.register(source, source === 'common' ? options.manifest.sounds : null);
-		const sound = audio.create(type, source, sprite);
+		const sound = audio.create(type, sprite);
 		this.sounds.push(sound);
 	}
 

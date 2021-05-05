@@ -4158,7 +4158,7 @@ var Sound = /*#__PURE__*/function () {
     }
   }]);
 
-  function Sound(type, source, _key, _id, sprite) {
+  function Sound(type, source, _id, sprite) {
     var _this = this;
 
     (0, _classCallCheck2.default)(this, Sound);
@@ -4232,7 +4232,7 @@ var Sound = /*#__PURE__*/function () {
     this.source = source;
     this.id = _id;
     this.sprite = sprite;
-    this.key = "".concat(type, "::").concat(_key, ":").concat(sprite || 'default'); // check the default state
+    this.key = "".concat(type, "::").concat(sprite || 'default'); // check the default state
 
     this.isMusic = type === 'music';
     this.isSfx = !this.isMusic;
@@ -4348,13 +4348,17 @@ function register(_x, _x2) {
 
 
 function _register() {
-  _register = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(key, sprites) {
+  _register = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(src, sprites) {
+    var key,
+        _args = arguments;
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
+            key = _args.length > 2 && _args[2] !== undefined ? _args[2] : src;
             return _context.abrupt("return", new Promise(function (resolve, reject) {
-              // handle sound loading errors
+              sprites = sprites[key]; // handle sound loading errors
+
               var onFailed = function onFailed() {
                 console.error("Failed to load sound: ".concat(key));
                 reject(new MissingSoundException());
@@ -4362,7 +4366,10 @@ function _register() {
 
 
               var onLoaded = function onLoaded() {
-                AUDIO[key] = sound;
+                for (var id in sprites) {
+                  AUDIO[id] = sound;
+                }
+
                 resolve(true);
               }; // load the sound
 
@@ -4386,7 +4393,7 @@ function _register() {
               });
             }));
 
-          case 1:
+          case 2:
           case "end":
             return _context.stop();
         }
@@ -4396,18 +4403,18 @@ function _register() {
   return _register.apply(this, arguments);
 }
 
-function create(type, key, sprite) {
-  var sound = AUDIO[key]; // no sound was found
+function create(type, sprite) {
+  var sound = AUDIO[sprite]; // no sound was found
 
   if (!sound) {
-    console.warn("Play request for ".concat(key, " failed: not found"));
+    console.warn("Play request for ".concat(sprite, " failed: not found"));
     return;
   } // start the audio
 
 
   var id = sound.play(sprite); // creates a new sound instance
 
-  var instance = new _sound.Sound(type, sound, key, id, sprite);
+  var instance = new _sound.Sound(type, sound, id, sprite);
   instance.stop();
   instance.reset(); // save the audio
 
@@ -87560,7 +87567,7 @@ function _extend() {
         switch (_context.prev = _context.next) {
           case 0:
             animator = _ref.animator, car = _ref.car;
-            laughSound = audio.create('sfx', 'common', 'wampus'); // find parts
+            laughSound = audio.create('sfx', 'wampus'); // find parts
 
             _findDisplayObjectsOf = (0, _ntAnimator.findDisplayObjectsOfRole)(car, 'head'), _findDisplayObjectsOf2 = (0, _slicedToArray2.default)(_findDisplayObjectsOf, 1), head = _findDisplayObjectsOf2[0];
             _findDisplayObjectsOf3 = (0, _ntAnimator.findDisplayObjectsOfRole)(car, 'head_winner'), _findDisplayObjectsOf4 = (0, _slicedToArray2.default)(_findDisplayObjectsOf3, 1), headWinner = _findDisplayObjectsOf4[0];
@@ -88059,7 +88066,8 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
         for (_iterator.s(); !(_step = _iterator.n()).done;) {
           var _shadow = _step.value;
           _shadow.pivot.x = _shadow.width / 2 / _shadow.scale.x - light.x * offsetX;
-          _shadow.pivot.y = _shadow.height / 2 / _shadow.scale.y - light.y * offsetY; // each layer can define it's own shadow modifier, so save
+          _shadow.pivot.y = _shadow.height / 2 / _shadow.scale.y - light.y * offsetY;
+          _shadow.zIndex = -10; // each layer can define it's own shadow modifier, so save
           // the original in case the shadow is changed again
 
           if (isNaN(_shadow.alphaModifier)) {
@@ -89410,7 +89418,7 @@ var Nitro = /*#__PURE__*/function (_PIXI$DetatchedContai) {
                   break;
                 }
 
-                sound = audio.create('sfx', 'common', sfx);
+                sound = audio.create('sfx', sfx);
                 _context2.next = 11;
                 break;
 
@@ -96251,11 +96259,8 @@ var AmbientAudio = function AmbientAudio(options) {
 
     setTimeout(_this.next, 8000);
   });
-  var order = options.order,
-      sounds = options.sounds,
-      source = options.source;
-  this.options = options;
-  this.order = order; // set the starting point
+  var sounds = options.sounds;
+  this.options = options; // set the starting point
 
   this.index = 0; // create each audio clip
 
@@ -96267,7 +96272,7 @@ var AmbientAudio = function AmbientAudio(options) {
   try {
     for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
       var key = _step2.value;
-      var sound = audio.create('sfx', source, key); // leave running
+      var sound = audio.create('sfx', key); // leave running
 
       sound.play();
       sound.loop(true); // start silent - the first pass will
@@ -96327,7 +96332,7 @@ var AssetPreloader = /*#__PURE__*/function () {
 
     (0, _classCallCheck2.default)(this, AssetPreloader);
     (0, _defineProperty2.default)(this, "_preloadResources", /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
-      var resources, animator, pending, _iterator, _step, resource, type, src, sprites, task;
+      var resources, animator, pending, _iterator, _step, resource, type, src, key, sprites, task;
 
       return _regenerator.default.wrap(function _callee$(_context) {
         while (1) {
@@ -96343,12 +96348,12 @@ var AssetPreloader = /*#__PURE__*/function () {
 
             case 5:
               if ((_step = _iterator.n()).done) {
-                _context.next = 25;
+                _context.next = 26;
                 break;
               }
 
               resource = _step.value;
-              type = resource.type, src = resource.src, sprites = resource.sprites; // loading image assets
+              type = resource.type, src = resource.src, key = resource.key, sprites = resource.sprites; // loading image assets
 
               task = void 0;
 
@@ -96358,7 +96363,7 @@ var AssetPreloader = /*#__PURE__*/function () {
               }
 
               task = animator.preloadSpritesheet(src);
-              _context.next = 22;
+              _context.next = 23;
               break;
 
             case 13:
@@ -96368,60 +96373,61 @@ var AssetPreloader = /*#__PURE__*/function () {
               }
 
               task = animator.getImage(src);
-              _context.next = 22;
+              _context.next = 23;
               break;
 
             case 17:
               if (!(type === 'audio')) {
-                _context.next = 21;
+                _context.next = 22;
                 break;
               }
 
-              task = audio.register(src, sprites);
-              _context.next = 22;
+              console.log(sprites, src, key);
+              task = audio.register(src, sprites, key);
+              _context.next = 23;
               break;
 
-            case 21:
+            case 22:
               throw new InvalidResourceError();
 
-            case 22:
+            case 23:
               // add the task
               pending.push(task);
 
-            case 23:
+            case 24:
               _context.next = 5;
               break;
 
-            case 25:
-              _context.next = 30;
+            case 26:
+              _context.next = 31;
               break;
 
-            case 27:
-              _context.prev = 27;
+            case 28:
+              _context.prev = 28;
               _context.t0 = _context["catch"](3);
 
               _iterator.e(_context.t0);
 
-            case 30:
-              _context.prev = 30;
+            case 31:
+              _context.prev = 31;
 
               _iterator.f();
 
-              return _context.finish(30);
+              return _context.finish(31);
 
-            case 33:
-              _context.next = 35;
+            case 34:
+              _context.next = 36;
               return Promise.all(pending);
 
-            case 35:
+            case 36:
               _this.results = _context.sent;
 
-            case 36:
+            case 37:
             case "end":
               return _context.stop();
           }
         }
-      }, _callee, null, [[3, 27, 30, 33]]);
+      }, _callee, null, [[3, 28, 31, 34]]);
     })));
     (0, _defineProperty2.default)(this, "_validateResources", function () {
       var resources = _this.resources,
@@ -97038,6 +97044,8 @@ var Track = /*#__PURE__*/function () {
       } // save the working path
 
 
+      this.trackId = trackId;
+      this.variantId = variantId;
       this.path = "tracks/".concat(trackId, "/").concat(variantId);
       this.zone = zone;
       this.manifest = manifest;
@@ -97047,20 +97055,22 @@ var Track = /*#__PURE__*/function () {
     key: "_preloadResources",
     value: function () {
       var _preloadResources2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
-        var view, options, animator, onLoadTrackAssets, preloader, trackAssetsUrl;
+        var view, options, trackId, manifest, animator, onLoadTrackAssets, sfx, preloader, trackAssetsUrl;
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                view = this.view, options = this.options;
+                view = this.view, options = this.options, trackId = this.trackId, manifest = this.manifest;
                 animator = view.animator;
-                onLoadTrackAssets = options.onLoadTrackAssets; // try to load external resources
+                onLoadTrackAssets = options.onLoadTrackAssets; // check for audio files
+
+                sfx = manifest.sfx || trackId; // try to load external resources
 
                 preloader = new _preload.default(this);
-                _context.prev = 4;
+                _context.prev = 5;
                 // create a list of resources to preload
                 trackAssetsUrl = this.path;
-                _context.next = 8;
+                _context.next = 9;
                 return preloader.preload([// preselected crowd image
                 {
                   type: 'image',
@@ -97084,27 +97094,32 @@ var Track = /*#__PURE__*/function () {
                   type: 'audio',
                   src: 'common',
                   sprites: animator.manifest.sounds
+                }, {
+                  type: 'audio',
+                  src: sfx,
+                  key: trackId,
+                  sprites: animator.manifest.sounds
                 }]);
 
-              case 8:
+              case 9:
                 // assets have loaded
                 onLoadTrackAssets();
-                _context.next = 16;
+                _context.next = 17;
                 break;
 
-              case 11:
-                _context.prev = 11;
-                _context.t0 = _context["catch"](4);
+              case 12:
+                _context.prev = 12;
+                _context.t0 = _context["catch"](5);
                 view.setLoadingStatus('assets', preloader.status);
                 console.error("failed to preload track resources");
                 throw _context.t0;
 
-              case 16:
+              case 17:
               case "end":
                 return _context.stop();
             }
           }
-        }, _callee, this, [[4, 11]]);
+        }, _callee, this, [[5, 12]]);
       }));
 
       function _preloadResources() {
@@ -97140,7 +97155,7 @@ var Track = /*#__PURE__*/function () {
 
                   for (_i = 0, _arr = ['pre', 'racing', 'victory', 'defeat', 'default']; _i < _arr.length; _i++) {
                     type = _arr[_i];
-                    sounds = ambience.sounds && ambience.sounds[type];
+                    sounds = ambience[type];
 
                     if ((0, _utils.isArray)(sounds)) {
                       this.ambience[type] = new _ambient.default(_objectSpread(_objectSpread({}, ambience), {}, {
@@ -97902,7 +97917,7 @@ var CarEntryAnimation = /*#__PURE__*/function (_Animation) {
       // don't play duplicate sounds too close together
 
       try {
-        var rev = audio.create('sfx', 'common', "entry_".concat(enterSound));
+        var rev = audio.create('sfx', "entry_".concat(enterSound));
         var now = +new Date();
         var canPlayTimestamp = rev.lastInstancePlay + _config.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT; // try and play
 
@@ -98012,7 +98027,7 @@ var CarFinishLineAnimation = /*#__PURE__*/function (_Animation) {
       isInstant = elapsed > _config.RACE_FINISH_CAR_STOPPING_TIME; // if this car is entering
 
       if (!isInstant) {
-        var stop = audio.create('sfx', 'common', 'car_stopping'); // make sure this hasn't played too recently to avoid
+        var stop = audio.create('sfx', 'car_stopping'); // make sure this hasn't played too recently to avoid
         // 5 car screeching noises all at once
 
         var now = Date.now();
@@ -98623,7 +98638,7 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
     _this.track = _track;
     _this.players = _players; // play the finish sound
 
-    var finish = audio.create('sfx', 'common', 'finish_crowd');
+    var finish = audio.create('sfx', 'finish_crowd');
     finish.volume(_volume.VOLUME_FINISH_LINE_CROWD);
     finish.play(); // start the flash effect
 
@@ -99277,7 +99292,7 @@ var CountdownAnimation = /*#__PURE__*/function (_Animation) {
       stage.addChild(container); // start the countdown
 
       if (track.isViewActive) {
-        var announcer = audio.create('sfx', 'common', 'countdown_count');
+        var announcer = audio.create('sfx', 'countdown_count');
         announcer.volume(_volume.VOLUME_COUNTDOWN_ANNOUNCER);
         announcer.play();
       } // quick fade in
@@ -99344,11 +99359,11 @@ var CountdownAnimation = /*#__PURE__*/function (_Animation) {
 
       clearInterval(countdownInterval); // play the go audio clip
 
-      var start = audio.create('sfx', 'common', 'countdown_go');
+      var start = audio.create('sfx', 'countdown_go');
       start.volume(_volume.VOLUME_COUNTDOWN_ANNOUNCER);
       start.play(); // also play the car acceleration noise
 
-      var accelerate = audio.create('sfx', 'common', 'acceleration');
+      var accelerate = audio.create('sfx', 'acceleration');
       accelerate.volume(_volume.VOLUME_START_ACCELERATION);
       accelerate.play(); // change to green
 
@@ -99946,7 +99961,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
         player.isDisqualified = true; // play the sound
 
         if (player.isPlayer) {
-          var dq = audio.create('sfx', 'common', 'disqualified');
+          var dq = audio.create('sfx', 'disqualified');
           dq.volume(_volume.VOLUME_DISQUALIFY);
           dq.play(); // tell the track to slow down and stop
 
@@ -99957,7 +99972,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "playerError", function () {
       var selected = Math.ceil(Math.random() * 4);
-      var err = audio.create('sfx', 'common', "error_".concat(selected)); // select the correct volume
+      var err = audio.create('sfx', "error_".concat(selected)); // select the correct volume
 
       var volume = [_volume.VOLUME_ERROR_1, _volume.VOLUME_ERROR_2, _volume.VOLUME_ERROR_3, _volume.VOLUME_ERROR_4][selected - 1] || _volume.VOLUME_ERROR_DEFAULT; // set the volume
 
@@ -100520,7 +100535,7 @@ var ComposerView = /*#__PURE__*/function (_BaseView) {
                 return audio.register(source, source === 'common' ? options.manifest.sounds : null);
 
               case 3:
-                sound = audio.create(type, source, sprite);
+                sound = audio.create(type, sprite);
 
                 _this.sounds.push(sound);
 

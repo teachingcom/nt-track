@@ -17,12 +17,12 @@ export class Sound {
 	/** keeping track of the last time a sound was played */
 	static timestamps = { }
 
-	constructor(type, source, key, id, sprite) {
+	constructor(type, source, id, sprite) {
 		this.type = type;
 		this.source = source;
 		this.id = id;
 		this.sprite = sprite;
-		this.key = `${type}::${key}:${sprite || 'default'}`;
+		this.key = `${type}::${sprite || 'default'}`;
 
 		// check the default state
 		this.isMusic = type === 'music';

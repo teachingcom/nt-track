@@ -18,7 +18,7 @@ export default class RaceCompletedAnimation extends Animation {
 		this.players = players;
 
 		// play the finish sound
-		const finish = audio.create('sfx', 'common', 'finish_crowd');
+		const finish = audio.create('sfx', 'finish_crowd');
 		finish.volume(VOLUME_FINISH_LINE_CROWD);
 		finish.play();
 

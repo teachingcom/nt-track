@@ -5,10 +5,8 @@ import { VOLUME_AMBIENT_AUDIO } from './volume';
 export default class AmbientAudio {
 
 	constructor(options) {
-		const { order, sounds, source } = options;
-
+		const { sounds } = options;
 		this.options = options;
-		this.order = order;
 		
 		// set the starting point
 		this.index = 0;
@@ -16,7 +14,7 @@ export default class AmbientAudio {
 		// create each audio clip
 		this.sounds = [ ];
 		for (const key of sounds) {
-			const sound = audio.create('sfx', source, key);
+			const sound = audio.create('sfx', key);
 			
 			// leave running
 			sound.play();

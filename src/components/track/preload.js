@@ -24,7 +24,7 @@ export default class AssetPreloader {
 		
 		// queue up all pending asset loading requests
 		for (const resource of resources) {
-			const { type, src, sprites } = resource
+			const { type, src, key, sprites } = resource
 			
 			// loading image assets
 			let task
@@ -36,7 +36,8 @@ export default class AssetPreloader {
 			}
 			// loading audio files
 			else if (type === 'audio') {
-				task = audio.register(src, sprites)
+				console.log(sprites, src, key)
+				task = audio.register(src, sprites, key)
 			}
 			// unknown preload type
 			else {

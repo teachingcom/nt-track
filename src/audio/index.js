@@ -33,8 +33,10 @@ export function setBaseUrl (url) {
 }
 
 /** includes a sound to be played */
-export async function register (key, sprites) {
+export async function register (src, sprites, key = src) {
   return new Promise((resolve, reject) => {
+    sprites = sprites[key]
+
     // handle sound loading errors
     const onFailed = () => {
       console.error(`Failed to load sound: ${key}`)
@@ -43,7 +45,11 @@ export async function register (key, sprites) {
 
     // handle finalizing the sound
     const onLoaded = () => {
-      AUDIO[key] = sound
+
+      for (const id in sprites) {
+        AUDIO[id] = sound
+      }
+
       resolve(true)
     }
 
@@ -70,12 +76,12 @@ export async function register (key, sprites) {
 }
 
 // creates a new sound instance
-export function create (type, key, sprite) {
-  const sound = AUDIO[key]
+export function create (type, sprite) {
+  const sound = AUDIO[sprite]
 
   // no sound was found
   if (!sound) {
-    console.warn(`Play request for ${key} failed: not found`)
+    console.warn(`Play request for ${sprite} failed: not found`)
     return
   }
 
@@ -83,7 +89,7 @@ export function create (type, key, sprite) {
   const id = sound.play(sprite)
 
   // creates a new sound instance
-  const instance = new Sound(type, sound, key, id, sprite)
+  const instance = new Sound(type, sound, id, sprite)
   instance.stop()
   instance.reset()
 

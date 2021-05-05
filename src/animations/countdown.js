@@ -100,7 +100,7 @@ export default class CountdownAnimation extends Animation {
 		
 		// start the countdown
 		if (track.isViewActive) {
-			const announcer = audio.create('sfx', 'common', 'countdown_count');
+			const announcer = audio.create('sfx', 'countdown_count');
 			announcer.volume(VOLUME_COUNTDOWN_ANNOUNCER);
 			announcer.play();
 		}
@@ -156,12 +156,12 @@ export default class CountdownAnimation extends Animation {
 		clearInterval(countdownInterval);
 
 		// play the go audio clip
-		const start = audio.create('sfx', 'common', 'countdown_go');
+		const start = audio.create('sfx', 'countdown_go');
 		start.volume(VOLUME_COUNTDOWN_ANNOUNCER);
 		start.play();
 
 		// also play the car acceleration noise
-		const accelerate = audio.create('sfx', 'common', 'acceleration');
+		const accelerate = audio.create('sfx', 'acceleration');
 		accelerate.volume(VOLUME_START_ACCELERATION);
 		accelerate.play();
 		

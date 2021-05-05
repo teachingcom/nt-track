@@ -32,7 +32,7 @@ export default class CarFinishLineAnimation extends Animation {
 
     // if this car is entering
     if (!isInstant) {
-      const stop = audio.create('sfx', 'common', 'car_stopping')
+      const stop = audio.create('sfx', 'car_stopping')
 
       // make sure this hasn't played too recently to avoid
       // 5 car screeching noises all at once

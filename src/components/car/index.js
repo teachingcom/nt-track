@@ -379,6 +379,7 @@ export default class Car extends PIXI.Container {
 		for (const shadow of shadows) {
 			shadow.pivot.x = ((shadow.width / 2) / shadow.scale.x) - (light.x * offsetX);
 			shadow.pivot.y = ((shadow.height / 2) / shadow.scale.y) - (light.y * offsetY);
+			shadow.zIndex = -10
 
 			// each layer can define it's own shadow modifier, so save
 			// the original in case the shadow is changed again
@@ -388,6 +389,7 @@ export default class Car extends PIXI.Container {
 
 			shadow.alpha = shadow.alphaModifier * (isNumber(light.alpha) ? light.alpha : 0.5);
 		}
+
 	}
 
 	/** attaches a car to a container */

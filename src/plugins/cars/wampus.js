@@ -4,7 +4,7 @@ import { VOLUME_WAMPUS_LAUGH } from '../../audio/volume'
 
 /** additional wampus behavior */
 export async function extend ({ animator, car }) {
-  const laughSound = audio.create('sfx', 'common', 'wampus')
+  const laughSound = audio.create('sfx', 'wampus')
 
   // find parts
   const [head] = findDisplayObjectsOfRole(car, 'head')

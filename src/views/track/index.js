@@ -400,7 +400,7 @@ export default class TrackView extends BaseView {
 
 			// play the sound
 			if (player.isPlayer) {
-				const dq = audio.create('sfx', 'common', 'disqualified');
+				const dq = audio.create('sfx', 'disqualified');
 				dq.volume(VOLUME_DISQUALIFY)
 				dq.play();
 
@@ -414,7 +414,7 @@ export default class TrackView extends BaseView {
 	/** happens after an input error */
 	playerError = () => {
 		const selected = Math.ceil(Math.random() * 4);
-		const err = audio.create('sfx', 'common', `error_${selected}`);
+		const err = audio.create('sfx', `error_${selected}`);
 
 		// select the correct volume
 		const volume = [

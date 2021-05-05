@@ -65,7 +65,7 @@ export default class Nitro extends PIXI.DetatchedContainer {
 		// if this uses a standard library sound
 		let sound;
 		if (sfx) {
-			sound = audio.create('sfx', 'common', sfx)
+			sound = audio.create('sfx', sfx)
 		}
 		// use sound name convention
 		else {

@@ -73,7 +73,7 @@ export default class CarEntryAnimation extends Animation {
 		// play the entry sound, if possible
 		// don't play duplicate sounds too close together
 		try {
-			const rev = audio.create('sfx', 'common', `entry_${enterSound}`);
+			const rev = audio.create('sfx', `entry_${enterSound}`);
 			const now = +new Date;
 			const canPlayTimestamp = rev.lastInstancePlay + RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT;
 

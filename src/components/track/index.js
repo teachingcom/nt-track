@@ -139,6 +139,8 @@ export default class Track {
 		}
 	
 		// save the working path
+		this.trackId = trackId;
+		this.variantId = variantId;
 		this.path = `tracks/${trackId}/${variantId}`;
 		this.zone = zone;
 		this.manifest = manifest;
@@ -146,12 +148,15 @@ export default class Track {
 
 	// handles preloading track assets
 	async _preloadResources() {
-		const { view, options } = this
+		const { view, options, trackId, manifest } = this
 		const { animator } = view
 		const { onLoadTrackAssets } = options
+
+		// check for audio files
+		const sfx = manifest.sfx || trackId
 		
 		// try to load external resources
-		const preloader = new AssetPreloader(this);
+		const preloader = new AssetPreloader(this)
 		try {
 			// create a list of resources to preload
 			const trackAssetsUrl = this.path;
@@ -168,7 +173,8 @@ export default class Track {
 				{ type: 'spritesheet', src: 'images' },
 	
 				// common audio
-				{ type: 'audio', src: 'common', sprites: animator.manifest.sounds }
+				{ type: 'audio', src: 'common', sprites: animator.manifest.sounds },
+				{ type: 'audio', src: sfx, key: trackId, sprites: animator.manifest.sounds }
 			])
 
 			// assets have loaded
@@ -193,7 +199,7 @@ export default class Track {
 
 			// create each possible racing ambience
 			for (const type of ['pre', 'racing', 'victory', 'defeat', 'default']) {
-				const sounds = ambience.sounds && ambience.sounds[type];
+				const sounds = ambience[type];
 				if (isArray(sounds)) {
 					this.ambience[type] = new AmbientAudio({ ...ambience, sounds });
 				}
