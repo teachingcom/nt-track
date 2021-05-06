@@ -31,6 +31,7 @@ export default class AmbientAudio {
 
 	/** activates ambient audio */
 	start = () => {
+		this.isStopped = false;
 		this.next();
 	}
 

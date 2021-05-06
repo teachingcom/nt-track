@@ -96218,6 +96218,8 @@ var AmbientAudio = function AmbientAudio(options) {
 
   (0, _classCallCheck2.default)(this, AmbientAudio);
   (0, _defineProperty2.default)(this, "start", function () {
+    _this.isStopped = false;
+
     _this.next();
   });
   (0, _defineProperty2.default)(this, "stop", function () {
