@@ -39,7 +39,7 @@ export default class Nitro extends PIXI.DetatchedContainer {
 		// load the nitro sound - there's no reason
 		// to wait for this since it can't be used
 		// until after the race starts
-		// instance._initSound();
+		instance._initSound();
 		instance._applyConfig();
 
 		// if this didn't load for some reason

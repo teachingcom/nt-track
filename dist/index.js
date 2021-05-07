@@ -89528,21 +89528,22 @@ var Nitro = /*#__PURE__*/function (_PIXI$DetatchedContai) {
                 // load the nitro sound - there's no reason
                 // to wait for this since it can't be used
                 // until after the race starts
-                // instance._initSound();
+                instance._initSound();
+
                 instance._applyConfig(); // if this didn't load for some reason
 
 
                 if (instance.isValid) {
-                  _context3.next = 18;
+                  _context3.next = 19;
                   break;
                 }
 
                 return _context3.abrupt("return");
 
-              case 18:
+              case 19:
                 return _context3.abrupt("return", instance);
 
-              case 19:
+              case 20:
               case "end":
                 return _context3.stop();
             }
