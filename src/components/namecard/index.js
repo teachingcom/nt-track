@@ -33,16 +33,16 @@ export default class NameCard extends PIXI.Container {
 		// determine the type to create
 		const { type, view, isAnimated } = options;
 
-		// check for imported animations
-		if (isAnimated) {
-			const path = `namecards/${type}`
-			await view.animator.importManifest(path)
-		}
-		
 		// try and load
 		// const isDefault = /default/.test(type);
 		let path = `namecards/${type}`
 		let config = view.animator.lookup(path)
+		
+		// maybe needs to load
+		if (!config) {
+			await view.animator.importManifest(path)
+			config = view.animator.lookup(path)
+		}
 
 		// if missing, use the default
 		if (!config) {

@@ -326,7 +326,9 @@ export default class TrackView extends BaseView {
 			}
 
 			// start the ambience
-			this.track.setAmbience('start');
+			if (track) {
+				track.setAmbience('start');
+			}
 
 			// track is ready to go
 			this.resolveTask('load_track');

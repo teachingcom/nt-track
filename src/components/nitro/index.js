@@ -8,8 +8,20 @@ export default class Nitro extends PIXI.DetatchedContainer {
 	/** handles creating the new nitro instance */
 	static async create(options) {
 		const { type, view } = options;
-		const path = `nitros/${type}`;
-		const config = view.animator.lookup(path);
+		
+		let path = `nitros/${type}`;
+		let config = view.animator.lookup(path);
+
+		// not loaded, check to import this
+		if (!config) {
+			await view.animator.importManifest(path)
+			config = view.animator.lookup(path)
+		}
+
+		// fall back to default
+		if (!config) {
+			config = view.animator.lookup('nitros/default');
+		}
 
 		// if this doesn't exist, don't try and create
 		if (!config) {
@@ -27,7 +39,7 @@ export default class Nitro extends PIXI.DetatchedContainer {
 		// load the nitro sound - there's no reason
 		// to wait for this since it can't be used
 		// until after the race starts
-		instance._initSound();
+		// instance._initSound();
 		instance._applyConfig();
 
 		// if this didn't load for some reason

@@ -82788,7 +82788,7 @@ function _createEmitter() {
 
             autoplay = emit.auto === false || emit.autoplay === false || emit.autoPlay === false;
             config.noRotation = !!emit.noRotation;
-            config.atBack = !!emit.atBack;
+            config.addAtBack = !!emit.atBack;
             config.orderedArt = !!emit.orderedArt;
             config.flipParticleX = !!(emit.flipParticleX || emit.flipX || emit['flip.x']);
             config.flipParticleY = !!(emit.flipParticleY || emit.flipY || emit['flip.y']); // if rotation is disabled
@@ -89135,8 +89135,7 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
     /** handles creating a new namecard */
     value: function () {
       var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(options) {
-        var instance, type, view, isAnimated, _path, path, config, isGoldNamecard, isPlayerNamecard, hasOverlay;
-
+        var instance, type, view, isAnimated, path, config, isGoldNamecard, isPlayerNamecard, hasOverlay;
         return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
@@ -89144,23 +89143,25 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                 instance = new NameCard();
                 instance.visible = false; // determine the type to create
 
-                type = options.type, view = options.view, isAnimated = options.isAnimated; // check for imported animations
+                type = options.type, view = options.view, isAnimated = options.isAnimated; // try and load
+                // const isDefault = /default/.test(type);
 
-                if (!isAnimated) {
-                  _context3.next = 7;
+                path = "namecards/".concat(type);
+                config = view.animator.lookup(path); // maybe needs to load
+
+                if (config) {
+                  _context3.next = 9;
                   break;
                 }
 
-                _path = "namecards/".concat(type);
-                _context3.next = 7;
-                return view.animator.importManifest(_path);
+                _context3.next = 8;
+                return view.animator.importManifest(path);
 
-              case 7:
-                // try and load
-                // const isDefault = /default/.test(type);
-                path = "namecards/".concat(type);
-                config = view.animator.lookup(path); // if missing, use the default
+              case 8:
+                config = view.animator.lookup(path);
 
+              case 9:
+                // if missing, use the default
                 if (!config) {
                   path = 'namecards/default';
                   config = view.animator.lookup(path);
@@ -89482,17 +89483,35 @@ var Nitro = /*#__PURE__*/function (_PIXI$DetatchedContai) {
               case 0:
                 type = options.type, view = options.view;
                 path = "nitros/".concat(type);
-                config = view.animator.lookup(path); // if this doesn't exist, don't try and create
+                config = view.animator.lookup(path); // not loaded, check to import this
 
                 if (config) {
-                  _context3.next = 6;
+                  _context3.next = 7;
+                  break;
+                }
+
+                _context3.next = 6;
+                return view.animator.importManifest(path);
+
+              case 6:
+                config = view.animator.lookup(path);
+
+              case 7:
+                // fall back to default
+                if (!config) {
+                  config = view.animator.lookup('nitros/default');
+                } // if this doesn't exist, don't try and create
+
+
+                if (config) {
+                  _context3.next = 11;
                   break;
                 }
 
                 console.error("Failed to find nitro effect: ".concat(path));
                 return _context3.abrupt("return");
 
-              case 6:
+              case 11:
                 // determine the type to create
                 instance = new Nitro();
                 (0, _utils.merge)(instance, {
@@ -89502,29 +89521,28 @@ var Nitro = /*#__PURE__*/function (_PIXI$DetatchedContai) {
                   config: config
                 }); // initialize all car parts
 
-                _context3.next = 10;
+                _context3.next = 15;
                 return instance._initNitro();
 
-              case 10:
+              case 15:
                 // load the nitro sound - there's no reason
                 // to wait for this since it can't be used
                 // until after the race starts
-                instance._initSound();
-
+                // instance._initSound();
                 instance._applyConfig(); // if this didn't load for some reason
 
 
                 if (instance.isValid) {
-                  _context3.next = 14;
+                  _context3.next = 18;
                   break;
                 }
 
                 return _context3.abrupt("return");
 
-              case 14:
+              case 18:
                 return _context3.abrupt("return", instance);
 
-              case 15:
+              case 19:
               case "end":
                 return _context3.stop();
             }
@@ -99879,7 +99897,9 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
               case 31:
                 // start the ambience
-                _this.track.setAmbience('start'); // track is ready to go
+                if (track) {
+                  track.setAmbience('start');
+                } // track is ready to go
 
 
                 _this.resolveTask('load_track');
