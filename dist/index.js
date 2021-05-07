@@ -96368,7 +96368,7 @@ var AssetPreloader = /*#__PURE__*/function () {
 
             case 5:
               if ((_step = _iterator.n()).done) {
-                _context.next = 26;
+                _context.next = 25;
                 break;
               }
 
@@ -96383,7 +96383,7 @@ var AssetPreloader = /*#__PURE__*/function () {
               }
 
               task = animator.preloadSpritesheet(src);
-              _context.next = 23;
+              _context.next = 22;
               break;
 
             case 13:
@@ -96393,61 +96393,60 @@ var AssetPreloader = /*#__PURE__*/function () {
               }
 
               task = animator.getImage(src);
-              _context.next = 23;
+              _context.next = 22;
               break;
 
             case 17:
               if (!(type === 'audio')) {
-                _context.next = 22;
+                _context.next = 21;
                 break;
               }
 
-              console.log(sprites, src, key);
               task = audio.register(src, sprites, key);
-              _context.next = 23;
+              _context.next = 22;
               break;
 
-            case 22:
+            case 21:
               throw new InvalidResourceError();
 
-            case 23:
+            case 22:
               // add the task
               pending.push(task);
 
-            case 24:
+            case 23:
               _context.next = 5;
               break;
 
-            case 26:
-              _context.next = 31;
+            case 25:
+              _context.next = 30;
               break;
 
-            case 28:
-              _context.prev = 28;
+            case 27:
+              _context.prev = 27;
               _context.t0 = _context["catch"](3);
 
               _iterator.e(_context.t0);
 
-            case 31:
-              _context.prev = 31;
+            case 30:
+              _context.prev = 30;
 
               _iterator.f();
 
-              return _context.finish(31);
+              return _context.finish(30);
 
-            case 34:
-              _context.next = 36;
+            case 33:
+              _context.next = 35;
               return Promise.all(pending);
 
-            case 36:
+            case 35:
               _this.results = _context.sent;
 
-            case 37:
+            case 36:
             case "end":
               return _context.stop();
           }
         }
-      }, _callee, null, [[3, 28, 31, 34]]);
+      }, _callee, null, [[3, 27, 30, 33]]);
     })));
     (0, _defineProperty2.default)(this, "_validateResources", function () {
       var resources = _this.resources,

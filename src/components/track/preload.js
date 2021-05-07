@@ -36,7 +36,6 @@ export default class AssetPreloader {
 			}
 			// loading audio files
 			else if (type === 'audio') {
-				console.log(sprites, src, key)
 				task = audio.register(src, sprites, key)
 			}
 			// unknown preload type
