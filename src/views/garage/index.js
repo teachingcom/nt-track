@@ -152,7 +152,7 @@ export default class GarageView extends BaseView {
 		// set the new car
 		let remove = this.car;
 		this.car = car;
-		
+
 		// choose the animation
 		let entryAction
 		if (hasActiveCar) {
@@ -213,6 +213,12 @@ export default class GarageView extends BaseView {
 		car.pivot.y = 0.5;
 		car.scale.x = scale;
 		car.scale.y = scale;
+
+		// check for a bonus scale modifier
+		if (!isNaN(config.scale)) {
+			car.scale.x *= config.scale;
+			car.scale.y *= config.scale;
+		}
 
 		// include the trail, if any
 		if (config.trail) {

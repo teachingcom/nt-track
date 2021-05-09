@@ -325,11 +325,6 @@ export default class TrackView extends BaseView {
 				throw new CountdownAssetError();
 			}
 
-			// start the ambience
-			if (track) {
-				track.setAmbience('start');
-			}
-
 			// track is ready to go
 			this.resolveTask('load_track');
 		}
@@ -348,6 +343,9 @@ export default class TrackView extends BaseView {
 		stage.addChild(track.overlay);
 		track.overlay.zIndex = LAYER_TRACK_OVERLAY;
 		track.overlay.relativeX = 0.5;
+
+		// start the ambience
+		track.setAmbience('start');
 		
 		// sort the layers
 		stage.sortChildren();
@@ -507,7 +505,7 @@ export default class TrackView extends BaseView {
 
 		// change the ambience
 		this.emit('race:start');
-		this.track.setAmbience('race');
+		this.track?.setAmbience('race');
 
 		// toggle all start animations
 		for (const player of this.players) {
@@ -545,7 +543,7 @@ export default class TrackView extends BaseView {
 
 		// play the correct background noise
 		const victory = players.length === 1;
-		track.setAmbience(victory ? 'victory' : 'finish');
+		track?.setAmbience(victory ? 'victory' : 'finish');
 
 		// stop the track
 		state.animateTrackMovement = false;

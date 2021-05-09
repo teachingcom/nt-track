@@ -99899,24 +99899,19 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 throw new CountdownAssetError();
 
               case 31:
-                // start the ambience
-                if (track) {
-                  track.setAmbience('start');
-                } // track is ready to go
-
-
+                // track is ready to go
                 _this.resolveTask('load_track');
 
-                _context2.next = 39;
+                _context2.next = 38;
                 break;
 
-              case 35:
-                _context2.prev = 35;
+              case 34:
+                _context2.prev = 34;
                 _context2.t2 = _context2["catch"](2);
                 console.log(_context2.t2);
                 throw new TrackCreationError();
 
-              case 39:
+              case 38:
                 // add the scroling ground
                 stage.addChild(track.ground);
                 track.ground.zIndex = _layers.LAYER_TRACK_GROUND;
@@ -99924,7 +99919,9 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
                 stage.addChild(track.overlay);
                 track.overlay.zIndex = _layers.LAYER_TRACK_OVERLAY;
-                track.overlay.relativeX = 0.5; // sort the layers
+                track.overlay.relativeX = 0.5; // start the ambience
+
+                track.setAmbience('start'); // sort the layers
 
                 stage.sortChildren(); // resolve waiting track requests
 
@@ -99935,7 +99932,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 return _context2.stop();
             }
           }
-        }, _callee2, null, [[2, 35], [3, 10], [14, 23]]);
+        }, _callee2, null, [[2, 34], [3, 10], [14, 23]]);
       }));
 
       return function (_x3) {
@@ -100080,6 +100077,8 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       }
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "startRace", function () {
+      var _this$track;
+
       var _assertThisInitialize8 = (0, _assertThisInitialized2.default)(_this),
           options = _assertThisInitialize8.options,
           state = _assertThisInitialize8.state,
@@ -100090,8 +100089,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
       _this.emit('race:start');
 
-      _this.track.setAmbience('race'); // toggle all start animations
-
+      (_this$track = _this.track) === null || _this$track === void 0 ? void 0 : _this$track.setAmbience('race'); // toggle all start animations
 
       var _iterator3 = _createForOfIteratorHelper(_this.players),
           _step3;
@@ -100137,7 +100135,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       if (raceCompletedAnimation) return; // play the correct background noise
 
       var victory = players.length === 1;
-      track.setAmbience(victory ? 'victory' : 'finish'); // stop the track
+      track === null || track === void 0 ? void 0 : track.setAmbience(victory ? 'victory' : 'finish'); // stop the track
 
       state.animateTrackMovement = false;
       state.speed = 0;
@@ -101124,14 +101122,20 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 car.pivot.x = 0.5;
                 car.pivot.y = 0.5;
                 car.scale.x = scale;
-                car.scale.y = scale; // include the trail, if any
+                car.scale.y = scale; // check for a bonus scale modifier
+
+                if (!isNaN(config.scale)) {
+                  car.scale.x *= config.scale;
+                  car.scale.y *= config.scale;
+                } // include the trail, if any
+
 
                 if (!config.trail) {
-                  _context4.next = 21;
+                  _context4.next = 22;
                   break;
                 }
 
-                _context4.next = 17;
+                _context4.next = 18;
                 return _trail.default.create(_objectSpread(_objectSpread({
                   view: view
                 }, config), {}, {
@@ -101139,7 +101143,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                   type: config.trail
                 }));
 
-              case 17:
+              case 18:
                 trail = _context4.sent;
                 // add to the view
                 trail.attachTo(car);
@@ -101158,7 +101162,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
                 container.hasTrail = true;
 
-              case 21:
+              case 22:
                 // setup the container
                 container.addChild(car);
                 container.relativeY = 0.5;
@@ -101170,7 +101174,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
                 return _context4.abrupt("return", container);
 
-              case 26:
+              case 27:
               case "end":
                 return _context4.stop();
             }
