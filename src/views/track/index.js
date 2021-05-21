@@ -2,7 +2,6 @@
 import { PIXI } from 'nt-animator';
 import { merge } from '../../utils';
 import * as audio from '../../audio';
-
 import { BaseView } from '../base';
 import Player from './player';
 import Track from '../../components/track';
@@ -566,14 +565,6 @@ export default class TrackView extends BaseView {
 		
 		// calculate the delta
 		const now = Date.now();
-		// const diff = now - this.previousTime;
-		// if (diff < this.maxRenderingSpeed) {
-		// 	console.log('did skip frame', diff, this.maxRenderingSpeed);
-		// 	return;
-		// }
-		// else {
-		// 	console.log('REN', diff)
-		// }
 		
 		// increment the frame counter
 		this.frame++;
@@ -599,8 +590,6 @@ export default class TrackView extends BaseView {
 			? Math.max(0, Math.min(TRACK_MAXIMUM_SPEED, state.speed + (trackMovementAmount * state.delta)))
 			: 0;
 
-		// console.log('will travel', diff, ((0 | (state.speed * 100)) / 100), ((0 | (state.delta * 100)) / 100))
-
 		// increase the track movement by the speed bonus
 		// allows up to an extra 75% of the normal speed
 		if (isRaceActive) {
@@ -617,6 +606,9 @@ export default class TrackView extends BaseView {
 			// set the racing speed with modifiers
 			state.speed = Math.max(state.speed, state.speed + (state.activeTypingSpeedModifier * state.delta));
 		}
+
+		// for animation helpers
+		this.view.speed = state.speed / TRACK_MAXIMUM_SPEED
 
 		// TODO: replace with new views
 		// this is temporary check until

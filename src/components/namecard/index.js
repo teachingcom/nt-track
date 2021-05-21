@@ -5,6 +5,7 @@ import { toRGBA } from '../../utils/color';
 import { PIXI, createContext, getBoundsForRole } from 'nt-animator';
 
 // preferred font for namecards
+const TARGET_NAMECARD_WIDTH = 650
 const NAMECARD_MAX_NAME_LENGTH = 20;
 const DEFAULT_CENTER_PADDING = 8;
 const DEFAULT_LEFT_MARGIN = 25;
@@ -31,7 +32,7 @@ export default class NameCard extends PIXI.Container {
 		instance.visible = false;
 		
 		// determine the type to create
-		const { type, view, isAnimated } = options;
+		const { type, view } = options;
 
 		// try and load
 		// const isDefault = /default/.test(type);
@@ -61,7 +62,7 @@ export default class NameCard extends PIXI.Container {
 		merge(instance, { options, view, path, config, isGoldNamecard, isPlayerNamecard, hasOverlay })
 
 		// attempt to add a namecard
-		try {
+		try {			
 			// create a container for all parts
 			instance.container = new PIXI.Container();
 			instance.addChild(instance.container);
@@ -83,6 +84,7 @@ export default class NameCard extends PIXI.Container {
 		}
 
 		// return the created namecard
+		instance.pivot.x = -instance.nudgeX
 		return instance;
 	}
 	
@@ -100,8 +102,15 @@ export default class NameCard extends PIXI.Container {
 		if (config.width) this.bounds.width = config.width;
 		
 		// save scaling values
-		container.scale.x = container.scale.y = baseHeight / this.bounds.height;
-		
+		const scale = baseHeight / this.bounds.height
+		container.scale.x = container.scale.y = scale;
+
+		// calculate nudging values used to position this layer correctly
+		const { nudgeX = 0, nudgeY = 0 } = config
+		const bounding = namecard.getBounds()
+		this.nudgeX = (((bounding.width - TARGET_NAMECARD_WIDTH) * -0.5) + nudgeX) * scale
+		this.nudgeY = nudgeY * scale
+
 		// add to the view
 		container.addChild(namecard);
 	}
@@ -127,7 +136,7 @@ export default class NameCard extends PIXI.Container {
 	/** changes the position and makes the namecard visible */
 	setPosition = x => {
 		this.x = 0 | x;
-		this.y = 0 | this.y;
+		// this.y = 0 | this.y;
 	}
 
 	// generates the overlay content

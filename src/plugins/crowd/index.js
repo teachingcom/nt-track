@@ -128,15 +128,12 @@ export default async function createCrowd (animator, controller, path, layer, da
   const sprite = new PIXI.AnimatedSprite(FRAMES)
   sprite.scale.x = sprite.scale.y = CROWD_DEFAULT_SCALE
   sprite.pivot.y = sprite.height * 0.375
-
+  
   // animation helper
-  createAnimatedSpriteHelper(sprite, { fps: Math.floor(60 * 0.25 + (Math.random() * 1)) })
-
-  // randomize direction?
-  // doesn't work great because when flipped, two identical people
-  // are side by side
-  // sprite.pivot.x = 0 | (sprite.width / 2);
-  // sprite.scale.x *= Math.random() < 0.5 ? -1 : 1;
+  const startFrame = Math.floor(Math.random() * FRAMES.length)
+  const fps = Math.floor(10 + (Math.random() * 20))
+  sprite.gotoAndStop(startFrame)
+  createAnimatedSpriteHelper(sprite, { fps })
 
   // not all properties are supported
   const { props = { } } = data

@@ -100,7 +100,7 @@ export default class CustomizerView extends BaseView {
   }
 
   // changes the paint for a car
-  setPaint (hue) {
+  async setPaint (hue) {
     this.sprayer.controller.activateEmitters()
     clearTimeout(this.__pendingHueShift)
     clearTimeout(this.__clearSprayingEffect)

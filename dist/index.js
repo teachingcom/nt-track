@@ -74632,13 +74632,20 @@ var BaseSineExpression = function BaseSineExpression(prop, args) {
   (0, _defineProperty2.default)(this, "update", function (target, stage) {
     var ts = (Date.now() - BaseSineExpression.start + _this.offset) * _this.scale;
 
-    var percent = (_this.calc(ts) + 1) / 2;
+    var sine = _this.calc(ts) * _this.modifier(target, stage);
+
+    var percent = (sine + 1) / 2;
     var value = (percent * (_this.max - _this.min) + _this.min) * _this.flip;
 
     _this.mapping(target, _this.convertToInt ? 0 | value : value);
   });
   this.prop = prop;
   this.mapping = mappings.lookup(prop);
+
+  this.modifier = function () {
+    return 1;
+  };
+
   var min = 0;
   var max = 1;
 
@@ -74658,6 +74665,22 @@ var BaseSineExpression = function BaseSineExpression(prop, args) {
         min = arg.min;
       } else if (isObj && 'max' in arg) {
         max = arg.max;
+      } else if (isObj && 'relative_to_stage' in arg) {
+        (function () {
+          var key = arg.relative_to_stage;
+
+          _this.modifier = function (target, stage) {
+            return stage[key];
+          };
+        })();
+      } else if (isObj && 'relative_to_self' in arg) {
+        (function () {
+          var key = arg.relative_to_self;
+
+          _this.modifier = function (target, stage) {
+            return target[key];
+          };
+        })();
       } else if (isObj && 'scale' in arg) {
         this.scale = arg.scale * 0.01;
       } else if (arg === 'stagger' || isObj && arg.stagger) {
@@ -85249,7 +85272,7 @@ document.addEventListener('visibilitychange', updateViewActiveState);
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.DEFAULT_PERFORMANCE_MONITORING_DELAY = exports.NITRO_BLUR_REALTIVE_SIZE_SCALING = exports.NITRO_BLUR_DEFAULT_OFFSET_X = exports.NITRO_BLUR_OFFSET_Y = exports.NITRO_ACTIVATED_TRAIL_OPACITY = exports.NITRO_OFFSET_Y = exports.NITRO_OFFSET_X = exports.NITRO_SCALE = exports.TRAIL_SCALE = exports.STATIC_CAR_ROTATION_FIX = exports.CAR_DEFAULT_LIGHTING = exports.CAR_404_ENHANCED_VERSION = exports.CAR_404_STATIC_VERSION = exports.CAR_NITRO_ADVANCEMENT_DISTANCE = exports.CAR_SHAKE_SHADOW_REDUCTION = exports.CAR_SHAKE_NITRO_BONUS = exports.CAR_SHAKE_DISTANCE = exports.CAR_DEFAULT_FRONT_BACK_OFFSET_X = exports.CAR_BODY_OFFSET_Y = exports.CAR_SHADOW_OFFSET_Y = exports.CAR_SHADOW_SCALE_ADJUST = exports.CAR_SHADOW_OPACITY = exports.CAR_SHADOW_BLUR = exports.CAR_LANE_SCALE_ADJUSTMENT = exports.CAR_DEFAULT_SHAKE_LEVEL = exports.NAMECARD_TETHER_DISTANCE = exports.NAMECARD_SCALE = exports.CROWD_ANIMATION_DURATION = exports.CROWD_ANIMATION_FRAME_COUNT = exports.CROWD_ANIMATION_VARIATIONS = exports.CROWD_DEFAULT_SCALE = exports.RACE_FINISH_FLASH_FADE_TIME = exports.RACE_SOUND_ERROR_MAX_INTERVAL = exports.RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL = exports.RACE_PROGRESS_TWEEN_TIMING = exports.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT = exports.RACE_FINISH_CAR_STOPPING_TIME = exports.RACE_START_NAMECARD_DELAY_TIME = exports.RACE_START_NAMECARD_ENTRY_TIME = exports.RACE_START_CAR_ENTRY_TIME = exports.RACE_AUTO_PROGRESS_DISTANCE = exports.RACE_OFF_SCREEN_FINISH_DISTANCE = exports.RACE_PLAYER_DISTANCE_MODIFIER = exports.RACE_ENDING_ANIMATION_THRESHOLD = exports.TRACK_OFFSCREEN_CAR_FINISH = exports.TRACK_NAMECARD_EDGE_PADDING = exports.TRACK_STARTING_LINE_POSITION = exports.TRACK_CAR_LANE_CENTER_OFFSET = exports.TRACK_CAR_SIZE_RELATIVE_TO_LANE = exports.TRACK_SHOULDER_SCALE = exports.TRACK_BOTTOM_SCALE = exports.TRACK_TOP_SCALE = exports.TRACK_ACCELERATION_RATE = exports.TRACK_MAXIMUM_TRAVEL_DISTANCE = exports.TRACK_MAXIMUM_SPEED = exports.TRACK_MAXIMUM_SPEED_DRAG_RATE = exports.TRACK_MAXIMUM_SPEED_BOOST_RATE = exports.TRACK_MAXIMUM_SCROLL_SPEED = void 0;
+exports.DEFAULT_PERFORMANCE_MONITORING_DELAY = exports.NITRO_BLUR_REALTIVE_SIZE_SCALING = exports.NITRO_BLUR_DEFAULT_OFFSET_X = exports.NITRO_BLUR_OFFSET_Y = exports.NITRO_ACTIVATED_TRAIL_OPACITY = exports.NITRO_OFFSET_Y = exports.NITRO_OFFSET_X = exports.NITRO_SCALE = exports.TRAIL_SCALE = exports.STATIC_CAR_ROTATION_FIX = exports.CAR_DEFAULT_LIGHTING = exports.CAR_404_ENHANCED_VERSION = exports.CAR_404_STATIC_VERSION = exports.CAR_NITRO_ADVANCEMENT_DISTANCE = exports.CAR_SHAKE_SHADOW_REDUCTION = exports.CAR_SHAKE_NITRO_BONUS = exports.CAR_SHAKE_DISTANCE = exports.CAR_DEFAULT_FRONT_BACK_OFFSET_X = exports.CAR_BODY_OFFSET_Y = exports.CAR_SHADOW_OFFSET_Y = exports.CAR_SHADOW_SCALE_ADJUST = exports.CAR_SHADOW_OPACITY = exports.CAR_SHADOW_BLUR = exports.CAR_LANE_SCALE_ADJUSTMENT = exports.CAR_DEFAULT_SHAKE_LEVEL = exports.NAMECARD_TETHER_DISTANCE = exports.NAMECARD_SCALE = exports.CROWD_ANIMATION_DURATION = exports.CROWD_ANIMATION_FRAME_COUNT = exports.CROWD_ANIMATION_VARIATIONS = exports.CROWD_DEFAULT_SCALE = exports.RACE_FINISH_FLASH_FADE_TIME = exports.RACE_SOUND_ERROR_MAX_INTERVAL = exports.RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL = exports.RACE_PROGRESS_TWEEN_TIMING = exports.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT = exports.RACE_FINISH_CAR_STOPPING_TIME = exports.RACE_START_NAMECARD_DELAY_TIME = exports.RACE_START_NAMECARD_ENTRY_TIME = exports.RACE_START_CAR_ENTRY_TIME = exports.RACE_AUTO_PROGRESS_DISTANCE = exports.RACE_OFF_SCREEN_FINISH_DISTANCE = exports.RACE_PLAYER_DISTANCE_MODIFIER = exports.RACE_ENDING_ANIMATION_QUALIFYING_THRESHOLD = exports.RACE_ENDING_ANIMATION_STANDARD_THRESHOLD = exports.TRACK_OFFSCREEN_CAR_FINISH = exports.TRACK_NAMECARD_EDGE_PADDING = exports.TRACK_STARTING_LINE_POSITION = exports.TRACK_CAR_LANE_CENTER_OFFSET = exports.TRACK_CAR_SIZE_RELATIVE_TO_LANE = exports.TRACK_SHOULDER_SCALE = exports.TRACK_BOTTOM_SCALE = exports.TRACK_TOP_SCALE = exports.TRACK_ACCELERATION_RATE = exports.TRACK_MAXIMUM_TRAVEL_DISTANCE = exports.TRACK_MAXIMUM_SPEED = exports.TRACK_MAXIMUM_SPEED_DRAG_RATE = exports.TRACK_MAXIMUM_SPEED_BOOST_RATE = exports.TRACK_MAXIMUM_SCROLL_SPEED = void 0;
 // tracks
 var TRACK_MAXIMUM_SCROLL_SPEED = 35;
 exports.TRACK_MAXIMUM_SCROLL_SPEED = TRACK_MAXIMUM_SCROLL_SPEED;
@@ -85280,8 +85303,10 @@ exports.TRACK_NAMECARD_EDGE_PADDING = TRACK_NAMECARD_EDGE_PADDING;
 var TRACK_OFFSCREEN_CAR_FINISH = 0.2; // progress
 
 exports.TRACK_OFFSCREEN_CAR_FINISH = TRACK_OFFSCREEN_CAR_FINISH;
-var RACE_ENDING_ANIMATION_THRESHOLD = 0.66;
-exports.RACE_ENDING_ANIMATION_THRESHOLD = RACE_ENDING_ANIMATION_THRESHOLD;
+var RACE_ENDING_ANIMATION_STANDARD_THRESHOLD = 0.66;
+exports.RACE_ENDING_ANIMATION_STANDARD_THRESHOLD = RACE_ENDING_ANIMATION_STANDARD_THRESHOLD;
+var RACE_ENDING_ANIMATION_QUALIFYING_THRESHOLD = 0.2;
+exports.RACE_ENDING_ANIMATION_QUALIFYING_THRESHOLD = RACE_ENDING_ANIMATION_QUALIFYING_THRESHOLD;
 var RACE_PLAYER_DISTANCE_MODIFIER = 5;
 exports.RACE_PLAYER_DISTANCE_MODIFIER = RACE_PLAYER_DISTANCE_MODIFIER;
 var RACE_OFF_SCREEN_FINISH_DISTANCE = 1.15;
@@ -88829,6 +88854,7 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
 // preferred font for namecards
+var TARGET_NAMECARD_WIDTH = 650;
 var NAMECARD_MAX_NAME_LENGTH = 20;
 var DEFAULT_CENTER_PADDING = 8;
 var DEFAULT_LEFT_MARGIN = 25;
@@ -88864,8 +88890,7 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
       return _this.visible = visible;
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setPosition", function (x) {
-      _this.x = 0 | x;
-      _this.y = 0 | _this.y;
+      _this.x = 0 | x; // this.y = 0 | this.y;
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "_renderOverlay", function () {
       var _assertThisInitialize = (0, _assertThisInitialized2.default)(_this),
@@ -88949,7 +88974,8 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
     // creates the namecard instance
     value: function () {
       var _initNameCard2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
-        var path, view, options, config, container, baseHeight, namecard;
+        var path, view, options, config, container, baseHeight, namecard, scale, _config$nudgeX, nudgeX, _config$nudgeY, nudgeY, bounding;
+
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
@@ -88967,11 +88993,17 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                 if (config.height) this.bounds.height = config.height;
                 if (config.width) this.bounds.width = config.width; // save scaling values
 
-                container.scale.x = container.scale.y = baseHeight / this.bounds.height; // add to the view
+                scale = baseHeight / this.bounds.height;
+                container.scale.x = container.scale.y = scale; // calculate nudging values used to position this layer correctly
+
+                _config$nudgeX = config.nudgeX, nudgeX = _config$nudgeX === void 0 ? 0 : _config$nudgeX, _config$nudgeY = config.nudgeY, nudgeY = _config$nudgeY === void 0 ? 0 : _config$nudgeY;
+                bounding = namecard.getBounds();
+                this.nudgeX = ((bounding.width - TARGET_NAMECARD_WIDTH) * -0.5 + nudgeX) * scale;
+                this.nudgeY = nudgeY * scale; // add to the view
 
                 container.addChild(namecard);
 
-              case 10:
+              case 15:
               case "end":
                 return _context.stop();
             }
@@ -89138,7 +89170,7 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
     /** handles creating a new namecard */
     value: function () {
       var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(options) {
-        var instance, type, view, isAnimated, path, config, isGoldNamecard, isPlayerNamecard, hasOverlay;
+        var instance, type, view, path, config, isGoldNamecard, isPlayerNamecard, hasOverlay;
         return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
@@ -89146,7 +89178,7 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                 instance = new NameCard();
                 instance.visible = false; // determine the type to create
 
-                type = options.type, view = options.view, isAnimated = options.isAnimated; // try and load
+                type = options.type, view = options.view; // try and load
                 // const isDefault = /default/.test(type);
 
                 path = "namecards/".concat(type);
@@ -89220,9 +89252,11 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                 return _context3.abrupt("return", null);
 
               case 31:
+                // return the created namecard
+                instance.pivot.x = -instance.nudgeX;
                 return _context3.abrupt("return", instance);
 
-              case 32:
+              case 33:
               case "end":
                 return _context3.stop();
             }
@@ -89697,24 +89731,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
           console.error("Failed to remove ".concat(remove.type));
           console.error(ex);
         }
-      } // // remove emitters, animations, and objects
-      // let phase;
-      // try {
-      // 	phase = 'removing car';
-      // 	removeDisplayObject(car);
-      // 	phase = 'removing namecard';
-      // 	removeDisplayObject(namecard);
-      // 	phase = 'removing shadow';
-      // 	removeDisplayObject(shadow);
-      // 	phase = 'removing trail';
-      // 	if (trail)
-      // 		trail.each(part => removeDisplayObject(part));
-      // }
-      // // do not crash for this
-      // catch (ex) {
-      // 	console.warn(`Failed at disposing player object: Error while ${phase}`);
-      // }
-
+      }
     });
     return _this;
   }
@@ -95805,7 +95822,7 @@ function createCrowd(_x6, _x7, _x8, _x9, _x10) {
 
 function _createCrowd() {
   _createCrowd = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(animator, controller, path, layer, data) {
-    var img, base, totalFrames, i, y, texture, sprite, _data$props, props;
+    var img, base, totalFrames, i, y, texture, sprite, startFrame, fps, _data$props, props;
 
     return _regenerator.default.wrap(function _callee2$(_context2) {
       while (1) {
@@ -95837,14 +95854,12 @@ function _createCrowd() {
             sprite.scale.x = sprite.scale.y = _config.CROWD_DEFAULT_SCALE;
             sprite.pivot.y = sprite.height * 0.375; // animation helper
 
+            startFrame = Math.floor(Math.random() * FRAMES.length);
+            fps = Math.floor(10 + Math.random() * 20);
+            sprite.gotoAndStop(startFrame);
             (0, _ntAnimator.createAnimatedSpriteHelper)(sprite, {
-              fps: Math.floor(60 * 0.25 + Math.random() * 1)
-            }); // randomize direction?
-            // doesn't work great because when flipped, two identical people
-            // are side by side
-            // sprite.pivot.x = 0 | (sprite.width / 2);
-            // sprite.scale.x *= Math.random() < 0.5 ? -1 : 1;
-            // not all properties are supported
+              fps: fps
+            }); // not all properties are supported
 
             _data$props = data.props, props = _data$props === void 0 ? {} : _data$props;
 
@@ -95862,7 +95877,7 @@ function _createCrowd() {
               dispose: _utils.noop
             }]);
 
-          case 15:
+          case 18:
           case "end":
             return _context2.stop();
         }
@@ -98799,18 +98814,26 @@ var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "updateOther", function (player) {
       var _assertThisInitialize2 = (0, _assertThisInitialized2.default)(_this),
           track = _assertThisInitialize2.track,
-          tweens = _assertThisInitialize2.tweens;
+          tweens = _assertThisInitialize2.tweens,
+          isQualifyingRace = _assertThisInitialize2.isQualifyingRace;
 
       var activePlayer = track.activePlayer;
-      var interpolator = tweens[player.id]; // calculate a position relative to the player but
+      var interpolator = tweens[player.id]; // other racers on a qualifying race should look like they're
+      // trying to keep up, but just can't close the gap
+
+      if (isQualifyingRace) {
+        player.preferredX = activePlayer.relativeX - (0.015 + Math.random() * 0.185);
+      } // calculate a position relative to the player but
       // offset by the difference in progress
+      else {
+          var progress = player.progress / 100;
+          var compareTo = activePlayer.progress / 100;
+          var diff = (progress - compareTo) * _config.RACE_PLAYER_DISTANCE_MODIFIER; // save the position
 
-      var progress = player.progress / 100;
-      var compareTo = activePlayer.progress / 100;
-      var diff = (progress - compareTo) * _config.RACE_PLAYER_DISTANCE_MODIFIER; // save the position
+          player.raceProgressModifier = diff;
+          player.preferredX = (activePlayer.preferredX || activePlayer.relativeX) + diff;
+        } // adjust this player tween
 
-      player.raceProgressModifier = diff;
-      player.preferredX = (activePlayer.preferredX || activePlayer.relativeX) + diff; // adjust this player tween
 
       interpolator.update(player.relativeX, player.preferredX);
     });
@@ -98819,8 +98842,7 @@ var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
           now = _assertThisInitialize3.now,
           timestamps = _assertThisInitialize3.timestamps,
           tweens = _assertThisInitialize3.tweens,
-          isQualifyingRace = _assertThisInitialize3.isQualifyingRace,
-          qualifyingX = _assertThisInitialize3.qualifyingX;
+          beginOutroThreshold = _assertThisInitialize3.beginOutroThreshold;
 
       var percent = player.progress / 100;
       var interpolator = tweens[player.id]; // nothing to update
@@ -98831,13 +98853,13 @@ var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
       } // is allowed to animate
 
 
-      if (percent > _config.RACE_ENDING_ANIMATION_THRESHOLD) {
+      if (percent > beginOutroThreshold) {
         _this.isOutro = true; // calculate the position
 
         var width = _this.getOffscreenScale(player);
 
-        var base = 1 - _config.RACE_ENDING_ANIMATION_THRESHOLD;
-        var scaled = (percent - _config.RACE_ENDING_ANIMATION_THRESHOLD) / base;
+        var base = 1 - beginOutroThreshold;
+        var scaled = (percent - beginOutroThreshold) / base;
         var done = (1 - _config.TRACK_STARTING_LINE_POSITION) * scaled;
         var offset = width * scaled;
         var at = _config.TRACK_STARTING_LINE_POSITION + done + offset;
@@ -98854,7 +98876,8 @@ var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
           tweens = _assertThisInitialize4.tweens,
           track = _assertThisInitialize4.track,
           isOutro = _assertThisInitialize4.isOutro,
-          isQualifyingRace = _assertThisInitialize4.isQualifyingRace;
+          isQualifyingRace = _assertThisInitialize4.isQualifyingRace,
+          beginOutroThreshold = _assertThisInitialize4.beginOutroThreshold;
 
       var activePlayer = track.activePlayer; // make sure they have an interpolator
 
@@ -98875,7 +98898,11 @@ var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
 
 
       if (isQualifyingRace && !isOutro) {
-        player.relativeX = Math.min(player.relativeX + 0.0005, _config.RACE_ENDING_ANIMATION_THRESHOLD);
+        if (player.isPlayer) {
+          player.relativeX = Math.max(player.relativeX, Math.min(player.relativeX + 0.0005, beginOutroThreshold));
+        } else {
+          player.relativeX = interpolator.getProgress();
+        }
       } // all other times, interpolate position
       else {
           player.relativeX = interpolator.getProgress();
@@ -98885,12 +98912,11 @@ var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
       if (lastUpdate[player.id] === player.lastUpdate) return;
       lastUpdate[player.id] = player.lastUpdate; // perform the update
 
-      if (player.isPlayer) _this.updateActivePlayer(player);else _this.updateOther(player); // cannot animate yet
-
-      if (isNaN(player.preferredX)) {
-        return;
-      } // update timestamps
-
+      if (player.isPlayer) _this.updateActivePlayer(player);else _this.updateOther(player); // // cannot animate yet
+      // if (isNaN(player.preferredX)) {
+      // 	return;
+      // }
+      // update timestamps
 
       timestamps[player.id] = now;
     });
@@ -98932,6 +98958,7 @@ var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
     });
     _this.track = _track;
     _this.isQualifyingRace = _isQualifyingRace;
+    _this.beginOutroThreshold = _isQualifyingRace ? _config.RACE_ENDING_ANIMATION_QUALIFYING_THRESHOLD : _config.RACE_ENDING_ANIMATION_STANDARD_THRESHOLD;
     return _this;
   } // bonus distance for qualifying races
 
@@ -98967,241 +98994,7 @@ var ProgressInterpolator = /*#__PURE__*/function () {
     }
   }]);
   return ProgressInterpolator;
-}(); // /**
-//  * Desc.
-//  * @author Ash Blue
-//  * @link http://blueashes.com
-//  * @todo Include instructions to replace Date.now() with your game loop's time
-//  * time to make things more accurate
-//  * @todo Can the tween methods not be prototypes so they're static?
-//  */
-// const Tween = (function () {
-// 	const exp = { };
-// 	/**
-// 	 * Supports easing for the following commands you can demo at
-// 	 * http://ashblue.github.com/canvas-tween-demo/ 'linear', 'quadIn', 'quadOut',
-// 	 * 'quadInOut', 'cubeIn', 'cubeOut', 'cubeInOut', 'quartIn', 'quartOut', 'quartInOut',
-// 	 * 'quintIn', 'quintOut', 'quintInOut', 'sineIn', 'sineOut', 'sineInOut', 'expoIn',
-// 	 * 'expoOut', 'expoInOut', 'circIn', 'circOut', 'circInOut'. Adopted from
-// 	 * http://gizma.com/easing/
-// 	 * @link http://ashblue.github.com/canvas-tween-demo/
-// 	 */
-// 	var _easingLibrary = {
-// 			/**
-// 			 * @param {number} t Current time in millseconds
-// 			 * @param {number} b Start value
-// 			 * @param {number} c Distance traveled relative to the start value
-// 			 * @param {number} d Duration in milliseconds
-// 			 */
-// 			linear: function (t, b, c, d) {
-// 					return c * t / d + b;
-// 			},
-// 			quadIn: function (t, b, c, d) {
-// 					t /= d;
-// 					return c * t * t + b;
-// 			},
-// 			quadOut: function (t, b, c, d) {
-// 					t /= d;
-// 					return -c * t * (t - 2) + b;
-// 			},
-// 			quadInOut: function (t, b, c, d) {
-// 					t /= d / 2;
-// 					if (t < 1) {
-// 							return c / 2 * t * t + b;
-// 					}
-// 					t--;
-// 					return -c / 2 * (t * (t - 2) - 1) + b;
-// 			},
-// 			cubeIn: function (t, b, c, d) {
-// 					t /= d;
-// 					return c*t*t*t + b;
-// 			},
-// 			cubeOut: function (t, b, c, d) {
-// 					t /= d;
-// 					t--;
-// 					return c*(t*t*t + 1) + b;
-// 			},
-// 			cubeInOut: function (t, b, c, d) {
-// 					t /= d/2;
-// 					if (t < 1) {
-// 							return c / 2 * t * t * t + b;
-// 					}
-// 					t -= 2;
-// 					return c/2*(t*t*t + 2) + b;
-// 			},
-// 			quartIn: function (t, b, c, d) {
-// 					t /= d;
-// 					return c * t * t * t * t + b;
-// 			},
-// 			quartOut: function (t, b, c, d) {
-// 					t /= d;
-// 					t--;
-// 					return -c * (t * t * t * t - 1) + b;
-// 			},
-// 			quartInOut: function (t, b, c, d) {
-// 					t /= d/2;
-// 					if (t < 1) {
-// 							return c / 2 * t * t * t * t + b;
-// 					}
-// 					t -= 2;
-// 					return -c / 2 * (t * t * t * t - 2) + b;
-// 			},
-// 			quintIn: function (t, b, c, d) {
-// 					t /= d;
-// 					return c * t * t * t * t * t + b;
-// 			},
-// 			quintOut: function (t, b, c, d) {
-// 					t /= d;
-// 					t--;
-// 					return c * (t * t * t * t * t + 1) + b;
-// 			},
-// 			quintInOut: function (t, b, c, d) {
-// 					t /= d / 2;
-// 					if (t < 1) {
-// 							return c / 2 * t * t * t * t * t + b;
-// 					}
-// 					t -= 2;
-// 					return c / 2 * (t * t * t * t * t + 2) + b;
-// 			},
-// 			sineIn: function (t, b, c, d) {
-// 					return -c * Math.cos(t / d * (Math.PI / 2)) + c + b;
-// 			},
-// 			sineOut: function (t, b, c, d) {
-// 					return c * Math.sin(t / d * (Math.PI / 2)) + b;
-// 			},
-// 			sineInOut: function (t, b, c, d) {
-// 					return -c / 2 * (Math.cos(Math.PI * t / d) - 1) + b;
-// 			},
-// 			expoIn: function (t, b, c, d) {
-// 					return c * Math.pow(2, 10 * (t / d - 1)) + b;
-// 			},
-// 			expoOut: function (t, b, c, d) {
-// 					return c * (-Math.pow(2, -10 * t/d) + 1) + b;
-// 			},
-// 			expoInOut: function (t, b, c, d) {
-// 					t /= d / 2;
-// 					if (t < 1) {
-// 							return c / 2 * Math.pow(2, 10 * (t - 1)) + b;
-// 					}
-// 					t--;
-// 					return c / 2 * (-Math.pow(2, -10 * t) + 2) + b;
-// 			},
-// 			circIn: function (t, b, c, d) {
-// 					t /= d;
-// 					return -c * (Math.sqrt(1 - t * t) - 1) + b;
-// 			},
-// 			circOut: function (t, b, c, d) {
-// 					t /= d;
-// 					t--;
-// 					return c * Math.sqrt(1 - t * t) + b;
-// 			},
-// 			circInOut: function (t, b, c, d) {
-// 					t /= d / 2;
-// 					if (t < 1) {
-// 							return -c/2 * (Math.sqrt(1 - t*t) - 1) + b;
-// 					}
-// 					t -= 2;
-// 					return c / 2 * (Math.sqrt(1 - t * t) + 1) + b;
-// 			}
-// 	};
-// 	var _private = {
-// 			/**
-// 			 * Rounds the passed number to two decimal places. Prevents large float
-// 			 * numbers from being multiplied
-// 			 * @param {number} num Number you want to round
-// 			 * @returns {number} Rounded number
-// 			 */
-// 			round: function (num) {
-// 				return num;
-// 					return Math.round(num * 10000) / 10000;
-// 			}
-// 	};
-// 	/**
-// 	 * Constructor for the tween
-// 	 * @param {number} startValue What value does the tween start at
-// 	 * @param {number} distance How far does the tween's value advance from the startValue?
-// 	 * @param {number} duration Amount of time in milliseconds the tween runs for
-// 	 * @param {string} animationType What easing function should be used from the easing library?
-// 	 * See _easingLibrary for a list of potential easing equations.
-// 	 * @param {string} loop Can be left blank, set to loop, or repeat. Loop repeats repeats the animation
-// 	 * in reverse every time. Repeat will run the original tween from the beginning
-// 	 * @returns {self}
-// 	 */
-// 	exp.Tween = function (startValue, distance, duration, animationType, loop) {
-// 			this.startTime = Date.now();
-// 			this.startValue = startValue;
-// 			this.distance = distance;
-// 			this.duration = duration;
-// 			this.animationType = animationType;
-// 			this.loop = loop;
-// 			return this;
-// 	};
-// 	/**
-// 	 * Get the current value of the tween
-// 	 * @returns {number} Current value of the tween
-// 	 */
-// 	exp.Tween.prototype.getValue = function () {
-// 			// Run normally
-// 			if (!this.expired()) {
-// 					var total = _easingLibrary[this.animationType](Date.now() - this.startTime, this.startValue, this.distance, this.duration);
-// 			// Ended and no repeat is present
-// 			} else if (!this.loop) {
-// 					var total = this.startValue + this.distance;
-// 			// Calculate time passed and restart repeat
-// 			} else if (this.loop === 'repeat') {
-// 					this.startTime = Date.now();
-// 					var total = _easingLibrary[this.animationType](Date.now() - this.startTime, this.startValue, this.distance, this.duration);
-// 			// Run a looped repeat in reverse
-// 			} else {
-// 					this.startValue = this.startValue + this.distance;
-// 					this.distance = -this.distance;
-// 					this.startTime = Date.now();
-// 					var total = _easingLibrary[this.animationType](Date.now() - this.startTime, this.startValue, this.distance, this.duration);
-// 			}
-// 			return _private.round(total);
-// 	};
-// 	/**
-// 	 * Retrieves the start time relative to the time passed from the previous start time
-// 	 * @returns {number} Start time of the tween relative to time passed
-// 	 */
-// 	exp.Tween.prototype.getStartTime = function () {
-// 			return Date.now() - this.startTime - this.duration + Date.now();
-// 	};
-// 	/**
-// 	 * Has the tween expired yet?
-// 	 * @returns {boolean} True if the tween has expired
-// 	 */
-// 	exp.Tween.prototype.expired = function () {
-// 			return this.startTime + this.duration < Date.now();
-// 	};
-// 	/**
-// 	 * Set the tween's properties for the beginning value, distance, duration, and animation type
-// 	 * @param {number} startValue What value does the tween start at
-// 	 * @param {number} distance How far does the tween's value advance from the startValue?
-// 	 * @param {number} duration Amount of time in milliseconds the tween runs for
-// 	 * @param {string} animationType What easing function should be used from the easing library?
-// 	 * @param {string} loop Can be left blank, set to loop, or repeat. Loop repeats repeats the animation
-// 	 * in reverse every time. Repeat will run the original tween from the beginning
-// 	 * @returns {self}
-// 	 */
-// 	exp.Tween.prototype.set = function (startValue, distance, duration, animationType, loop) {
-// 			this.startValue = typeof startValue === 'number' ? startValue : this.startValue;
-// 			this.distance = typeof distance === 'number' ? distance : this.distance;
-// 			this.duration = typeof duration === 'number' ? duration : this.duration;
-// 			this.animationType = animationType || this.animationType;
-// 			this.loop = loop || this.loop;
-// 			return this;
-// 	};
-// 	/**
-// 	 * Resets the tween and runs it relative to the current time
-// 	 * @returns {self}
-// 	 */
-// 	exp.Tween.prototype.reset = function () {
-// 			this.startTime = Date.now();
-// 			return this;
-// 	};
-// 	return exp.Tween;
-// }());
+}();
 },{"@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","./base":"animations/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../config":"config.js"}],"animations/countdown.js":[function(require,module,exports) {
 "use strict";
 
@@ -100332,15 +100125,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     // handle rendering the track in the requested state
     value: function render(force) {
       // calculate the delta
-      var now = Date.now(); // const diff = now - this.previousTime;
-      // if (diff < this.maxRenderingSpeed) {
-      // 	console.log('did skip frame', diff, this.maxRenderingSpeed);
-      // 	return;
-      // }
-      // else {
-      // 	console.log('REN', diff)
-      // }
-      // increment the frame counter
+      var now = Date.now(); // increment the frame counter
 
       this.frame++;
       var state = this.state,
@@ -100356,8 +100141,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
           trackMovementAmount = state.trackMovementAmount;
       var isRaceActive = state.isStarted && !state.isFinished; // speeding up the view
 
-      state.speed = animateTrackMovement ? Math.max(0, Math.min(_config.TRACK_MAXIMUM_SPEED, state.speed + trackMovementAmount * state.delta)) : 0; // console.log('will travel', diff, ((0 | (state.speed * 100)) / 100), ((0 | (state.delta * 100)) / 100))
-      // increase the track movement by the speed bonus
+      state.speed = animateTrackMovement ? Math.max(0, Math.min(_config.TRACK_MAXIMUM_SPEED, state.speed + trackMovementAmount * state.delta)) : 0; // increase the track movement by the speed bonus
       // allows up to an extra 75% of the normal speed
 
       if (isRaceActive) {
@@ -100368,10 +100152,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
         if (state.typingSpeedModifierShift > 0) state.activeTypingSpeedModifier = Math.min(state.activeTypingSpeedModifier, typingSpeedModifier);else if (state.typingSpeedModifierShift < 0) state.activeTypingSpeedModifier = Math.max(state.activeTypingSpeedModifier, typingSpeedModifier);else state.activeTypingSpeedModifier = 0; // set the racing speed with modifiers
 
         state.speed = Math.max(state.speed, state.speed + state.activeTypingSpeedModifier * state.delta);
-      } // TODO: replace with new views
+      } // for animation helpers
+
+
+      this.view.speed = state.speed / _config.TRACK_MAXIMUM_SPEED; // TODO: replace with new views
       // this is temporary check until
       // garage and preview modes are done
-
 
       if (track && isRaceActive) {
         track.updateScripts(state);
@@ -102245,36 +102031,55 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
 
   }, {
     key: "setPaint",
-    value: function setPaint(hue) {
-      var _this3 = this;
+    value: function () {
+      var _setPaint = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(hue) {
+        var _this3 = this;
 
-      this.sprayer.controller.activateEmitters();
-      clearTimeout(this.__pendingHueShift);
-      clearTimeout(this.__clearSprayingEffect); // perform the switch
+        return _regenerator.default.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                this.sprayer.controller.activateEmitters();
+                clearTimeout(this.__pendingHueShift);
+                clearTimeout(this.__clearSprayingEffect); // perform the switch
 
-      this.__pendingHueShift = setTimeout(function () {
-        return _this3.car.repaintCar(hue);
-      }, 300);
-      this.__clearSprayingEffect = setTimeout(function () {
-        return _this3.sprayer.controller.stopEmitters();
-      }, 1000);
-    } // replaces the active car
+                this.__pendingHueShift = setTimeout(function () {
+                  return _this3.car.repaintCar(hue);
+                }, 300);
+                this.__clearSprayingEffect = setTimeout(function () {
+                  return _this3.sprayer.controller.stopEmitters();
+                }, 1000);
+
+              case 5:
+              case "end":
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function setPaint(_x2) {
+        return _setPaint.apply(this, arguments);
+      }
+
+      return setPaint;
+    }() // replaces the active car
 
   }, {
     key: "setCar",
     value: function () {
-      var _setCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(_ref) {
+      var _setCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(_ref) {
         var type, hue, isAnimated, trail, car, container;
-        return _regenerator.default.wrap(function _callee5$(_context5) {
+        return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context6.prev = _context6.next) {
               case 0:
                 type = _ref.type, hue = _ref.hue, isAnimated = _ref.isAnimated, trail = _ref.trail;
 
                 this._removeExistingCars(); // create the new car instance
 
 
-                _context5.next = 4;
+                _context6.next = 4;
                 return _car.default.create({
                   view: this,
                   baseHeight: 150,
@@ -102288,7 +102093,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 });
 
               case 4:
-                car = _context5.sent;
+                car = _context6.sent;
                 // put the car inside of a container that
                 // can be used to attach trails and 
                 // other effects to
@@ -102308,25 +102113,25 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 delete this.trail;
 
                 if (!trail) {
-                  _context5.next = 19;
+                  _context6.next = 19;
                   break;
                 }
 
-                _context5.next = 19;
+                _context6.next = 19;
                 return this.setTrail(trail);
 
               case 19:
-                return _context5.abrupt("return", this._animatePlayerCarIntoView(this.container));
+                return _context6.abrupt("return", this._animatePlayerCarIntoView(this.container));
 
               case 20:
               case "end":
-                return _context5.stop();
+                return _context6.stop();
             }
           }
-        }, _callee5, this);
+        }, _callee6, this);
       }));
 
-      function setCar(_x2) {
+      function setCar(_x3) {
         return _setCar.apply(this, arguments);
       }
 
@@ -102335,28 +102140,28 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "setTrail",
     value: function () {
-      var _setTrail = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(type) {
+      var _setTrail = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(type) {
         var _this$trail,
             _this4 = this;
 
         var trail, parts, _iterator, _step, part;
 
-        return _regenerator.default.wrap(function _callee6$(_context6) {
+        return _regenerator.default.wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
                 (_this$trail = this.trail) === null || _this$trail === void 0 ? void 0 : _this$trail.dispose(); // if there's not a trail, they probably set
                 // it to none
 
                 if (type) {
-                  _context6.next = 3;
+                  _context7.next = 3;
                   break;
                 }
 
-                return _context6.abrupt("return");
+                return _context7.abrupt("return");
 
               case 3:
-                _context6.next = 5;
+                _context7.next = 5;
                 return _trail.default.create({
                   view: this,
                   baseHeight: 130,
@@ -102364,7 +102169,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 });
 
               case 5:
-                trail = _context6.sent;
+                trail = _context7.sent;
 
                 // in case of an unusual scenario where
                 // a trail might not be disposed, go ahead and target
@@ -102413,13 +102218,13 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
 
               case 11:
               case "end":
-                return _context6.stop();
+                return _context7.stop();
             }
           }
-        }, _callee6, this);
+        }, _callee7, this);
       }));
 
-      function setTrail(_x3) {
+      function setTrail(_x4) {
         return _setTrail.apply(this, arguments);
       }
 

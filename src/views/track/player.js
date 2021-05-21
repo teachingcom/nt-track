@@ -258,7 +258,6 @@ export default class Player extends PIXI.ResponsiveContainer {
 	/** handle removing all resources */
 	dispose = () => {
 		const { car, namecard, shadow, trail } = this;
-
 		const removals = [
 			{ type: 'car', source: car, action: removeDisplayObject },
 			{ type: 'namecard', source: namecard, action: removeDisplayObject },
@@ -279,32 +278,11 @@ export default class Player extends PIXI.ResponsiveContainer {
 				console.error(ex)
 			}
 		}
-
-		// // remove emitters, animations, and objects
-		// let phase;
-		// try {
-		// 	phase = 'removing car';
-		// 	removeDisplayObject(car);
-
-		// 	phase = 'removing namecard';
-		// 	removeDisplayObject(namecard);
-			
-		// 	phase = 'removing shadow';
-		// 	removeDisplayObject(shadow);
-
-		// 	phase = 'removing trail';
-		// 	if (trail)
-		// 		trail.each(part => removeDisplayObject(part));
-		// }
-		// // do not crash for this
-		// catch (ex) {
-		// 	console.warn(`Failed at disposing player object: Error while ${phase}`);
-		// }
 	}
 
 	/** handles updating the car */
 	updateTransform(...args) {
-
+		
 		// tracking progress
 		if (DEBUG_PLAYER_PROGRESS) {
 			const screenX = 0 | ((this.screenPercentX || 0) * 100);
