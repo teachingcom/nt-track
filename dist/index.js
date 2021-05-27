@@ -4299,6 +4299,9 @@ exports.configureSFX = configureSFX;
 exports.configureMusic = configureMusic;
 exports.setBaseUrl = setBaseUrl;
 exports.register = register;
+exports.fadeIn = fadeIn;
+exports.fadeOut = fadeOut;
+exports.setVolume = setVolume;
 exports.create = create;
 
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
@@ -4318,16 +4321,29 @@ var SFX = []; // default url to load sounds from
 
 var baseUrl = '/sounds'; // mute by default
 
+_sound.Sound.volume = 0;
 _sound.Sound.sfxEnabled = false;
 _sound.Sound.musicEnabled = false;
+
+_howler.Howler.volume(0);
 /** changes the sound effect state */
+
 
 function configureSFX(config) {
   // change enabled state
   if ('enabled' in config) {
+    cancelFade(); // set the new config
+
     var enabled = !!config.enabled;
 
-    _howler.Howler.volume(enabled ? 1 : 0);
+    if (enabled) {
+      _sound.Sound.enabled = true;
+      fadeIn(5000);
+    } else {
+      _sound.Sound.enabled = false;
+
+      _howler.Howler.volume(0);
+    }
   }
 } // unused
 
@@ -4344,7 +4360,7 @@ function setBaseUrl(url) {
 
 function register(_x, _x2) {
   return _register.apply(this, arguments);
-} // creates a new sound instance
+} // causes the global volume to fade in
 
 
 function _register() {
@@ -4403,6 +4419,44 @@ function _register() {
   return _register.apply(this, arguments);
 }
 
+function fadeIn(time) {
+  fadeVolume(time, 1, 1);
+} // causes the global volume to fade out
+
+
+function fadeOut(time) {
+  fadeVolume(time, -1, 0);
+} // handles activating a volume fade
+
+
+var fadeInterval;
+
+function fadeVolume(time, dir, stopAt) {
+  var rate = 1 / (time / 100) * dir; // clear a previous one, just in case
+
+  cancelFade(); // perform the interval
+
+  fadeInterval = setInterval(function () {
+    setVolume(_sound.Sound.volume + rate); // stop if finished
+
+    if (_sound.Sound.volume === stopAt) {
+      cancelFade();
+    }
+  }, 100);
+}
+
+function cancelFade() {
+  clearInterval(fadeInterval);
+} // replaces the global volume level
+
+
+function setVolume(amount) {
+  _sound.Sound.volume = Math.min(Math.max(0, amount), 1);
+
+  _howler.Howler.volume(_sound.Sound.volume);
+} // creates a new sound instance
+
+
 function create(type, sprite) {
   var sound = AUDIO[sprite]; // no sound was found
 
@@ -4420,14 +4474,8 @@ function create(type, sprite) {
 
   if (instance.isMusic) MUSIC.push(instance);else SFX.push(instance);
   return instance;
-}
+} // exceptions
 
-window.AUDIO = {
-  create: create,
-  audio: AUDIO,
-  sfx: SFX,
-  music: MUSIC
-}; // exceptions
 
 function MissingSoundException() {}
 },{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","howler":"../node_modules/howler/dist/howler.js","./sound":"audio/sound.js"}],"../node_modules/@babel/runtime/helpers/assertThisInitialized.js":[function(require,module,exports) {

@@ -11,15 +11,27 @@ const SFX = []
 let baseUrl = '/sounds'
 
 // mute by default
+Sound.volume = 0
 Sound.sfxEnabled = false
 Sound.musicEnabled = false
+Howler.volume(0)
 
 /** changes the sound effect state */
 export function configureSFX (config) {
   // change enabled state
   if ('enabled' in config) {
+    cancelFade()
+
+    // set the new config
     const enabled = !!config.enabled
-    Howler.volume(enabled ? 1 : 0)
+    if (enabled) {
+      Sound.enabled = true
+      fadeIn(5000)
+    }
+    else {
+      Sound.enabled = false
+      Howler.volume(0)
+    }
   }
 }
 
@@ -75,6 +87,45 @@ export async function register (src, sprites, key = src) {
   })
 }
 
+// causes the global volume to fade in
+export function fadeIn(time) {
+  fadeVolume(time, 1, 1)
+}
+
+// causes the global volume to fade out
+export function fadeOut(time) {
+  fadeVolume(time, -1, 0)
+}
+
+// handles activating a volume fade
+let fadeInterval;
+function fadeVolume(time, dir, stopAt) {
+  const rate = (1 / (time / 100)) * dir
+
+  // clear a previous one, just in case
+  cancelFade()
+
+  // perform the interval
+  fadeInterval = setInterval(() => {
+    setVolume(Sound.volume + rate);
+
+    // stop if finished
+    if (Sound.volume === stopAt) {
+      cancelFade()
+    }
+  }, 100)
+}
+
+function cancelFade() {
+  clearInterval(fadeInterval)
+}
+
+// replaces the global volume level
+export function setVolume(amount) {
+  Sound.volume = Math.min(Math.max(0, amount), 1)
+  Howler.volume(Sound.volume);
+}
+
 // creates a new sound instance
 export function create (type, sprite) {
   const sound = AUDIO[sprite]
@@ -98,13 +149,6 @@ export function create (type, sprite) {
   else SFX.push(instance)
 
   return instance
-}
-
-window.AUDIO = {
-	create,
-	audio: AUDIO,
-	sfx: SFX,
-	music: MUSIC
 }
 
 // exceptions
