@@ -91,8 +91,9 @@ export default class GarageView extends BaseView {
 		// Focus on the hovered portion of the screen. Don't use
 		// exactly 50% since the front is not as important
 		// be able to look at
-		const percent = 1 - ((x / (container.offsetWidth / 2)) - 0.4)
-		this.preferredFocusX = 1 - ((percent * container.offsetWidth) * 0.3)
+		const width = container.offsetWidth * 1.2
+		const percent = 1 - ((x / (width / 2)) - 0.4)
+		this.preferredFocusX = 1 - ((percent * width) * 0.3)
 	}
 
 	// updates the view
@@ -215,10 +216,9 @@ export default class GarageView extends BaseView {
 		car.scale.y = scale;
 
 		// check for a bonus scale modifier
-		if (!isNaN(config.scale)) {
-			car.scale.x *= config.scale;
-			car.scale.y *= config.scale;
-		}
+		const configScale = !isNaN(config.scale) ? config.scale : 1
+		car.scale.x *= configScale;
+		car.scale.y *= configScale;
 
 		// include the trail, if any
 		if (config.trail) {
@@ -232,6 +232,11 @@ export default class GarageView extends BaseView {
 			// add to the view
 			trail.attachTo(car)
 			trail.alignTo(car, 'back')
+			const adjustedScale = configScale * scale
+			for (const part of trail.parts) {
+				part.scale.x *= adjustedScale
+				part.scale.y *= adjustedScale
+			}
 
 			// This is intended to cause trails to face the
 			// correct direction when reversed. This may be done eventually

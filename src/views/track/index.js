@@ -608,7 +608,7 @@ export default class TrackView extends BaseView {
 		}
 
 		// for animation helpers
-		this.view.speed = state.speed / TRACK_MAXIMUM_SPEED
+		this.animationVariables.speed = state.speed / TRACK_MAXIMUM_SPEED
 
 		// TODO: replace with new views
 		// this is temporary check until

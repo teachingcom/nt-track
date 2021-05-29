@@ -8,4 +8,4 @@ export { default as Customizer } from './views/customizer'
 export { default as Animation } from './views/animation'
 export const Audio = AudioController
 
-try { window.NTTRACK = '1.0.18' } catch (ex) { }
+try { window.NTTRACK = '1.0.20' } catch (ex) { }

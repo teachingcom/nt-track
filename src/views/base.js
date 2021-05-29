@@ -93,6 +93,12 @@ export class BaseView extends EventEmitter {
 		this.view = new PIXI.ResponsiveStage(axes);
 		this.stage = new PIXI.Container();
 		this.view.addChild(this.stage);
+
+		// for naming clarity
+		// this is accessed by the animation engine
+		// to make animations that are relative
+		// to the game view
+		this.animationVariables = this.view
 		
 		// set the correct renderer
 		this.setRenderer(renderer);

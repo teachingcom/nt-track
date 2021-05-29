@@ -43,6 +43,9 @@ export default class CustomizerView extends BaseView {
     await this._createTreadmill()
     await this._createOtherDriver()
     await this._createSprayer()
+
+    // make sure the game animates relative values
+    this.animationVariables.speed = 1
     
     // begin rendering
     this.startAutoRender()

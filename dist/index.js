@@ -74718,7 +74718,7 @@ var BaseSineExpression = function BaseSineExpression(prop, args) {
           var key = arg.relative_to_stage;
 
           _this.modifier = function (target, stage) {
-            return stage[key];
+            return stage[key] || 0;
           };
         })();
       } else if (isObj && 'relative_to_self' in arg) {
@@ -74726,7 +74726,7 @@ var BaseSineExpression = function BaseSineExpression(prop, args) {
           var key = arg.relative_to_self;
 
           _this.modifier = function (target, stage) {
-            return target[key];
+            return target[key] || 0;
           };
         })();
       } else if (isObj && 'scale' in arg) {
@@ -86409,7 +86409,12 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
 
                 this.view = new _ntAnimator.PIXI.ResponsiveStage(axes);
                 this.stage = new _ntAnimator.PIXI.Container();
-                this.view.addChild(this.stage); // set the correct renderer
+                this.view.addChild(this.stage); // for naming clarity
+                // this is accessed by the animation engine
+                // to make animations that are relative
+                // to the game view
+
+                this.animationVariables = this.view; // set the correct renderer
 
                 this.setRenderer(renderer); // monitor visibility changes
 
@@ -86428,7 +86433,7 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
                   });
                 }
 
-              case 29:
+              case 30:
               case "end":
                 return _context.stop();
             }
@@ -100203,7 +100208,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       } // for animation helpers
 
 
-      this.view.speed = state.speed / _config.TRACK_MAXIMUM_SPEED; // TODO: replace with new views
+      this.animationVariables.speed = state.speed / _config.TRACK_MAXIMUM_SPEED; // TODO: replace with new views
       // this is temporary check until
       // garage and preview modes are done
 
@@ -100688,6 +100693,12 @@ var _color = require("../../utils/color");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -100765,8 +100776,9 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
       // be able to look at
 
 
-      var percent = 1 - (x / (container.offsetWidth / 2) - 0.4);
-      _this.preferredFocusX = 1 - percent * container.offsetWidth * 0.3;
+      var width = container.offsetWidth * 1.2;
+      var percent = 1 - (x / (width / 2) - 0.4);
+      _this.preferredFocusX = 1 - percent * width * 0.3;
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "updateCar", /*#__PURE__*/function () {
       var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(config) {
@@ -100917,7 +100929,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
     }());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "createCar", /*#__PURE__*/function () {
       var _ref4 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(config) {
-        var view, _this$options, _this$options$tweaks, tweaks, _this$options$backgro, backgroundColor, container, car, bounds, display, target, scale, trail;
+        var view, _this$options, _this$options$tweaks, tweaks, _this$options$backgro, backgroundColor, container, car, bounds, display, target, scale, configScale, trail, adjustedScale, _iterator, _step, part;
 
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
@@ -100958,18 +100970,16 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 car.scale.x = scale;
                 car.scale.y = scale; // check for a bonus scale modifier
 
-                if (!isNaN(config.scale)) {
-                  car.scale.x *= config.scale;
-                  car.scale.y *= config.scale;
-                } // include the trail, if any
-
+                configScale = !isNaN(config.scale) ? config.scale : 1;
+                car.scale.x *= configScale;
+                car.scale.y *= configScale; // include the trail, if any
 
                 if (!config.trail) {
-                  _context4.next = 22;
+                  _context4.next = 27;
                   break;
                 }
 
-                _context4.next = 18;
+                _context4.next = 20;
                 return _trail.default.create(_objectSpread(_objectSpread({
                   view: view
                 }, config), {}, {
@@ -100977,26 +100987,41 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                   type: config.trail
                 }));
 
-              case 18:
+              case 20:
                 trail = _context4.sent;
                 // add to the view
                 trail.attachTo(car);
-                trail.alignTo(car, 'back'); // This is intended to cause trails to face the
-                // correct direction when reversed. This may be done eventually
-                // // check for specials
-                // const reversed = findDisplayObjectsOfRole(car, 'reversable')
-                // for (const obj of reversed) {
-                // 	// add more props as required
-                // 	if (obj.config.reverse?.flipY) {
-                // 		obj.scale.y *= -1
-                // 	}
-                // }
-                // mark so it knows to make
-                // additional room for the trail
+                trail.alignTo(car, 'back');
+                adjustedScale = configScale * scale;
+                _iterator = _createForOfIteratorHelper(trail.parts);
+
+                try {
+                  for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                    part = _step.value;
+                    part.scale.x *= adjustedScale;
+                    part.scale.y *= adjustedScale;
+                  } // This is intended to cause trails to face the
+                  // correct direction when reversed. This may be done eventually
+                  // // check for specials
+                  // const reversed = findDisplayObjectsOfRole(car, 'reversable')
+                  // for (const obj of reversed) {
+                  // 	// add more props as required
+                  // 	if (obj.config.reverse?.flipY) {
+                  // 		obj.scale.y *= -1
+                  // 	}
+                  // }
+                  // mark so it knows to make
+                  // additional room for the trail
+
+                } catch (err) {
+                  _iterator.e(err);
+                } finally {
+                  _iterator.f();
+                }
 
                 container.hasTrail = true;
 
-              case 22:
+              case 27:
                 // setup the container
                 container.addChild(car);
                 container.relativeY = 0.5;
@@ -101008,7 +101033,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
                 return _context4.abrupt("return", container);
 
-              case 27:
+              case 32:
               case "end":
                 return _context4.stop();
             }
@@ -101938,11 +101963,13 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 return this._createSprayer();
 
               case 16:
-                // begin rendering
+                // make sure the game animates relative values
+                this.animationVariables.speed = 1; // begin rendering
+
                 this.startAutoRender();
                 this.ready = true;
 
-              case 18:
+              case 19:
               case "end":
                 return _context.stop();
             }
@@ -102907,7 +102934,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '1.0.18';
+  window.NTTRACK = '1.0.20';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"views/preview/index.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
