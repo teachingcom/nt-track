@@ -74,15 +74,24 @@ export default class CarEntryAnimation extends Animation {
 		// don't play duplicate sounds too close together
 		try {
 			const rev = audio.create('sfx', `entry_${enterSound}`);
-			const now = +new Date;
-			const canPlayTimestamp = rev.lastInstancePlay + RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT;
+			
+			// play at lower volumes for subsequent cars
+			const now = Date.now();
+			const diff = now - rev.lastInstancePlay
+			const volumeLimiter = Math.min(1, diff / RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT);
+			rev.volume(VOLUME_CAR_ENTRY * volumeLimiter)
 
-			// try and play
-			if (rev && now > canPlayTimestamp) {
-				rev.volume(VOLUME_CAR_ENTRY)
-				rev.loop(false);
-				rev.play();
+			// randomize the rate a bit for cars that
+			// come in shortly after the first
+			let rate = 1
+			if (volumeLimiter < 1) {
+				rate = 0.8 + (Math.random() * 0.5)
 			}
+			
+			// play the sound
+			rev.rate(rate)
+			rev.loop(false);
+			rev.play();
 		}
 		catch (ex) {
 			console.warn('unable to play entry sound')

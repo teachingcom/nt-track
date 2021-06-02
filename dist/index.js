@@ -85369,7 +85369,7 @@ var RACE_START_NAMECARD_DELAY_TIME = 1200;
 exports.RACE_START_NAMECARD_DELAY_TIME = RACE_START_NAMECARD_DELAY_TIME;
 var RACE_FINISH_CAR_STOPPING_TIME = 1500;
 exports.RACE_FINISH_CAR_STOPPING_TIME = RACE_FINISH_CAR_STOPPING_TIME;
-var RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT = 1000;
+var RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT = 2500;
 exports.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT = RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT;
 var RACE_PROGRESS_TWEEN_TIMING = 1000;
 exports.RACE_PROGRESS_TWEEN_TIMING = RACE_PROGRESS_TWEEN_TIMING;
@@ -98008,15 +98008,24 @@ var CarEntryAnimation = /*#__PURE__*/function (_Animation) {
       // don't play duplicate sounds too close together
 
       try {
-        var rev = audio.create('sfx', "entry_".concat(enterSound));
-        var now = +new Date();
-        var canPlayTimestamp = rev.lastInstancePlay + _config.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT; // try and play
+        var rev = audio.create('sfx', "entry_".concat(enterSound)); // play at lower volumes for subsequent cars
 
-        if (rev && now > canPlayTimestamp) {
-          rev.volume(_volume.VOLUME_CAR_ENTRY);
-          rev.loop(false);
-          rev.play();
-        }
+        var now = Date.now();
+        var diff = now - rev.lastInstancePlay;
+        var volumeLimiter = Math.min(1, diff / _config.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT);
+        rev.volume(_volume.VOLUME_CAR_ENTRY * volumeLimiter); // randomize the rate a bit for cars that
+        // come in shortly after the first
+
+        var rate = 1;
+
+        if (volumeLimiter < 1) {
+          rate = 0.8 + Math.random() * 0.5;
+        } // play the sound
+
+
+        rev.rate(rate);
+        rev.loop(false);
+        rev.play();
       } catch (ex) {
         console.warn('unable to play entry sound');
       }
