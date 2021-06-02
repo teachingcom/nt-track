@@ -4206,18 +4206,21 @@ var Sound = /*#__PURE__*/function () {
     });
     (0, _defineProperty2.default)(this, "play", function () {
       // if there's no audio context, don't bother
-      if (!Sound.isAudioContextAvailable) return; // play the sound
-
-      var id = _this.id;
-      _this.lastInstancePlay = +new Date();
-
-      _this.source.volume(_this._preferredVolumeLevel, id);
-
-      _this.source.seek(0, id); // do not crash for failed sounds
-
+      if (!Sound.isAudioContextAvailable) return; // do not crash for failed sounds
 
       try {
-        _this.source.play(id);
+        // play the sound
+        var id = _this.id;
+        _this.lastInstancePlay = +new Date();
+
+        _this.source.volume(_this._preferredVolumeLevel, id);
+
+        _this.source.seek(0, id);
+
+        _this.source.play(id); // increment the play count
+
+
+        _this.playCount++;
       } catch (ex) {
         var key = _this.key;
         console.warn("Failed to play sound ".concat(key));
@@ -4251,6 +4254,20 @@ var Sound = /*#__PURE__*/function () {
     set: function set(value) {
       var key = this.key;
       Sound.timestamps[key] = value;
+    }
+    /** checks the number of times this sound has been played */
+
+  }, {
+    key: "playCount",
+    get: function get() {
+      var key = this.key;
+      return Sound.playCounts[key] || 0;
+    }
+    /** sets the number of times this sound has been played */
+    ,
+    set: function set(value) {
+      var key = this.key;
+      Sound.playCounts[key] = value;
     }
     /** tests if the sound is playing */
 
@@ -4289,6 +4306,7 @@ exports.Sound = Sound;
 (0, _defineProperty2.default)(Sound, "musicEnabled", true);
 (0, _defineProperty2.default)(Sound, "musicVolume", 0.5);
 (0, _defineProperty2.default)(Sound, "timestamps", {});
+(0, _defineProperty2.default)(Sound, "playCounts", {});
 },{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","howler":"../node_modules/howler/dist/howler.js"}],"audio/index.js":[function(require,module,exports) {
 "use strict";
 
@@ -85373,7 +85391,7 @@ var RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT = 2500;
 exports.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT = RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT;
 var RACE_PROGRESS_TWEEN_TIMING = 1000;
 exports.RACE_PROGRESS_TWEEN_TIMING = RACE_PROGRESS_TWEEN_TIMING;
-var RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL = 100;
+var RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL = 1200;
 exports.RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL = RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL;
 var RACE_SOUND_ERROR_MAX_INTERVAL = 500;
 exports.RACE_SOUND_ERROR_MAX_INTERVAL = RACE_SOUND_ERROR_MAX_INTERVAL;
@@ -87580,7 +87598,7 @@ var VOLUME_DISQUALIFY = 0.7;
 exports.VOLUME_DISQUALIFY = VOLUME_DISQUALIFY;
 var VOLUME_COUNTDOWN = 0.8;
 exports.VOLUME_COUNTDOWN = VOLUME_COUNTDOWN;
-var VOLUME_START_ACCELERATION = 0.7;
+var VOLUME_START_ACCELERATION = 0.5;
 exports.VOLUME_START_ACCELERATION = VOLUME_START_ACCELERATION;
 var VOLUME_COUNTDOWN_ANNOUNCER = 0.8;
 exports.VOLUME_COUNTDOWN_ANNOUNCER = VOLUME_COUNTDOWN_ANNOUNCER;
@@ -98013,16 +98031,10 @@ var CarEntryAnimation = /*#__PURE__*/function (_Animation) {
         var now = Date.now();
         var diff = now - rev.lastInstancePlay;
         var volumeLimiter = Math.min(1, diff / _config.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT);
-        rev.volume(_volume.VOLUME_CAR_ENTRY * volumeLimiter); // randomize the rate a bit for cars that
-        // come in shortly after the first
+        var rate = [1, 1.3, 0.85, 1.2, 0.925][rev.playCount % 5];
+        var carCountLimiter = 1 - rev.playCount * 0.1; // play the sound
 
-        var rate = 1;
-
-        if (volumeLimiter < 1) {
-          rate = 0.8 + Math.random() * 0.5;
-        } // play the sound
-
-
+        rev.volume(_volume.VOLUME_CAR_ENTRY * volumeLimiter * carCountLimiter);
         rev.rate(rate);
         rev.loop(false);
         rev.play();
@@ -98127,16 +98139,14 @@ var CarFinishLineAnimation = /*#__PURE__*/function (_Animation) {
       isInstant = elapsed > _config.RACE_FINISH_CAR_STOPPING_TIME; // if this car is entering
 
       if (!isInstant) {
-        var stop = audio.create('sfx', 'car_stopping'); // make sure this hasn't played too recently to avoid
-        // 5 car screeching noises all at once
-
+        var stop = audio.create('sfx', 'car_stopping');
         var now = Date.now();
-        var nextAllowedPlay = stop.lastInstancePlay + _config.RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL; // play the sound effect, if possible
-
-        if (now > nextAllowedPlay) {
-          stop.volume(_volume.VOLUME_FINISH_LINE_STOP);
-          stop.play();
-        }
+        var diff = now - stop.lastInstancePlay;
+        var volumeLimiter = Math.min(1, diff / _config.RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL);
+        var rate = [1, 0.85, 1.2, 0.925, 1.1][stop.playCount % 5];
+        stop.rate(rate);
+        stop.volume(_volume.VOLUME_FINISH_LINE_STOP * volumeLimiter);
+        stop.play();
       } // starting and ending points
 
 

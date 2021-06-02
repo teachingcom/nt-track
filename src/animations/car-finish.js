@@ -33,17 +33,14 @@ export default class CarFinishLineAnimation extends Animation {
     // if this car is entering
     if (!isInstant) {
       const stop = audio.create('sfx', 'car_stopping')
+      const now = Date.now();
+			const diff = now - stop.lastInstancePlay
+			const volumeLimiter = Math.min(1, diff / RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL);
+			const rate = [1, 0.85, 1.2, 0.925, 1.1][stop.playCount % 5]
 
-      // make sure this hasn't played too recently to avoid
-      // 5 car screeching noises all at once
-      const now = Date.now()
-      const nextAllowedPlay = stop.lastInstancePlay + RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL
-
-      // play the sound effect, if possible
-      if (now > nextAllowedPlay) {
-        stop.volume(VOLUME_FINISH_LINE_STOP)
-        stop.play()
-      }
+      stop.rate(rate)
+      stop.volume(VOLUME_FINISH_LINE_STOP * volumeLimiter)
+      stop.play()
     }
 
     // starting and ending points

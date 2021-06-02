@@ -17,6 +17,9 @@ export class Sound {
 	/** keeping track of the last time a sound was played */
 	static timestamps = { }
 
+	// keeping track of playcounts
+	static playCounts = { }
+
 	constructor(type, source, id, sprite) {
 		this.type = type;
 		this.source = source;
@@ -39,6 +42,18 @@ export class Sound {
 	set lastInstancePlay(value) {
 		const { key } = this;
 		Sound.timestamps[key] = value;
+	}
+
+	/** checks the number of times this sound has been played */
+	get playCount() {
+		const { key } = this;
+		return Sound.playCounts[key] || 0;
+	}
+
+	/** sets the number of times this sound has been played */
+	set playCount(value) {
+		const { key } = this;
+		Sound.playCounts[key] = value;
 	}
 
 	/** tests if the sound is playing */
@@ -121,15 +136,19 @@ export class Sound {
 
 		// if there's no audio context, don't bother
 		if (!Sound.isAudioContextAvailable) return;
-		
-		// play the sound
-		const { id } = this;
-		this.lastInstancePlay = +new Date;
-		this.source.volume(this._preferredVolumeLevel, id);
-		this.source.seek(0, id);
 
 		// do not crash for failed sounds
-		try { this.source.play(id); }
+		try {
+			// play the sound
+			const { id } = this;
+			this.lastInstancePlay = +new Date;
+			this.source.volume(this._preferredVolumeLevel, id);
+			this.source.seek(0, id);
+			this.source.play(id);
+
+			// increment the play count
+			this.playCount++;
+		}
 		catch (ex) {
 			const { key } = this;
 			console.warn(`Failed to play sound ${key}`);
