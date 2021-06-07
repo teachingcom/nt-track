@@ -13,7 +13,8 @@ import {
 	TRACK_ACCELERATION_RATE,
 	CAR_DEFAULT_SHAKE_LEVEL,
 	TRACK_MAXIMUM_SPEED_BOOST_RATE,
-	TRACK_MAXIMUM_SPEED_DRAG_RATE
+	TRACK_MAXIMUM_SPEED_DRAG_RATE,
+	TRACK_STARTING_LINE_POSITION
 } from '../../config';
 
 import {
@@ -271,6 +272,20 @@ export default class TrackView extends BaseView {
 	// manually changes the scroll value
 	setScroll = position => {
 		this.track.setTrackPosition(position);
+	}
+
+	getStartingLinePosition() {
+		const { height, options } = this;
+		
+		// get the height ratio against the target
+		// size that scaling is based on
+		let ratio = height / options.scale.height;
+		if (isNaN(ratio)) {
+			ratio = 1;
+		}
+
+		// calculate the correct position
+		return TRACK_STARTING_LINE_POSITION * ratio;
 	}
 
 	/** assigns the current track */

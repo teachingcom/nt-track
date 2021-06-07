@@ -258,6 +258,12 @@ export class BaseView extends EventEmitter {
 		return { width: this.width, height: this.height };
 	}
 
+	// second function to make clear what's happening when
+	// used outside of the track repo
+	syncToContainer = () => {
+		this.resize();
+	}
+
 	/** resizes to match the container element */
 	resize = () => {
 		const { parent, view, renderer } = this;

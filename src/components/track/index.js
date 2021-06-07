@@ -1,7 +1,7 @@
 import { PIXI, getBoundsForRole, findDisplayObjectsOfRole } from 'nt-animator';
 import Random from '../../rng';
 import { TRACK_HEIGHT, TRACK_TOP } from '../../views/track/scaling';
-import { TRACK_MAXIMUM_TRAVEL_DISTANCE, TRACK_MAXIMUM_SCROLL_SPEED, TRACK_STARTING_LINE_POSITION } from '../../config';
+import { TRACK_MAXIMUM_TRAVEL_DISTANCE, TRACK_MAXIMUM_SCROLL_SPEED } from '../../config';
 import { isArray, isNumber } from '../../utils';
 import Segment from './segment';
 import createCrowd, { SELECTED_CROWD_URL } from '../../plugins/crowd';
@@ -285,7 +285,8 @@ export default class Track {
 		this._fitBlockToTrackPosition(segment, 0);
 
 		// distance to move back
-		const shiftBy = (view.width / 2) - (view.width * TRACK_STARTING_LINE_POSITION);
+		const shiftBy = (view.width / 2) - (view.width * this.view.getStartingLinePosition());
+
 		this._cycleToSegmentLine(segment, shiftBy);
 	}
 

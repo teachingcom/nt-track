@@ -86305,6 +86305,9 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "stopAutoRender", function () {
       return cancelAnimationFrame(_this._nextFrame);
     });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "syncToContainer", function () {
+      _this.resize();
+    });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "resize", function () {
       var _assertThisInitialize2 = (0, _assertThisInitialized2.default)(_this),
           parent = _assertThisInitialize2.parent,
@@ -86519,8 +86522,8 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
         width: this.width,
         height: this.height
       };
-    }
-    /** resizes to match the container element */
+    } // second function to make clear what's happening when
+    // used outside of the track repo
 
   }, {
     key: "shouldAnimateFrame",
@@ -97408,7 +97411,7 @@ var Track = /*#__PURE__*/function () {
                 this._fitBlockToTrackPosition(segment, 0); // distance to move back
 
 
-                shiftBy = view.width / 2 - view.width * _config.TRACK_STARTING_LINE_POSITION;
+                shiftBy = view.width / 2 - view.width * this.view.getStartingLinePosition();
 
                 this._cycleToSegmentLine(segment, shiftBy);
 
@@ -97985,7 +97988,7 @@ var CarEntryAnimation = /*#__PURE__*/function (_Animation) {
       }; // starting line position
 
       var entryDestination = {
-        playerX: _config.TRACK_STARTING_LINE_POSITION
+        playerX: _this.track.getStartingLinePosition()
       }; // keep track if focus is lost
 
       var disposeViewStateWatcher = (0, _view.onViewActiveStateChanged)(function (active) {
@@ -100191,6 +100194,24 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
         status: status
       };
     } // manually changes the scroll value
+
+  }, {
+    key: "getStartingLinePosition",
+    value: function getStartingLinePosition() {
+      var height = this.height,
+          options = this.options; // get the height ratio against the target
+      // size that scaling is based on
+
+      var ratio = height / options.scale.height;
+
+      if (isNaN(ratio)) {
+        ratio = 1;
+      } // calculate the correct position
+
+
+      return _config.TRACK_STARTING_LINE_POSITION * ratio;
+    }
+    /** assigns the current track */
 
   }, {
     key: "render",

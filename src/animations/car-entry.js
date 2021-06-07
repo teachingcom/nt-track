@@ -2,7 +2,7 @@ import * as audio from '../audio'
 import Animation from './base'
 
 import { noop } from "../utils"
-import { TRACK_STARTING_LINE_POSITION, RACE_START_CAR_ENTRY_TIME, RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT } from "../config"
+import { RACE_START_CAR_ENTRY_TIME, RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT } from "../config"
 import { VOLUME_CAR_ENTRY } from '../audio/volume'
 import { animate } from 'nt-animator'
 import { onViewActiveStateChanged } from '../utils/view'
@@ -28,7 +28,7 @@ export default class CarEntryAnimation extends Animation {
 		
 		// starting line position
 		const entryDestination = {
-			playerX: TRACK_STARTING_LINE_POSITION
+			playerX: this.track.getStartingLinePosition()
 		}
 
 		// keep track if focus is lost
