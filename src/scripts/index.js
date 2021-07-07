@@ -1,8 +1,10 @@
 import ReactiveGull from './reactive_gull';
+import Ramp from './ramp';
 
 // loads a script as required
 export async function loadScript(name, config, obj, track, animator) {
 	const Type = name === 'reactive_gull' ? ReactiveGull
+		: name === 'ramp' ? Ramp
 		: null;
 
 	// load if possible

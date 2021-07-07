@@ -53106,39 +53106,31 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
+libPIXI.utils.sayHello = function () {};
+
 var PIXI = _objectSpread({}, libPIXI);
 
 exports.PIXI = PIXI;
 },{"@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","pixi.js-legacy":"../node_modules/pixi.js-legacy/lib/pixi-legacy.es.js"}],"pixi/utils/skip-hello.js":[function(require,module,exports) {
-"use strict";
-
-var _lib = require("../../pixi/lib");
-
-// These do not work for some reason
-_lib.PIXI.utils.skipHello();
-
-_lib.PIXI.utils._saidHello = true; // HACK: inspect messages and disregard first pixi message
-// this will replace the very first message related to pixi
-// and then revert to normal use
-
-var _log = console.log;
-
-console.log = function () {
-  for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-    args[_key] = arguments[_key];
-  }
-
-  var msg = args[0]; // if this is the hello message - cancel it
-
-  if (/pixijs/i.test(msg)) {
-    console.log = _log;
-    return;
-  } // use log normally
-
-
-  _log.apply(console, args);
-};
-},{"../../pixi/lib":"pixi/lib.js"}],"../node_modules/regenerator-runtime/runtime.js":[function(require,module,exports) {
+// import { PIXI as libPIXI } from '../../pixi/lib';
+// // These do not work for some reason
+// libPIXI.utils.skipHello();
+// libPIXI.utils._saidHello = true;
+// // HACK: inspect messages and disregard first pixi message
+// // this will replace the very first message related to pixi
+// // and then revert to normal use
+// const _log = console.log;
+// console.log = (...args) => {
+// 	const [ msg ] = args;
+// 	// if this is the hello message - cancel it
+// 	if (/pixijs/i.test(msg)) {
+// 		console.log = _log;
+// 		return;
+// 	}
+// 	// use log normally
+// 	_log.apply(console, args);
+// };
+},{}],"../node_modules/regenerator-runtime/runtime.js":[function(require,module,exports) {
 /**
  * Copyright (c) 2014-present, Facebook, Inc.
  *
@@ -79947,7 +79939,15 @@ function _createSprite() {
             (0, _animation.default)(animator, path, composition, layer, sprite); // few additional adjustments
 
             if (isMarker) {
-              sprite.alpha = layer.debug ? 0.5 : 0; // scale to match the preferred pixel sizes
+              if (layer.debug) {
+                sprite.visible = true;
+                sprite.alpha = layer.debug;
+
+                if (isNaN(sprite.alpha)) {
+                  sprite.alpha = 1;
+                }
+              } // scale to match the preferred pixel sizes
+
 
               sprite.scale.x = (((_layer$props3 = layer.props) === null || _layer$props3 === void 0 ? void 0 : _layer$props3.width) || sprite.width) / sprite.width;
               sprite.scale.y = (((_layer$props4 = layer.props) === null || _layer$props4 === void 0 ? void 0 : _layer$props4.height) || sprite.height) / sprite.height;
@@ -96779,7 +96779,290 @@ var ReactiveGull = /*#__PURE__*/function (_GameScript) {
 }(_base.GameScript);
 
 exports.default = ReactiveGull;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","nt-animator":"../node_modules/nt-animator/dist/index.js","./base":"scripts/base.js"}],"scripts/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","nt-animator":"../node_modules/nt-animator/dist/index.js","./base":"scripts/base.js"}],"scripts/ramp.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
+
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
+
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
+
+var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
+
+var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
+
+var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var _ntAnimator = require("nt-animator");
+
+var _base = require("./base");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+var Ramp = /*#__PURE__*/function (_GameScript) {
+  (0, _inherits2.default)(Ramp, _GameScript);
+
+  var _super = _createSuper(Ramp);
+
+  function Ramp() {
+    var _this;
+
+    (0, _classCallCheck2.default)(this, Ramp);
+
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    _this = _super.call.apply(_super, [this].concat(args));
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "animations", {});
+    return _this;
+  }
+
+  (0, _createClass2.default)(Ramp, [{
+    key: "init",
+    value: function () {
+      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+        return _regenerator.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                this.checkInterval = 0; // // the sprites
+                // this.sprites = {
+                // 	idle: findDisplayObjectsOfRole(this.obj, 'idle')[0],
+                // 	flee: findDisplayObjectsOfRole(this.obj, 'flee')[0]
+                // };
+                // this.isIdle = true
+
+              case 1:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function init() {
+        return _init.apply(this, arguments);
+      }
+
+      return init;
+    }()
+  }, {
+    key: "update",
+    value: function update(state) {
+      var _this2 = this;
+
+      // const source = new PIXI.Point()
+      // this.obj.getGlobalPosition(source, true)
+      // if (!this.isIdle) {
+      // 	// did it jump back to the front (as if it were being cycled again)
+      // 	if (source.x > this.track.width) {
+      // 		this.isIdle = true
+      // 		this.sprites.flee.y = 0
+      // 		this.sprites.flee.x = 0
+      // 		// swap visibility
+      // 		this.sprites.idle.visible = true
+      // 		this.sprites.flee.visible = false
+      // 	}
+      // 	// otherwise, continue to flee away
+      // 	else {
+      // 		this.sprites.flee.y -= this.travelY
+      // 		this.sprites.flee.x += this.travelX
+      // 	}
+      // 	return
+      // }
+      // // throttle how often to perform hit detection
+      // this.checkInterval++
+      // if (this.checkInterval % 10 !== 0) { 
+      // 	return
+      // }
+      // get the gull position
+      var source = new _ntAnimator.PIXI.Point();
+      this.obj.getGlobalPosition(source, true);
+
+      if (this.isOffScreen && source.x > this.track.width) {
+        this.isOffScreen = false; // this.reset = 100
+      } // if (--this.reset < 0) {
+      // 	this.reset = Number.MAX_SAFE_INTEGER
+      // }
+      // if (this.isOffScreen) {
+      // 		return
+      // 	}
+      // off screen
+
+
+      if (!this.isOffScreen && source.x < -1000) {
+        this.isOffScreen = true; // this.reset = 1000
+
+        setTimeout(function () {
+          _this2.animations = {};
+        }, 2000); // this.animations = { }
+        // return
+      } // compare if close to any players
+      // const reactionDistance = REACTION_DISTANCE // * (1 * state.speed)
+
+
+      var compareTo = new _ntAnimator.PIXI.Point();
+
+      var _iterator = _createForOfIteratorHelper(this.track.players),
+          _step;
+
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var player = _step.value;
+
+          if (this.animations[player.id]) {
+            this.animations[player.id](source.x);
+            continue;
+          }
+
+          if (this.isOffScreen) {
+            continue;
+          } // check the distance
+
+
+          var x = compareTo.x - source.x;
+          var y = compareTo.y - source.y;
+          var dist = Math.hypot(x, y);
+
+          if (dist < 100) {
+            continue;
+          }
+
+          var car = player.car;
+          car.getGlobalPosition(compareTo, true); // check the distance
+
+          if (compareTo.x > source.x) {
+            this.animations[player.id] = createRampAnimation(this, player, compareTo.x);
+          } // const x = compareTo.x - source.x
+          // const y = compareTo.y - source.y
+          // const dist = Math.hypot(x, y)
+          // if (dist < reactionDistance) {
+          // 	// make visible
+          // 	this.isIdle = false
+          // 	this.sprites.idle.visible = false
+          // 	this.sprites.flee.visible = true
+          // 	// choose a random speed
+          // 	this.travelX = 0 | (Math.random() * 20)
+          // 	this.travelY = 15 + (0 | (Math.random() * 20))
+          // 	// no need to check anymore
+          // 	return
+          // }
+
+        }
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
+    }
+  }]);
+  return Ramp;
+}(_base.GameScript);
+
+exports.default = Ramp;
+
+function createRampAnimation(script, player, startAt) {
+  var lane = player.options.lane;
+
+  var _findDisplayObjectsOf = (0, _ntAnimator.findDisplayObjectsOfRole)(player.car, 'shadow'),
+      _findDisplayObjectsOf2 = (0, _slicedToArray2.default)(_findDisplayObjectsOf, 1),
+      shadow = _findDisplayObjectsOf2[0];
+
+  var shadowY = (shadow === null || shadow === void 0 ? void 0 : shadow.y) || 0;
+  var fallSpeed = 1.7;
+  var riseSpeed = 3.2;
+  var shadowAlpha = (shadow === null || shadow === void 0 ? void 0 : shadow.alpha) || 1;
+  var fadeIn = 0;
+
+  if (lane === 0) {
+    fallSpeed *= 1.15;
+    riseSpeed *= 1.35;
+  } else if (lane === 1) {
+    fallSpeed *= 1.1;
+    riseSpeed *= 1.2;
+  } else if (lane === 3) {
+    fallSpeed *= 0.7;
+    riseSpeed *= 0.7;
+  } else if (lane === 4) {
+    fallSpeed *= 0.8;
+    riseSpeed *= 0.8;
+  }
+
+  return function (current) {
+    var diff = startAt - current;
+
+    if (diff > 1000) {
+      player.car.skew.y *= 0.9;
+    }
+
+    if (diff > 1200) {
+      player.car.y += fallSpeed;
+
+      if (shadow) {
+        fadeIn += 0.05;
+        shadow.y = -(player.car.y * 2) + shadowY;
+        shadow.alpha = Math.min(fadeIn, 1) * shadowAlpha;
+        shadow.skew.y = 0;
+      }
+
+      fallSpeed *= 1.1;
+    } else {
+      riseSpeed *= 0.99;
+      player.car.y -= riseSpeed;
+      player.car.skew.y = Math.max(player.car.skew.y - 0.003, -0.1);
+      shadow.alpha *= 0.95;
+    }
+
+    player.scale.x = player.scale.y = Math.max(1 + player.car.y * -0.0043, 1);
+    player.car.y = Math.min(player.car.y, 0);
+
+    if (player.trail) {
+      var _iterator2 = _createForOfIteratorHelper(player.trail.parts),
+          _step2;
+
+      try {
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+          var part = _step2.value;
+          part.pivot.y = -player.car.y * 1.1;
+        }
+      } catch (err) {
+        _iterator2.e(err);
+      } finally {
+        _iterator2.f();
+      }
+    }
+
+    if (shadow) {
+      shadow.y = Math.max(shadowY, shadow.y);
+    }
+  };
+}
+},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","./base":"scripts/base.js"}],"scripts/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -96795,6 +97078,8 @@ var _typeof2 = _interopRequireDefault(require("@babel/runtime/helpers/typeof"));
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var _reactive_gull = _interopRequireDefault(require("./reactive_gull"));
+
+var _ramp = _interopRequireDefault(require("./ramp"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -96817,7 +97102,7 @@ function _loadScript() {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            Type = name === 'reactive_gull' ? _reactive_gull.default : null; // load if possible
+            Type = name === 'reactive_gull' ? _reactive_gull.default : name === 'ramp' ? _ramp.default : null; // load if possible
 
             if (Type) {
               _context.next = 3;
@@ -96883,7 +97168,7 @@ function parseScriptArgs(args) {
 
   return [name, config];
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/typeof":"../node_modules/@babel/runtime/helpers/typeof.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","./reactive_gull":"scripts/reactive_gull.js"}],"components/track/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/typeof":"../node_modules/@babel/runtime/helpers/typeof.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","./reactive_gull":"scripts/reactive_gull.js","./ramp":"scripts/ramp.js"}],"components/track/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
