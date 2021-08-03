@@ -15,6 +15,14 @@ export class BaseView extends EventEmitter {
 	async init(options) {
 		const { scale, forceCanvas } = options;
 
+		// webgl has a problem where render attempts that
+		// take place when the page is unloading may cause
+		// the area to go black. if possible, capture the
+		// window unloading and disable rendering attempts
+		if (window) {
+			window.addEventListener('beforeunload', this.onWindowUnload)
+		}
+
 		// save some options
 		this.options = options;
 		this.scale = options.scale;
@@ -179,6 +187,11 @@ export class BaseView extends EventEmitter {
 
 	// update state info
 	onViewActiveStateChanged = active => this.isViewActive = active
+	onWindowUnload = () => {
+		console.log('revent')
+		cancelAnimationFrame(this._nextFrame);
+		this.render = () => { }
+	}
 
 	// bail on webGL
 	onWebGLContextLost = () => {

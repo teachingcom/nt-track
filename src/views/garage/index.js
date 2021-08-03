@@ -56,7 +56,6 @@ export default class GarageView extends BaseView {
 	setupInspectionMode = (options) => {
 		const { container } = options
 
-
 		// create the trail backdrop, if needed
 		const display = this.getDisplaySize();
 		const backdrop = createBackdrop(display);
@@ -187,7 +186,8 @@ export default class GarageView extends BaseView {
 		const { tweaks = { }, backgroundColor = 0xffffff } = this.options;
 
 		// create the new car
-		const container = new PIXI.ResponsiveContainer();
+		const inside = new PIXI.Container();
+		const outer = new PIXI.ResponsiveContainer();
 		const car = await Car.create({
 			view, 
 			...config,
@@ -195,7 +195,7 @@ export default class GarageView extends BaseView {
 
 			// lighting is flipped because the container
 			// is rotated in the view
-			lighting: { x: -3, y: -5, alpha: 0.33, ...tweaks.lighting }
+			lighting: { x: -3, y: 5, alpha: 0.33, ...tweaks.lighting }
 		});
 		
 		// finds the bounds for a car - if nothing was
@@ -232,7 +232,11 @@ export default class GarageView extends BaseView {
 			// add to the view
 			trail.attachTo(car)
 			trail.alignTo(car, 'back')
-			const adjustedScale = configScale * scale
+
+			// TODO: magic number for Garage view and trails.
+			// Need to determine trail scaling better
+			const scaleAdjustMagicNumber = 1.4
+			const adjustedScale = (configScale * scale) * scaleAdjustMagicNumber
 			for (const part of trail.parts) {
 				part.scale.x *= adjustedScale
 				part.scale.y *= adjustedScale
@@ -251,20 +255,26 @@ export default class GarageView extends BaseView {
 
 			// mark so it knows to make
 			// additional room for the trail
-			container.hasTrail = true
+			outer.hasTrail = true
 		}
+
+		// set the inner container
+		console.log(config);
+		inside.x = config.offsetX || 0;
+		inside.y = config.offsetY || 0;
 		
 		// setup the container
-		container.addChild(car);
-		container.relativeY = 0.5;
-		container.relativeX = 0.5;
+		inside.addChild(car);
+		outer.addChild(inside);
+		outer.relativeY = 0.5;
+		outer.relativeX = 0.5;
 
 		// car shadow fixes
 		if (isNumber(tweaks.rotation)) {
-			container.rotation += (Math.PI * 2) * tweaks.rotation;
+			outer.rotation += (Math.PI * 2) * tweaks.rotation;
 		}
 
-		return container;
+		return outer;
 	}
 
 	// align the stage as required

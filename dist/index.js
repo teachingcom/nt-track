@@ -53106,39 +53106,31 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
+libPIXI.utils.sayHello = function () {};
+
 var PIXI = _objectSpread({}, libPIXI);
 
 exports.PIXI = PIXI;
 },{"@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","pixi.js-legacy":"../node_modules/pixi.js-legacy/lib/pixi-legacy.es.js"}],"pixi/utils/skip-hello.js":[function(require,module,exports) {
-"use strict";
-
-var _lib = require("../../pixi/lib");
-
-// These do not work for some reason
-_lib.PIXI.utils.skipHello();
-
-_lib.PIXI.utils._saidHello = true; // HACK: inspect messages and disregard first pixi message
-// this will replace the very first message related to pixi
-// and then revert to normal use
-
-var _log = console.log;
-
-console.log = function () {
-  for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-    args[_key] = arguments[_key];
-  }
-
-  var msg = args[0]; // if this is the hello message - cancel it
-
-  if (/pixijs/i.test(msg)) {
-    console.log = _log;
-    return;
-  } // use log normally
-
-
-  _log.apply(console, args);
-};
-},{"../../pixi/lib":"pixi/lib.js"}],"../node_modules/regenerator-runtime/runtime.js":[function(require,module,exports) {
+// import { PIXI as libPIXI } from '../../pixi/lib';
+// // These do not work for some reason
+// libPIXI.utils.skipHello();
+// libPIXI.utils._saidHello = true;
+// // HACK: inspect messages and disregard first pixi message
+// // this will replace the very first message related to pixi
+// // and then revert to normal use
+// const _log = console.log;
+// console.log = (...args) => {
+// 	const [ msg ] = args;
+// 	// if this is the hello message - cancel it
+// 	if (/pixijs/i.test(msg)) {
+// 		console.log = _log;
+// 		return;
+// 	}
+// 	// use log normally
+// 	_log.apply(console, args);
+// };
+},{}],"../node_modules/regenerator-runtime/runtime.js":[function(require,module,exports) {
 /**
  * Copyright (c) 2014-present, Facebook, Inc.
  *
@@ -79670,6 +79662,7 @@ function createTextureFromImage(img) {
     } // get sprite info
 
 
+    console.log('will create', img);
     spritesheet = img.getAttribute('spritesheet');
     sprite = img.getAttribute('sprite');
     var useCache = spritesheet && sprite; // texture to load
@@ -79947,7 +79940,15 @@ function _createSprite() {
             (0, _animation.default)(animator, path, composition, layer, sprite); // few additional adjustments
 
             if (isMarker) {
-              sprite.alpha = layer.debug ? 0.5 : 0; // scale to match the preferred pixel sizes
+              if (layer.debug) {
+                sprite.visible = true;
+                sprite.alpha = layer.debug;
+
+                if (isNaN(sprite.alpha)) {
+                  sprite.alpha = 1;
+                }
+              } // scale to match the preferred pixel sizes
+
 
               sprite.scale.x = (((_layer$props3 = layer.props) === null || _layer$props3 === void 0 ? void 0 : _layer$props3.width) || sprite.width) / sprite.width;
               sprite.scale.y = (((_layer$props4 = layer.props) === null || _layer$props4 === void 0 ? void 0 : _layer$props4.height) || sprite.height) / sprite.height;
@@ -83301,51 +83302,53 @@ function _createMask() {
 
             phase = '';
             _context.prev = 2;
-            // NOTE: sprites are added a wrapper container on purpose
+            console.log('is going to create mask'); // NOTE: sprites are added a wrapper container on purpose
             // because any animations that modify scale will interfere
             // with scaling done to fit within responsive containers
+
             container = new _lib.PIXI.Container();
             container.isMask = true;
             container.role = (0, _utils2.toRole)(layer.role);
             container.path = layer.path; // gather all required images
 
             phase = 'resolving images';
-            _context.next = 10;
+            _context.next = 11;
             return (0, _resolveImages.default)(animator, path, composition, layer);
 
-          case 10:
+          case 11:
             images = _context.sent;
             // create textures for each sprite
             phase = 'generating textures';
-            _context.prev = 12;
-            textures = (0, _collection.map)(images, _createTextureFromImage.default);
-            _context.next = 20;
+            _context.prev = 13;
+            textures = images; // map(images, createTextureFromImage);
+
+            _context.next = 21;
             break;
 
-          case 16:
-            _context.prev = 16;
-            _context.t0 = _context["catch"](12);
+          case 17:
+            _context.prev = 17;
+            _context.t0 = _context["catch"](13);
             console.error("Failed to create a texture for ".concat(path), composition);
             throw _context.t0;
 
-          case 20:
+          case 21:
             // create the instance of the sprite
             phase = 'creating mask instance'; // using bounds
 
             if (!(textures.length === 0)) {
-              _context.next = 32;
+              _context.next = 33;
               break;
             }
 
             if (!(isNaN(layer.width) || isNaN(layer.height) || layer.width === 0 || layer.height === 0)) {
-              _context.next = 25;
+              _context.next = 26;
               break;
             }
 
             phase = 'validating mask bounds';
             throw new _errors.InvalidMaskBoundsException();
 
-          case 25:
+          case 26:
             // create the mask
             maskGenerator.canvas.width = layer.width;
             maskGenerator.canvas.height = layer.height;
@@ -83353,16 +83356,17 @@ function _createMask() {
             maskGenerator.ctx.fillRect(0, 0, layer.width, layer.height); // create the sprite
 
             mask = new _lib.PIXI.Sprite.from(maskGenerator.canvas);
-            _context.next = 35;
+            _context.next = 37;
             break;
 
-          case 32:
+          case 33:
+            console.log("create from sprite");
             isAnimated = images.length > 1;
             mask = isAnimated ? new _lib.PIXI.AnimatedSprite(textures) : new _lib.PIXI.Sprite(textures[0]); // if animated, start playback
 
             if (isAnimated) mask.play();
 
-          case 35:
+          case 37:
             // match up names
             (0, _normalize.normalizeProps)(layer.props); // create dynamically rendered properties
 
@@ -83393,18 +83397,18 @@ function _createMask() {
               update: update
             }]);
 
-          case 53:
-            _context.prev = 53;
+          case 55:
+            _context.prev = 55;
             _context.t1 = _context["catch"](2);
             console.error("Failed to create mask ".concat(path, " while ").concat(phase));
             throw _context.t1;
 
-          case 57:
+          case 59:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[2, 53], [12, 16]]);
+    }, _callee, null, [[2, 55], [13, 17]]);
   }));
   return _createMask.apply(this, arguments);
 }
@@ -86268,6 +86272,12 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "onViewActiveStateChanged", function (active) {
       return _this.isViewActive = active;
     });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "onWindowUnload", function () {
+      console.log('revent');
+      cancelAnimationFrame(_this._nextFrame);
+
+      _this.render = function () {};
+    });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "onWebGLContextLost", function () {
       _this.webGLContextLost = true;
 
@@ -86362,7 +86372,15 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                scale = options.scale, forceCanvas = options.forceCanvas; // save some options
+                scale = options.scale, forceCanvas = options.forceCanvas; // webgl has a problem where render attempts that
+                // take place when the page is unloading may cause
+                // the area to go black. if possible, capture the
+                // window unloading and disable rendering attempts
+
+                if (window) {
+                  window.addEventListener('beforeunload', this.onWindowUnload);
+                } // save some options
+
 
                 this.options = options;
                 this.scale = options.scale;
@@ -86454,7 +86472,7 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
                   });
                 }
 
-              case 30:
+              case 31:
               case "end":
                 return _context.stop();
             }
@@ -100969,7 +100987,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
     }());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "createCar", /*#__PURE__*/function () {
       var _ref4 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(config) {
-        var view, _this$options, _this$options$tweaks, tweaks, _this$options$backgro, backgroundColor, container, car, bounds, display, target, scale, configScale, trail, adjustedScale, _iterator, _step, part;
+        var view, _this$options, _this$options$tweaks, tweaks, _this$options$backgro, backgroundColor, inside, outer, car, bounds, display, target, scale, configScale, trail, scaleAdjustMagicNumber, adjustedScale, _iterator, _step, part;
 
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
@@ -100978,8 +100996,9 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 view = (0, _assertThisInitialized2.default)(_this);
                 _this$options = _this.options, _this$options$tweaks = _this$options.tweaks, tweaks = _this$options$tweaks === void 0 ? {} : _this$options$tweaks, _this$options$backgro = _this$options.backgroundColor, backgroundColor = _this$options$backgro === void 0 ? 0xffffff : _this$options$backgro; // create the new car
 
-                container = new _ntAnimator.PIXI.ResponsiveContainer();
-                _context4.next = 5;
+                inside = new _ntAnimator.PIXI.Container();
+                outer = new _ntAnimator.PIXI.ResponsiveContainer();
+                _context4.next = 6;
                 return _car.default.create(_objectSpread(_objectSpread({
                   view: view
                 }, config), {}, {
@@ -100988,12 +101007,12 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                   // is rotated in the view
                   lighting: _objectSpread({
                     x: -3,
-                    y: -5,
+                    y: 5,
                     alpha: 0.33
                   }, tweaks.lighting)
                 }));
 
-              case 5:
+              case 6:
                 car = _context4.sent;
                 // finds the bounds for a car - if nothing was
                 // found then it's most likely a simple car. 
@@ -101015,11 +101034,11 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 car.scale.y *= configScale; // include the trail, if any
 
                 if (!config.trail) {
-                  _context4.next = 27;
+                  _context4.next = 29;
                   break;
                 }
 
-                _context4.next = 20;
+                _context4.next = 21;
                 return _trail.default.create(_objectSpread(_objectSpread({
                   view: view
                 }, config), {}, {
@@ -101027,12 +101046,15 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                   type: config.trail
                 }));
 
-              case 20:
+              case 21:
                 trail = _context4.sent;
                 // add to the view
                 trail.attachTo(car);
-                trail.alignTo(car, 'back');
-                adjustedScale = configScale * scale;
+                trail.alignTo(car, 'back'); // TODO: magic number for Garage view and trails.
+                // Need to determine trail scaling better
+
+                scaleAdjustMagicNumber = 1.4;
+                adjustedScale = configScale * scale * scaleAdjustMagicNumber;
                 _iterator = _createForOfIteratorHelper(trail.parts);
 
                 try {
@@ -101059,21 +101081,26 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                   _iterator.f();
                 }
 
-                container.hasTrail = true;
+                outer.hasTrail = true;
 
-              case 27:
-                // setup the container
-                container.addChild(car);
-                container.relativeY = 0.5;
-                container.relativeX = 0.5; // car shadow fixes
+              case 29:
+                // set the inner container
+                console.log(config);
+                inside.x = config.offsetX || 0;
+                inside.y = config.offsetY || 0; // setup the container
+
+                inside.addChild(car);
+                outer.addChild(inside);
+                outer.relativeY = 0.5;
+                outer.relativeX = 0.5; // car shadow fixes
 
                 if ((0, _utils.isNumber)(tweaks.rotation)) {
-                  container.rotation += Math.PI * 2 * tweaks.rotation;
+                  outer.rotation += Math.PI * 2 * tweaks.rotation;
                 }
 
-                return _context4.abrupt("return", container);
+                return _context4.abrupt("return", outer);
 
-              case 32:
+              case 38:
               case "end":
                 return _context4.stop();
             }
