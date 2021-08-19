@@ -99399,7 +99399,267 @@ function pop(target) {
     }
   });
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","./base":"animations/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../audio/volume":"audio/volume.js","../audio":"audio/index.js"}],"views/track/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","./base":"animations/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../audio/volume":"audio/volume.js","../audio":"audio/index.js"}],"animations/wampus-intro.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
+
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
+
+var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
+
+var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
+
+var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var _base = _interopRequireDefault(require("./base"));
+
+var _ntAnimator = require("nt-animator");
+
+var _volume = require("../audio/volume");
+
+var audio = _interopRequireWildcard(require("../audio"));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+var WampusIntroAnimation = /*#__PURE__*/function (_Animation) {
+  (0, _inherits2.default)(WampusIntroAnimation, _Animation);
+
+  var _super = _createSuper(WampusIntroAnimation);
+
+  function WampusIntroAnimation(_ref) {
+    var _this;
+
+    var track = _ref.track,
+        _stage = _ref.stage,
+        animator = _ref.animator;
+    (0, _classCallCheck2.default)(this, WampusIntroAnimation);
+    _this = _super.call(this); // save references
+
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "start", function () {} // // has already started
+    // if (!!this.countdownInterval) return;
+    // // set timeouts to favor being done a little early
+    // // since it'll add to the suspense for the "GO" call
+    // let step = 4;
+    // this.countdownInterval = setInterval(() => {
+    // 	// increment the counter
+    // 	if (--step <= 0)
+    // 		clearInterval(this.countdownInterval)
+    // 	// start counting the steps down
+    // 	if (step === 3) this.show3();
+    // 	else if (step === 2) this.show2();
+    // 	else if (step === 1) this.show1();
+    // }, 1000);
+    // // display 3
+    // show3 = () => {
+    // 	const { track, stage, container } = this;
+    // 	stage.addChild(container);
+    // 	// start the countdown
+    // 	if (track.isViewActive) {
+    // 		const announcer = audio.create('sfx', 'countdown_count');
+    // 		announcer.volume(VOLUME_COUNTDOWN_ANNOUNCER);
+    // 		announcer.play();
+    // 	}
+    // 	// quick fade in
+    // 	animate({
+    // 		from: { alpha: 0 },
+    // 		to: { alpha: 1 },
+    // 		duration: 150,
+    // 		loop: false,
+    // 		update: props => container.alpha = props.alpha
+    // 	});
+    // 	// show the digit
+    // 	this.setDigit(3);
+    // }
+    // // display 2
+    // show2 = () => {
+    // 	this.setColor(0xfff000);
+    // 	this.setDigit(2);
+    // }
+    // // display 1
+    // show1 = () => {
+    // 	this.setDigit(1);
+    // }
+    // // hides the view
+    // hideCountdown = () => {
+    // 	const { countdown } = this;
+    // 	animate({
+    // 		from: { alpha: 1 },
+    // 		to: { alpha: 0 },
+    // 		duration: 300,
+    // 		loop: false,
+    // 		update: props => countdown.alpha = props.alpha,
+    // 		complete: this.dispose
+    // 	});
+    // }
+    // activates the final animation
+    );
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "finish", function () {} // const { numbers, go, countdown, flash, countdownInterval, onBeginRace } = this;
+    // // notify this has started
+    // if (onBeginRace) {
+    // 	onBeginRace();
+    // }
+    // // if for some reason the countdown hasn't finished
+    // // then go ahead and stop it
+    // clearInterval(countdownInterval);
+    // // play the go audio clip
+    // const start = audio.create('sfx', 'countdown_go');
+    // start.volume(VOLUME_COUNTDOWN_ANNOUNCER);
+    // start.play();
+    // // also play the car acceleration noise
+    // const accelerate = audio.create('sfx', 'acceleration');
+    // accelerate.volume(VOLUME_START_ACCELERATION);
+    // accelerate.play();
+    // // change to green
+    // this.setColor(0x00ff00);
+    // // hide the numbers
+    // numbers.alpha = 0;
+    // // show "go"
+    // go.alpha = 1;
+    // flash.emitter.activate();
+    // pop(go);
+    // // pop the container out some
+    // pop(countdown, 150, 1, 1.1);
+    // // wait a moment then remove
+    // setTimeout(this.hideCountdown, 500);
+    // clean up
+    );
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "dispose", function () {
+      var _assertThisInitialize = (0, _assertThisInitialized2.default)(_this),
+          stage = _assertThisInitialize.stage,
+          container = _assertThisInitialize.container;
+
+      stage.removeChild(container); // extra cleanup
+
+      container.children[0].controller.dispose();
+    });
+    _this.track = track;
+    _this.animator = animator;
+    _this.stage = _stage; // this.onBeginRace = onBeginRace;
+
+    return _this;
+  }
+
+  (0, _createClass2.default)(WampusIntroAnimation, [{
+    key: "init",
+    value: function () {
+      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+        var animator, intro, container;
+        return _regenerator.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                animator = this.animator; // save references
+
+                _context.next = 3;
+                return animator.create('extras/wampus_intro');
+
+              case 3:
+                intro = _context.sent;
+
+                if (intro) {
+                  _context.next = 6;
+                  break;
+                }
+
+                throw new Error('Missing Wampus Intro animation');
+
+              case 6:
+                // // create the object
+                // const [ go ] = findDisplayObjectsOfRole(intro, 'go');
+                // const [ numbers ] = findDisplayObjectsOfRole(intro, 'numbers');
+                // const [ flash ] = findDisplayObjectsOfRole(intro, 'flash');
+                // const colors = findDisplayObjectsOfRole(intro, 'color');
+                // // force the shadow color
+                // const [ shadow ] = findDisplayObjectsOfRole(countdown, 'shadow');
+                // shadow.tint = 0x000000;
+                // include the main countdown area
+                container = new _ntAnimator.PIXI.ResponsiveContainer();
+                container.relativeX = 0.5;
+                container.relativeY = 0.5; // container.alpha = 0;
+
+                container.addChild(intro);
+                container.zIndex = 1000; // add to the view
+
+                this.stage.addChild(container); // save refs
+                // this.go = go;
+                // this.countdown = countdown;
+                // this.numbers = numbers;
+                // this.flash = flash;
+                // this.container = container;
+                // this.colors = colors;
+
+                this.isReady = true; // // hide the go text
+                // go.alpha = 0;
+                // this.setColor(0xff0000);
+
+              case 13:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function init() {
+        return _init.apply(this, arguments);
+      }
+
+      return init;
+    }() // /** replaces the color shade */
+    // setColor = value => {
+    // 	// switches the tint - would be nice to tween this
+    // 	for (const item of this.colors)
+    // 		item.tint = value;
+    // }
+    // // replaces the current digit
+    // setDigit = count => {
+    // 	const { numbers } = this;
+    // 	// set the digit
+    // 	numbers.gotoAndStop(3 - count);
+    // 	pop(numbers);
+    // }
+    // begins the animation - does not
+    // finish until "go" is called
+
+  }]);
+  return WampusIntroAnimation;
+}(_base.default); // // animates a character appearing
+// function pop(target, speed = 350, min = 0.7, max = 1) {
+// 	animate({ 
+// 		from: { scale: min },
+// 		to: { scale: max },
+// 		duration: speed,
+// 		loop: false,
+// 		ease: 'easeOutSine',
+// 		update: prop => target.scale.x = target.scale.y = prop.scale
+// 	});
+// }
+
+
+exports.default = WampusIntroAnimation;
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","./base":"animations/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../audio/volume":"audio/volume.js","../audio":"audio/index.js"}],"views/track/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99454,6 +99714,8 @@ var _raceCompleted = _interopRequireDefault(require("../../animations/race-compl
 var _raceProgress = _interopRequireDefault(require("../../animations/race-progress"));
 
 var _countdown = _interopRequireDefault(require("../../animations/countdown"));
+
+var _wampusIntro = _interopRequireDefault(require("../../animations/wampus-intro"));
 
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
@@ -99746,6 +100008,30 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
               case 14:
                 _context2.prev = 14;
 
+                _this.setLoadingStatus('init', 'creating wampus intro');
+
+                _this.wampusIntro = new _wampusIntro.default({
+                  track: (0, _assertThisInitialized2.default)(_this),
+                  stage: stage,
+                  animator: animator
+                }); // this.setLoadingStatus('init', 'initializing countdown');
+
+                _context2.next = 19;
+                return _this.wampusIntro.init();
+
+              case 19:
+                _context2.next = 25;
+                break;
+
+              case 21:
+                _context2.prev = 21;
+                _context2.t1 = _context2["catch"](14);
+                console.error(_context2.t1);
+                console.error("Failed to load required files for wampus intro animation"); // throw new CountdownAssetError();
+
+              case 25:
+                _context2.prev = 25;
+
                 _this.setLoadingStatus('init', 'creating countdown');
 
                 _this.countdown = new _countdown.default({
@@ -99757,25 +100043,24 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
                 _this.setLoadingStatus('init', 'initializing countdown');
 
-                _context2.next = 20;
+                _context2.next = 31;
                 return _this.countdown.init();
 
-              case 20:
+              case 31:
                 _this.resolveTask('load_extras');
 
-                _context2.next = 27;
+                _context2.next = 38;
                 break;
 
-              case 23:
-                _context2.prev = 23;
-                _context2.t1 = _context2["catch"](14);
-                // delete this.countdown;
+              case 34:
+                _context2.prev = 34;
+                _context2.t2 = _context2["catch"](25);
                 console.error("Failed to load required files for countdown animation");
                 throw new CountdownAssetError();
 
-              case 27:
+              case 38:
                 if ((_this$countdown = _this.countdown) === null || _this$countdown === void 0 ? void 0 : _this$countdown.isReady) {
-                  _context2.next = 31;
+                  _context2.next = 42;
                   break;
                 }
 
@@ -99784,20 +100069,20 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 console.error("Countdown did not load successfully");
                 throw new CountdownAssetError();
 
-              case 31:
+              case 42:
                 // track is ready to go
                 _this.resolveTask('load_track');
 
-                _context2.next = 38;
+                _context2.next = 49;
                 break;
 
-              case 34:
-                _context2.prev = 34;
-                _context2.t2 = _context2["catch"](2);
-                console.log(_context2.t2);
+              case 45:
+                _context2.prev = 45;
+                _context2.t3 = _context2["catch"](2);
+                console.log(_context2.t3);
                 throw new TrackCreationError();
 
-              case 38:
+              case 49:
                 // add the scroling ground
                 stage.addChild(track.ground);
                 track.ground.zIndex = _layers.LAYER_TRACK_GROUND;
@@ -99813,12 +100098,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
                 _this.resolveWaitingTrackRequests();
 
-              case 47:
+              case 58:
               case "end":
                 return _context2.stop();
             }
           }
-        }, _callee2, null, [[2, 34], [3, 10], [14, 23]]);
+        }, _callee2, null, [[2, 45], [3, 10], [14, 21], [25, 34]]);
       }));
 
       return function (_x3) {
@@ -100310,7 +100595,7 @@ function TrackCreationError() {}
 function AudioAssetError() {}
 
 function PlayerAssetError() {}
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","../../audio":"audio/index.js","../base":"views/base.js","./player":"views/track/player.js","../../components/track":"components/track/index.js","./scaling":"views/track/scaling.js","../../config":"config.js","./layers":"views/track/layers.js","../../audio/volume":"audio/volume.js","../../animations/car-entry":"animations/car-entry.js","../../animations/race-completed":"animations/race-completed.js","../../animations/race-progress":"animations/race-progress.js","../../animations/countdown":"animations/countdown.js"}],"views/composer.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","../../audio":"audio/index.js","../base":"views/base.js","./player":"views/track/player.js","../../components/track":"components/track/index.js","./scaling":"views/track/scaling.js","../../config":"config.js","./layers":"views/track/layers.js","../../audio/volume":"audio/volume.js","../../animations/car-entry":"animations/car-entry.js","../../animations/race-completed":"animations/race-completed.js","../../animations/race-progress":"animations/race-progress.js","../../animations/countdown":"animations/countdown.js","../../animations/wampus-intro":"animations/wampus-intro.js"}],"views/composer.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101085,7 +101370,6 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
               case 29:
                 // set the inner container
-                console.log(config);
                 inside.x = config.offsetX || 0;
                 inside.y = config.offsetY || 0; // setup the container
 
@@ -101100,7 +101384,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
                 return _context4.abrupt("return", outer);
 
-              case 38:
+              case 37:
               case "end":
                 return _context4.stop();
             }

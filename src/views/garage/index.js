@@ -259,7 +259,6 @@ export default class GarageView extends BaseView {
 		}
 
 		// set the inner container
-		console.log(config);
 		inside.x = config.offsetX || 0;
 		inside.y = config.offsetY || 0;
 		

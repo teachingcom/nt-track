@@ -37,6 +37,7 @@ import CarEntryAnimation from '../../animations/car-entry';
 import RaceCompletedAnimation from '../../animations/race-completed';
 import RaceProgressAnimation from '../../animations/race-progress';
 import CountdownAnimation from '../../animations/countdown';
+import WampusIntroAnimation from '../../animations/wampus-intro';
 
 /** creates a track view that supports multiple cars for racing */
 export default class TrackView extends BaseView {
@@ -310,6 +311,24 @@ export default class TrackView extends BaseView {
 				console.log(ex)
 				throw new Error(`Failed to create new track instance`);
 			}
+
+			try {
+				this.setLoadingStatus('init', 'creating wampus intro');
+				this.wampusIntro = new WampusIntroAnimation({
+					track: this,
+					stage,
+					animator
+				});
+				
+				// this.setLoadingStatus('init', 'initializing countdown');
+				await this.wampusIntro.init();
+				// this.resolveTask('load_extras');
+			}
+			catch (ex) {
+				console.error(ex);
+				console.error(`Failed to load required files for wampus intro animation`);
+				// throw new CountdownAssetError();
+			}
 			
 			// preload the countdown animation images
 			try {
@@ -327,7 +346,6 @@ export default class TrackView extends BaseView {
 			}
 			// unable to load the countdown
 			catch(ex) {
-				// delete this.countdown;
 				console.error(`Failed to load required files for countdown animation`);
 				throw new CountdownAssetError();
 			}
