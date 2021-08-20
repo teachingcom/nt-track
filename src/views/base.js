@@ -59,6 +59,10 @@ export class BaseView extends EventEmitter {
 		createCanvasRenderer(this);
 		let renderer = this.canvasRenderer;
 
+		// helper
+		window.addEventListener('unload', this.freeze);
+		window.addEventListener('beforeunload', this.tempFreeze);
+
 		// create WebGL, if supported
 		if (!forceCanvas && PIXI.utils.isWebGLSupported()) {
 			try {
@@ -138,6 +142,14 @@ export class BaseView extends EventEmitter {
 	get shouldAnimateFrame() {
 		return !this.paused && !!this.isViewActive && (this.frame % this.animationRate === 0);
 	}
+
+	// temporarily freezes rendering - used in response to the
+	// before unload event to prevent the flash of the WebGL view
+	// when leaving the page
+	tempFreeze = () => {
+		this.pause();
+		setTimeout(() => this.resume(), 1000);
+	}
 	
 	setRenderer = target => {
 		const { parent } = this;
@@ -163,6 +175,12 @@ export class BaseView extends EventEmitter {
 	// handle pausing the render
 	pause = () => this.paused = true
 	resume = () => this.paused = false
+
+	// prevents any more rendering attempts
+	freeze = () => {
+		this.stopAutoRender();
+		this.render = noop;
+	}
 
 	// check for performance updates
 	onPerformanceChanged = perf => {
@@ -244,6 +262,10 @@ export class BaseView extends EventEmitter {
 
 	// performs rendering
 	render() {
+		if (this.paused) {
+			return;
+		}
+
 		const { renderer, view } = this;
 		renderer.render(view);
 	}

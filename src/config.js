@@ -67,6 +67,9 @@ export const STATIC_CAR_ROTATION_FIX = Math.PI
 
 // trails
 export const TRAIL_SCALE = 0.55
+// trail is slightly increased in size to make it look better
+// in the customizer/store view
+export const TRAIL_SCALE_IN_PREVIEW = 0.7
 
 // nitros
 export const NITRO_SCALE = 0.75

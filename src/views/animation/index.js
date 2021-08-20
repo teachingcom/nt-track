@@ -1,6 +1,7 @@
 import { createContext, loadImage, PIXI, removeDisplayObject } from 'nt-animator'
 import Trail from '../../components/trail'
 import { BaseView } from '../base'
+import { LAYER_TRAIL } from '../track/layers'
 
 // config
 const DEFAULT_MAX_HEIGHT = 250
@@ -117,9 +118,9 @@ export default class AnimationView extends BaseView {
 		// the trail lines up correctly using the 
 		// attachTo function
 		const contain = new PIXI.Container()
+		contain.addChild(trail)
 		contain.addChild(bumper)
-		trail.attachTo(contain)
-
+	
 		// assemble all layers
 		if (bg) {
 			this.container.addChild(bg)

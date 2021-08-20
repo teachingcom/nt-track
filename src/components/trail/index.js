@@ -1,7 +1,7 @@
 import { PIXI, removeDisplayObject } from 'nt-animator';
 import { merge, noop } from '../../utils';
 
-export default class Trail extends PIXI.DetatchedContainer {
+export default class Trail extends PIXI.Container {
 
   /** handles creating the new trail instance */
   static async create (options) {
@@ -39,19 +39,13 @@ export default class Trail extends PIXI.DetatchedContainer {
   // links a trail to a car
   link({ car, container = car }, action = noop) {
     this.linkedTo = car;
-    this.attachTo(container)
-    this.each(part => {
-      action(part);
-
-      // sync to the back of the car
-      part.x = car.positions.back
-    });
+    car.addChild(this);
+    this.x = car.position.back;
+    this.zIndex = -1;
   }
 
   alignTo(car, position) {
-    this.each(part => {
-      part.x = car.positions[position] * car.pivot.x
-    });
+    this.x = car.positions[position] * car.pivot.x;
   }
 
   // start creating loot
@@ -84,6 +78,6 @@ export default class Trail extends PIXI.DetatchedContainer {
 
   dispose() {
     this.stop()
-    this.each(removeDisplayObject)
+    removeDisplayObject(this)
   }
 }

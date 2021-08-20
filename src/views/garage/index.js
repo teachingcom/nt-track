@@ -5,6 +5,7 @@ import { isNumber, wait } from '../../utils';
 import createActivityIndicator from '../../components/activity';
 import Trail from "../../components/trail";
 import { toRGB } from "../../utils/color";
+import { TRAIL_SCALE } from "../../config";
 
 const DEFAULT_MAX_HEIGHT = 250;
 const EFFECTS_PADDING_SCALING = 0.7;
@@ -187,6 +188,7 @@ export default class GarageView extends BaseView {
 		const { tweaks = { }, backgroundColor = 0xffffff } = this.options;
 
 		// create the new car
+		const player = new PIXI.Container()
 		const container = new PIXI.ResponsiveContainer();
 		const car = await Car.create({
 			view, 
@@ -217,8 +219,11 @@ export default class GarageView extends BaseView {
 
 		// check for a bonus scale modifier
 		const configScale = !isNaN(config.scale) ? config.scale : 1
-		car.scale.x *= configScale;
-		car.scale.y *= configScale;
+		
+		// shared scaling
+		player.x *= configScale;
+		player.y *= configScale;
+		player.addChild(car);
 
 		// include the trail, if any
 		if (config.trail) {
@@ -230,24 +235,10 @@ export default class GarageView extends BaseView {
 			})
 
 			// add to the view
-			trail.attachTo(car)
-			trail.alignTo(car, 'back')
-			const adjustedScale = configScale * scale
-			for (const part of trail.parts) {
-				part.scale.x *= adjustedScale
-				part.scale.y *= adjustedScale
-			}
-
-			// This is intended to cause trails to face the
-			// correct direction when reversed. This may be done eventually
-			// // check for specials
-			// const reversed = findDisplayObjectsOfRole(car, 'reversable')
-			// for (const obj of reversed) {
-			// 	// add more props as required
-			// 	if (obj.config.reverse?.flipY) {
-			// 		obj.scale.y *= -1
-			// 	}
-			// }
+			player.addChild(trail);
+			trail.zIndex = -10;
+			trail.x = car.positions.back * (car.pivot.x / configScale);
+			player.sortChildren();
 
 			// mark so it knows to make
 			// additional room for the trail
@@ -255,7 +246,7 @@ export default class GarageView extends BaseView {
 		}
 		
 		// setup the container
-		container.addChild(car);
+		container.addChild(player);
 		container.relativeY = 0.5;
 		container.relativeX = 0.5;
 

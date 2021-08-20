@@ -4,6 +4,8 @@ import { animate, findDisplayObjectsOfRole, PIXI, removeDisplayObject } from 'nt
 import Treadmill from '../../components/treadmill'
 import Car from '../../components/car'
 import Trail from '../../components/trail'
+import { TRAIL_SCALE_IN_PREVIEW } from '../../config'
+import { LAYER_TRAIL } from '../track/layers'
 
 const DEFAULT_MAX_HEIGHT = 250
 const OTHER_DRIVER_OFFSCREEN_DISTANCE = -1200
@@ -174,9 +176,8 @@ export default class CustomizerView extends BaseView {
     // a trail might not be disposed, go ahead and target
     // each trail part and remove it individually
     try {
-      const parts = findDisplayObjectsOfRole(this.container, 'trail-part')
-      for (const part of parts) {
-        removeDisplayObject(part)
+      if (this.trail) {
+        removeDisplayObject(this.trail)
       }
     }
     // nothing to do here
@@ -184,12 +185,11 @@ export default class CustomizerView extends BaseView {
 
     // attach to the view
     this.trail = trail
-    this.trail.attachTo(this.container)
-    this.trail.each(part => {
-      part.role = ['trail-part', ...(part.role || [])]
-      part.alpha = 0
-      part.x = this.car.positions.back
-    });
+    this.container.addChild(this.trail)
+    this.trail.x = this.car.positions.back
+    this.trail.scale.x = this.trail.scale.y = TRAIL_SCALE_IN_PREVIEW
+    this.trail.zIndex = LAYER_TRAIL
+    this.container.sortChildren()
 
     // also, fade in the trails
     animate({
@@ -198,7 +198,7 @@ export default class CustomizerView extends BaseView {
       to: { t: 1 },
       loop: false,
       update: update => {
-        trail.each(part =>  part.alpha = update.t)
+        trail.alpha = update.t
       }
     })
   }
