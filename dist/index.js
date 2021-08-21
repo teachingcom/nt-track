@@ -86889,9 +86889,7 @@ var ActivateNitroAnimation = /*#__PURE__*/function (_Animation) {
       // update the trail, if any
 
       if (hasTrail) {
-        trail.assign({
-          alpha: props.trailAlpha
-        });
+        trail.alpha = props.trailAlpha;
       } // update the nitro, if any
 
 
