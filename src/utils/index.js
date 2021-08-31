@@ -131,6 +131,11 @@ export function getSprites(container, sprites = [ ]) {
 	return sprites;
 }
 
+/** interpolates two values */
+export function interpolate(a, b, t) {
+  return a + (b - a) * t;
+}
+
 // recursively finds textures
 export function findTextures (target, collection = { }) {
   // skip this item
@@ -176,4 +181,26 @@ function addTexture (collection, target, index) {
 
   // append the texture target
   group.targets.push([target, index])
+}
+
+// quickly creates a rendering surface
+export function createSurface(...args) {
+  const el = document.createElement("canvas");
+  const ctx = el.getContext("2d");
+
+  function clear() {
+    el.width = el.width;
+  }
+
+  function resize(width, height) {
+    el.width = width;
+    el.height = height;
+    instance.width = width;
+    instance.height = height;
+  }
+
+  const instance = { el, ctx, resize, clear };
+  resize(...args);
+
+  return instance;
 }

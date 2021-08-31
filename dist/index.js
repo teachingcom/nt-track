@@ -74498,6 +74498,24 @@ function random() {
 function setRandomizer(val) {
   randomizer = val;
 }
+},{}],"animation/variables.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.save = save;
+exports.pull = pull;
+var variables = {}; // saves a value
+
+function save(name, value) {
+  variables[name] = value;
+} // grabs a stored value
+
+
+function pull(name) {
+  return variables[name];
+}
 },{}],"animation/dynamic-expressions/get-random.js":[function(require,module,exports) {
 "use strict";
 
@@ -75515,6 +75533,8 @@ var mappings = _interopRequireWildcard(require("./mappings"));
 
 var randomizer = _interopRequireWildcard(require("../randomizer"));
 
+var variables = _interopRequireWildcard(require("./variables"));
+
 var _getRandom = _interopRequireDefault(require("./dynamic-expressions/get-random"));
 
 var _modExpression = _interopRequireDefault(require("./dynamic-expressions/mod-expression"));
@@ -75566,6 +75586,9 @@ var EXPRESSIONS = {
   },
   ':range': {
     func: range
+  },
+  ':var': {
+    func: getVariable
   }
 };
 var DYNAMICS = {
@@ -75594,6 +75617,10 @@ var DYNAMICS = {
     instance: _relativeExpressions.RelativeToY
   }
 };
+
+function getVariable(name) {
+  return variables.pull(name);
+}
 
 function addTo(add, relativeTo) {
   return relativeTo + add;
@@ -75781,7 +75808,7 @@ function shuffle(items) {
 
   items.push.apply(items, shuffled);
 }
-},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","../utils":"utils/index.js","./mappings":"animation/mappings.js","../randomizer":"randomizer.js","./dynamic-expressions/get-random":"animation/dynamic-expressions/get-random.js","./dynamic-expressions/mod-expression":"animation/dynamic-expressions/mod-expression.js","./dynamic-expressions/sine-expressions":"animation/dynamic-expressions/sine-expressions.js","./dynamic-expressions/relative-expressions":"animation/dynamic-expressions/relative-expressions.js","./dynamic-expressions/bezier-expression":"animation/dynamic-expressions/bezier-expression.js","./dynamic-expressions/average-expression":"animation/dynamic-expressions/average-expression.js"}],"../node_modules/idb-keyval/dist/idb-keyval.mjs":[function(require,module,exports) {
+},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","../utils":"utils/index.js","./mappings":"animation/mappings.js","../randomizer":"randomizer.js","./variables":"animation/variables.js","./dynamic-expressions/get-random":"animation/dynamic-expressions/get-random.js","./dynamic-expressions/mod-expression":"animation/dynamic-expressions/mod-expression.js","./dynamic-expressions/sine-expressions":"animation/dynamic-expressions/sine-expressions.js","./dynamic-expressions/relative-expressions":"animation/dynamic-expressions/relative-expressions.js","./dynamic-expressions/bezier-expression":"animation/dynamic-expressions/bezier-expression.js","./dynamic-expressions/average-expression":"animation/dynamic-expressions/average-expression.js"}],"../node_modules/idb-keyval/dist/idb-keyval.mjs":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -82715,7 +82742,7 @@ function createEmitter(_x, _x2, _x3, _x4, _x5) {
 
 function _createEmitter() {
   _createEmitter = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(animator, controller, path, composition, layer) {
-    var container, generator, update, dispose, phase, textures, _layer$emit, emit, auto, config, _loop, prop, _ret, autoplay, emitter, create;
+    var container, generator, update, dispose, phase, textures, _layer$emit, emit, auto, config, _loop, prop, _ret, manualStart, emitter, create;
 
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
@@ -82879,7 +82906,7 @@ function _createEmitter() {
               return t.blendMode = v;
             }); // boolean props
 
-            autoplay = emit.auto === false || emit.autoplay === false || emit.autoPlay === false;
+            manualStart = emit.auto === false || emit.autoplay === false || emit.autoPlay === false;
             config.noRotation = !!emit.noRotation;
             config.addAtBack = !!emit.atBack;
             config.orderedArt = !!emit.orderedArt;
@@ -82939,7 +82966,7 @@ function _createEmitter() {
             }; // manual start
 
 
-            if (autoplay) {
+            if (manualStart) {
               emitter.autoUpdate = false;
               emitter.activate = create;
               emitter.emit = false;
@@ -83797,6 +83824,12 @@ function _createRepeater() {
               }
 
               tiles.sortChildren();
+            } // bakes a layer to a single object
+
+
+            if (layer.merge) {
+              tiles.cacheAsBitmap = true;
+              tiles.batch = 'merged';
             } // position
 
 
@@ -83810,18 +83843,18 @@ function _createRepeater() {
               dispose: dispose
             }]);
 
-          case 84:
-            _context.prev = 84;
+          case 85:
+            _context.prev = 85;
             _context.t0 = _context["catch"](4);
             console.error("Failed to create group ".concat(path, " while ").concat(phase));
             throw _context.t0;
 
-          case 88:
+          case 89:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[4, 84]]);
+    }, _callee, null, [[4, 85]]);
   }));
   return _createRepeater.apply(this, arguments);
 }
@@ -83901,6 +83934,14 @@ var _collection = require("../../utils/collection");
 
 var _repeater = _interopRequireDefault(require("./repeater"));
 
+var _expressions = require("../expressions");
+
+var variables = _interopRequireWildcard(require("../variables"));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
@@ -83914,7 +83955,7 @@ function createInstance(_x, _x2, _x3, _x4, _x5) {
 
 function _createInstance() {
   _createInstance = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(animator, controller, path, data, relativeTo) {
-    var instance, container, pending, i, layer, type, sprite, emitter, repeated, group, mask, _animator$plugins$typ, customizer, params, custom, composite, layers, _i, _layer, didSetMask, j, target;
+    var instance, container, pending, i, layer, type, value, sprite, emitter, repeated, group, mask, _animator$plugins$typ, customizer, params, custom, composite, layers, _i, _layer, didSetMask, j, target;
 
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
@@ -83956,7 +83997,10 @@ function _createInstance() {
             // sprite layers
             type = layer.type;
 
-            if (type === 'sprite' || type === 'marker') {
+            if (type === 'var') {
+              value = (0, _expressions.evaluateExpression)(layer.value);
+              variables.save(layer.name, value);
+            } else if (type === 'sprite' || type === 'marker') {
               sprite = (0, _sprite.default)(animator, controller, path, data, layer);
               pending.push(sprite);
             } // particle emitters
@@ -84088,7 +84132,7 @@ function _createInstance() {
   }));
   return _createInstance.apply(this, arguments);
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","../../pixi/lib":"pixi/lib.js","fast-copy":"../node_modules/fast-copy/dist/fast-copy.js","../utils":"animation/utils.js","../../utils":"utils/index.js","./sprite":"animation/generators/sprite.js","./emitter":"animation/generators/emitter/index.js","./group":"animation/generators/group.js","./mask":"animation/generators/mask.js","../../utils/collection":"utils/collection.js","./repeater":"animation/generators/repeater.js"}],"animation/importManifest.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","../../pixi/lib":"pixi/lib.js","fast-copy":"../node_modules/fast-copy/dist/fast-copy.js","../utils":"animation/utils.js","../../utils":"utils/index.js","./sprite":"animation/generators/sprite.js","./emitter":"animation/generators/emitter/index.js","./group":"animation/generators/group.js","./mask":"animation/generators/mask.js","../../utils/collection":"utils/collection.js","./repeater":"animation/generators/repeater.js","../expressions":"animation/expressions.js","../variables":"animation/variables.js"}],"animation/importManifest.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -84257,7 +84301,23 @@ function _attemptFetch() {
   }));
   return _attemptFetch.apply(this, arguments);
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js"}],"animation/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js"}],"animation/resources/addTexture.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = addTexture;
+
+// installs a special 
+function addTexture(animator, spriteId, texture) {
+  var spritesheets = animator.manifest.spritesheets;
+  var spritesheet = spritesheets.textures = spritesheets.textures || {};
+  spritesheet.__initialized__ = true;
+  spritesheet[spriteId] = texture;
+  console.log(animator.manifest);
+}
+},{}],"animation/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -84311,6 +84371,8 @@ var _importManifest = _interopRequireDefault(require("./importManifest"));
 
 var _randomizer = require("../randomizer");
 
+var _addTexture = _interopRequireDefault(require("./resources/addTexture"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
@@ -84338,6 +84400,9 @@ var Animator = /*#__PURE__*/function (_EventEmitter) {
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "imageCache", _assetCache.shared);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "preloadSpritesheet", function (spritesheetId) {
       return _this.getSpritesheet(spritesheetId);
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "addTexture", function (id, texture) {
+      return (0, _addTexture.default)((0, _assertThisInitialized2.default)(_this), id, texture);
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "getSpritesheet", /*#__PURE__*/function () {
       var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(id) {
@@ -84584,7 +84649,7 @@ var Animator = /*#__PURE__*/function (_EventEmitter) {
 }(_eventEmitter.EventEmitter);
 
 exports.Animator = Animator;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../pixi/lib":"pixi/lib.js","../common/event-emitter":"common/event-emitter.js","./utils":"animation/utils.js","./path":"animation/path.js","./expressions":"animation/expressions.js","../utils/assetCache":"utils/assetCache.js","./rng":"animation/rng.js","./generators/controller":"animation/generators/controller.js","./generators":"animation/generators/index.js","./resources/getSprite":"animation/resources/getSprite.js","./resources/getSpritesheet":"animation/resources/getSpritesheet.js","./resources/loadImage":"animation/resources/loadImage.js","./importManifest":"animation/importManifest.js","../randomizer":"randomizer.js"}],"pixi/detatched-container.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../pixi/lib":"pixi/lib.js","../common/event-emitter":"common/event-emitter.js","./utils":"animation/utils.js","./path":"animation/path.js","./expressions":"animation/expressions.js","../utils/assetCache":"utils/assetCache.js","./rng":"animation/rng.js","./generators/controller":"animation/generators/controller.js","./generators":"animation/generators/index.js","./resources/getSprite":"animation/resources/getSprite.js","./resources/getSpritesheet":"animation/resources/getSpritesheet.js","./resources/loadImage":"animation/resources/loadImage.js","./importManifest":"animation/importManifest.js","../randomizer":"randomizer.js","./resources/addTexture":"animation/resources/addTexture.js"}],"pixi/detatched-container.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -84980,7 +85045,9 @@ exports.choose = choose;
 exports.appendFunc = appendFunc;
 exports.createWorker = createWorker;
 exports.getSprites = getSprites;
+exports.interpolate = interpolate;
 exports.findTextures = findTextures;
+exports.createSurface = createSurface;
 exports.sample = exports.isNil = exports.isNumber = exports.isArray = exports.noop = exports.merge = void 0;
 
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
@@ -85224,6 +85291,12 @@ function getSprites(container) {
   }
 
   return sprites;
+}
+/** interpolates two values */
+
+
+function interpolate(a, b, t) {
+  return a + (b - a) * t;
 } // recursively finds textures
 
 
@@ -85282,6 +85355,32 @@ function addTexture(collection, target, index) {
 
 
   group.targets.push([target, index]);
+} // quickly creates a rendering surface
+
+
+function createSurface() {
+  var el = document.createElement("canvas");
+  var ctx = el.getContext("2d");
+
+  function clear() {
+    el.width = el.width;
+  }
+
+  function resize(width, height) {
+    el.width = width;
+    el.height = height;
+    instance.width = width;
+    instance.height = height;
+  }
+
+  var instance = {
+    el: el,
+    ctx: ctx,
+    resize: resize,
+    clear: clear
+  };
+  resize.apply(void 0, arguments);
+  return instance;
 }
 },{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js"}],"utils/view.js":[function(require,module,exports) {
 "use strict";
@@ -85402,7 +85501,7 @@ exports.RACE_SOUND_ERROR_MAX_INTERVAL = RACE_SOUND_ERROR_MAX_INTERVAL;
 var RACE_FINISH_FLASH_FADE_TIME = 300; // crowds
 
 exports.RACE_FINISH_FLASH_FADE_TIME = RACE_FINISH_FLASH_FADE_TIME;
-var CROWD_DEFAULT_SCALE = 0.8;
+var CROWD_DEFAULT_SCALE = 0.6;
 exports.CROWD_DEFAULT_SCALE = CROWD_DEFAULT_SCALE;
 var CROWD_ANIMATION_VARIATIONS = 5;
 exports.CROWD_ANIMATION_VARIATIONS = CROWD_ANIMATION_VARIATIONS;
@@ -95945,13 +96044,17 @@ function _createCrowd() {
               sprite.y = animator.evaluateExpression(props.y);
             }
 
+            if ('tint' in props) {
+              sprite.tint = props.tint;
+            }
+
             return _context2.abrupt("return", [{
               displayObject: sprite,
               update: _utils.noop,
               dispose: _utils.noop
             }]);
 
-          case 18:
+          case 19:
           case "end":
             return _context2.stop();
         }
@@ -96883,7 +96986,270 @@ function parseScriptArgs(args) {
 
   return [name, config];
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/typeof":"../node_modules/@babel/runtime/helpers/typeof.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","./reactive_gull":"scripts/reactive_gull.js"}],"components/track/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/typeof":"../node_modules/@babel/runtime/helpers/typeof.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","./reactive_gull":"scripts/reactive_gull.js"}],"effects/rain.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.init = init;
+
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
+
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
+var _ntAnimator = require("nt-animator");
+
+var _utils = require("../utils");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function init(_x, _x2) {
+  return _init.apply(this, arguments);
+}
+
+function _init() {
+  _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(track, animator) {
+    var width, height;
+    return _regenerator.default.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            width = 800;
+            height = 400; // generate some textures
+
+            animator.addTexture('rain_1', makeRainTexture(width, height));
+            animator.addTexture('rain_2', makeRainTexture(width, height));
+            animator.addTexture('rain_3', makeRainTexture(width, height));
+            animator.addTexture('rain_4', makeRainTexture(width, height));
+            animator.addTexture('lightning', makeLightningTexture(width, height));
+
+          case 7:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+  return _init.apply(this, arguments);
+}
+
+function makeLightningTexture(width, height) {
+  var lightning = (0, _utils.createSurface)(width, height);
+  lightning.ctx.fillStyle = 'white';
+  lightning.ctx.fillRect(0, 0, width, height);
+  return new _ntAnimator.PIXI.Texture.from(lightning.el);
+}
+
+function makeRainTexture(width, height) {
+  var rain = (0, _utils.createSurface)(width, height); // 
+
+  rain.ctx.strokeStyle = "white";
+  rain.ctx.translate(rain.width / 2, rain.height / 2);
+  var hw = width / 2;
+  var hh = height / 2;
+  var max = Math.max(hw, hh);
+  var i = 0;
+  var x;
+  var y;
+
+  while (i < Math.PI * 2) {
+    i += Math.random() * 0.1; // get the starting point
+
+    var sx = Math.max(-hw, Math.min(hw, Math.cos(i) * width));
+    var sy = Math.max(-hh, Math.min(hh, Math.sin(i) * height)); // require a valid distance
+
+    if (isNaN(x) || Math.abs(x - sx) + Math.abs(y - sy) < 4) {
+      x = sx;
+      y = sy;
+      continue;
+    }
+
+    x = sx;
+    y = sy; // get the center point
+
+    var mx = sx * 0.66;
+    var my = sy * 0.66; // get the starting point
+
+    var bt = Math.random() * 0.4;
+    var et = bt + Math.random() * 0.6;
+    var bx = (0, _utils.interpolate)(sx, mx, bt);
+    var by = (0, _utils.interpolate)(sy, my, bt);
+    var ex = (0, _utils.interpolate)(sx, mx, et);
+    var ey = (0, _utils.interpolate)(sy, my, et);
+    rain.ctx.beginPath();
+    rain.ctx.globalAlpha = Math.random() * 0.8 + 0.2;
+    rain.ctx.moveTo(bx, by);
+    rain.ctx.lineTo(ex, ey);
+    rain.ctx.stroke();
+  }
+
+  return new _ntAnimator.PIXI.Texture.from(rain.el);
+}
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../utils":"utils/index.js"}],"effects/leaves.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.init = init;
+
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
+
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
+var _ntAnimator = require("nt-animator");
+
+var _utils = require("../utils");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var LEAF_1;
+var LEAF_2;
+var LEAF_3;
+
+function init(_x, _x2) {
+  return _init.apply(this, arguments);
+}
+
+function _init() {
+  _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(track, animator) {
+    var width, height;
+    return _regenerator.default.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            width = 600;
+            height = 1000;
+            _context.next = 4;
+            return createLeaf('iVBORw0KGgoAAAANSUhEUgAAABkAAAAXCAMAAADJPRQhAAAADFBMVEXCXwnIZQnZeAz6nRBH53IJAAAABHRSTlMCVar95AmYiAAAAF9JREFUeNqV0kEOxCAMxdDY//53rmhHSANBar3Mi4AF9TJOc+3XNak1657vgpCRqxhzkl9AFZ2YaDaZcZQ4jbQkmLUhQHMa/T3y4W0+VSNFFfwJPrImxZQt9CTD3n2QC7v2AnVdiqWiAAAAAElFTkSuQmCC');
+
+          case 4:
+            LEAF_1 = _context.sent;
+            _context.next = 7;
+            return createLeaf('iVBORw0KGgoAAAANSUhEUgAAABkAAAAXCAMAAADJPRQhAAAADFBMVEXEhxjNlRzfsCH62ynxcoHCAAAABHRSTlMEdr7+TM65AgAAAF9JREFUeNqN0VEKgEAMA9Gd6f3vrK6wusSC+eyDEOj4Gbq7dlApzPuZAKGuGFI6JRbM85SL+JQqMWX5I+wijayNQEhxw6C6OqOrkZEior6EfdImuGQL3I12D30kcfzKAZY2AlF5aMSDAAAAAElFTkSuQmCC');
+
+          case 7:
+            LEAF_2 = _context.sent;
+            _context.next = 10;
+            return createLeaf('iVBORw0KGgoAAAANSUhEUgAAABkAAAAXCAMAAADJPRQhAAAADFBMVEXCTAnIUQnZYAz6fRB/mqLrAAAABHRSTlMCVar95AmYiAAAAF9JREFUeNqV0kEKwzAMBVHN/PvfubgphkYyJLPUE7YXrodxmuu8rkkbW995F4WsbBJzkl9AFZOYaJrsOErcRkYSzL0lwHAa8z3y4m1e1SBFFfwJXnJPii0t9CTLnn2QD73FAnYAzYazAAAAAElFTkSuQmCC');
+
+          case 10:
+            LEAF_3 = _context.sent;
+            // generate some textures
+            animator.addTexture('leaves_1', makeLeavesTexture(width, height));
+            animator.addTexture('leaves_2', makeLeavesTexture(width, height));
+            animator.addTexture('leaves_3', makeLeavesTexture(width, height));
+            animator.addTexture('leaves_4', makeLeavesTexture(width, height));
+
+          case 15:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+  return _init.apply(this, arguments);
+}
+
+function createLeaf(src) {
+  return new Promise(function (resolve) {
+    var img = document.createElement('img');
+    img.src = "data:image/png;base64,".concat(src);
+
+    img.onload = function () {
+      return resolve(img);
+    };
+  });
+}
+
+function makeLeavesTexture(width, height) {
+  var shadowSize = 30;
+  var halfShadowSize = shadowSize / 2;
+  var shadow = (0, _utils.createSurface)(shadowSize, shadowSize);
+  shadow.ctx.fillStyle = shadow.ctx.createRadialGradient(halfShadowSize, halfShadowSize, 0, halfShadowSize, halfShadowSize, halfShadowSize);
+  shadow.ctx.fillStyle.addColorStop(0, 'rgba(0,0,0,1)');
+  shadow.ctx.fillStyle.addColorStop(1, 'rgba(0,0,0,0)');
+  shadow.ctx.fillRect(0, 0, shadowSize, shadowSize);
+  var leaves = (0, _utils.createSurface)(width, height);
+  var x = 0;
+  var y = 0;
+  var prevX = -100;
+  var prevY = -100;
+  var images = [LEAF_1, LEAF_2, LEAF_3];
+  var density = 0.6;
+
+  while (x < width) {
+    x += Math.random() * width * density;
+    y = 0;
+
+    while (y < height) {
+      y += Math.random() * height * density; // require a minimum distance
+
+      console.log(Math.abs(Math.abs(x - prevX) + Math.abs(y - prevY)));
+
+      if (Math.abs(Math.abs(x - prevX) + Math.abs(y - prevY)) < 50) {
+        continue;
+      }
+
+      var scale = Math.random() * 0.5 + 0.5;
+      leaves.ctx.translate(x, y);
+      var offset = 2 + Math.random() * 10;
+      leaves.ctx.globalAlpha = 0.1 + (1 - offset / 12) * 0.1;
+      leaves.ctx.scale(scale, scale);
+      leaves.ctx.drawImage(shadow.el, offset / scale + -halfShadowSize, -halfShadowSize);
+      leaves.ctx.globalAlpha = 1;
+      leaves.ctx.rotate(Math.random() * (Math.PI * 2));
+      var image = images[(0 | x + y) % 3];
+      leaves.ctx.drawImage(image, 0, 0);
+      leaves.ctx.setTransform(1, 0, 0, 1, 0, 0); // leaves.ctx.fillRect(x, y, 4, 4);
+
+      prevX = x;
+      prevY = y;
+    }
+  }
+
+  document.body.appendChild(leaves.el);
+  return new _ntAnimator.PIXI.Texture.from(leaves.el); // // 
+  // rain.ctx.strokeStyle = "white";
+  // rain.ctx.translate(rain.width / 2, rain.height / 2);
+  // const hw = width / 2;
+  // const hh = height / 2;
+  // const max = Math.max(hw, hh);
+  // let i = 0;
+  // let x;
+  // let y;
+  // while (i < Math.PI * 2) {
+  // 	i += Math.random() * 0.1;
+  // 	// get the starting point
+  // 	const sx = Math.max(-hw, Math.min(hw, Math.cos(i) * width));
+  // 	const sy = Math.max(-hh, Math.min(hh, Math.sin(i) * height));
+  // 	// require a valid distance
+  // 	if (isNaN(x) || Math.abs(x - sx) + Math.abs(y - sy) < 4) {
+  // 		x = sx;
+  // 		y = sy;
+  // 		continue;
+  // 	}
+  // 	x = sx;
+  // 	y = sy;
+  // 	// get the center point
+  // 	const mx = sx * 0.66;
+  // 	const my = sy * 0.66;
+  // 	// get the starting point
+  // 	const bt = Math.random() * 0.4;
+  // 	const et = bt + Math.random() * 0.6;
+  // 	const bx = interpolate(sx, mx, bt);
+  // 	const by = interpolate(sy, my, bt);
+  // 	const ex = interpolate(sx, mx, et);
+  // 	const ey = interpolate(sy, my, et);
+  // 	rain.ctx.beginPath();
+  // 	rain.ctx.globalAlpha = Math.random() * 0.8 + 0.2;
+  // 	rain.ctx.moveTo(bx, by);
+  // 	rain.ctx.lineTo(ex, ey);
+  // 	rain.ctx.stroke();
+  // }
+}
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../utils":"utils/index.js"}],"components/track/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -96922,6 +97288,10 @@ var _ambient = _interopRequireDefault(require("../../audio/ambient"));
 var _preload = _interopRequireDefault(require("./preload"));
 
 var _scripts = require("../../scripts");
+
+var rainEffect = _interopRequireWildcard(require("../../effects/rain"));
+
+var leavesEffect = _interopRequireWildcard(require("../../effects/leaves"));
 
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
@@ -97476,18 +97846,18 @@ var Track = /*#__PURE__*/function () {
     }() // creates a background, if needed
 
   }, {
-    key: "_createBackground",
+    key: "_createEffect",
     value: function () {
-      var _createBackground2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
-        var view, manifest, background;
+      var _createEffect2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
+        var view, manifest, path, effect;
         return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
             switch (_context6.prev = _context6.next) {
               case 0:
-                view = this.view, manifest = this.manifest;
-                background = manifest.background; // check if present
+                view = this.view, manifest = this.manifest, path = this.path;
+                effect = manifest.effect; // check if present
 
-                if (background) {
+                if (effect) {
                   _context6.next = 4;
                   break;
                 }
@@ -97495,28 +97865,103 @@ var Track = /*#__PURE__*/function () {
                 return _context6.abrupt("return");
 
               case 4:
-                // check for a background color
-                if ((0, _utils.isNumber)(background.color)) view.renderer.backgroundColor = background.color; // check for a composition
-
-                if (!(0, _utils.isArray)(background.compose)) {
-                  _context6.next = 11;
+                if (!(effect.script === 'rain')) {
+                  _context6.next = 9;
                   break;
                 }
 
-                _context6.next = 8;
-                return view.animator.compose(background, this.path);
+                _context6.next = 7;
+                return rainEffect.init(this, view.animator);
 
-              case 8:
-                this.background = _context6.sent;
-                this.background.zIndex = -1;
-                this.container.addChild(this.background);
+              case 7:
+                _context6.next = 12;
+                break;
 
-              case 11:
+              case 9:
+                if (!(effect.script === 'leaves')) {
+                  _context6.next = 12;
+                  break;
+                }
+
+                _context6.next = 12;
+                return leavesEffect.init(this, view.animator);
+
+              case 12:
+                if (!(0, _utils.isArray)(effect.compose)) {
+                  _context6.next = 18;
+                  break;
+                }
+
+                _context6.next = 15;
+                return view.animator.compose(effect, path, manifest);
+
+              case 15:
+                this.effect = _context6.sent;
+                this.effect.zIndex = effect.z || 0;
+
+                if (this.effect.zIndex < 0) {
+                  this.ground.addChild(this.effect);
+                } else {
+                  this.overlay.addChild(this.effect);
+                }
+
+              case 18:
               case "end":
                 return _context6.stop();
             }
           }
         }, _callee6, this);
+      }));
+
+      function _createEffect() {
+        return _createEffect2.apply(this, arguments);
+      }
+
+      return _createEffect;
+    }() // creates a background, if needed
+
+  }, {
+    key: "_createBackground",
+    value: function () {
+      var _createBackground2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7() {
+        var view, manifest, background;
+        return _regenerator.default.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                view = this.view, manifest = this.manifest;
+                background = manifest.background; // check if present
+
+                if (background) {
+                  _context7.next = 4;
+                  break;
+                }
+
+                return _context7.abrupt("return");
+
+              case 4:
+                // check for a background color
+                if ((0, _utils.isNumber)(background.color)) view.renderer.backgroundColor = background.color; // check for a composition
+
+                if (!(0, _utils.isArray)(background.compose)) {
+                  _context7.next = 11;
+                  break;
+                }
+
+                _context7.next = 8;
+                return view.animator.compose(background, this.path);
+
+              case 8:
+                this.background = _context7.sent;
+                this.background.zIndex = -1;
+                this.container.addChild(this.background);
+
+              case 11:
+              case "end":
+                return _context7.stop();
+            }
+          }
+        }, _callee7, this);
       }));
 
       function _createBackground() {
@@ -97529,33 +97974,33 @@ var Track = /*#__PURE__*/function () {
   }, {
     key: "_createForeground",
     value: function () {
-      var _createForeground2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7() {
+      var _createForeground2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8() {
         var view, manifest, foreground, layer;
-        return _regenerator.default.wrap(function _callee7$(_context7) {
+        return _regenerator.default.wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
                 view = this.view, manifest = this.manifest;
                 foreground = manifest.foreground; // check if present
 
                 if (foreground) {
-                  _context7.next = 4;
+                  _context8.next = 4;
                   break;
                 }
 
-                return _context7.abrupt("return");
+                return _context8.abrupt("return");
 
               case 4:
                 if (!(0, _utils.isArray)(foreground.compose)) {
-                  _context7.next = 12;
+                  _context8.next = 12;
                   break;
                 }
 
-                _context7.next = 7;
+                _context8.next = 7;
                 return view.animator.compose(foreground, this.path);
 
               case 7:
-                layer = _context7.sent;
+                layer = _context8.sent;
                 // create a a separate view - this will
                 // be placed over the cars layer
                 this.foreground = new _ntAnimator.PIXI.ResponsiveContainer();
@@ -97565,10 +98010,10 @@ var Track = /*#__PURE__*/function () {
 
               case 12:
               case "end":
-                return _context7.stop();
+                return _context8.stop();
             }
           }
-        }, _callee7, this);
+        }, _callee8, this);
       }));
 
       function _createForeground() {
@@ -97581,12 +98026,12 @@ var Track = /*#__PURE__*/function () {
   }, {
     key: "applyScripts",
     value: function () {
-      var _applyScripts = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8() {
+      var _applyScripts = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9() {
         var _i2, _arr2, container, objs, _iterator4, _step4, _obj$config, obj, _parseScriptArgs, _parseScriptArgs2, name, args, handler;
 
-        return _regenerator.default.wrap(function _callee8$(_context8) {
+        return _regenerator.default.wrap(function _callee9$(_context9) {
           while (1) {
-            switch (_context8.prev = _context8.next) {
+            switch (_context9.prev = _context9.next) {
               case 0:
                 _i2 = 0, _arr2 = [this.overlay, this.ground
                 /*, this.foreground, this.background */
@@ -97594,67 +98039,67 @@ var Track = /*#__PURE__*/function () {
 
               case 1:
                 if (!(_i2 < _arr2.length)) {
-                  _context8.next = 27;
+                  _context9.next = 27;
                   break;
                 }
 
                 container = _arr2[_i2];
                 objs = (0, _ntAnimator.findDisplayObjectsOfRole)(container, 'script');
                 _iterator4 = _createForOfIteratorHelper(objs);
-                _context8.prev = 5;
+                _context9.prev = 5;
 
                 _iterator4.s();
 
               case 7:
                 if ((_step4 = _iterator4.n()).done) {
-                  _context8.next = 16;
+                  _context9.next = 16;
                   break;
                 }
 
                 obj = _step4.value;
                 _parseScriptArgs = (0, _scripts.parseScriptArgs)((_obj$config = obj.config) === null || _obj$config === void 0 ? void 0 : _obj$config.script), _parseScriptArgs2 = (0, _slicedToArray2.default)(_parseScriptArgs, 2), name = _parseScriptArgs2[0], args = _parseScriptArgs2[1];
-                _context8.next = 12;
+                _context9.next = 12;
                 return (0, _scripts.loadScript)(name, args, obj, this.view, this.view.animator);
 
               case 12:
-                handler = _context8.sent;
+                handler = _context9.sent;
 
                 if (handler) {
                   this.scripts.push(handler);
                 }
 
               case 14:
-                _context8.next = 7;
+                _context9.next = 7;
                 break;
 
               case 16:
-                _context8.next = 21;
+                _context9.next = 21;
                 break;
 
               case 18:
-                _context8.prev = 18;
-                _context8.t0 = _context8["catch"](5);
+                _context9.prev = 18;
+                _context9.t0 = _context9["catch"](5);
 
-                _iterator4.e(_context8.t0);
+                _iterator4.e(_context9.t0);
 
               case 21:
-                _context8.prev = 21;
+                _context9.prev = 21;
 
                 _iterator4.f();
 
-                return _context8.finish(21);
+                return _context9.finish(21);
 
               case 24:
                 _i2++;
-                _context8.next = 1;
+                _context9.next = 1;
                 break;
 
               case 27:
               case "end":
-                return _context8.stop();
+                return _context9.stop();
             }
           }
-        }, _callee8, this, [[5, 18, 21, 24]]);
+        }, _callee9, this, [[5, 18, 21, 24]]);
       }));
 
       function applyScripts() {
@@ -97792,16 +98237,16 @@ var Track = /*#__PURE__*/function () {
 
     /** creates a new track instance */
     value: function () {
-      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9(options) {
+      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10(options) {
         var view, seed, activity, instance, y;
-        return _regenerator.default.wrap(function _callee9$(_context9) {
+        return _regenerator.default.wrap(function _callee10$(_context10) {
           while (1) {
-            switch (_context9.prev = _context9.next) {
+            switch (_context10.prev = _context10.next) {
               case 0:
                 view = options.view, seed = options.seed;
                 // create the new track
                 instance = new Track();
-                _context9.prev = 2;
+                _context10.prev = 2;
                 instance.options = options;
                 instance.view = view;
                 instance.container = new _ntAnimator.PIXI.Container(); // include special plugins
@@ -97825,33 +98270,33 @@ var Track = /*#__PURE__*/function () {
 
                 activity = 'preloading resources';
                 view.setLoadingStatus('assets', 'preloading resources');
-                _context9.next = 21;
+                _context10.next = 21;
                 return instance._preloadResources();
 
               case 21:
                 // setup each part
                 activity = 'assembling repeating road';
                 view.setLoadingStatus('init', 'creating road');
-                _context9.next = 25;
+                _context10.next = 25;
                 return instance._createRoad();
 
               case 25:
                 activity = 'assembling starting line';
                 view.setLoadingStatus('init', 'creating starting line');
-                _context9.next = 29;
+                _context10.next = 29;
                 return instance._createStartingLine();
 
               case 29:
                 // todo? create when needed?
                 activity = 'assembling finish line';
                 view.setLoadingStatus('init', 'creating finish line');
-                _context9.next = 33;
+                _context10.next = 33;
                 return instance._createFinishLine();
 
               case 33:
                 // apply scripts, if any
                 activity = 'loading doodad scripts';
-                _context9.next = 36;
+                _context10.next = 36;
                 return instance.applyScripts();
 
               case 36:
@@ -97859,11 +98304,16 @@ var Track = /*#__PURE__*/function () {
                 activity = 'loading ambient sound';
                 view.setLoadingStatus('init', 'creating ambient sound');
 
-                instance._createAmbience(); // await instance._createForeground();
+                instance._createAmbience(); // other extras
+
+
+                _context10.next = 41;
+                return instance._createEffect();
+
+              case 41:
+                // await instance._createForeground();
                 // await instance._createBackground();
                 // set the y position
-
-
                 activity = 'aligning track';
                 view.setLoadingStatus('init', 'aligning track');
                 y = _scaling.TRACK_TOP + _scaling.TRACK_HEIGHT / 2;
@@ -97871,24 +98321,24 @@ var Track = /*#__PURE__*/function () {
                 instance.ground.relativeY = y; // can render
 
                 instance.ready = true;
-                _context9.next = 51;
+                _context10.next = 53;
                 break;
 
-              case 47:
-                _context9.prev = 47;
-                _context9.t0 = _context9["catch"](2);
-                console.error(_context9.t0);
+              case 49:
+                _context10.prev = 49;
+                _context10.t0 = _context10["catch"](2);
+                console.error(_context10.t0);
                 throw new Error(activity);
 
-              case 51:
-                return _context9.abrupt("return", instance);
+              case 53:
+                return _context10.abrupt("return", instance);
 
-              case 52:
+              case 54:
               case "end":
-                return _context9.stop();
+                return _context10.stop();
             }
           }
-        }, _callee9, null, [[2, 47]]);
+        }, _callee10, null, [[2, 49]]);
       }));
 
       function create(_x) {
@@ -97912,7 +98362,7 @@ var getRightEdge = function getRightEdge(t) {
 var byRightEdge = function byRightEdge(a, b) {
   return getRightEdge(a) - getRightEdge(b);
 };
-},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../rng":"rng.js","../../views/track/scaling":"views/track/scaling.js","../../config":"config.js","../../utils":"utils/index.js","./segment":"components/track/segment.js","../../plugins/crowd":"plugins/crowd/index.js","../../audio/ambient":"audio/ambient.js","./preload":"components/track/preload.js","../../scripts":"scripts/index.js"}],"animations/car-entry.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../rng":"rng.js","../../views/track/scaling":"views/track/scaling.js","../../config":"config.js","../../utils":"utils/index.js","./segment":"components/track/segment.js","../../plugins/crowd":"plugins/crowd/index.js","../../audio/ambient":"audio/ambient.js","./preload":"components/track/preload.js","../../scripts":"scripts/index.js","../../effects/rain":"effects/rain.js","../../effects/leaves":"effects/leaves.js"}],"animations/car-entry.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {

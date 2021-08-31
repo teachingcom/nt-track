@@ -9,6 +9,9 @@ import AmbientAudio from '../../audio/ambient';
 import AssetPreloader from './preload';
 import { loadScript, parseScriptArgs } from '../../scripts';
 
+import * as rainEffect from '../../effects/rain';
+import * as leavesEffect from '../../effects/leaves';
+
 // total number of road slices to create
 // consider making this calculated as needed
 // meaning, add more tiles if the view expands
@@ -75,6 +78,9 @@ export default class Track {
 			activity = 'loading ambient sound';
 			view.setLoadingStatus('init', 'creating ambient sound');
 			instance._createAmbience();
+
+			// other extras
+			await instance._createEffect();
 			// await instance._createForeground();
 			// await instance._createBackground();
 			
@@ -304,6 +310,37 @@ export default class Track {
 		// add the finishing line
 		const comp = await view.animator.compose({ compose: finish }, path, manifest);
 		this.finishLine = new Segment(this, comp);
+	}
+
+	// creates a background, if needed
+	async _createEffect() {
+		const { view, manifest, path } = this;
+		const { effect } = manifest;
+
+		// check if present
+		if (!effect) return;
+
+		// check for any scripts that need to run
+		// TODO: maybe add more support, but for now this is fine)
+		if (effect.script === 'rain') {
+			await rainEffect.init(this, view.animator);
+		}
+		else if (effect.script === 'leaves') {
+			await leavesEffect.init(this, view.animator);
+		}
+
+		// check for a composition
+		if (isArray(effect.compose)) {
+			this.effect = await view.animator.compose(effect, path, manifest);
+			this.effect.zIndex = effect.z || 0;
+
+			if (this.effect.zIndex < 0) { 
+				this.ground.addChild(this.effect);
+			}
+			else {
+				this.overlay.addChild(this.effect);
+			}
+		}
 	}
 
 	// creates a background, if needed
