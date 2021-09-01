@@ -97022,9 +97022,8 @@ function _init() {
             animator.addTexture('rain_2', makeRainTexture(width, height));
             animator.addTexture('rain_3', makeRainTexture(width, height));
             animator.addTexture('rain_4', makeRainTexture(width, height));
-            animator.addTexture('lightning', makeLightningTexture(width, height));
 
-          case 7:
+          case 6:
           case "end":
             return _context.stop();
         }
@@ -97042,18 +97041,20 @@ function makeLightningTexture(width, height) {
 }
 
 function makeRainTexture(width, height) {
-  var rain = (0, _utils.createSurface)(width, height); // 
-
+  var start = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+  var stop = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : Math.PI * 2;
+  var rain = (0, _utils.createSurface)(width, height);
   rain.ctx.strokeStyle = "white";
   rain.ctx.translate(rain.width / 2, rain.height / 2);
   var hw = width / 2;
   var hh = height / 2;
   var max = Math.max(hw, hh);
-  var i = 0;
+  rain.ctx.fillRect(0, 0, width, height);
+  var i = start;
   var x;
   var y;
 
-  while (i < Math.PI * 2) {
+  while (i < stop) {
     i += Math.random() * 0.1; // get the starting point
 
     var sx = Math.max(-hw, Math.min(hw, Math.cos(i) * width));
@@ -97071,8 +97072,8 @@ function makeRainTexture(width, height) {
     var mx = sx * 0.66;
     var my = sy * 0.66; // get the starting point
 
-    var bt = Math.random() * 0.4;
-    var et = bt + Math.random() * 0.6;
+    var bt = Math.random() * 0.49;
+    var et = bt + Math.random() * 0.2;
     var bx = (0, _utils.interpolate)(sx, mx, bt);
     var by = (0, _utils.interpolate)(sy, my, bt);
     var ex = (0, _utils.interpolate)(sx, mx, et);

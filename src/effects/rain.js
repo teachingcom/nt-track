@@ -10,7 +10,6 @@ export async function init(track, animator) {
 	animator.addTexture('rain_2', makeRainTexture(width, height));
 	animator.addTexture('rain_3', makeRainTexture(width, height));
 	animator.addTexture('rain_4', makeRainTexture(width, height));
-	animator.addTexture('lightning', makeLightningTexture(width, height));
 }
 
 function makeLightningTexture(width, height) {
@@ -20,10 +19,9 @@ function makeLightningTexture(width, height) {
 	return new PIXI.Texture.from(lightning.el);
 }
 
-function makeRainTexture(width, height) {
+function makeRainTexture(width, height, start = 0, stop = Math.PI * 2) {
 	const rain = createSurface(width, height);
 
-	// 
 	rain.ctx.strokeStyle = "white";
 	rain.ctx.translate(rain.width / 2, rain.height / 2);
 
@@ -31,10 +29,12 @@ function makeRainTexture(width, height) {
 	const hh = height / 2;
 	const max = Math.max(hw, hh);
 
-	let i = 0;
+	rain.ctx.fillRect(0, 0, width, height);
+
+	let i = start;
 	let x;
 	let y;
-	while (i < Math.PI * 2) {
+	while (i < stop) {
 		i += Math.random() * 0.1;
 
 		// get the starting point
@@ -56,8 +56,8 @@ function makeRainTexture(width, height) {
 		const my = sy * 0.66;
 
 		// get the starting point
-		const bt = Math.random() * 0.4;
-		const et = bt + Math.random() * 0.6;
+		const bt = Math.random() * 0.49;
+		const et = bt + Math.random() * 0.2;
 		const bx = interpolate(sx, mx, bt);
 		const by = interpolate(sy, my, bt);
 		const ex = interpolate(sx, mx, et);
