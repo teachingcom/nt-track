@@ -79184,13 +79184,6 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = loadImage;
-
-function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
-
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
 // resources that are currently loading
 var pending = {};
 var images = {};
@@ -79204,34 +79197,27 @@ function loadImage(url, version) {
     var parts = url.split('://');
     var last = parts.length - 1;
     parts[last] = parts[last].replace(/\/+/g, '/');
-    url = parts.join('://'); // check if already existing
-
-    if (url in images) {
-      return resolve(images[url]);
-    } // if already waiting for a resource
-
-
-    if (pending[url]) {
-      pending[url].push({
-        resolve: resolve,
-        reject: reject
-      });
-      return;
-    } // reserve the image
-
+    url = parts.join('://'); // // check if already existing
+    // if (url in images) {
+    //   return resolve(images[url])
+    // }
+    // // if already waiting for a resource
+    // if (pending[url]) {
+    //   pending[url].push({ resolve, reject })
+    //   return
+    // }
+    // reserve the image
 
     var img; // limit attempts to reload
 
     var attempts = 3; // tracking image loading
 
-    var checkIfLoaded; // if no active queue is available, start it now
+    var checkIfLoaded; // // if no active queue is available, start it now
+    // pending[url] = [{ resolve, reject }]
+    // get the image to load
 
-    pending[url] = [{
-      resolve: resolve,
-      reject: reject
-    }]; // get the image to load
-
-    var src = "".concat(url).concat(version ? "?".concat(version) : ''); // attempts to load an image
+    var src = "".concat(url).concat(version ? "?".concat(version) : '');
+    console.log('direct image load:', src); // attempts to load an image
 
     var request = function request() {
       var success = handle(true);
@@ -79270,32 +79256,23 @@ function loadImage(url, version) {
         // if wasn't successful, but is allowed to try again
         if (!success && --attempts > 0) {
           return request();
-        } // all finished, resolve the result
+        } // // all finished, resolve the result
+        // images[url] = success ? img : null
+        // clear extra checks
 
 
-        images[url] = success ? img : null; // clear extra checks
+        clearInterval(checkIfLoaded); // finished
 
-        clearInterval(checkIfLoaded); // execute all waiting requests
-
-        try {
-          var _iterator = _createForOfIteratorHelper(pending[url]),
-              _step;
-
-          try {
-            for (_iterator.s(); !(_step = _iterator.n()).done;) {
-              var handler = _step.value;
-              var _resolve = handler.resolve;
-
-              _resolve(success ? img : null);
-            }
-          } catch (err) {
-            _iterator.e(err);
-          } finally {
-            _iterator.f();
-          }
-        } finally {
-          delete pending[url];
-        }
+        console.log('did resolve image', src);
+        resolve(success ? img : null); // // execute all waiting requests
+        // try {
+        //   for (const handler of pending[url]) {
+        //     const { resolve } = handler
+        //     resolve(success ? img : null)
+        //   }
+        // } finally {
+        //   delete pending[url]
+        // }
       };
     }; // kick off the first attempt
 
