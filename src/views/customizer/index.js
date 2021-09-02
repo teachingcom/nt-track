@@ -6,6 +6,7 @@ import Car from '../../components/car'
 import Trail from '../../components/trail'
 import { TRAIL_SCALE_IN_PREVIEW } from '../../config'
 import { LAYER_TRAIL } from '../track/layers'
+import { waitForCondition } from '../../utils/wait'
 
 const DEFAULT_MAX_HEIGHT = 250
 const OTHER_DRIVER_OFFSCREEN_DISTANCE = -1200
@@ -98,25 +99,47 @@ export default class CustomizerView extends BaseView {
     const sprayer = await this.animator.create('extras/sprayer')
     sprayer.y = CONTENT_Y
     sprayer.x = CONTENT_X
-    sprayer.controller.stopEmitters()
+    sprayer.controller?.stopEmitters()
 
     this.sprayer = sprayer
     this.workspace.addChild(sprayer)
   }
 
+  async waitForActivity(activity) {
+    return await waitForCondition(
+      `customizer:wait-for-car-to-${activity}`, 
+      { single: true }, 
+      () => !!this.isReady
+    );
+  }
+
   // changes the paint for a car
   async setPaint (hue) {
-    this.sprayer.controller.activateEmitters()
-    clearTimeout(this.__pendingHueShift)
-    clearTimeout(this.__clearSprayingEffect)
+    await this.waitForActivity('paint');
+
+    // performt the paint effect
+    if (this.sprayer) {
+      this.sprayer.controller?.activateEmitters()
+      clearTimeout(this.__pendingHueShift)
+      clearTimeout(this.__clearSprayingEffect)
+      this.__clearSprayingEffect = setTimeout(() => {
+        this.sprayer?.controller?.stopEmitters()
+      }, 1000)
+    }
     
     // perform the switch
-    this.__pendingHueShift = setTimeout(() => this.car.repaintCar(hue), 300)
-    this.__clearSprayingEffect = setTimeout(() => this.sprayer.controller.stopEmitters(), 1000)
+    // if the car is missing, then it's probably in
+    // a transitional phase and can be skipped
+    this.__pendingHueShift = setTimeout(() => {
+      this.car?.repaintCar(hue);
+    }, 300)
   }
 
   // replaces the active car
   async setCar ({ type, hue, isAnimated, trail }) {
+    this.isReady = false
+
+    // clear the existing data
     this._removeExistingCars()
 
     // create the new car instance
@@ -142,6 +165,7 @@ export default class CustomizerView extends BaseView {
     // add to the view
     container.addChild(car)
     this.viewport.addChild(container)
+
     this.container = container
     this.car = car
 
@@ -149,14 +173,20 @@ export default class CustomizerView extends BaseView {
     // just dispose of the active one
     delete this.trail
     if (trail) {
-      await this.setTrail(trail)
+      await this.setTrail(trail, false)
     }
-
+    
     // animate the new car into view
+    this.isReady = true
     return this._animatePlayerCarIntoView(this.container)
   }
 
-  async setTrail(type) {
+  async setTrail(type, waitForReady = true) {
+    // wait for the customizer to be ready for changes, if needed
+    if (waitForReady) {
+      await this.waitForActivity('trail');
+    }
+
     this.trail?.dispose()
 
     // if there's not a trail, they probably set

@@ -74498,6 +74498,24 @@ function random() {
 function setRandomizer(val) {
   randomizer = val;
 }
+},{}],"animation/variables.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.save = save;
+exports.pull = pull;
+var variables = {}; // saves a value
+
+function save(name, value) {
+  variables[name] = value;
+} // grabs a stored value
+
+
+function pull(name) {
+  return variables[name];
+}
 },{}],"animation/dynamic-expressions/get-random.js":[function(require,module,exports) {
 "use strict";
 
@@ -75515,6 +75533,8 @@ var mappings = _interopRequireWildcard(require("./mappings"));
 
 var randomizer = _interopRequireWildcard(require("../randomizer"));
 
+var variables = _interopRequireWildcard(require("./variables"));
+
 var _getRandom = _interopRequireDefault(require("./dynamic-expressions/get-random"));
 
 var _modExpression = _interopRequireDefault(require("./dynamic-expressions/mod-expression"));
@@ -75566,6 +75586,9 @@ var EXPRESSIONS = {
   },
   ':range': {
     func: range
+  },
+  ':var': {
+    func: getVariable
   }
 };
 var DYNAMICS = {
@@ -75594,6 +75617,10 @@ var DYNAMICS = {
     instance: _relativeExpressions.RelativeToY
   }
 };
+
+function getVariable(name) {
+  return variables.pull(name);
+}
 
 function addTo(add, relativeTo) {
   return relativeTo + add;
@@ -75781,7 +75808,7 @@ function shuffle(items) {
 
   items.push.apply(items, shuffled);
 }
-},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","../utils":"utils/index.js","./mappings":"animation/mappings.js","../randomizer":"randomizer.js","./dynamic-expressions/get-random":"animation/dynamic-expressions/get-random.js","./dynamic-expressions/mod-expression":"animation/dynamic-expressions/mod-expression.js","./dynamic-expressions/sine-expressions":"animation/dynamic-expressions/sine-expressions.js","./dynamic-expressions/relative-expressions":"animation/dynamic-expressions/relative-expressions.js","./dynamic-expressions/bezier-expression":"animation/dynamic-expressions/bezier-expression.js","./dynamic-expressions/average-expression":"animation/dynamic-expressions/average-expression.js"}],"../node_modules/idb-keyval/dist/idb-keyval.mjs":[function(require,module,exports) {
+},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","../utils":"utils/index.js","./mappings":"animation/mappings.js","../randomizer":"randomizer.js","./variables":"animation/variables.js","./dynamic-expressions/get-random":"animation/dynamic-expressions/get-random.js","./dynamic-expressions/mod-expression":"animation/dynamic-expressions/mod-expression.js","./dynamic-expressions/sine-expressions":"animation/dynamic-expressions/sine-expressions.js","./dynamic-expressions/relative-expressions":"animation/dynamic-expressions/relative-expressions.js","./dynamic-expressions/bezier-expression":"animation/dynamic-expressions/bezier-expression.js","./dynamic-expressions/average-expression":"animation/dynamic-expressions/average-expression.js"}],"../node_modules/idb-keyval/dist/idb-keyval.mjs":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -79195,22 +79222,46 @@ function loadImage(url, version) {
 
     var img; // limit attempts to reload
 
-    var attempts = 3; // if no active queue is available, start it now
+    var attempts = 3; // tracking image loading
+
+    var checkIfLoaded; // if no active queue is available, start it now
 
     pending[url] = [{
       resolve: resolve,
       reject: reject
-    }]; // attempts to load an image
+    }]; // get the image to load
+
+    var src = "".concat(url).concat(version ? "?".concat(version) : ''); // attempts to load an image
 
     var request = function request() {
+      var success = handle(true);
+      var fail = handle(false); // create the image
+
       img = new Image();
-      img.onload = handle(true);
-      img.onerror = handle(false);
-      img.crossOrigin = 'anonymous'; // replace the image url
+
+      img.onload = function () {
+        console.log('passed normal check:', src);
+        success();
+      };
+
+      img.onerror = fail;
+      img.crossOrigin = 'anonymous'; // backup solution for if an image loads
+      // but never has a chance to report that
+      // it was successful
+
+      checkIfLoaded = setInterval(function () {
+        console.log('using backup check:', src);
+
+        if (img.complete && img.naturalHeight !== 0) {
+          console.log('passed backup check:', src);
+          success();
+        }
+      }, 200); // replace the image url
 
       setTimeout(function () {
-        return img.src = "".concat(url).concat(version ? "?".concat(version) : '');
-      });
+        console.log('attempting to load:', src);
+        img.src = src;
+      }, 10);
     }; // create resolution actions
 
 
@@ -79222,7 +79273,9 @@ function loadImage(url, version) {
         } // all finished, resolve the result
 
 
-        images[url] = success ? img : null; // execute all waiting requests
+        images[url] = success ? img : null; // clear extra checks
+
+        clearInterval(checkIfLoaded); // execute all waiting requests
 
         try {
           var _iterator = _createForOfIteratorHelper(pending[url]),
@@ -82715,7 +82768,7 @@ function createEmitter(_x, _x2, _x3, _x4, _x5) {
 
 function _createEmitter() {
   _createEmitter = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(animator, controller, path, composition, layer) {
-    var container, generator, update, dispose, phase, textures, _layer$emit, emit, auto, config, _loop, prop, _ret, autoplay, emitter, create;
+    var container, generator, update, dispose, phase, textures, _layer$emit, emit, auto, config, _loop, prop, _ret, manualStart, emitter, create;
 
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
@@ -82879,7 +82932,7 @@ function _createEmitter() {
               return t.blendMode = v;
             }); // boolean props
 
-            autoplay = emit.auto === false || emit.autoplay === false || emit.autoPlay === false;
+            manualStart = emit.auto === false || emit.autoplay === false || emit.autoPlay === false;
             config.noRotation = !!emit.noRotation;
             config.addAtBack = !!emit.atBack;
             config.orderedArt = !!emit.orderedArt;
@@ -82939,7 +82992,7 @@ function _createEmitter() {
             }; // manual start
 
 
-            if (autoplay) {
+            if (manualStart) {
               emitter.autoUpdate = false;
               emitter.activate = create;
               emitter.emit = false;
@@ -83797,6 +83850,12 @@ function _createRepeater() {
               }
 
               tiles.sortChildren();
+            } // bakes a layer to a single object
+
+
+            if (layer.merge) {
+              tiles.cacheAsBitmap = true;
+              tiles.batch = 'merged';
             } // position
 
 
@@ -83810,18 +83869,18 @@ function _createRepeater() {
               dispose: dispose
             }]);
 
-          case 84:
-            _context.prev = 84;
+          case 85:
+            _context.prev = 85;
             _context.t0 = _context["catch"](4);
             console.error("Failed to create group ".concat(path, " while ").concat(phase));
             throw _context.t0;
 
-          case 88:
+          case 89:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[4, 84]]);
+    }, _callee, null, [[4, 85]]);
   }));
   return _createRepeater.apply(this, arguments);
 }
@@ -83901,6 +83960,14 @@ var _collection = require("../../utils/collection");
 
 var _repeater = _interopRequireDefault(require("./repeater"));
 
+var _expressions = require("../expressions");
+
+var variables = _interopRequireWildcard(require("../variables"));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
@@ -83914,7 +83981,7 @@ function createInstance(_x, _x2, _x3, _x4, _x5) {
 
 function _createInstance() {
   _createInstance = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(animator, controller, path, data, relativeTo) {
-    var instance, container, pending, i, layer, type, sprite, emitter, repeated, group, mask, _animator$plugins$typ, customizer, params, custom, composite, layers, _i, _layer, didSetMask, j, target;
+    var instance, container, pending, i, layer, type, value, sprite, emitter, repeated, group, mask, _animator$plugins$typ, customizer, params, custom, composite, layers, _i, _layer, didSetMask, j, target;
 
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
@@ -83956,7 +84023,10 @@ function _createInstance() {
             // sprite layers
             type = layer.type;
 
-            if (type === 'sprite' || type === 'marker') {
+            if (type === 'var') {
+              value = (0, _expressions.evaluateExpression)(layer.value);
+              variables.save(layer.name, value);
+            } else if (type === 'sprite' || type === 'marker') {
               sprite = (0, _sprite.default)(animator, controller, path, data, layer);
               pending.push(sprite);
             } // particle emitters
@@ -84088,7 +84158,7 @@ function _createInstance() {
   }));
   return _createInstance.apply(this, arguments);
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","../../pixi/lib":"pixi/lib.js","fast-copy":"../node_modules/fast-copy/dist/fast-copy.js","../utils":"animation/utils.js","../../utils":"utils/index.js","./sprite":"animation/generators/sprite.js","./emitter":"animation/generators/emitter/index.js","./group":"animation/generators/group.js","./mask":"animation/generators/mask.js","../../utils/collection":"utils/collection.js","./repeater":"animation/generators/repeater.js"}],"animation/importManifest.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","../../pixi/lib":"pixi/lib.js","fast-copy":"../node_modules/fast-copy/dist/fast-copy.js","../utils":"animation/utils.js","../../utils":"utils/index.js","./sprite":"animation/generators/sprite.js","./emitter":"animation/generators/emitter/index.js","./group":"animation/generators/group.js","./mask":"animation/generators/mask.js","../../utils/collection":"utils/collection.js","./repeater":"animation/generators/repeater.js","../expressions":"animation/expressions.js","../variables":"animation/variables.js"}],"animation/importManifest.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -84257,7 +84327,23 @@ function _attemptFetch() {
   }));
   return _attemptFetch.apply(this, arguments);
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js"}],"animation/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js"}],"animation/resources/addTexture.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = addTexture;
+
+// installs a special 
+function addTexture(animator, spriteId, texture) {
+  var spritesheets = animator.manifest.spritesheets;
+  var spritesheet = spritesheets.textures = spritesheets.textures || {};
+  spritesheet.__initialized__ = true;
+  spritesheet[spriteId] = texture;
+  console.log(animator.manifest);
+}
+},{}],"animation/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -84311,6 +84397,8 @@ var _importManifest = _interopRequireDefault(require("./importManifest"));
 
 var _randomizer = require("../randomizer");
 
+var _addTexture = _interopRequireDefault(require("./resources/addTexture"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
@@ -84338,6 +84426,9 @@ var Animator = /*#__PURE__*/function (_EventEmitter) {
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "imageCache", _assetCache.shared);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "preloadSpritesheet", function (spritesheetId) {
       return _this.getSpritesheet(spritesheetId);
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "addTexture", function (id, texture) {
+      return (0, _addTexture.default)((0, _assertThisInitialized2.default)(_this), id, texture);
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "getSpritesheet", /*#__PURE__*/function () {
       var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(id) {
@@ -84584,7 +84675,7 @@ var Animator = /*#__PURE__*/function (_EventEmitter) {
 }(_eventEmitter.EventEmitter);
 
 exports.Animator = Animator;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../pixi/lib":"pixi/lib.js","../common/event-emitter":"common/event-emitter.js","./utils":"animation/utils.js","./path":"animation/path.js","./expressions":"animation/expressions.js","../utils/assetCache":"utils/assetCache.js","./rng":"animation/rng.js","./generators/controller":"animation/generators/controller.js","./generators":"animation/generators/index.js","./resources/getSprite":"animation/resources/getSprite.js","./resources/getSpritesheet":"animation/resources/getSpritesheet.js","./resources/loadImage":"animation/resources/loadImage.js","./importManifest":"animation/importManifest.js","../randomizer":"randomizer.js"}],"pixi/detatched-container.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../pixi/lib":"pixi/lib.js","../common/event-emitter":"common/event-emitter.js","./utils":"animation/utils.js","./path":"animation/path.js","./expressions":"animation/expressions.js","../utils/assetCache":"utils/assetCache.js","./rng":"animation/rng.js","./generators/controller":"animation/generators/controller.js","./generators":"animation/generators/index.js","./resources/getSprite":"animation/resources/getSprite.js","./resources/getSpritesheet":"animation/resources/getSpritesheet.js","./resources/loadImage":"animation/resources/loadImage.js","./importManifest":"animation/importManifest.js","../randomizer":"randomizer.js","./resources/addTexture":"animation/resources/addTexture.js"}],"pixi/detatched-container.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99862,12 +99953,21 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "playerError", function () {
       var selected = Math.ceil(Math.random() * 4);
-      var err = audio.create('sfx', "error_".concat(selected)); // select the correct volume
+      var err = audio.create('sfx', "error_".concat(selected)); // if there's not a sound, don't bother
+
+      if (!err) {
+        return;
+      } // select the correct volume
+
 
       var volume = [_volume.VOLUME_ERROR_1, _volume.VOLUME_ERROR_2, _volume.VOLUME_ERROR_3, _volume.VOLUME_ERROR_4][selected - 1] || _volume.VOLUME_ERROR_DEFAULT; // set the volume
 
-      err.volume(volume);
-      err.play();
+      try {
+        err.volume(volume);
+        err.play();
+      } catch (ex) {
+        console.warn("Unable to play audio: error_".concat(selected), err);
+      }
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "startCountdown", /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
       return _regenerator.default.wrap(function _callee3$(_context3) {
@@ -100000,24 +100100,28 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
           options = _assertThisInitialize10.options; // already playing (this shouldn't happen)
 
 
-      if (raceCompletedAnimation) return; // play the correct background noise
-
-      var victory = players.length === 1;
-      track === null || track === void 0 ? void 0 : track.setAmbience(victory ? 'victory' : 'finish'); // stop the track
+      if (raceCompletedAnimation) return; // stop the track
 
       state.animateTrackMovement = false;
       state.speed = 0;
       state.shake = _config.CAR_DEFAULT_SHAKE_LEVEL;
-      state.isFinished = true;
-      track.showFinishLine(); // stop animating progress
+      state.isFinished = true; // update the track
 
-      _this.raceProgressAnimation.stop(); // play the final animation
+      if (track) {
+        // play the correct background noise
+        var victory = players.length === 1;
+        track.setAmbience(victory ? 'victory' : 'finish'); // display the ending
+
+        track.showFinishLine(); // stop animating progress
+
+        _this.raceProgressAnimation.stop(); // play the final animation
 
 
-      _this.raceCompletedAnimation = new _raceCompleted.default({
-        track: (0, _assertThisInitialized2.default)(_this),
-        players: players
-      });
+        _this.raceCompletedAnimation = new _raceCompleted.default({
+          track: (0, _assertThisInitialized2.default)(_this),
+          players: players
+        });
+      }
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "lastUpdate", +new Date());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "finalizePerformanceTracking", function () {
@@ -101860,7 +101964,127 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
 }(_base.BaseView);
 
 exports.default = CruiseView;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../components/treadmill":"components/treadmill.js","../../config":"config.js","../track/layers":"views/track/layers.js"}],"views/customizer/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../components/treadmill":"components/treadmill.js","../../config":"config.js","../track/layers":"views/track/layers.js"}],"utils/wait.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.waitForTime = waitForTime;
+exports.waitForCondition = waitForCondition;
+
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
+
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+var pending = {};
+
+function waitForTime(_x) {
+  return _waitForTime.apply(this, arguments);
+} // handles waiting for conditions
+
+
+function _waitForTime() {
+  _waitForTime = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(time) {
+    return _regenerator.default.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            return _context.abrupt("return", new Promise(function (resolve) {
+              return setTimeout(resolve, time);
+            }));
+
+          case 1:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+  return _waitForTime.apply(this, arguments);
+}
+
+function waitForCondition(_x2, _x3, _x4) {
+  return _waitForCondition.apply(this, arguments);
+}
+
+function _waitForCondition() {
+  _waitForCondition = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(id, params, condition) {
+    var interval, existing, _iterator, _step, item, ref;
+
+    return _regenerator.default.wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            interval = params.interval || 100; // if only a single wait is allowed, clear
+            // the previous ones
+
+            if (params.single) {
+              existing = pending[id] || [];
+              _iterator = _createForOfIteratorHelper(existing);
+
+              try {
+                for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                  item = _step.value;
+
+                  try {
+                    clearTimeout(item.ref);
+
+                    if (params.rejectOnAbort) {
+                      item.reject();
+                    }
+                  } // don't fail for this
+                  catch (ex) {}
+                }
+              } catch (err) {
+                _iterator.e(err);
+              } finally {
+                _iterator.f();
+              }
+            } // save the reference
+
+
+            ref = {};
+            pending[id] = pending[id] || [];
+            pending[id].push(ref); // give back the promise to wait for
+
+            return _context2.abrupt("return", new Promise(function (resolve, reject) {
+              ref.reject = reject;
+              ref.resolve = resolve; // handles checking for functions
+
+              function check() {
+                // check if this passed or not
+                if (condition() === true) {
+                  clearTimeout(ref.pending);
+                  return resolve();
+                } // queue the next attempt
+
+
+                ref.pending = setTimeout(check, interval);
+              } // trigger the watcher
+
+
+              setTimeout(check, interval);
+            }));
+
+          case 6:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2);
+  }));
+  return _waitForCondition.apply(this, arguments);
+}
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js"}],"views/customizer/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101901,6 +102125,8 @@ var _trail = _interopRequireDefault(require("../../components/trail"));
 var _config = require("../../config");
 
 var _layers = require("../track/layers");
+
+var _wait = require("../../utils/wait");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -102098,6 +102324,8 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
     key: "_createSprayer",
     value: function () {
       var _createSprayer2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+        var _sprayer$controller;
+
         var sprayer;
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
@@ -102110,7 +102338,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 sprayer = _context4.sent;
                 sprayer.y = CONTENT_Y;
                 sprayer.x = CONTENT_X;
-                sprayer.controller.stopEmitters();
+                (_sprayer$controller = sprayer.controller) === null || _sprayer$controller === void 0 ? void 0 : _sprayer$controller.stopEmitters();
                 this.sprayer = sprayer;
                 this.workspace.addChild(sprayer);
 
@@ -102127,38 +102355,88 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
       }
 
       return _createSprayer;
-    }() // changes the paint for a car
-
+    }()
   }, {
-    key: "setPaint",
+    key: "waitForActivity",
     value: function () {
-      var _setPaint = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(hue) {
+      var _waitForActivity = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(activity) {
         var _this3 = this;
 
         return _regenerator.default.wrap(function _callee5$(_context5) {
           while (1) {
             switch (_context5.prev = _context5.next) {
               case 0:
-                this.sprayer.controller.activateEmitters();
-                clearTimeout(this.__pendingHueShift);
-                clearTimeout(this.__clearSprayingEffect); // perform the switch
+                _context5.next = 2;
+                return (0, _wait.waitForCondition)("customizer:wait-for-car-to-".concat(activity), {
+                  single: true
+                }, function () {
+                  return !!_this3.isReady;
+                });
 
-                this.__pendingHueShift = setTimeout(function () {
-                  return _this3.car.repaintCar(hue);
-                }, 300);
-                this.__clearSprayingEffect = setTimeout(function () {
-                  return _this3.sprayer.controller.stopEmitters();
-                }, 1000);
+              case 2:
+                return _context5.abrupt("return", _context5.sent);
 
-              case 5:
+              case 3:
               case "end":
                 return _context5.stop();
             }
           }
-        }, _callee5, this);
+        }, _callee5);
       }));
 
-      function setPaint(_x2) {
+      function waitForActivity(_x2) {
+        return _waitForActivity.apply(this, arguments);
+      }
+
+      return waitForActivity;
+    }() // changes the paint for a car
+
+  }, {
+    key: "setPaint",
+    value: function () {
+      var _setPaint = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(hue) {
+        var _this4 = this;
+
+        var _this$sprayer$control;
+
+        return _regenerator.default.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                _context6.next = 2;
+                return this.waitForActivity('paint');
+
+              case 2:
+                // performt the paint effect
+                if (this.sprayer) {
+                  (_this$sprayer$control = this.sprayer.controller) === null || _this$sprayer$control === void 0 ? void 0 : _this$sprayer$control.activateEmitters();
+                  clearTimeout(this.__pendingHueShift);
+                  clearTimeout(this.__clearSprayingEffect);
+                  this.__clearSprayingEffect = setTimeout(function () {
+                    var _this4$sprayer, _this4$sprayer$contro;
+
+                    (_this4$sprayer = _this4.sprayer) === null || _this4$sprayer === void 0 ? void 0 : (_this4$sprayer$contro = _this4$sprayer.controller) === null || _this4$sprayer$contro === void 0 ? void 0 : _this4$sprayer$contro.stopEmitters();
+                  }, 1000);
+                } // perform the switch
+                // if the car is missing, then it's probably in
+                // a transitional phase and can be skipped
+
+
+                this.__pendingHueShift = setTimeout(function () {
+                  var _this4$car;
+
+                  (_this4$car = _this4.car) === null || _this4$car === void 0 ? void 0 : _this4$car.repaintCar(hue);
+                }, 300);
+
+              case 4:
+              case "end":
+                return _context6.stop();
+            }
+          }
+        }, _callee6, this);
+      }));
+
+      function setPaint(_x3) {
         return _setPaint.apply(this, arguments);
       }
 
@@ -102168,18 +102446,19 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "setCar",
     value: function () {
-      var _setCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(_ref) {
+      var _setCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(_ref) {
         var type, hue, isAnimated, trail, car, container;
-        return _regenerator.default.wrap(function _callee6$(_context6) {
+        return _regenerator.default.wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
                 type = _ref.type, hue = _ref.hue, isAnimated = _ref.isAnimated, trail = _ref.trail;
+                this.isReady = false; // clear the existing data
 
                 this._removeExistingCars(); // create the new car instance
 
 
-                _context6.next = 4;
+                _context7.next = 5;
                 return _car.default.create({
                   view: this,
                   baseHeight: 150,
@@ -102192,8 +102471,8 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                   }
                 });
 
-              case 4:
-                car = _context6.sent;
+              case 5:
+                car = _context7.sent;
                 // put the car inside of a container that
                 // can be used to attach trails and 
                 // other effects to
@@ -102213,25 +102492,27 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 delete this.trail;
 
                 if (!trail) {
-                  _context6.next = 19;
+                  _context7.next = 20;
                   break;
                 }
 
-                _context6.next = 19;
-                return this.setTrail(trail);
-
-              case 19:
-                return _context6.abrupt("return", this._animatePlayerCarIntoView(this.container));
+                _context7.next = 20;
+                return this.setTrail(trail, false);
 
               case 20:
+                // animate the new car into view
+                this.isReady = true;
+                return _context7.abrupt("return", this._animatePlayerCarIntoView(this.container));
+
+              case 22:
               case "end":
-                return _context6.stop();
+                return _context7.stop();
             }
           }
-        }, _callee6, this);
+        }, _callee7, this);
       }));
 
-      function setCar(_x3) {
+      function setCar(_x4) {
         return _setCar.apply(this, arguments);
       }
 
@@ -102240,34 +102521,47 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "setTrail",
     value: function () {
-      var _setTrail = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(type) {
+      var _setTrail = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(type) {
         var _this$trail;
 
-        var trail;
-        return _regenerator.default.wrap(function _callee7$(_context7) {
+        var waitForReady,
+            trail,
+            _args8 = arguments;
+        return _regenerator.default.wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
+                waitForReady = _args8.length > 1 && _args8[1] !== undefined ? _args8[1] : true;
+
+                if (!waitForReady) {
+                  _context8.next = 4;
+                  break;
+                }
+
+                _context8.next = 4;
+                return this.waitForActivity('trail');
+
+              case 4:
                 (_this$trail = this.trail) === null || _this$trail === void 0 ? void 0 : _this$trail.dispose(); // if there's not a trail, they probably set
                 // it to none
 
                 if (type) {
-                  _context7.next = 3;
+                  _context8.next = 7;
                   break;
                 }
 
-                return _context7.abrupt("return");
+                return _context8.abrupt("return");
 
-              case 3:
-                _context7.next = 5;
+              case 7:
+                _context8.next = 9;
                 return _trail.default.create({
                   view: this,
                   baseHeight: 130,
                   type: type
                 });
 
-              case 5:
-                trail = _context7.sent;
+              case 9:
+                trail = _context8.sent;
 
                 // in case of an unusual scenario where
                 // a trail might not be disposed, go ahead and target
@@ -102301,15 +102595,15 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                   }
                 });
 
-              case 14:
+              case 18:
               case "end":
-                return _context7.stop();
+                return _context8.stop();
             }
           }
-        }, _callee7, this);
+        }, _callee8, this);
       }));
 
-      function setTrail(_x4) {
+      function setTrail(_x5) {
         return _setTrail.apply(this, arguments);
       }
 
@@ -102319,24 +102613,24 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "_queuePassing",
     value: function _queuePassing() {
-      var _this4 = this;
+      var _this5 = this;
 
       var nextPass = 0 | 3000 + Math.random() * 4000;
       setTimeout(function () {
-        _this4.otherDriver.visible = true;
-        _this4.otherDriver.x = 500;
-        _this4.passingSpeed = Math.random() * 5 + 8;
+        _this5.otherDriver.visible = true;
+        _this5.otherDriver.x = 500;
+        _this5.passingSpeed = Math.random() * 5 + 8;
       }, nextPass);
     } // animates an object into the center of the view
 
   }, {
     key: "_animatePlayerCarIntoView",
     value: function _animatePlayerCarIntoView(obj) {
-      var _this5 = this;
+      var _this6 = this;
 
       return new Promise(function (resolve) {
         // determine the middle section
-        var mid = Math.floor(_this5.width / _this5.ssaaScalingLevel / -2);
+        var mid = Math.floor(_this6.width / _this6.ssaaScalingLevel / -2);
         (0, _ntAnimator.animate)({
           loop: false,
           duration: 500,
@@ -102354,7 +102648,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
           // finishing
           complete: function complete() {
             // if there's a left over car
-            var _iterator = _createForOfIteratorHelper(_this5.viewport.children),
+            var _iterator = _createForOfIteratorHelper(_this6.viewport.children),
                 _step;
 
             try {
@@ -102456,7 +102750,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
     key: "setFocus",
     value: function setFocus(zone) {
       var _this$__panViewport,
-          _this6 = this;
+          _this7 = this;
 
       // cancel prior animations
       (_this$__panViewport = this.__panViewport) === null || _this$__panViewport === void 0 ? void 0 : _this$__panViewport.stop(); // animate the next view
@@ -102475,7 +102769,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
         easing: 'easeInOutQuad',
         loop: false,
         update: function update(t) {
-          return _this6.focus = t;
+          return _this7.focus = t;
         }
       });
     } // renders the view
@@ -102533,7 +102827,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
 }(_base.BaseView);
 
 exports.default = CustomizerView;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../base":"views/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../components/treadmill":"components/treadmill.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","../../config":"config.js","../track/layers":"views/track/layers.js"}],"views/animation/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../base":"views/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../components/treadmill":"components/treadmill.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","../../config":"config.js","../track/layers":"views/track/layers.js","../../utils/wait":"utils/wait.js"}],"views/animation/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
