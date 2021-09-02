@@ -79200,40 +79200,28 @@ function loadImage(url, version) {
 
     var attempts = 3; // tracking image loading
 
-    var checkIfLoaded; // // if no active queue is available, start it now
-    // pending[url] = [{ resolve, reject }]
-    // get the image to load
+    var checkIfLoaded; // get the image to load
 
-    var src = "".concat(url).concat(version ? "?".concat(version) : '');
-    console.log('direct image load:', src); // attempts to load an image
+    var src = "".concat(url).concat(version ? "?".concat(version) : ''); // attempts to load an image
 
     var request = function request() {
       var success = handle(true);
       var fail = handle(false); // create the image
 
       img = new Image();
-
-      img.onload = function () {
-        console.log('passed normal check:', src);
-        success();
-      };
-
+      img.onload = success;
       img.onerror = fail;
       img.crossOrigin = 'anonymous'; // backup solution for if an image loads
       // but never has a chance to report that
       // it was successful
 
       checkIfLoaded = setInterval(function () {
-        console.log('using backup check:', src);
-
         if (img.complete && img.naturalHeight !== 0) {
-          console.log('passed backup check:', src);
           success();
         }
       }, 200); // replace the image url
 
       setTimeout(function () {
-        console.log('attempting to load:', src);
         img.src = src;
       }, 10);
     }; // create resolution actions
@@ -79251,7 +79239,6 @@ function loadImage(url, version) {
 
         clearInterval(checkIfLoaded); // finished
 
-        console.log('did resolve image', src);
         resolve(success ? img : null); // // execute all waiting requests
         // try {
         //   for (const handler of pending[url]) {
@@ -84170,11 +84157,7 @@ function _importManifest() {
               for (_iterator.s(); !(_step = _iterator.n()).done;) {
                 part = _step.value;
                 target = target[part] = target[part] || {};
-              } // // if this has already been attached
-              // if (target[key]) {
-              //   return new Promise(() => { })
-              // }
-
+              }
             } catch (err) {
               _iterator.e(err);
             } finally {
