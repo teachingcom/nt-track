@@ -79184,29 +79184,17 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = loadImage;
-// resources that are currently loading
-var pending = {};
-var images = {};
+
 /** handles loading an external image url
  * @param {string} url The url of the image to load
 */
-
 function loadImage(url, version) {
   return new Promise(function (resolve, reject) {
     // prevent accidental double slashes
     var parts = url.split('://');
     var last = parts.length - 1;
     parts[last] = parts[last].replace(/\/+/g, '/');
-    url = parts.join('://'); // // check if already existing
-    // if (url in images) {
-    //   return resolve(images[url])
-    // }
-    // // if already waiting for a resource
-    // if (pending[url]) {
-    //   pending[url].push({ resolve, reject })
-    //   return
-    // }
-    // reserve the image
+    url = parts.join('://'); // reserve the image
 
     var img; // limit attempts to reload
 
@@ -84182,7 +84170,10 @@ function _importManifest() {
               for (_iterator.s(); !(_step = _iterator.n()).done;) {
                 part = _step.value;
                 target = target[part] = target[part] || {};
-              } // if this has already been attached
+              } // // if this has already been attached
+              // if (target[key]) {
+              //   return new Promise(() => { })
+              // }
 
             } catch (err) {
               _iterator.e(err);
@@ -84190,69 +84181,61 @@ function _importManifest() {
               _iterator.f();
             }
 
-            if (!target[key]) {
-              _context.next = 9;
-              break;
-            }
-
-            return _context.abrupt("return");
-
-          case 9:
             attempts = 3;
             url = "".concat(baseUrl, "/").concat(path, ".json?").concat(version).replace(/([^:]\/)\/+/g, '$1');
 
-          case 11:
+          case 9:
             if (!(attempts > 0)) {
-              _context.next = 27;
+              _context.next = 25;
               break;
             }
 
-            _context.prev = 12;
-            _context.next = 15;
+            _context.prev = 10;
+            _context.next = 13;
             return attemptFetch(url, timeout);
 
-          case 15:
+          case 13:
             data = _context.sent;
-            return _context.abrupt("break", 27);
+            return _context.abrupt("break", 25);
 
-          case 19:
-            _context.prev = 19;
-            _context.t0 = _context["catch"](12);
+          case 17:
+            _context.prev = 17;
+            _context.t0 = _context["catch"](10);
 
             if (!(--attempts > 0)) {
-              _context.next = 23;
+              _context.next = 21;
               break;
             }
 
-            return _context.abrupt("continue", 11);
+            return _context.abrupt("continue", 9);
 
-          case 23:
+          case 21:
             // no more attempts
             console.error("failed to import ".concat(path));
             throw _context.t0;
 
-          case 25:
-            _context.next = 11;
+          case 23:
+            _context.next = 9;
             break;
 
-          case 27:
+          case 25:
             // save the result
             target[key] = data; // return it, in case it's needed
 
             return _context.abrupt("return", data);
 
-          case 31:
-            _context.prev = 31;
+          case 29:
+            _context.prev = 29;
             _context.t1 = _context["catch"](1);
             console.error('Failed to load', path);
             throw _context.t1;
 
-          case 35:
+          case 33:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[1, 31], [12, 19]]);
+    }, _callee, null, [[1, 29], [10, 17]]);
   }));
   return _importManifest.apply(this, arguments);
 }
