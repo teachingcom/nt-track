@@ -9,8 +9,8 @@ import AmbientAudio from '../../audio/ambient';
 import AssetPreloader from './preload';
 import { loadScript, parseScriptArgs } from '../../scripts';
 
-import * as rainEffect from '../../effects/rain';
-import * as leavesEffect from '../../effects/leaves';
+import RainEffect from '../../effects/rain';
+import LeavesEffect from '../../effects/leaves';
 
 // total number of road slices to create
 // consider making this calculated as needed
@@ -322,25 +322,29 @@ export default class Track {
 
 		// check for any scripts that need to run
 		// TODO: maybe add more support, but for now this is fine)
-		if (effect.script === 'rain') {
-			await rainEffect.init(this, view.animator);
-		}
-		else if (effect.script === 'leaves') {
-			await leavesEffect.init(this, view.animator);
+		const Handler = effect.script === 'rain' ? RainEffect
+			: effect.script === 'leaves' ? LeavesEffect
+			: null;
+
+		const handler = Handler ? new Handler(view, this, view.animator) : null;
+
+		// initialization
+		if (handler) {
+			await handler.init(view, this, view.animator);
 		}
 
 		// check for a composition
 		if (isArray(effect.compose)) {
 			this.effect = await view.animator.compose(effect, path, manifest);
 			this.effect.zIndex = effect.z || 0;
-
-			if (this.effect.zIndex < 0) { 
-				this.ground.addChild(this.effect);
-			}
-			else {
-				this.overlay.addChild(this.effect);
-			}
+			this.applyEffect();
 		}
+
+		// setup
+		if (handler) {
+			await handler.setup(view, this, view.animator);
+		}
+
 	}
 
 	// creates a background, if needed
@@ -395,6 +399,19 @@ export default class Track {
 					this.scripts.push(handler);
 				}
 			}
+		}
+	}
+
+	applyEffect = () => {
+		if (!this.effect) {
+			return;
+		}
+
+		if (this.effect.zIndex < 0) { 
+			this.ground.addChild(this.effect);
+		}
+		else {
+			this.overlay.addChild(this.effect);
 		}
 	}
 
@@ -456,6 +473,11 @@ export default class Track {
 	/** activates the finish line view */
 	showFinishLine = () => {
 		const { finishLine, overlay, ground, view } = this;
+
+		// move the effect over, if needed
+		if (this.effect) {
+			this.effect.parent.removeChild(this.effect);
+		}
 		
 		// just in case (in testing)
 		this.removeStartingLine();
@@ -478,6 +500,11 @@ export default class Track {
 		ground.removeChildren();
 		overlay.addChild(finishLine.top);
 		ground.addChild(finishLine.bottom);
+
+		// restore the effects, if any
+		this.applyEffect();
+
+		// show the finish
 		finishLine.visible = true;
 	}
 

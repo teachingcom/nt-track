@@ -79185,59 +79185,45 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = loadImage;
 
-function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
-
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-// resources that are currently loading
-var pending = {};
-var images = {};
 /** handles loading an external image url
  * @param {string} url The url of the image to load
 */
-
 function loadImage(url, version) {
   return new Promise(function (resolve, reject) {
     // prevent accidental double slashes
     var parts = url.split('://');
     var last = parts.length - 1;
     parts[last] = parts[last].replace(/\/+/g, '/');
-    url = parts.join('://'); // check if already existing
-
-    if (url in images) {
-      return resolve(images[url]);
-    } // if already waiting for a resource
-
-
-    if (pending[url]) {
-      pending[url].push({
-        resolve: resolve,
-        reject: reject
-      });
-      return;
-    } // reserve the image
-
+    url = parts.join('://'); // reserve the image
 
     var img; // limit attempts to reload
 
-    var attempts = 3; // if no active queue is available, start it now
+    var attempts = 3; // tracking image loading
 
-    pending[url] = [{
-      resolve: resolve,
-      reject: reject
-    }]; // attempts to load an image
+    var checkIfLoaded; // get the image to load
+
+    var src = "".concat(url).concat(version ? "?".concat(version) : ''); // attempts to load an image
 
     var request = function request() {
+      var success = handle(true);
+      var fail = handle(false); // create the image
+
       img = new Image();
-      img.onload = handle(true);
-      img.onerror = handle(false);
-      img.crossOrigin = 'anonymous'; // replace the image url
+      img.onload = success;
+      img.onerror = fail;
+      img.crossOrigin = 'anonymous'; // backup solution for if an image loads
+      // but never has a chance to report that
+      // it was successful
+
+      checkIfLoaded = setInterval(function () {
+        if (img.complete && img.naturalHeight !== 0) {
+          success();
+        }
+      }, 200); // replace the image url
 
       setTimeout(function () {
-        return img.src = "".concat(url).concat(version ? "?".concat(version) : '');
-      });
+        img.src = src;
+      }, 10);
     }; // create resolution actions
 
 
@@ -79246,30 +79232,22 @@ function loadImage(url, version) {
         // if wasn't successful, but is allowed to try again
         if (!success && --attempts > 0) {
           return request();
-        } // all finished, resolve the result
+        } // // all finished, resolve the result
+        // images[url] = success ? img : null
+        // clear extra checks
 
 
-        images[url] = success ? img : null; // execute all waiting requests
+        clearInterval(checkIfLoaded); // finished
 
-        try {
-          var _iterator = _createForOfIteratorHelper(pending[url]),
-              _step;
-
-          try {
-            for (_iterator.s(); !(_step = _iterator.n()).done;) {
-              var handler = _step.value;
-              var _resolve = handler.resolve;
-
-              _resolve(success ? img : null);
-            }
-          } catch (err) {
-            _iterator.e(err);
-          } finally {
-            _iterator.f();
-          }
-        } finally {
-          delete pending[url];
-        }
+        resolve(success ? img : null); // // execute all waiting requests
+        // try {
+        //   for (const handler of pending[url]) {
+        //     const { resolve } = handler
+        //     resolve(success ? img : null)
+        //   }
+        // } finally {
+        //   delete pending[url]
+        // }
       };
     }; // kick off the first attempt
 
@@ -84179,77 +84157,68 @@ function _importManifest() {
               for (_iterator.s(); !(_step = _iterator.n()).done;) {
                 part = _step.value;
                 target = target[part] = target[part] || {};
-              } // if this has already been attached
-
+              }
             } catch (err) {
               _iterator.e(err);
             } finally {
               _iterator.f();
             }
 
-            if (!target[key]) {
-              _context.next = 9;
-              break;
-            }
-
-            return _context.abrupt("return");
-
-          case 9:
             attempts = 3;
             url = "".concat(baseUrl, "/").concat(path, ".json?").concat(version).replace(/([^:]\/)\/+/g, '$1');
 
-          case 11:
+          case 9:
             if (!(attempts > 0)) {
-              _context.next = 27;
+              _context.next = 25;
               break;
             }
 
-            _context.prev = 12;
-            _context.next = 15;
+            _context.prev = 10;
+            _context.next = 13;
             return attemptFetch(url, timeout);
 
-          case 15:
+          case 13:
             data = _context.sent;
-            return _context.abrupt("break", 27);
+            return _context.abrupt("break", 25);
 
-          case 19:
-            _context.prev = 19;
-            _context.t0 = _context["catch"](12);
+          case 17:
+            _context.prev = 17;
+            _context.t0 = _context["catch"](10);
 
             if (!(--attempts > 0)) {
-              _context.next = 23;
+              _context.next = 21;
               break;
             }
 
-            return _context.abrupt("continue", 11);
+            return _context.abrupt("continue", 9);
 
-          case 23:
+          case 21:
             // no more attempts
             console.error("failed to import ".concat(path));
             throw _context.t0;
 
-          case 25:
-            _context.next = 11;
+          case 23:
+            _context.next = 9;
             break;
 
-          case 27:
+          case 25:
             // save the result
             target[key] = data; // return it, in case it's needed
 
             return _context.abrupt("return", data);
 
-          case 31:
-            _context.prev = 31;
+          case 29:
+            _context.prev = 29;
             _context.t1 = _context["catch"](1);
             console.error('Failed to load', path);
             throw _context.t1;
 
-          case 35:
+          case 33:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[1, 31], [12, 19]]);
+    }, _callee, null, [[1, 29], [10, 17]]);
   }));
   return _importManifest.apply(this, arguments);
 }
@@ -84315,7 +84284,6 @@ function addTexture(animator, spriteId, texture) {
   var spritesheet = spritesheets.textures = spritesheets.textures || {};
   spritesheet.__initialized__ = true;
   spritesheet[spriteId] = texture;
-  console.log(animator.manifest);
 }
 },{}],"animation/index.js":[function(require,module,exports) {
 "use strict";
@@ -96992,11 +96960,17 @@ function parseScriptArgs(args) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.init = init;
+exports.default = void 0;
 
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
 
 var _ntAnimator = require("nt-animator");
 
@@ -97004,41 +96978,109 @@ var _utils = require("../utils");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function init(_x, _x2) {
-  return _init.apply(this, arguments);
-}
+var MAX_RAIN_SHIFT_DISTANCE = -800;
+var width = 800;
+var height = 400;
 
-function _init() {
-  _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(track, animator) {
-    var width, height;
-    return _regenerator.default.wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            width = 800;
-            height = 400; // generate some textures
+var RainEffect = /*#__PURE__*/function () {
+  function RainEffect(track, container, animator) {
+    var _this = this;
 
-            animator.addTexture('rain_1', makeRainTexture(width, height));
-            animator.addTexture('rain_2', makeRainTexture(width, height));
-            animator.addTexture('rain_3', makeRainTexture(width, height));
-            animator.addTexture('rain_4', makeRainTexture(width, height));
+    (0, _classCallCheck2.default)(this, RainEffect);
+    (0, _defineProperty2.default)(this, "increaseRainSpeed", function () {
+      var effect = _this.container.effect; // save the original position;
 
-          case 6:
-          case "end":
-            return _context.stop();
+      effect.__originalX = effect.x; // offset a little since the effect should most
+      // likey be at 0
+
+      effect.x -= 1; // shift it over while racing
+
+      function transition() {
+        effect.x *= 1.025; // limit to max
+
+        if (effect.x > MAX_RAIN_SHIFT_DISTANCE) {
+          return requestAnimationFrame(transition);
         }
-      }
-    }, _callee);
-  }));
-  return _init.apply(this, arguments);
-}
 
-function makeLightningTexture(width, height) {
-  var lightning = (0, _utils.createSurface)(width, height);
-  lightning.ctx.fillStyle = 'white';
-  lightning.ctx.fillRect(0, 0, width, height);
-  return new _ntAnimator.PIXI.Texture.from(lightning.el);
-}
+        effect.x = MAX_RAIN_SHIFT_DISTANCE;
+      }
+
+      requestAnimationFrame(transition);
+    });
+    (0, _defineProperty2.default)(this, "revertRainSpeed", function () {
+      var effect = _this.container.effect;
+      effect.x = effect.__originalX;
+    });
+    this.track = track;
+    this.container = container;
+    this.animator = animator;
+  }
+
+  (0, _createClass2.default)(RainEffect, [{
+    key: "init",
+    value: function () {
+      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+        var animator, track;
+        return _regenerator.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                animator = this.animator, track = this.track;
+                track.on('race:start', this.increaseRainSpeed);
+                track.on('race:finish', this.revertRainSpeed); // generate some textures
+
+                animator.addTexture('rain_1', makeRainTexture(width, height));
+                animator.addTexture('rain_2', makeRainTexture(width, height));
+                animator.addTexture('rain_3', makeRainTexture(width, height));
+                animator.addTexture('rain_4', makeRainTexture(width, height));
+
+              case 7:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function init() {
+        return _init.apply(this, arguments);
+      }
+
+      return init;
+    }()
+  }, {
+    key: "setup",
+    value: function () {
+      var _setup = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+        return _regenerator.default.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2);
+      }));
+
+      function setup() {
+        return _setup.apply(this, arguments);
+      }
+
+      return setup;
+    }() // shift the rain over like it's moving faster
+
+  }]);
+  return RainEffect;
+}(); // function makeLightningTexture(width, height) {
+// 	const lightning = createSurface(width, height);
+// 	lightning.ctx.fillStyle = 'white';
+// 	lightning.ctx.fillRect(0, 0, width, height);
+// 	return new PIXI.Texture.from(lightning.el);
+// }
+
+
+exports.default = RainEffect;
 
 function makeRainTexture(width, height) {
   var start = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
@@ -97047,8 +97089,8 @@ function makeRainTexture(width, height) {
   rain.ctx.strokeStyle = "white";
   rain.ctx.translate(rain.width / 2, rain.height / 2);
   var hw = width / 2;
-  var hh = height / 2;
-  var max = Math.max(hw, hh);
+  var hh = height / 2; // const max = Math.max(hw, hh);
+
   rain.ctx.fillRect(0, 0, width, height);
   var i = start;
   var x;
@@ -97087,17 +97129,25 @@ function makeRainTexture(width, height) {
 
   return new _ntAnimator.PIXI.Texture.from(rain.el);
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../utils":"utils/index.js"}],"effects/leaves.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../utils":"utils/index.js"}],"effects/leaves.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.init = init;
+exports.default = void 0;
 
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
+var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
 
 var _ntAnimator = require("nt-animator");
 
@@ -97105,53 +97155,266 @@ var _utils = require("../utils");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+var width = 600;
+var height = 1000; // textures
+
 var LEAF_1;
 var LEAF_2;
 var LEAF_3;
 
-function init(_x, _x2) {
-  return _init.apply(this, arguments);
-}
+var LeavesEffect = /*#__PURE__*/function () {
+  function LeavesEffect(track, container, animator) {
+    var _this = this;
 
-function _init() {
-  _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(track, animator) {
-    var width, height;
-    return _regenerator.default.wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            width = 600;
-            height = 1000;
-            _context.next = 4;
-            return createLeaf('iVBORw0KGgoAAAANSUhEUgAAABkAAAAXCAMAAADJPRQhAAAADFBMVEXCXwnIZQnZeAz6nRBH53IJAAAABHRSTlMCVar95AmYiAAAAF9JREFUeNqV0kEOxCAMxdDY//53rmhHSANBar3Mi4AF9TJOc+3XNak1657vgpCRqxhzkl9AFZ2YaDaZcZQ4jbQkmLUhQHMa/T3y4W0+VSNFFfwJPrImxZQt9CTD3n2QC7v2AnVdiqWiAAAAAElFTkSuQmCC');
+    (0, _classCallCheck2.default)(this, LeavesEffect);
+    (0, _defineProperty2.default)(this, "increaseLeavesSpeed", function () {
+      var emitters = _this.emitters; // toggle fast animations
 
-          case 4:
-            LEAF_1 = _context.sent;
-            _context.next = 7;
-            return createLeaf('iVBORw0KGgoAAAANSUhEUgAAABkAAAAXCAMAAADJPRQhAAAADFBMVEXEhxjNlRzfsCH62ynxcoHCAAAABHRSTlMEdr7+TM65AgAAAF9JREFUeNqN0VEKgEAMA9Gd6f3vrK6wusSC+eyDEOj4Gbq7dlApzPuZAKGuGFI6JRbM85SL+JQqMWX5I+wijayNQEhxw6C6OqOrkZEior6EfdImuGQL3I12D30kcfzKAZY2AlF5aMSDAAAAAElFTkSuQmCC');
+      var _emitters$fast = (0, _slicedToArray2.default)(emitters.fast, 1),
+          fast = _emitters$fast[0];
 
-          case 7:
-            LEAF_2 = _context.sent;
-            _context.next = 10;
-            return createLeaf('iVBORw0KGgoAAAANSUhEUgAAABkAAAAXCAMAAADJPRQhAAAADFBMVEXCTAnIUQnZYAz6fRB/mqLrAAAABHRSTlMCVar95AmYiAAAAF9JREFUeNqV0kEKwzAMBVHN/PvfubgphkYyJLPUE7YXrodxmuu8rkkbW995F4WsbBJzkl9AFZOYaJrsOErcRkYSzL0lwHAa8z3y4m1e1SBFFfwJXnJPii0t9CTLnn2QD73FAnYAzYazAAAAAElFTkSuQmCC');
+      var _emitters$slow = (0, _slicedToArray2.default)(emitters.slow, 2),
+          slowA = _emitters$slow[0],
+          slowB = _emitters$slow[1]; // start the fast emitter
 
-          case 10:
-            LEAF_3 = _context.sent;
-            // generate some textures
-            animator.addTexture('leaves_1', makeLeavesTexture(width, height));
-            animator.addTexture('leaves_2', makeLeavesTexture(width, height));
-            animator.addTexture('leaves_3', makeLeavesTexture(width, height));
-            animator.addTexture('leaves_4', makeLeavesTexture(width, height));
 
-          case 15:
-          case "end":
-            return _context.stop();
-        }
+      setTimeout(function () {
+        fast.emitter.autoUpdate = true;
+        fast.emitter.emit = true;
+      }, 4000); // stop slow emitters
+
+      setTimeout(function () {
+        slowA.emitter.emit = false;
+        slowA.emitter.autoUpdate = false;
+        slowB.emitter.emit = false;
+        slowB.emitter.autoUpdate = false;
+      }, 2000);
+    });
+    (0, _defineProperty2.default)(this, "restoreLeavesSpeed", function () {
+      var emitters = _this.emitters;
+
+      var _emitters$fast2 = (0, _slicedToArray2.default)(emitters.fast, 1),
+          fast = _emitters$fast2[0];
+
+      var _emitters$slow2 = (0, _slicedToArray2.default)(emitters.slow, 2),
+          slowA = _emitters$slow2[0],
+          slowB = _emitters$slow2[1];
+
+      fast.visible = false;
+      fast.emitter.autoUpdate = false;
+      fast.emitter.emit = false; // stop animating
+
+      slowA.emitter.emit = true;
+      slowA.emitter.autoUpdate = true;
+      slowB.emitter.emit = true;
+      slowB.emitter.autoUpdate = true;
+    });
+    this.track = track;
+    this.container = container;
+    this.animator = animator;
+  }
+
+  (0, _createClass2.default)(LeavesEffect, [{
+    key: "init",
+    value: function () {
+      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+        var track, animator;
+        return _regenerator.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                track = this.track, animator = this.animator; // TODO: use animator.getImage
+
+                _context.next = 3;
+                return createLeaf('iVBORw0KGgoAAAANSUhEUgAAABkAAAAXCAMAAADJPRQhAAAADFBMVEXCXwnIZQnZeAz6nRBH53IJAAAABHRSTlMCVar95AmYiAAAAF9JREFUeNqV0kEOxCAMxdDY//53rmhHSANBar3Mi4AF9TJOc+3XNak1657vgpCRqxhzkl9AFZ2YaDaZcZQ4jbQkmLUhQHMa/T3y4W0+VSNFFfwJPrImxZQt9CTD3n2QC7v2AnVdiqWiAAAAAElFTkSuQmCC');
+
+              case 3:
+                LEAF_1 = _context.sent;
+                _context.next = 6;
+                return createLeaf('iVBORw0KGgoAAAANSUhEUgAAABkAAAAXCAMAAADJPRQhAAAADFBMVEXEhxjNlRzfsCH62ynxcoHCAAAABHRSTlMEdr7+TM65AgAAAF9JREFUeNqN0VEKgEAMA9Gd6f3vrK6wusSC+eyDEOj4Gbq7dlApzPuZAKGuGFI6JRbM85SL+JQqMWX5I+wijayNQEhxw6C6OqOrkZEior6EfdImuGQL3I12D30kcfzKAZY2AlF5aMSDAAAAAElFTkSuQmCC');
+
+              case 6:
+                LEAF_2 = _context.sent;
+                _context.next = 9;
+                return createLeaf('iVBORw0KGgoAAAANSUhEUgAAABkAAAAXCAMAAADJPRQhAAAADFBMVEXCTAnIUQnZYAz6fRB/mqLrAAAABHRSTlMCVar95AmYiAAAAF9JREFUeNqV0kEKwzAMBVHN/PvfubgphkYyJLPUE7YXrodxmuu8rkkbW995F4WsbBJzkl9AFZOYaJrsOErcRkYSzL0lwHAa8z3y4m1e1SBFFfwJXnJPii0t9CTLnn2QD73FAnYAzYazAAAAAElFTkSuQmCC');
+
+              case 9:
+                LEAF_3 = _context.sent;
+                // handle effects
+                track.on('race:start', this.increaseLeavesSpeed);
+                track.on('race:finish', this.restoreLeavesSpeed); // generate some textures
+
+                animator.addTexture('leaves_1', makeLeavesTexture(width, height));
+                animator.addTexture('leaves_2', makeLeavesTexture(width, height));
+                animator.addTexture('leaves_3', makeLeavesTexture(width, height));
+                animator.addTexture('leaves_4', makeLeavesTexture(width, height));
+
+              case 16:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function init() {
+        return _init.apply(this, arguments);
       }
-    }, _callee);
-  }));
-  return _init.apply(this, arguments);
-}
+
+      return init;
+    }()
+  }, {
+    key: "setup",
+    value: function () {
+      var _setup = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+        var effect, _this$emitters$fast, fast;
+
+        return _regenerator.default.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                // gather the emitters
+                effect = this.container.effect;
+                this.emitters = {
+                  fast: (0, _ntAnimator.findDisplayObjectsOfRole)(effect, 'fast_leaves'),
+                  slow: (0, _ntAnimator.findDisplayObjectsOfRole)(effect, 'slow_leaves')
+                }; // deactivate the fast emitter right away
+
+                _this$emitters$fast = (0, _slicedToArray2.default)(this.emitters.fast, 1), fast = _this$emitters$fast[0];
+
+                if (fast) {
+                  fast.emitter.emit = false;
+                }
+
+              case 4:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function setup() {
+        return _setup.apply(this, arguments);
+      }
+
+      return setup;
+    }()
+  }]);
+  return LeavesEffect;
+}(); // let emitters;
+// export async function init(track, container, animator) {
+// 	const width = 600;
+// 	const height = 1000;
+// 	// TODO: use animator.getImage
+// 	LEAF_1 = await createLeaf('iVBORw0KGgoAAAANSUhEUgAAABkAAAAXCAMAAADJPRQhAAAADFBMVEXCXwnIZQnZeAz6nRBH53IJAAAABHRSTlMCVar95AmYiAAAAF9JREFUeNqV0kEOxCAMxdDY//53rmhHSANBar3Mi4AF9TJOc+3XNak1657vgpCRqxhzkl9AFZ2YaDaZcZQ4jbQkmLUhQHMa/T3y4W0+VSNFFfwJPrImxZQt9CTD3n2QC7v2AnVdiqWiAAAAAElFTkSuQmCC');
+// 	LEAF_2 = await createLeaf('iVBORw0KGgoAAAANSUhEUgAAABkAAAAXCAMAAADJPRQhAAAADFBMVEXEhxjNlRzfsCH62ynxcoHCAAAABHRSTlMEdr7+TM65AgAAAF9JREFUeNqN0VEKgEAMA9Gd6f3vrK6wusSC+eyDEOj4Gbq7dlApzPuZAKGuGFI6JRbM85SL+JQqMWX5I+wijayNQEhxw6C6OqOrkZEior6EfdImuGQL3I12D30kcfzKAZY2AlF5aMSDAAAAAElFTkSuQmCC');
+// 	LEAF_3 = await createLeaf('iVBORw0KGgoAAAANSUhEUgAAABkAAAAXCAMAAADJPRQhAAAADFBMVEXCTAnIUQnZYAz6fRB/mqLrAAAABHRSTlMCVar95AmYiAAAAF9JREFUeNqV0kEKwzAMBVHN/PvfubgphkYyJLPUE7YXrodxmuu8rkkbW995F4WsbBJzkl9AFZOYaJrsOErcRkYSzL0lwHAa8z3y4m1e1SBFFfwJXnJPii0t9CTLnn2QD73FAnYAzYazAAAAAElFTkSuQmCC');
+// 	// handle effects
+// 	track.on('race:start', () => increaseLeavesSpeed(track, container, animator, emitters));
+// 	track.on('race:finish', () => restoreLeavesSpeed(track, container, animator, emitters));
+// 	// generate some textures
+// 	animator.addTexture('leaves_1', makeLeavesTexture(width, height));
+// 	animator.addTexture('leaves_2', makeLeavesTexture(width, height));
+// 	animator.addTexture('leaves_3', makeLeavesTexture(width, height));
+// 	animator.addTexture('leaves_4', makeLeavesTexture(width, height));
+// }
+// export async function setup(track, container, animator) {
+// 	emitters = gatherEmitters(container)
+// 	// disable 
+// 	emitters.fast[0].emitter.emit = false;
+// }
+// function increaseLeavesSpeed(track, container, animator, emitters) {
+// 	// toggle fast animations
+// 	const [ fast ] = emitters.fast;
+// 	const [ slowA, slowB ] = emitters.slow;
+// 	// start the fast emitter
+// 	setTimeout(() => {
+// 		fast.emitter.autoUpdate = true;
+// 		fast.emitter.emit = true;
+// 	}, 4000);
+// 	// stop slow emitters
+// 	setTimeout(() => {
+// 		slowA.emitter.emit = false;
+// 		slowA.emitter.autoUpdate = false;
+// 		slowB.emitter.emit = false;
+// 		slowB.emitter.autoUpdate = false;
+// 	}, 2000);
+// }
+// function restoreLeavesSpeed(track, container, animator, emitters) {
+// 	// toggle fast animations
+// 	const [ fast ] = emitters.fast;
+// 	const [ slowA, slowB ] = emitters.slow;
+// 	// emitters.fast[0].emitter.emit = true;
+// 	// emitters.fast[0].emitter.emit = true;
+// 	fast.visible = false;
+// 	fast.emitter.autoUpdate = false;
+// 	fast.emitter.emit = false;
+// 	// stop animating
+// 	slowA.emitter.emit = true;
+// 	slowA.emitter.autoUpdate = true;
+// 	slowB.emitter.emit = true;
+// 	slowB.emitter.autoUpdate = true;
+// }
+// function gatherEmitters(container, animator) {
+// 	const { effect } = container;
+// 	return {
+// 		fast: findDisplayObjectsOfRole(effect, 'fast_leaves'),
+// 		slow: findDisplayObjectsOfRole(effect, 'slow_leaves'),
+// 	};
+// 	// console.log(emitters);
+// 	// // gather the emitters to use
+// 	// for (const child of effect.children) {
+// 	// 	const { emitter } = child
+// 	// 	const nodes = [ ];
+// 	// 	emitters.push({ instance: emitter, min: emitter.minLifetime, max: emitter.maxLifetime, frequency: emitter.frequency, nodes });
+// 	// 	console.log('emitter', emitter)
+// 	// 	// capture all of the nodes
+// 	// 	let node = emitter.startSpeed
+// 	// 	do {
+// 	// 		nodes.push({ original: node.value, node })
+// 	// 		node = node.next
+// 	// 	}
+// 	// 	while (node);
+// 	// }
+// }
+// // // start increasing speeds
+// // function increaseLeavesSpeed(track, animator, emitters) {
+// // 	// gatherEmitters(track, emitters);
+// // 	// const CAPPED = 1500;
+// // 	// const MIN = 1;
+// // 	// const MAX = 2;
+// // 	// // animate the speed up
+// // 	// let count = 20;
+// // 	// const increase = setInterval(() => {
+// // 	// 	if (--count <= 0) {
+// // 	// 		clearInterval(increase);
+// // 	// 	}
+// // 	// 	// update emitters
+// // 	// 	for (const emitter of emitters) {
+// // 	// 		emitter.instance.maxLifetime = Math.max(MAX, emitter.instance.maxLifetime * 0.6);
+// // 	// 		emitter.instance.minLifetime = Math.max(MIN, emitter.instance.minLifetime * 0.6);
+// // 	// 		emitter.instance.frequency *= 0.9;
+// // 	// 		// speed up each node
+// // 	// 		for (const node of emitter.nodes) {
+// // 	// 			node.node.value = Math.min(node.node.value * 1.15, CAPPED);
+// // 	// 		}
+// // 	// 	}
+// // 	// }, 500);
+// // }
+// // function restoreLeavesSpeed(track, animator, emitters) {
+// // 	// for (const emitter of emitters) {
+// // 	// 	emitter.instance.maxLifetime = emitter.maxLifetime;
+// // 	// 	emitter.instance.minLifetime = emitter.minLifetime;
+// // 	// 	emitter.instance.frequency = emitter.frequency;
+// // 	// 	for (const node of emitter.nodes) {
+// // 	// 		node.node.value = node.original;
+// // 	// 	}
+// // 	// }
+// // }
+
+
+exports.default = LeavesEffect;
 
 function createLeaf(src) {
   return new Promise(function (resolve) {
@@ -97186,8 +97449,6 @@ function makeLeavesTexture(width, height) {
 
     while (y < height) {
       y += Math.random() * height * density; // require a minimum distance
-
-      console.log(Math.abs(Math.abs(x - prevX) + Math.abs(y - prevY)));
 
       if (Math.abs(Math.abs(x - prevX) + Math.abs(y - prevY)) < 50) {
         continue;
@@ -97250,7 +97511,7 @@ function makeLeavesTexture(width, height) {
   // 	rain.ctx.stroke();
   // }
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../utils":"utils/index.js"}],"components/track/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../utils":"utils/index.js"}],"components/track/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -97290,9 +97551,9 @@ var _preload = _interopRequireDefault(require("./preload"));
 
 var _scripts = require("../../scripts");
 
-var rainEffect = _interopRequireWildcard(require("../../effects/rain"));
+var _rain = _interopRequireDefault(require("../../effects/rain"));
 
-var leavesEffect = _interopRequireWildcard(require("../../effects/leaves"));
+var _leaves = _interopRequireDefault(require("../../effects/leaves"));
 
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
@@ -97326,6 +97587,17 @@ var Track = /*#__PURE__*/function () {
     (0, _defineProperty2.default)(this, "segments", []);
     (0, _defineProperty2.default)(this, "overlay", new _ntAnimator.PIXI.ResponsiveContainer());
     (0, _defineProperty2.default)(this, "ground", new _ntAnimator.PIXI.ResponsiveContainer());
+    (0, _defineProperty2.default)(this, "applyEffect", function () {
+      if (!_this.effect) {
+        return;
+      }
+
+      if (_this.effect.zIndex < 0) {
+        _this.ground.addChild(_this.effect);
+      } else {
+        _this.overlay.addChild(_this.effect);
+      }
+    });
     (0, _defineProperty2.default)(this, "stopAmbience", function () {
       var _this$ambience, _this$ambience$curren;
 
@@ -97388,7 +97660,12 @@ var Track = /*#__PURE__*/function () {
       var finishLine = _this.finishLine,
           overlay = _this.overlay,
           ground = _this.ground,
-          view = _this.view; // just in case (in testing)
+          view = _this.view; // move the effect over, if needed
+
+      if (_this.effect) {
+        _this.effect.parent.removeChild(_this.effect);
+      } // just in case (in testing)
+
 
       _this.removeStartingLine(); // reset all
 
@@ -97409,7 +97686,11 @@ var Track = /*#__PURE__*/function () {
       overlay.removeChildren();
       ground.removeChildren();
       overlay.addChild(finishLine.top);
-      ground.addChild(finishLine.bottom);
+      ground.addChild(finishLine.bottom); // restore the effects, if any
+
+      _this.applyEffect(); // show the finish
+
+
       finishLine.visible = true;
     });
     (0, _defineProperty2.default)(this, "removeStartingLine", function () {
@@ -97850,7 +98131,7 @@ var Track = /*#__PURE__*/function () {
     key: "_createEffect",
     value: function () {
       var _createEffect2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
-        var view, manifest, path, effect;
+        var view, manifest, path, effect, Handler, handler;
         return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
             switch (_context6.prev = _context6.next) {
@@ -97866,45 +98147,41 @@ var Track = /*#__PURE__*/function () {
                 return _context6.abrupt("return");
 
               case 4:
-                if (!(effect.script === 'rain')) {
+                // check for any scripts that need to run
+                // TODO: maybe add more support, but for now this is fine)
+                Handler = effect.script === 'rain' ? _rain.default : effect.script === 'leaves' ? _leaves.default : null;
+                handler = Handler ? new Handler(view, this, view.animator) : null; // initialization
+
+                if (!handler) {
                   _context6.next = 9;
                   break;
                 }
 
-                _context6.next = 7;
-                return rainEffect.init(this, view.animator);
-
-              case 7:
-                _context6.next = 12;
-                break;
+                _context6.next = 9;
+                return handler.init(view, this, view.animator);
 
               case 9:
-                if (!(effect.script === 'leaves')) {
-                  _context6.next = 12;
+                if (!(0, _utils.isArray)(effect.compose)) {
+                  _context6.next = 15;
                   break;
                 }
 
                 _context6.next = 12;
-                return leavesEffect.init(this, view.animator);
+                return view.animator.compose(effect, path, manifest);
 
               case 12:
-                if (!(0, _utils.isArray)(effect.compose)) {
+                this.effect = _context6.sent;
+                this.effect.zIndex = effect.z || 0;
+                this.applyEffect();
+
+              case 15:
+                if (!handler) {
                   _context6.next = 18;
                   break;
                 }
 
-                _context6.next = 15;
-                return view.animator.compose(effect, path, manifest);
-
-              case 15:
-                this.effect = _context6.sent;
-                this.effect.zIndex = effect.z || 0;
-
-                if (this.effect.zIndex < 0) {
-                  this.ground.addChild(this.effect);
-                } else {
-                  this.overlay.addChild(this.effect);
-                }
+                _context6.next = 18;
+                return handler.setup(view, this, view.animator);
 
               case 18:
               case "end":
@@ -99206,7 +99483,10 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
     finish.volume(_volume.VOLUME_FINISH_LINE_CROWD);
     finish.play(); // start the flash effect
 
-    _this.activateFlash(); // reset all car positions
+    _this.activateFlash(); // notify the race is over
+
+
+    _track.emit('race:finish'); // reset all car positions
 
 
     var _iterator4 = _createForOfIteratorHelper(_players),
@@ -100649,20 +100929,31 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "getStartingLinePosition",
     value: function getStartingLinePosition() {
-      var height = this.height,
-          options = this.options; // get the height ratio against the target
-      // size that scaling is based on
-
-      var ratio = height / options.scale.height;
-
-      if (isNaN(ratio)) {
-        ratio = 1;
-      } // calculate the correct position
-
-
-      return _config.TRACK_STARTING_LINE_POSITION * ratio;
+      return _config.TRACK_STARTING_LINE_POSITION; // responsive track support
+      // const { height, options } = this;
+      // // get the height ratio against the target
+      // // size that scaling is based on
+      // let ratio = height / options.scale.height;
+      // if (isNaN(ratio)) {
+      // 	ratio = 1;
+      // }
+      // // calculate the correct position
+      // return TRACK_STARTING_LINE_POSITION * ratio;
     }
     /** assigns the current track */
+
+  }, {
+    key: "simulateFinish",
+    value: function simulateFinish() {
+      this.state.isFinished = true;
+      this.track.showFinishLine();
+      var complete = new _raceCompleted.default({
+        track: this,
+        players: this.players
+      });
+      complete.play({});
+    }
+    /** activates the finished race state */
 
   }, {
     key: "render",
