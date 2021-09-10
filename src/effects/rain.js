@@ -7,6 +7,9 @@ const height = 400;
 
 export default class RainEffect {
 
+	preferredX = 0
+	isRacing = false
+
 	constructor(track, container, animator) {
 		this.track = track;
 		this.container = container;
@@ -15,8 +18,8 @@ export default class RainEffect {
 
 	async init() {
 		const { animator, track } = this;
-		track.on('race:start', this.increaseRainSpeed);
-		track.on('race:finish', this.revertRainSpeed);
+		track.on('race:start', () => this.isRacing = true);
+		track.on('race:finish', () => this.isRacing = false);
 		
 		// generate some textures
 		animator.addTexture('rain_1', makeRainTexture(width, height));
@@ -25,49 +28,32 @@ export default class RainEffect {
 		animator.addTexture('rain_4', makeRainTexture(width, height));
 	}
 
-	async setup() { }
+	async setup() {
+		const { track, container } = this;
+		const { effect } = container;
+		const update = effect.updateTransform;
 
-	// shift the rain over like it's moving faster
-	increaseRainSpeed = () => {
-		const { effect } = this.container;
-		
-		// save the original position;
-		effect.__originalX = effect.x;
+		// save the starting location
+		this.startingX = effect.x;
 
-		// offset a little since the effect should most
-		// likey be at 0
-		effect.x -= 1;
-
-		// shift it over while racing
-		function transition() {
-			effect.x *= 1.025;
-			
-			// limit to max
-			if (effect.x > MAX_RAIN_SHIFT_DISTANCE) {
-				return requestAnimationFrame(transition);
+		// handle updating each time the transform is updated
+		effect.updateTransform = () => {
+			if (this.isRacing) {
+				this.preferredX = Math.min(1.5, this.preferredX + 0.01);
+				const shift = (this.preferredX + ((track.state.typingSpeedModifier || 0) * 3)) / 4;
+				
+				// calculate the offset
+				effect.x = shift * MAX_RAIN_SHIFT_DISTANCE;
 			}
-			
-			effect.x = MAX_RAIN_SHIFT_DISTANCE;
-		}
+			else {
+				effect.x = this.startingX;
+			}
 
-		requestAnimationFrame(transition);
+			// update normally
+			update.call(effect);
+		};
 	}
-
-	// move back to center
-	revertRainSpeed = () => {
-		const { effect } = this.container;
-		effect.x = effect.__originalX;
-	}
-
 }
-
-
-// function makeLightningTexture(width, height) {
-// 	const lightning = createSurface(width, height);
-// 	lightning.ctx.fillStyle = 'white';
-// 	lightning.ctx.fillRect(0, 0, width, height);
-// 	return new PIXI.Texture.from(lightning.el);
-// }
 
 function makeRainTexture(width, height, start = 0, stop = Math.PI * 2) {
 	const rain = createSurface(width, height);
