@@ -97155,9 +97155,9 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var width = 600;
 var height = 1000;
 var MIN_SPEED = 3;
-var MAX_SPEED = 30;
+var MAX_SPEED = 23;
 var MIN_GUST = 2;
-var MAX_GUST = 10; // textures
+var MAX_GUST = 6; // textures
 
 var LEAF_1;
 var LEAF_2;
@@ -97359,8 +97359,7 @@ function makeLeavesTexture(width, height) {
       leaves.ctx.rotate(Math.random() * (Math.PI * 2));
       var image = images[(0 | x + y) % 3];
       leaves.ctx.drawImage(image, 0, 0);
-      leaves.ctx.setTransform(1, 0, 0, 1, 0, 0); // leaves.ctx.fillRect(x, y, 4, 4);
-
+      leaves.ctx.setTransform(1, 0, 0, 1, 0, 0);
       prevX = x;
       prevY = y;
     }

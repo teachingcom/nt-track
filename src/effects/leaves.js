@@ -5,9 +5,9 @@ const width = 600;
 const height = 1000;
 
 const MIN_SPEED = 3;
-const MAX_SPEED = 30;
+const MAX_SPEED = 23;
 const MIN_GUST = 2;
-const MAX_GUST = 10;
+const MAX_GUST = 6;
 
 // textures
 let LEAF_1
@@ -164,10 +164,8 @@ function makeLeavesTexture(width, height) {
 			
 			const image = images[(0 | x + y) % 3];
 			leaves.ctx.drawImage(image, 0, 0);
-
 			leaves.ctx.setTransform(1, 0, 0, 1, 0, 0);
-			// leaves.ctx.fillRect(x, y, 4, 4);
-
+			
 			prevX = x;
 			prevY = y;
 		}
