@@ -84284,7 +84284,6 @@ function addTexture(animator, spriteId, texture) {
   var spritesheet = spritesheets.textures = spritesheets.textures || {};
   spritesheet.__initialized__ = true;
   spritesheet[spriteId] = texture;
-  console.log(animator.manifest);
 }
 },{}],"animation/index.js":[function(require,module,exports) {
 "use strict";
@@ -101012,14 +101011,13 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
     }());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "createCar", /*#__PURE__*/function () {
       var _ref4 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(config) {
-        var view, _this$options, _this$options$tweaks, tweaks, _this$options$backgro, backgroundColor, player, container, car, bounds, display, target, scale, configScale, trail;
-
+        var view, tweaks, player, container, car, bounds, display, target, scale, configScale, trail;
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
                 view = (0, _assertThisInitialized2.default)(_this);
-                _this$options = _this.options, _this$options$tweaks = _this$options.tweaks, tweaks = _this$options$tweaks === void 0 ? {} : _this$options$tweaks, _this$options$backgro = _this$options.backgroundColor, backgroundColor = _this$options$backgro === void 0 ? 0xffffff : _this$options$backgro; // create the new car
+                tweaks = _objectSpread(_objectSpread({}, _this.options.tweaks || {}), config.tweaks || {}); // create the new car
 
                 player = new _ntAnimator.PIXI.Container();
                 container = new _ntAnimator.PIXI.ResponsiveContainer();
@@ -101028,6 +101026,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                   view: view
                 }, config), {}, {
                   baseHeight: DEFAULT_MAX_HEIGHT,
+                  tweaks: tweaks,
                   // lighting is flipped because the container
                   // is rotated in the view
                   lighting: _objectSpread({
@@ -101755,6 +101754,7 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
                   view: this,
                   type: options.type,
                   isAnimated: options.isAnimated,
+                  tweaks: options.tweaks,
                   hue: options.hue || 0,
                   baseHeight: baseHeight,
                   lighting: {
@@ -102390,12 +102390,12 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
     key: "setCar",
     value: function () {
       var _setCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(_ref) {
-        var type, hue, isAnimated, trail, car, container;
+        var type, hue, isAnimated, trail, tweaks, car, container;
         return _regenerator.default.wrap(function _callee7$(_context7) {
           while (1) {
             switch (_context7.prev = _context7.next) {
               case 0:
-                type = _ref.type, hue = _ref.hue, isAnimated = _ref.isAnimated, trail = _ref.trail;
+                type = _ref.type, hue = _ref.hue, isAnimated = _ref.isAnimated, trail = _ref.trail, tweaks = _ref.tweaks;
                 this.isReady = false; // clear the existing data
 
                 this._removeExistingCars(); // create the new car instance
@@ -102408,6 +102408,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                   type: type,
                   isAnimated: isAnimated,
                   hue: hue,
+                  tweaks: tweaks,
                   lighting: {
                     x: -5,
                     y: 7

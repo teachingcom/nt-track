@@ -136,7 +136,7 @@ export default class CustomizerView extends BaseView {
   }
 
   // replaces the active car
-  async setCar ({ type, hue, isAnimated, trail }) {
+  async setCar ({ type, hue, isAnimated, trail, tweaks }) {
     this.isReady = false
 
     // clear the existing data
@@ -149,6 +149,7 @@ export default class CustomizerView extends BaseView {
       type,
       isAnimated,
       hue,
+      tweaks,
       lighting: { x: -5, y: 7 }
     })
 

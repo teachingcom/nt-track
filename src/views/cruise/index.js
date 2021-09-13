@@ -80,6 +80,7 @@ export default class CruiseView extends BaseView {
 			view: this, 
       type: options.type,
       isAnimated: options.isAnimated,
+      tweaks: options.tweaks,
 			hue: options.hue || 0,
       baseHeight,
       lighting: { x: -5, y: 7 }

@@ -185,7 +185,7 @@ export default class GarageView extends BaseView {
 	// creates a new car instance
 	createCar = async config => {
 		const view = this;
-		const { tweaks = { }, backgroundColor = 0xffffff } = this.options;
+		const tweaks = { ...(this.options.tweaks || { }), ...(config.tweaks || { }) };
 
 		// create the new car
 		const player = new PIXI.Container()
@@ -194,6 +194,7 @@ export default class GarageView extends BaseView {
 			view, 
 			...config,
 			baseHeight: DEFAULT_MAX_HEIGHT,
+			tweaks,
 
 			// lighting is flipped because the container
 			// is rotated in the view
