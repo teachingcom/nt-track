@@ -65,7 +65,7 @@ function makeRainTexture(width, height, start = 0, stop = Math.PI * 2) {
 	const hh = height / 2;
 	// const max = Math.max(hw, hh);
 
-	rain.ctx.fillRect(0, 0, width, height);
+	// rain.ctx.fillRect(0, 0, width, height);
 
 	let i = start;
 	let x;

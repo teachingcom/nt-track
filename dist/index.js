@@ -97089,8 +97089,8 @@ function makeRainTexture(width, height) {
   rain.ctx.translate(rain.width / 2, rain.height / 2);
   var hw = width / 2;
   var hh = height / 2; // const max = Math.max(hw, hh);
+  // rain.ctx.fillRect(0, 0, width, height);
 
-  rain.ctx.fillRect(0, 0, width, height);
   var i = start;
   var x;
   var y;
