@@ -25,6 +25,9 @@ export default class RaceCompletedAnimation extends Animation {
 		// start the flash effect
 		this.activateFlash();
 
+		// notify the race is over
+		track.emit('race:finish');
+
 		// reset all car positions
 		for (const p of players) {
 			p.relativeX = -0.15;

@@ -85106,7 +85106,9 @@ exports.choose = choose;
 exports.appendFunc = appendFunc;
 exports.createWorker = createWorker;
 exports.getSprites = getSprites;
+exports.interpolate = interpolate;
 exports.findTextures = findTextures;
+exports.createSurface = createSurface;
 exports.sample = exports.isNil = exports.isNumber = exports.isArray = exports.noop = exports.merge = void 0;
 
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
@@ -85350,6 +85352,12 @@ function getSprites(container) {
   }
 
   return sprites;
+}
+/** interpolates two values */
+
+
+function interpolate(a, b, t) {
+  return a + (b - a) * t;
 } // recursively finds textures
 
 
@@ -85408,6 +85416,32 @@ function addTexture(collection, target, index) {
 
 
   group.targets.push([target, index]);
+} // quickly creates a rendering surface
+
+
+function createSurface() {
+  var el = document.createElement("canvas");
+  var ctx = el.getContext("2d");
+
+  function clear() {
+    el.width = el.width;
+  }
+
+  function resize(width, height) {
+    el.width = width;
+    el.height = height;
+    instance.width = width;
+    instance.height = height;
+  }
+
+  var instance = {
+    el: el,
+    ctx: ctx,
+    resize: resize,
+    clear: clear
+  };
+  resize.apply(void 0, arguments);
+  return instance;
 }
 },{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js"}],"utils/view.js":[function(require,module,exports) {
 "use strict";
@@ -85528,7 +85562,7 @@ exports.RACE_SOUND_ERROR_MAX_INTERVAL = RACE_SOUND_ERROR_MAX_INTERVAL;
 var RACE_FINISH_FLASH_FADE_TIME = 300; // crowds
 
 exports.RACE_FINISH_FLASH_FADE_TIME = RACE_FINISH_FLASH_FADE_TIME;
-var CROWD_DEFAULT_SCALE = 0.8;
+var CROWD_DEFAULT_SCALE = 0.6;
 exports.CROWD_DEFAULT_SCALE = CROWD_DEFAULT_SCALE;
 var CROWD_ANIMATION_VARIATIONS = 5;
 exports.CROWD_ANIMATION_VARIATIONS = CROWD_ANIMATION_VARIATIONS;
@@ -96071,13 +96105,17 @@ function _createCrowd() {
               sprite.y = animator.evaluateExpression(props.y);
             }
 
+            if ('tint' in props) {
+              sprite.tint = props.tint;
+            }
+
             return _context2.abrupt("return", [{
               displayObject: sprite,
               update: _utils.noop,
               dispose: _utils.noop
             }]);
 
-          case 18:
+          case 19:
           case "end":
             return _context2.stop();
         }
@@ -97009,7 +97047,420 @@ function parseScriptArgs(args) {
 
   return [name, config];
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/typeof":"../node_modules/@babel/runtime/helpers/typeof.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","./reactive_gull":"scripts/reactive_gull.js"}],"components/track/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/typeof":"../node_modules/@babel/runtime/helpers/typeof.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","./reactive_gull":"scripts/reactive_gull.js"}],"effects/rain.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
+
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var _ntAnimator = require("nt-animator");
+
+var _utils = require("../utils");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var MAX_RAIN_SHIFT_DISTANCE = -800;
+var width = 800;
+var height = 400;
+
+var RainEffect = /*#__PURE__*/function () {
+  function RainEffect(track, container, animator) {
+    (0, _classCallCheck2.default)(this, RainEffect);
+    (0, _defineProperty2.default)(this, "preferredX", 0);
+    (0, _defineProperty2.default)(this, "isRacing", false);
+    this.track = track;
+    this.container = container;
+    this.animator = animator;
+  }
+
+  (0, _createClass2.default)(RainEffect, [{
+    key: "init",
+    value: function () {
+      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+        var _this = this;
+
+        var animator, track;
+        return _regenerator.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                animator = this.animator, track = this.track;
+                track.on('race:start', function () {
+                  return _this.isRacing = true;
+                });
+                track.on('race:finish', function () {
+                  return _this.isRacing = false;
+                }); // generate some textures
+
+                animator.addTexture('rain_1', makeRainTexture(width, height));
+                animator.addTexture('rain_2', makeRainTexture(width, height));
+                animator.addTexture('rain_3', makeRainTexture(width, height));
+                animator.addTexture('rain_4', makeRainTexture(width, height));
+
+              case 7:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function init() {
+        return _init.apply(this, arguments);
+      }
+
+      return init;
+    }()
+  }, {
+    key: "setup",
+    value: function () {
+      var _setup = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+        var _this2 = this;
+
+        var track, container, effect, update;
+        return _regenerator.default.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                track = this.track, container = this.container;
+                effect = container.effect;
+                update = effect.updateTransform; // save the starting location
+
+                this.startingX = effect.x; // handle updating each time the transform is updated
+
+                effect.updateTransform = function () {
+                  if (_this2.isRacing) {
+                    _this2.preferredX = Math.min(1.5, _this2.preferredX + 0.01);
+                    var shift = (_this2.preferredX + (track.state.typingSpeedModifier || 0) * 3) / 4; // calculate the offset
+
+                    effect.x = shift * MAX_RAIN_SHIFT_DISTANCE;
+                  } else {
+                    effect.x = _this2.startingX;
+                  } // update normally
+
+
+                  update.call(effect);
+                };
+
+              case 5:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function setup() {
+        return _setup.apply(this, arguments);
+      }
+
+      return setup;
+    }()
+  }]);
+  return RainEffect;
+}();
+
+exports.default = RainEffect;
+
+function makeRainTexture(width, height) {
+  var start = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+  var stop = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : Math.PI * 2;
+  var rain = (0, _utils.createSurface)(width, height);
+  rain.ctx.strokeStyle = "white";
+  rain.ctx.translate(rain.width / 2, rain.height / 2);
+  var hw = width / 2;
+  var hh = height / 2; // const max = Math.max(hw, hh);
+  // rain.ctx.fillRect(0, 0, width, height);
+
+  var i = start;
+  var x;
+  var y;
+
+  while (i < stop) {
+    i += Math.random() * 0.1; // get the starting point
+
+    var sx = Math.max(-hw, Math.min(hw, Math.cos(i) * width));
+    var sy = Math.max(-hh, Math.min(hh, Math.sin(i) * height)); // require a valid distance
+
+    if (isNaN(x) || Math.abs(x - sx) + Math.abs(y - sy) < 4) {
+      x = sx;
+      y = sy;
+      continue;
+    }
+
+    x = sx;
+    y = sy; // get the center point
+
+    var mx = sx * 0.66;
+    var my = sy * 0.66; // get the starting point
+
+    var bt = Math.random() * 0.49;
+    var et = bt + Math.random() * 0.2;
+    var bx = (0, _utils.interpolate)(sx, mx, bt);
+    var by = (0, _utils.interpolate)(sy, my, bt);
+    var ex = (0, _utils.interpolate)(sx, mx, et);
+    var ey = (0, _utils.interpolate)(sy, my, et);
+    rain.ctx.beginPath();
+    rain.ctx.globalAlpha = Math.random() * 0.8 + 0.2;
+    rain.ctx.moveTo(bx, by);
+    rain.ctx.lineTo(ex, ey);
+    rain.ctx.stroke();
+  }
+
+  return new _ntAnimator.PIXI.Texture.from(rain.el);
+}
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../utils":"utils/index.js"}],"effects/leaves.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
+
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var _ntAnimator = require("nt-animator");
+
+var _utils = require("../utils");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var width = 600;
+var height = 1000;
+var MIN_SPEED = 3;
+var MAX_SPEED = 23;
+var MIN_GUST = 2;
+var MAX_GUST = 6; // textures
+
+var LEAF_1;
+var LEAF_2;
+var LEAF_3;
+
+var LeavesEffect = /*#__PURE__*/function () {
+  function LeavesEffect(_track, container, animator) {
+    var _this = this;
+
+    (0, _classCallCheck2.default)(this, LeavesEffect);
+    (0, _defineProperty2.default)(this, "isRacing", false);
+    (0, _defineProperty2.default)(this, "createHandler", function (origin, leaves) {
+      var track = _this.track;
+      var update = leaves.updateTransform;
+      var rotationSpeed = 0.01;
+      var width = track.width * 1.2;
+      var halfWidth = width / 2;
+      var offset = 100000 * Math.random(); // tracks the set of leaves behavior
+
+      var modifier = 0; // reset the 
+
+      function reset() {
+        leaves.x = halfWidth;
+        leaves.y = 0;
+        leaves.rotation = Math.random() * 0.2 - 0.1;
+        leaves.dir = Math.random() * rotationSpeed - rotationSpeed / 2;
+      } // override the update transform method
+
+
+      leaves.updateTransform = function () {
+        // update the effect modifier
+        modifier = _this.isRacing ? Math.min(modifier + 0.0025, 1) : 0; // calculate new values
+
+        var now = Math.cos((Date.now() + offset) * 0.001);
+        var adjusted = modifier + Math.min(1.5, track.state.typingSpeedModifier || 0);
+        var gustSpeed = Math.max(0, now * (MIN_GUST + MAX_GUST * adjusted));
+        var speed = MIN_SPEED + MAX_SPEED * adjusted + gustSpeed; // update the visuals
+
+        leaves.x -= speed;
+        leaves.rotation += now * -0.005;
+        leaves.y = now * 0.01 * 100; // reset if needed
+
+        if (leaves.x < -halfWidth) {
+          reset();
+        } // perform the normal update
+
+
+        update.call(leaves);
+      }; // initial state
+
+
+      reset();
+      leaves.x = width * origin;
+    });
+    this.track = _track;
+    this.container = container;
+    this.animator = animator;
+  }
+
+  (0, _createClass2.default)(LeavesEffect, [{
+    key: "init",
+    value: function () {
+      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+        var _this2 = this;
+
+        var track, animator;
+        return _regenerator.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                track = this.track, animator = this.animator; // TODO: use animator.getImage
+
+                _context.next = 3;
+                return createLeaf('iVBORw0KGgoAAAANSUhEUgAAABkAAAAXCAMAAADJPRQhAAAADFBMVEXCXwnIZQnZeAz6nRBH53IJAAAABHRSTlMCVar95AmYiAAAAF9JREFUeNqV0kEOxCAMxdDY//53rmhHSANBar3Mi4AF9TJOc+3XNak1657vgpCRqxhzkl9AFZ2YaDaZcZQ4jbQkmLUhQHMa/T3y4W0+VSNFFfwJPrImxZQt9CTD3n2QC7v2AnVdiqWiAAAAAElFTkSuQmCC');
+
+              case 3:
+                LEAF_1 = _context.sent;
+                _context.next = 6;
+                return createLeaf('iVBORw0KGgoAAAANSUhEUgAAABkAAAAXCAMAAADJPRQhAAAADFBMVEXEhxjNlRzfsCH62ynxcoHCAAAABHRSTlMEdr7+TM65AgAAAF9JREFUeNqN0VEKgEAMA9Gd6f3vrK6wusSC+eyDEOj4Gbq7dlApzPuZAKGuGFI6JRbM85SL+JQqMWX5I+wijayNQEhxw6C6OqOrkZEior6EfdImuGQL3I12D30kcfzKAZY2AlF5aMSDAAAAAElFTkSuQmCC');
+
+              case 6:
+                LEAF_2 = _context.sent;
+                _context.next = 9;
+                return createLeaf('iVBORw0KGgoAAAANSUhEUgAAABkAAAAXCAMAAADJPRQhAAAADFBMVEXCTAnIUQnZYAz6fRB/mqLrAAAABHRSTlMCVar95AmYiAAAAF9JREFUeNqV0kEKwzAMBVHN/PvfubgphkYyJLPUE7YXrodxmuu8rkkbW995F4WsbBJzkl9AFZOYaJrsOErcRkYSzL0lwHAa8z3y4m1e1SBFFfwJXnJPii0t9CTLnn2QD73FAnYAzYazAAAAAElFTkSuQmCC');
+
+              case 9:
+                LEAF_3 = _context.sent;
+                // handle effects
+                track.on('race:start', function () {
+                  return _this2.isRacing = true;
+                });
+                track.on('race:finish', function () {
+                  return _this2.isRacing = false;
+                }); // generate some textures
+
+                animator.addTexture('leaves_1', makeLeavesTexture(width, height));
+                animator.addTexture('leaves_2', makeLeavesTexture(width, height));
+                animator.addTexture('leaves_3', makeLeavesTexture(width, height));
+                animator.addTexture('leaves_4', makeLeavesTexture(width, height));
+
+              case 16:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function init() {
+        return _init.apply(this, arguments);
+      }
+
+      return init;
+    }()
+  }, {
+    key: "setup",
+    value: function () {
+      var _setup = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+        var container, track, effect, leaves, total, i;
+        return _regenerator.default.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                container = this.container, track = this.track;
+                effect = container.effect; // setup each leaf effect
+
+                leaves = (0, _ntAnimator.findDisplayObjectsOfRole)(effect, 'leaves');
+                total = leaves.length;
+
+                for (i = 0; i < total; i++) {
+                  this.createHandler(i / total, leaves[i]);
+                }
+
+              case 5:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function setup() {
+        return _setup.apply(this, arguments);
+      }
+
+      return setup;
+    }()
+  }]);
+  return LeavesEffect;
+}();
+
+exports.default = LeavesEffect;
+
+function createLeaf(src) {
+  return new Promise(function (resolve) {
+    var img = document.createElement('img');
+    img.src = "data:image/png;base64,".concat(src);
+
+    img.onload = function () {
+      return resolve(img);
+    };
+  });
+}
+
+function makeLeavesTexture(width, height) {
+  var shadowSize = 30;
+  var halfShadowSize = shadowSize / 2;
+  var shadow = (0, _utils.createSurface)(shadowSize, shadowSize);
+  shadow.ctx.fillStyle = shadow.ctx.createRadialGradient(halfShadowSize, halfShadowSize, 0, halfShadowSize, halfShadowSize, halfShadowSize);
+  shadow.ctx.fillStyle.addColorStop(0, 'rgba(0,0,0,1)');
+  shadow.ctx.fillStyle.addColorStop(1, 'rgba(0,0,0,0)');
+  shadow.ctx.fillRect(0, 0, shadowSize, shadowSize);
+  var leaves = (0, _utils.createSurface)(width, height);
+  var x = 0;
+  var y = 0;
+  var prevX = -100;
+  var prevY = -100;
+  var images = [LEAF_1, LEAF_2, LEAF_3];
+  var density = 0.6;
+
+  while (x < width) {
+    x += Math.random() * width * density;
+    y = 0;
+
+    while (y < height) {
+      y += Math.random() * height * density; // require a minimum distance
+
+      if (Math.abs(Math.abs(x - prevX) + Math.abs(y - prevY)) < 50) {
+        continue;
+      }
+
+      var scale = Math.random() * 0.5 + 0.5;
+      leaves.ctx.translate(x, y);
+      var offset = 2 + Math.random() * 10;
+      leaves.ctx.globalAlpha = 0.1 + (1 - offset / 12) * 0.1;
+      leaves.ctx.scale(scale, scale);
+      leaves.ctx.drawImage(shadow.el, offset / scale + -halfShadowSize, -halfShadowSize);
+      leaves.ctx.globalAlpha = 1;
+      leaves.ctx.rotate(Math.random() * (Math.PI * 2));
+      var image = images[(0 | x + y) % 3];
+      leaves.ctx.drawImage(image, 0, 0);
+      leaves.ctx.setTransform(1, 0, 0, 1, 0, 0);
+      prevX = x;
+      prevY = y;
+    }
+  }
+
+  return new _ntAnimator.PIXI.Texture.from(leaves.el);
+}
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../utils":"utils/index.js"}],"components/track/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -97049,6 +97500,10 @@ var _preload = _interopRequireDefault(require("./preload"));
 
 var _scripts = require("../../scripts");
 
+var _rain = _interopRequireDefault(require("../../effects/rain"));
+
+var _leaves = _interopRequireDefault(require("../../effects/leaves"));
+
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
@@ -97081,6 +97536,17 @@ var Track = /*#__PURE__*/function () {
     (0, _defineProperty2.default)(this, "segments", []);
     (0, _defineProperty2.default)(this, "overlay", new _ntAnimator.PIXI.ResponsiveContainer());
     (0, _defineProperty2.default)(this, "ground", new _ntAnimator.PIXI.ResponsiveContainer());
+    (0, _defineProperty2.default)(this, "applyEffect", function () {
+      if (!_this.effect) {
+        return;
+      }
+
+      if (_this.effect.zIndex < 0) {
+        _this.ground.addChild(_this.effect);
+      } else {
+        _this.overlay.addChild(_this.effect);
+      }
+    });
     (0, _defineProperty2.default)(this, "stopAmbience", function () {
       var _this$ambience, _this$ambience$curren;
 
@@ -97143,7 +97609,12 @@ var Track = /*#__PURE__*/function () {
       var finishLine = _this.finishLine,
           overlay = _this.overlay,
           ground = _this.ground,
-          view = _this.view; // just in case (in testing)
+          view = _this.view; // move the effect over, if needed
+
+      if (_this.effect) {
+        _this.effect.parent.removeChild(_this.effect);
+      } // just in case (in testing)
+
 
       _this.removeStartingLine(); // reset all
 
@@ -97164,7 +97635,11 @@ var Track = /*#__PURE__*/function () {
       overlay.removeChildren();
       ground.removeChildren();
       overlay.addChild(finishLine.top);
-      ground.addChild(finishLine.bottom);
+      ground.addChild(finishLine.bottom); // restore the effects, if any
+
+      _this.applyEffect(); // show the finish
+
+
       finishLine.visible = true;
     });
     (0, _defineProperty2.default)(this, "removeStartingLine", function () {
@@ -97602,18 +98077,18 @@ var Track = /*#__PURE__*/function () {
     }() // creates a background, if needed
 
   }, {
-    key: "_createBackground",
+    key: "_createEffect",
     value: function () {
-      var _createBackground2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
-        var view, manifest, background;
+      var _createEffect2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
+        var view, manifest, path, effect, Handler, handler;
         return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
             switch (_context6.prev = _context6.next) {
               case 0:
-                view = this.view, manifest = this.manifest;
-                background = manifest.background; // check if present
+                view = this.view, manifest = this.manifest, path = this.path;
+                effect = manifest.effect; // check if present
 
-                if (background) {
+                if (effect) {
                   _context6.next = 4;
                   break;
                 }
@@ -97621,28 +98096,99 @@ var Track = /*#__PURE__*/function () {
                 return _context6.abrupt("return");
 
               case 4:
-                // check for a background color
-                if ((0, _utils.isNumber)(background.color)) view.renderer.backgroundColor = background.color; // check for a composition
+                // check for any scripts that need to run
+                // TODO: maybe add more support, but for now this is fine)
+                Handler = effect.script === 'rain' ? _rain.default : effect.script === 'leaves' ? _leaves.default : null;
+                handler = Handler ? new Handler(view, this, view.animator) : null; // initialization
 
-                if (!(0, _utils.isArray)(background.compose)) {
-                  _context6.next = 11;
+                if (!handler) {
+                  _context6.next = 9;
                   break;
                 }
 
-                _context6.next = 8;
-                return view.animator.compose(background, this.path);
+                _context6.next = 9;
+                return handler.init(view, this, view.animator);
 
-              case 8:
-                this.background = _context6.sent;
-                this.background.zIndex = -1;
-                this.container.addChild(this.background);
+              case 9:
+                if (!(0, _utils.isArray)(effect.compose)) {
+                  _context6.next = 15;
+                  break;
+                }
 
-              case 11:
+                _context6.next = 12;
+                return view.animator.compose(effect, path, manifest);
+
+              case 12:
+                this.effect = _context6.sent;
+                this.effect.zIndex = effect.z || 0;
+                this.applyEffect();
+
+              case 15:
+                if (!handler) {
+                  _context6.next = 18;
+                  break;
+                }
+
+                _context6.next = 18;
+                return handler.setup(view, this, view.animator);
+
+              case 18:
               case "end":
                 return _context6.stop();
             }
           }
         }, _callee6, this);
+      }));
+
+      function _createEffect() {
+        return _createEffect2.apply(this, arguments);
+      }
+
+      return _createEffect;
+    }() // creates a background, if needed
+
+  }, {
+    key: "_createBackground",
+    value: function () {
+      var _createBackground2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7() {
+        var view, manifest, background;
+        return _regenerator.default.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                view = this.view, manifest = this.manifest;
+                background = manifest.background; // check if present
+
+                if (background) {
+                  _context7.next = 4;
+                  break;
+                }
+
+                return _context7.abrupt("return");
+
+              case 4:
+                // check for a background color
+                if ((0, _utils.isNumber)(background.color)) view.renderer.backgroundColor = background.color; // check for a composition
+
+                if (!(0, _utils.isArray)(background.compose)) {
+                  _context7.next = 11;
+                  break;
+                }
+
+                _context7.next = 8;
+                return view.animator.compose(background, this.path);
+
+              case 8:
+                this.background = _context7.sent;
+                this.background.zIndex = -1;
+                this.container.addChild(this.background);
+
+              case 11:
+              case "end":
+                return _context7.stop();
+            }
+          }
+        }, _callee7, this);
       }));
 
       function _createBackground() {
@@ -97655,33 +98201,33 @@ var Track = /*#__PURE__*/function () {
   }, {
     key: "_createForeground",
     value: function () {
-      var _createForeground2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7() {
+      var _createForeground2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8() {
         var view, manifest, foreground, layer;
-        return _regenerator.default.wrap(function _callee7$(_context7) {
+        return _regenerator.default.wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
                 view = this.view, manifest = this.manifest;
                 foreground = manifest.foreground; // check if present
 
                 if (foreground) {
-                  _context7.next = 4;
+                  _context8.next = 4;
                   break;
                 }
 
-                return _context7.abrupt("return");
+                return _context8.abrupt("return");
 
               case 4:
                 if (!(0, _utils.isArray)(foreground.compose)) {
-                  _context7.next = 12;
+                  _context8.next = 12;
                   break;
                 }
 
-                _context7.next = 7;
+                _context8.next = 7;
                 return view.animator.compose(foreground, this.path);
 
               case 7:
-                layer = _context7.sent;
+                layer = _context8.sent;
                 // create a a separate view - this will
                 // be placed over the cars layer
                 this.foreground = new _ntAnimator.PIXI.ResponsiveContainer();
@@ -97691,10 +98237,10 @@ var Track = /*#__PURE__*/function () {
 
               case 12:
               case "end":
-                return _context7.stop();
+                return _context8.stop();
             }
           }
-        }, _callee7, this);
+        }, _callee8, this);
       }));
 
       function _createForeground() {
@@ -97707,12 +98253,12 @@ var Track = /*#__PURE__*/function () {
   }, {
     key: "applyScripts",
     value: function () {
-      var _applyScripts = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8() {
+      var _applyScripts = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9() {
         var _i2, _arr2, container, objs, _iterator4, _step4, _obj$config, obj, _parseScriptArgs, _parseScriptArgs2, name, args, handler;
 
-        return _regenerator.default.wrap(function _callee8$(_context8) {
+        return _regenerator.default.wrap(function _callee9$(_context9) {
           while (1) {
-            switch (_context8.prev = _context8.next) {
+            switch (_context9.prev = _context9.next) {
               case 0:
                 _i2 = 0, _arr2 = [this.overlay, this.ground
                 /*, this.foreground, this.background */
@@ -97720,67 +98266,67 @@ var Track = /*#__PURE__*/function () {
 
               case 1:
                 if (!(_i2 < _arr2.length)) {
-                  _context8.next = 27;
+                  _context9.next = 27;
                   break;
                 }
 
                 container = _arr2[_i2];
                 objs = (0, _ntAnimator.findDisplayObjectsOfRole)(container, 'script');
                 _iterator4 = _createForOfIteratorHelper(objs);
-                _context8.prev = 5;
+                _context9.prev = 5;
 
                 _iterator4.s();
 
               case 7:
                 if ((_step4 = _iterator4.n()).done) {
-                  _context8.next = 16;
+                  _context9.next = 16;
                   break;
                 }
 
                 obj = _step4.value;
                 _parseScriptArgs = (0, _scripts.parseScriptArgs)((_obj$config = obj.config) === null || _obj$config === void 0 ? void 0 : _obj$config.script), _parseScriptArgs2 = (0, _slicedToArray2.default)(_parseScriptArgs, 2), name = _parseScriptArgs2[0], args = _parseScriptArgs2[1];
-                _context8.next = 12;
+                _context9.next = 12;
                 return (0, _scripts.loadScript)(name, args, obj, this.view, this.view.animator);
 
               case 12:
-                handler = _context8.sent;
+                handler = _context9.sent;
 
                 if (handler) {
                   this.scripts.push(handler);
                 }
 
               case 14:
-                _context8.next = 7;
+                _context9.next = 7;
                 break;
 
               case 16:
-                _context8.next = 21;
+                _context9.next = 21;
                 break;
 
               case 18:
-                _context8.prev = 18;
-                _context8.t0 = _context8["catch"](5);
+                _context9.prev = 18;
+                _context9.t0 = _context9["catch"](5);
 
-                _iterator4.e(_context8.t0);
+                _iterator4.e(_context9.t0);
 
               case 21:
-                _context8.prev = 21;
+                _context9.prev = 21;
 
                 _iterator4.f();
 
-                return _context8.finish(21);
+                return _context9.finish(21);
 
               case 24:
                 _i2++;
-                _context8.next = 1;
+                _context9.next = 1;
                 break;
 
               case 27:
               case "end":
-                return _context8.stop();
+                return _context9.stop();
             }
           }
-        }, _callee8, this, [[5, 18, 21, 24]]);
+        }, _callee9, this, [[5, 18, 21, 24]]);
       }));
 
       function applyScripts() {
@@ -97918,16 +98464,16 @@ var Track = /*#__PURE__*/function () {
 
     /** creates a new track instance */
     value: function () {
-      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9(options) {
+      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10(options) {
         var view, seed, activity, instance, y;
-        return _regenerator.default.wrap(function _callee9$(_context9) {
+        return _regenerator.default.wrap(function _callee10$(_context10) {
           while (1) {
-            switch (_context9.prev = _context9.next) {
+            switch (_context10.prev = _context10.next) {
               case 0:
                 view = options.view, seed = options.seed;
                 // create the new track
                 instance = new Track();
-                _context9.prev = 2;
+                _context10.prev = 2;
                 instance.options = options;
                 instance.view = view;
                 instance.container = new _ntAnimator.PIXI.Container(); // include special plugins
@@ -97951,33 +98497,33 @@ var Track = /*#__PURE__*/function () {
 
                 activity = 'preloading resources';
                 view.setLoadingStatus('assets', 'preloading resources');
-                _context9.next = 21;
+                _context10.next = 21;
                 return instance._preloadResources();
 
               case 21:
                 // setup each part
                 activity = 'assembling repeating road';
                 view.setLoadingStatus('init', 'creating road');
-                _context9.next = 25;
+                _context10.next = 25;
                 return instance._createRoad();
 
               case 25:
                 activity = 'assembling starting line';
                 view.setLoadingStatus('init', 'creating starting line');
-                _context9.next = 29;
+                _context10.next = 29;
                 return instance._createStartingLine();
 
               case 29:
                 // todo? create when needed?
                 activity = 'assembling finish line';
                 view.setLoadingStatus('init', 'creating finish line');
-                _context9.next = 33;
+                _context10.next = 33;
                 return instance._createFinishLine();
 
               case 33:
                 // apply scripts, if any
                 activity = 'loading doodad scripts';
-                _context9.next = 36;
+                _context10.next = 36;
                 return instance.applyScripts();
 
               case 36:
@@ -97985,11 +98531,16 @@ var Track = /*#__PURE__*/function () {
                 activity = 'loading ambient sound';
                 view.setLoadingStatus('init', 'creating ambient sound');
 
-                instance._createAmbience(); // await instance._createForeground();
+                instance._createAmbience(); // other extras
+
+
+                _context10.next = 41;
+                return instance._createEffect();
+
+              case 41:
+                // await instance._createForeground();
                 // await instance._createBackground();
                 // set the y position
-
-
                 activity = 'aligning track';
                 view.setLoadingStatus('init', 'aligning track');
                 y = _scaling.TRACK_TOP + _scaling.TRACK_HEIGHT / 2;
@@ -97997,24 +98548,24 @@ var Track = /*#__PURE__*/function () {
                 instance.ground.relativeY = y; // can render
 
                 instance.ready = true;
-                _context9.next = 51;
+                _context10.next = 53;
                 break;
 
-              case 47:
-                _context9.prev = 47;
-                _context9.t0 = _context9["catch"](2);
-                console.error(_context9.t0);
+              case 49:
+                _context10.prev = 49;
+                _context10.t0 = _context10["catch"](2);
+                console.error(_context10.t0);
                 throw new Error(activity);
 
-              case 51:
-                return _context9.abrupt("return", instance);
+              case 53:
+                return _context10.abrupt("return", instance);
 
-              case 52:
+              case 54:
               case "end":
-                return _context9.stop();
+                return _context10.stop();
             }
           }
-        }, _callee9, null, [[2, 47]]);
+        }, _callee10, null, [[2, 49]]);
       }));
 
       function create(_x) {
@@ -98038,7 +98589,7 @@ var getRightEdge = function getRightEdge(t) {
 var byRightEdge = function byRightEdge(a, b) {
   return getRightEdge(a) - getRightEdge(b);
 };
-},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../rng":"rng.js","../../views/track/scaling":"views/track/scaling.js","../../config":"config.js","../../utils":"utils/index.js","./segment":"components/track/segment.js","../../plugins/crowd":"plugins/crowd/index.js","../../audio/ambient":"audio/ambient.js","./preload":"components/track/preload.js","../../scripts":"scripts/index.js"}],"animations/car-entry.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../rng":"rng.js","../../views/track/scaling":"views/track/scaling.js","../../config":"config.js","../../utils":"utils/index.js","./segment":"components/track/segment.js","../../plugins/crowd":"plugins/crowd/index.js","../../audio/ambient":"audio/ambient.js","./preload":"components/track/preload.js","../../scripts":"scripts/index.js","../../effects/rain":"effects/rain.js","../../effects/leaves":"effects/leaves.js"}],"animations/car-entry.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98881,7 +99432,10 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
     finish.volume(_volume.VOLUME_FINISH_LINE_CROWD);
     finish.play(); // start the flash effect
 
-    _this.activateFlash(); // reset all car positions
+    _this.activateFlash(); // notify the race is over
+
+
+    _track.emit('race:finish'); // reset all car positions
 
 
     var _iterator4 = _createForOfIteratorHelper(_players),
@@ -100337,20 +100891,31 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "getStartingLinePosition",
     value: function getStartingLinePosition() {
-      var height = this.height,
-          options = this.options; // get the height ratio against the target
-      // size that scaling is based on
-
-      var ratio = height / options.scale.height;
-
-      if (isNaN(ratio)) {
-        ratio = 1;
-      } // calculate the correct position
-
-
-      return _config.TRACK_STARTING_LINE_POSITION * ratio;
+      return _config.TRACK_STARTING_LINE_POSITION; // responsive track support
+      // const { height, options } = this;
+      // // get the height ratio against the target
+      // // size that scaling is based on
+      // let ratio = height / options.scale.height;
+      // if (isNaN(ratio)) {
+      // 	ratio = 1;
+      // }
+      // // calculate the correct position
+      // return TRACK_STARTING_LINE_POSITION * ratio;
     }
     /** assigns the current track */
+
+  }, {
+    key: "simulateFinish",
+    value: function simulateFinish() {
+      this.state.isFinished = true;
+      this.track.showFinishLine();
+      var complete = new _raceCompleted.default({
+        track: this,
+        players: this.players
+      });
+      complete.play({});
+    }
+    /** activates the finished race state */
 
   }, {
     key: "render",

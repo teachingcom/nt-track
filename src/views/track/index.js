@@ -275,17 +275,20 @@ export default class TrackView extends BaseView {
 	}
 
 	getStartingLinePosition() {
-		const { height, options } = this;
+		return TRACK_STARTING_LINE_POSITION;
 		
-		// get the height ratio against the target
-		// size that scaling is based on
-		let ratio = height / options.scale.height;
-		if (isNaN(ratio)) {
-			ratio = 1;
-		}
+		// responsive track support
+		// const { height, options } = this;
+		
+		// // get the height ratio against the target
+		// // size that scaling is based on
+		// let ratio = height / options.scale.height;
+		// if (isNaN(ratio)) {
+		// 	ratio = 1;
+		// }
 
-		// calculate the correct position
-		return TRACK_STARTING_LINE_POSITION * ratio;
+		// // calculate the correct position
+		// return TRACK_STARTING_LINE_POSITION * ratio;
 	}
 
 	/** assigns the current track */
@@ -552,6 +555,13 @@ export default class TrackView extends BaseView {
 
 		// finalize the result
 		raceCompletedAnimation.play({ });
+	}
+
+	simulateFinish() { 
+		this.state.isFinished = true;
+		this.track.showFinishLine();
+		const complete = new RaceCompletedAnimation({ track: this, players: this.players });	
+		complete.play({ })
 	}
 
 	/** activates the finished race state */
