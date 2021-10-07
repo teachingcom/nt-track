@@ -4,6 +4,9 @@ import { animate, findDisplayObjectsOfRole, PIXI, removeDisplayObject } from 'nt
 import Treadmill from '../../components/treadmill'
 import Car from '../../components/car'
 import Trail from '../../components/trail'
+import { TRAIL_SCALE_IN_PREVIEW } from '../../config'
+import { LAYER_TRAIL } from '../track/layers'
+import { waitForCondition } from '../../utils/wait'
 
 const DEFAULT_MAX_HEIGHT = 250
 const OTHER_DRIVER_OFFSCREEN_DISTANCE = -1200
@@ -96,25 +99,47 @@ export default class CustomizerView extends BaseView {
     const sprayer = await this.animator.create('extras/sprayer')
     sprayer.y = CONTENT_Y
     sprayer.x = CONTENT_X
-    sprayer.controller.stopEmitters()
+    sprayer.controller?.stopEmitters()
 
     this.sprayer = sprayer
     this.workspace.addChild(sprayer)
   }
 
+  async waitForActivity(activity) {
+    return await waitForCondition(
+      `customizer:wait-for-car-to-${activity}`, 
+      { single: true }, 
+      () => !!this.isReady
+    );
+  }
+
   // changes the paint for a car
   async setPaint (hue) {
-    this.sprayer.controller.activateEmitters()
-    clearTimeout(this.__pendingHueShift)
-    clearTimeout(this.__clearSprayingEffect)
+    await this.waitForActivity('paint');
+
+    // performt the paint effect
+    if (this.sprayer) {
+      this.sprayer.controller?.activateEmitters()
+      clearTimeout(this.__pendingHueShift)
+      clearTimeout(this.__clearSprayingEffect)
+      this.__clearSprayingEffect = setTimeout(() => {
+        this.sprayer?.controller?.stopEmitters()
+      }, 1000)
+    }
     
     // perform the switch
-    this.__pendingHueShift = setTimeout(() => this.car.repaintCar(hue), 300)
-    this.__clearSprayingEffect = setTimeout(() => this.sprayer.controller.stopEmitters(), 1000)
+    // if the car is missing, then it's probably in
+    // a transitional phase and can be skipped
+    this.__pendingHueShift = setTimeout(() => {
+      this.car?.repaintCar(hue);
+    }, 300)
   }
 
   // replaces the active car
-  async setCar ({ type, hue, isAnimated, trail }) {
+  async setCar ({ type, hue, isAnimated, trail, tweaks }) {
+    this.isReady = false
+
+    // clear the existing data
     this._removeExistingCars()
 
     // create the new car instance
@@ -124,6 +149,7 @@ export default class CustomizerView extends BaseView {
       type,
       isAnimated,
       hue,
+      tweaks,
       lighting: { x: -5, y: 7 }
     })
 
@@ -140,6 +166,7 @@ export default class CustomizerView extends BaseView {
     // add to the view
     container.addChild(car)
     this.viewport.addChild(container)
+
     this.container = container
     this.car = car
 
@@ -147,14 +174,20 @@ export default class CustomizerView extends BaseView {
     // just dispose of the active one
     delete this.trail
     if (trail) {
-      await this.setTrail(trail)
+      await this.setTrail(trail, false)
     }
-
+    
     // animate the new car into view
+    this.isReady = true
     return this._animatePlayerCarIntoView(this.container)
   }
 
-  async setTrail(type) {
+  async setTrail(type, waitForReady = true) {
+    // wait for the customizer to be ready for changes, if needed
+    if (waitForReady) {
+      await this.waitForActivity('trail');
+    }
+
     this.trail?.dispose()
 
     // if there's not a trail, they probably set
@@ -174,9 +207,8 @@ export default class CustomizerView extends BaseView {
     // a trail might not be disposed, go ahead and target
     // each trail part and remove it individually
     try {
-      const parts = findDisplayObjectsOfRole(this.container, 'trail-part')
-      for (const part of parts) {
-        removeDisplayObject(part)
+      if (this.trail) {
+        removeDisplayObject(this.trail)
       }
     }
     // nothing to do here
@@ -184,12 +216,11 @@ export default class CustomizerView extends BaseView {
 
     // attach to the view
     this.trail = trail
-    this.trail.attachTo(this.container)
-    this.trail.each(part => {
-      part.role = ['trail-part', ...(part.role || [])]
-      part.alpha = 0
-      part.x = this.car.positions.back
-    });
+    this.container.addChild(this.trail)
+    this.trail.x = this.car.positions.back
+    this.trail.scale.x = this.trail.scale.y = TRAIL_SCALE_IN_PREVIEW
+    this.trail.zIndex = LAYER_TRAIL
+    this.container.sortChildren()
 
     // also, fade in the trails
     animate({
@@ -198,7 +229,7 @@ export default class CustomizerView extends BaseView {
       to: { t: 1 },
       loop: false,
       update: update => {
-        trail.each(part =>  part.alpha = update.t)
+        trail.alpha = update.t
       }
     })
   }

@@ -5,6 +5,7 @@ import { isNumber, wait } from '../../utils';
 import createActivityIndicator from '../../components/activity';
 import Trail from "../../components/trail";
 import { toRGB } from "../../utils/color";
+import { TRAIL_SCALE } from "../../config";
 
 const DEFAULT_MAX_HEIGHT = 250;
 const EFFECTS_PADDING_SCALING = 0.7;
@@ -183,15 +184,16 @@ export default class GarageView extends BaseView {
 	// creates a new car instance
 	createCar = async config => {
 		const view = this;
-		const { tweaks = { }, backgroundColor = 0xffffff } = this.options;
+		const tweaks = { ...(this.options.tweaks || { }), ...(config.tweaks || { }) };
 
 		// create the new car
-		const inside = new PIXI.Container();
-		const outer = new PIXI.ResponsiveContainer();
+		const player = new PIXI.Container()
+		const container = new PIXI.ResponsiveContainer();
 		const car = await Car.create({
 			view, 
 			...config,
 			baseHeight: DEFAULT_MAX_HEIGHT,
+			tweaks,
 
 			// lighting is flipped because the container
 			// is rotated in the view
@@ -217,8 +219,11 @@ export default class GarageView extends BaseView {
 
 		// check for a bonus scale modifier
 		const configScale = !isNaN(config.scale) ? config.scale : 1
-		car.scale.x *= configScale;
-		car.scale.y *= configScale;
+		
+		// shared scaling
+		player.x *= configScale;
+		player.y *= configScale;
+		player.addChild(car);
 
 		// include the trail, if any
 		if (config.trail) {
@@ -230,28 +235,10 @@ export default class GarageView extends BaseView {
 			})
 
 			// add to the view
-			trail.attachTo(car)
-			trail.alignTo(car, 'back')
-
-			// TODO: magic number for Garage view and trails.
-			// Need to determine trail scaling better
-			const scaleAdjustMagicNumber = 1.4
-			const adjustedScale = (configScale * scale) * scaleAdjustMagicNumber
-			for (const part of trail.parts) {
-				part.scale.x *= adjustedScale
-				part.scale.y *= adjustedScale
-			}
-
-			// This is intended to cause trails to face the
-			// correct direction when reversed. This may be done eventually
-			// // check for specials
-			// const reversed = findDisplayObjectsOfRole(car, 'reversable')
-			// for (const obj of reversed) {
-			// 	// add more props as required
-			// 	if (obj.config.reverse?.flipY) {
-			// 		obj.scale.y *= -1
-			// 	}
-			// }
+			player.addChild(trail);
+			trail.zIndex = -10;
+			trail.x = car.positions.back * (car.pivot.x / configScale);
+			player.sortChildren();
 
 			// mark so it knows to make
 			// additional room for the trail
@@ -264,10 +251,9 @@ export default class GarageView extends BaseView {
 		inside.y = config.offsetY || 0;
 		
 		// setup the container
-		inside.addChild(car);
-		outer.addChild(inside);
-		outer.relativeY = 0.5;
-		outer.relativeX = 0.5;
+		container.addChild(player);
+		container.relativeY = 0.5;
+		container.relativeX = 0.5;
 
 		// car shadow fixes
 		if (isNumber(tweaks.rotation)) {

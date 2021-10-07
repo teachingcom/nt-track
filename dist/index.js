@@ -74498,6 +74498,24 @@ function random() {
 function setRandomizer(val) {
   randomizer = val;
 }
+},{}],"animation/variables.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.save = save;
+exports.pull = pull;
+var variables = {}; // saves a value
+
+function save(name, value) {
+  variables[name] = value;
+} // grabs a stored value
+
+
+function pull(name) {
+  return variables[name];
+}
 },{}],"animation/dynamic-expressions/get-random.js":[function(require,module,exports) {
 "use strict";
 
@@ -75485,7 +75503,95 @@ var AverageExpression = function AverageExpression(prop, args) {
 
 exports.default = AverageExpression;
 (0, _defineProperty2.default)(AverageExpression, "start", Date.now());
-},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../average-aproximator":"animation/average-aproximator.js","../mappings":"animation/mappings.js"}],"animation/expressions.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../average-aproximator":"animation/average-aproximator.js","../mappings":"animation/mappings.js"}],"animation/dynamic-expressions/sum-expression.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var _utils = require("../../utils");
+
+var mappings = _interopRequireWildcard(require("../mappings"));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+var SumExpression = function SumExpression(prop, args) {
+  var _this = this;
+
+  (0, _classCallCheck2.default)(this, SumExpression);
+  (0, _defineProperty2.default)(this, "offset", 0);
+  (0, _defineProperty2.default)(this, "scale", 1);
+  (0, _defineProperty2.default)(this, "flip", 1);
+  (0, _defineProperty2.default)(this, "update", function (target, stage) {
+    _this.value += _this.per;
+    var value = (_this.mod ? _this.value % _this.mod : _this.value) * _this.flip;
+
+    _this.mapping(target, _this.convertToInt ? 0 | value : value);
+  });
+  this.prop = prop;
+  this.mapping = mappings.lookup(prop);
+
+  this.modifier = function () {
+    return 1;
+  };
+
+  var _value = 0;
+  var per = 1;
+
+  var _iterator = _createForOfIteratorHelper(args),
+      _step;
+
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var arg = _step.value;
+      var isObj = (0, _utils.isObject)(arg);
+
+      if (arg === 'int') {
+        this.convertToInt = true;
+      } else if (arg === 'invert') {
+        this.flip = -1;
+      } else if (isObj && 'start' in arg) {
+        _value = arg.start;
+      } else if (isObj && 'per' in arg) {
+        per = arg.per;
+      } else if (isObj && 'mod' in arg) {
+        this.mod = arg.mod;
+      } else if (arg === 'stagger' || isObj && arg.stagger) {
+        this.offset += 0 | (arg.stagger || 10000) * Math.random();
+      } else if (arg.offset) {
+        this.offset = arg.offset * 1000;
+      }
+    } // save the args
+
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+
+  this.value = _value + (this.offset || 0);
+  this.per = per || 1;
+};
+
+exports.default = SumExpression;
+(0, _defineProperty2.default)(SumExpression, "start", Date.now());
+},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../utils":"utils/index.js","../mappings":"animation/mappings.js"}],"animation/expressions.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -75515,6 +75621,8 @@ var mappings = _interopRequireWildcard(require("./mappings"));
 
 var randomizer = _interopRequireWildcard(require("../randomizer"));
 
+var variables = _interopRequireWildcard(require("./variables"));
+
 var _getRandom = _interopRequireDefault(require("./dynamic-expressions/get-random"));
 
 var _modExpression = _interopRequireDefault(require("./dynamic-expressions/mod-expression"));
@@ -75526,6 +75634,8 @@ var _relativeExpressions = require("./dynamic-expressions/relative-expressions")
 var _bezierExpression = _interopRequireDefault(require("./dynamic-expressions/bezier-expression"));
 
 var _averageExpression = _interopRequireDefault(require("./dynamic-expressions/average-expression"));
+
+var _sumExpression = _interopRequireDefault(require("./dynamic-expressions/sum-expression"));
 
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
@@ -75566,9 +75676,15 @@ var EXPRESSIONS = {
   },
   ':range': {
     func: range
+  },
+  ':var': {
+    func: getVariable
   }
 };
 var DYNAMICS = {
+  ':sum': {
+    instance: _sumExpression.default
+  },
   ':avg': {
     instance: _averageExpression.default
   },
@@ -75594,6 +75710,10 @@ var DYNAMICS = {
     instance: _relativeExpressions.RelativeToY
   }
 };
+
+function getVariable(name) {
+  return variables.pull(name);
+}
 
 function addTo(add, relativeTo) {
   return relativeTo + add;
@@ -75781,7 +75901,7 @@ function shuffle(items) {
 
   items.push.apply(items, shuffled);
 }
-},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","../utils":"utils/index.js","./mappings":"animation/mappings.js","../randomizer":"randomizer.js","./dynamic-expressions/get-random":"animation/dynamic-expressions/get-random.js","./dynamic-expressions/mod-expression":"animation/dynamic-expressions/mod-expression.js","./dynamic-expressions/sine-expressions":"animation/dynamic-expressions/sine-expressions.js","./dynamic-expressions/relative-expressions":"animation/dynamic-expressions/relative-expressions.js","./dynamic-expressions/bezier-expression":"animation/dynamic-expressions/bezier-expression.js","./dynamic-expressions/average-expression":"animation/dynamic-expressions/average-expression.js"}],"../node_modules/idb-keyval/dist/idb-keyval.mjs":[function(require,module,exports) {
+},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","../utils":"utils/index.js","./mappings":"animation/mappings.js","../randomizer":"randomizer.js","./variables":"animation/variables.js","./dynamic-expressions/get-random":"animation/dynamic-expressions/get-random.js","./dynamic-expressions/mod-expression":"animation/dynamic-expressions/mod-expression.js","./dynamic-expressions/sine-expressions":"animation/dynamic-expressions/sine-expressions.js","./dynamic-expressions/relative-expressions":"animation/dynamic-expressions/relative-expressions.js","./dynamic-expressions/bezier-expression":"animation/dynamic-expressions/bezier-expression.js","./dynamic-expressions/average-expression":"animation/dynamic-expressions/average-expression.js","./dynamic-expressions/sum-expression":"animation/dynamic-expressions/sum-expression.js"}],"../node_modules/idb-keyval/dist/idb-keyval.mjs":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -76938,8 +77058,9 @@ function applyDynamicProperties(obj, props) {
     // these to bump up and down in size by 1 pixel slightly
 
     update = (0, _utils.appendFunc)(update, function (obj, stage) {
-      var currentScale = obj.height / obj.getBounds().height;
+      var currentScale = Math.ceil(obj.height / obj.getBounds().height * 100) / 100;
       obj.scale.y = (0, _utils.toPrecision)(Math.min(10, currentScale * (props.scaleY || 1)) * (stage.scaleY || 1), 2);
+      obj.y = Math.floor(obj.y);
     });
   } // if nothing was found, just skip
 
@@ -79158,59 +79279,45 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = loadImage;
 
-function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
-
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-// resources that are currently loading
-var pending = {};
-var images = {};
 /** handles loading an external image url
  * @param {string} url The url of the image to load
 */
-
 function loadImage(url, version) {
   return new Promise(function (resolve, reject) {
     // prevent accidental double slashes
     var parts = url.split('://');
     var last = parts.length - 1;
     parts[last] = parts[last].replace(/\/+/g, '/');
-    url = parts.join('://'); // check if already existing
-
-    if (url in images) {
-      return resolve(images[url]);
-    } // if already waiting for a resource
-
-
-    if (pending[url]) {
-      pending[url].push({
-        resolve: resolve,
-        reject: reject
-      });
-      return;
-    } // reserve the image
-
+    url = parts.join('://'); // reserve the image
 
     var img; // limit attempts to reload
 
-    var attempts = 3; // if no active queue is available, start it now
+    var attempts = 3; // tracking image loading
 
-    pending[url] = [{
-      resolve: resolve,
-      reject: reject
-    }]; // attempts to load an image
+    var checkIfLoaded; // get the image to load
+
+    var src = "".concat(url).concat(version ? "?".concat(version) : ''); // attempts to load an image
 
     var request = function request() {
+      var success = handle(true);
+      var fail = handle(false); // create the image
+
       img = new Image();
-      img.onload = handle(true);
-      img.onerror = handle(false);
-      img.crossOrigin = 'anonymous'; // replace the image url
+      img.onload = success;
+      img.onerror = fail;
+      img.crossOrigin = 'anonymous'; // backup solution for if an image loads
+      // but never has a chance to report that
+      // it was successful
+
+      checkIfLoaded = setInterval(function () {
+        if (img.complete && img.naturalHeight !== 0) {
+          success();
+        }
+      }, 200); // replace the image url
 
       setTimeout(function () {
-        return img.src = "".concat(url).concat(version ? "?".concat(version) : '');
-      });
+        img.src = src;
+      }, 10);
     }; // create resolution actions
 
 
@@ -79219,30 +79326,22 @@ function loadImage(url, version) {
         // if wasn't successful, but is allowed to try again
         if (!success && --attempts > 0) {
           return request();
-        } // all finished, resolve the result
+        } // // all finished, resolve the result
+        // images[url] = success ? img : null
+        // clear extra checks
 
 
-        images[url] = success ? img : null; // execute all waiting requests
+        clearInterval(checkIfLoaded); // finished
 
-        try {
-          var _iterator = _createForOfIteratorHelper(pending[url]),
-              _step;
-
-          try {
-            for (_iterator.s(); !(_step = _iterator.n()).done;) {
-              var handler = _step.value;
-              var _resolve = handler.resolve;
-
-              _resolve(success ? img : null);
-            }
-          } catch (err) {
-            _iterator.e(err);
-          } finally {
-            _iterator.f();
-          }
-        } finally {
-          delete pending[url];
-        }
+        resolve(success ? img : null); // // execute all waiting requests
+        // try {
+        //   for (const handler of pending[url]) {
+        //     const { resolve } = handler
+        //     resolve(success ? img : null)
+        //   }
+        // } finally {
+        //   delete pending[url]
+        // }
       };
     }; // kick off the first attempt
 
@@ -82715,7 +82814,7 @@ function createEmitter(_x, _x2, _x3, _x4, _x5) {
 
 function _createEmitter() {
   _createEmitter = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(animator, controller, path, composition, layer) {
-    var container, generator, update, dispose, phase, textures, _layer$emit, emit, auto, config, _loop, prop, _ret, autoplay, emitter, create;
+    var container, generator, update, dispose, phase, textures, _layer$emit, emit, auto, config, _loop, prop, _ret, manualStart, emitter, create;
 
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
@@ -82879,7 +82978,7 @@ function _createEmitter() {
               return t.blendMode = v;
             }); // boolean props
 
-            autoplay = emit.auto === false || emit.autoplay === false || emit.autoPlay === false;
+            manualStart = emit.auto === false || emit.autoplay === false || emit.autoPlay === false;
             config.noRotation = !!emit.noRotation;
             config.addAtBack = !!emit.atBack;
             config.orderedArt = !!emit.orderedArt;
@@ -82939,7 +83038,7 @@ function _createEmitter() {
             }; // manual start
 
 
-            if (autoplay) {
+            if (manualStart) {
               emitter.autoUpdate = false;
               emitter.activate = create;
               emitter.emit = false;
@@ -83797,6 +83896,12 @@ function _createRepeater() {
               }
 
               tiles.sortChildren();
+            } // bakes a layer to a single object
+
+
+            if (layer.merge) {
+              tiles.cacheAsBitmap = true;
+              tiles.batch = 'merged';
             } // position
 
 
@@ -83810,18 +83915,18 @@ function _createRepeater() {
               dispose: dispose
             }]);
 
-          case 84:
-            _context.prev = 84;
+          case 85:
+            _context.prev = 85;
             _context.t0 = _context["catch"](4);
             console.error("Failed to create group ".concat(path, " while ").concat(phase));
             throw _context.t0;
 
-          case 88:
+          case 89:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[4, 84]]);
+    }, _callee, null, [[4, 85]]);
   }));
   return _createRepeater.apply(this, arguments);
 }
@@ -83901,6 +84006,14 @@ var _collection = require("../../utils/collection");
 
 var _repeater = _interopRequireDefault(require("./repeater"));
 
+var _expressions = require("../expressions");
+
+var variables = _interopRequireWildcard(require("../variables"));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
@@ -83914,7 +84027,7 @@ function createInstance(_x, _x2, _x3, _x4, _x5) {
 
 function _createInstance() {
   _createInstance = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(animator, controller, path, data, relativeTo) {
-    var instance, container, pending, i, layer, type, sprite, emitter, repeated, group, mask, _animator$plugins$typ, customizer, params, custom, composite, layers, _i, _layer, didSetMask, j, target;
+    var instance, container, pending, i, layer, type, value, sprite, emitter, repeated, group, mask, _animator$plugins$typ, customizer, params, custom, composite, layers, _i, _layer, didSetMask, j, target;
 
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
@@ -83956,7 +84069,10 @@ function _createInstance() {
             // sprite layers
             type = layer.type;
 
-            if (type === 'sprite' || type === 'marker') {
+            if (type === 'var') {
+              value = (0, _expressions.evaluateExpression)(layer.value);
+              variables.save(layer.name, value);
+            } else if (type === 'sprite' || type === 'marker') {
               sprite = (0, _sprite.default)(animator, controller, path, data, layer);
               pending.push(sprite);
             } // particle emitters
@@ -84088,7 +84204,7 @@ function _createInstance() {
   }));
   return _createInstance.apply(this, arguments);
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","../../pixi/lib":"pixi/lib.js","fast-copy":"../node_modules/fast-copy/dist/fast-copy.js","../utils":"animation/utils.js","../../utils":"utils/index.js","./sprite":"animation/generators/sprite.js","./emitter":"animation/generators/emitter/index.js","./group":"animation/generators/group.js","./mask":"animation/generators/mask.js","../../utils/collection":"utils/collection.js","./repeater":"animation/generators/repeater.js"}],"animation/importManifest.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","../../pixi/lib":"pixi/lib.js","fast-copy":"../node_modules/fast-copy/dist/fast-copy.js","../utils":"animation/utils.js","../../utils":"utils/index.js","./sprite":"animation/generators/sprite.js","./emitter":"animation/generators/emitter/index.js","./group":"animation/generators/group.js","./mask":"animation/generators/mask.js","../../utils/collection":"utils/collection.js","./repeater":"animation/generators/repeater.js","../expressions":"animation/expressions.js","../variables":"animation/variables.js"}],"animation/importManifest.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -84135,77 +84251,68 @@ function _importManifest() {
               for (_iterator.s(); !(_step = _iterator.n()).done;) {
                 part = _step.value;
                 target = target[part] = target[part] || {};
-              } // if this has already been attached
-
+              }
             } catch (err) {
               _iterator.e(err);
             } finally {
               _iterator.f();
             }
 
-            if (!target[key]) {
-              _context.next = 9;
-              break;
-            }
-
-            return _context.abrupt("return");
-
-          case 9:
             attempts = 3;
             url = "".concat(baseUrl, "/").concat(path, ".json?").concat(version).replace(/([^:]\/)\/+/g, '$1');
 
-          case 11:
+          case 9:
             if (!(attempts > 0)) {
-              _context.next = 27;
+              _context.next = 25;
               break;
             }
 
-            _context.prev = 12;
-            _context.next = 15;
+            _context.prev = 10;
+            _context.next = 13;
             return attemptFetch(url, timeout);
 
-          case 15:
+          case 13:
             data = _context.sent;
-            return _context.abrupt("break", 27);
+            return _context.abrupt("break", 25);
 
-          case 19:
-            _context.prev = 19;
-            _context.t0 = _context["catch"](12);
+          case 17:
+            _context.prev = 17;
+            _context.t0 = _context["catch"](10);
 
             if (!(--attempts > 0)) {
-              _context.next = 23;
+              _context.next = 21;
               break;
             }
 
-            return _context.abrupt("continue", 11);
+            return _context.abrupt("continue", 9);
 
-          case 23:
+          case 21:
             // no more attempts
             console.error("failed to import ".concat(path));
             throw _context.t0;
 
-          case 25:
-            _context.next = 11;
+          case 23:
+            _context.next = 9;
             break;
 
-          case 27:
+          case 25:
             // save the result
             target[key] = data; // return it, in case it's needed
 
             return _context.abrupt("return", data);
 
-          case 31:
-            _context.prev = 31;
+          case 29:
+            _context.prev = 29;
             _context.t1 = _context["catch"](1);
             console.error('Failed to load', path);
             throw _context.t1;
 
-          case 35:
+          case 33:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[1, 31], [12, 19]]);
+    }, _callee, null, [[1, 29], [10, 17]]);
   }));
   return _importManifest.apply(this, arguments);
 }
@@ -84257,7 +84364,22 @@ function _attemptFetch() {
   }));
   return _attemptFetch.apply(this, arguments);
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js"}],"animation/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js"}],"animation/resources/addTexture.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = addTexture;
+
+// installs a special 
+function addTexture(animator, spriteId, texture) {
+  var spritesheets = animator.manifest.spritesheets;
+  var spritesheet = spritesheets.textures = spritesheets.textures || {};
+  spritesheet.__initialized__ = true;
+  spritesheet[spriteId] = texture;
+}
+},{}],"animation/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -84311,6 +84433,8 @@ var _importManifest = _interopRequireDefault(require("./importManifest"));
 
 var _randomizer = require("../randomizer");
 
+var _addTexture = _interopRequireDefault(require("./resources/addTexture"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
@@ -84338,6 +84462,9 @@ var Animator = /*#__PURE__*/function (_EventEmitter) {
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "imageCache", _assetCache.shared);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "preloadSpritesheet", function (spritesheetId) {
       return _this.getSpritesheet(spritesheetId);
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "addTexture", function (id, texture) {
+      return (0, _addTexture.default)((0, _assertThisInitialized2.default)(_this), id, texture);
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "getSpritesheet", /*#__PURE__*/function () {
       var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(id) {
@@ -84584,7 +84711,7 @@ var Animator = /*#__PURE__*/function (_EventEmitter) {
 }(_eventEmitter.EventEmitter);
 
 exports.Animator = Animator;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../pixi/lib":"pixi/lib.js","../common/event-emitter":"common/event-emitter.js","./utils":"animation/utils.js","./path":"animation/path.js","./expressions":"animation/expressions.js","../utils/assetCache":"utils/assetCache.js","./rng":"animation/rng.js","./generators/controller":"animation/generators/controller.js","./generators":"animation/generators/index.js","./resources/getSprite":"animation/resources/getSprite.js","./resources/getSpritesheet":"animation/resources/getSpritesheet.js","./resources/loadImage":"animation/resources/loadImage.js","./importManifest":"animation/importManifest.js","../randomizer":"randomizer.js"}],"pixi/detatched-container.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../pixi/lib":"pixi/lib.js","../common/event-emitter":"common/event-emitter.js","./utils":"animation/utils.js","./path":"animation/path.js","./expressions":"animation/expressions.js","../utils/assetCache":"utils/assetCache.js","./rng":"animation/rng.js","./generators/controller":"animation/generators/controller.js","./generators":"animation/generators/index.js","./resources/getSprite":"animation/resources/getSprite.js","./resources/getSpritesheet":"animation/resources/getSpritesheet.js","./resources/loadImage":"animation/resources/loadImage.js","./importManifest":"animation/importManifest.js","../randomizer":"randomizer.js","./resources/addTexture":"animation/resources/addTexture.js"}],"pixi/detatched-container.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -84980,7 +85107,9 @@ exports.choose = choose;
 exports.appendFunc = appendFunc;
 exports.createWorker = createWorker;
 exports.getSprites = getSprites;
+exports.interpolate = interpolate;
 exports.findTextures = findTextures;
+exports.createSurface = createSurface;
 exports.sample = exports.isNil = exports.isNumber = exports.isArray = exports.noop = exports.merge = void 0;
 
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
@@ -85224,6 +85353,12 @@ function getSprites(container) {
   }
 
   return sprites;
+}
+/** interpolates two values */
+
+
+function interpolate(a, b, t) {
+  return a + (b - a) * t;
 } // recursively finds textures
 
 
@@ -85282,6 +85417,32 @@ function addTexture(collection, target, index) {
 
 
   group.targets.push([target, index]);
+} // quickly creates a rendering surface
+
+
+function createSurface() {
+  var el = document.createElement("canvas");
+  var ctx = el.getContext("2d");
+
+  function clear() {
+    el.width = el.width;
+  }
+
+  function resize(width, height) {
+    el.width = width;
+    el.height = height;
+    instance.width = width;
+    instance.height = height;
+  }
+
+  var instance = {
+    el: el,
+    ctx: ctx,
+    resize: resize,
+    clear: clear
+  };
+  resize.apply(void 0, arguments);
+  return instance;
 }
 },{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js"}],"utils/view.js":[function(require,module,exports) {
 "use strict";
@@ -85342,7 +85503,7 @@ document.addEventListener('visibilitychange', updateViewActiveState);
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.DEFAULT_PERFORMANCE_MONITORING_DELAY = exports.NITRO_BLUR_REALTIVE_SIZE_SCALING = exports.NITRO_BLUR_DEFAULT_OFFSET_X = exports.NITRO_BLUR_OFFSET_Y = exports.NITRO_ACTIVATED_TRAIL_OPACITY = exports.NITRO_OFFSET_Y = exports.NITRO_OFFSET_X = exports.NITRO_SCALE = exports.TRAIL_SCALE = exports.STATIC_CAR_ROTATION_FIX = exports.CAR_DEFAULT_LIGHTING = exports.CAR_404_ENHANCED_VERSION = exports.CAR_404_STATIC_VERSION = exports.CAR_NITRO_ADVANCEMENT_DISTANCE = exports.CAR_SHAKE_SHADOW_REDUCTION = exports.CAR_SHAKE_NITRO_BONUS = exports.CAR_SHAKE_DISTANCE = exports.CAR_DEFAULT_FRONT_BACK_OFFSET_X = exports.CAR_BODY_OFFSET_Y = exports.CAR_SHADOW_OFFSET_Y = exports.CAR_SHADOW_SCALE_ADJUST = exports.CAR_SHADOW_OPACITY = exports.CAR_SHADOW_BLUR = exports.CAR_LANE_SCALE_ADJUSTMENT = exports.CAR_DEFAULT_SHAKE_LEVEL = exports.NAMECARD_TETHER_DISTANCE = exports.NAMECARD_SCALE = exports.CROWD_ANIMATION_DURATION = exports.CROWD_ANIMATION_FRAME_COUNT = exports.CROWD_ANIMATION_VARIATIONS = exports.CROWD_DEFAULT_SCALE = exports.RACE_FINISH_FLASH_FADE_TIME = exports.RACE_SOUND_ERROR_MAX_INTERVAL = exports.RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL = exports.RACE_PROGRESS_TWEEN_TIMING = exports.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT = exports.RACE_FINISH_CAR_STOPPING_TIME = exports.RACE_START_NAMECARD_DELAY_TIME = exports.RACE_START_NAMECARD_ENTRY_TIME = exports.RACE_START_CAR_ENTRY_TIME = exports.RACE_AUTO_PROGRESS_DISTANCE = exports.RACE_OFF_SCREEN_FINISH_DISTANCE = exports.RACE_PLAYER_DISTANCE_MODIFIER = exports.RACE_ENDING_ANIMATION_QUALIFYING_THRESHOLD = exports.RACE_ENDING_ANIMATION_STANDARD_THRESHOLD = exports.TRACK_OFFSCREEN_CAR_FINISH = exports.TRACK_NAMECARD_EDGE_PADDING = exports.TRACK_STARTING_LINE_POSITION = exports.TRACK_CAR_LANE_CENTER_OFFSET = exports.TRACK_CAR_SIZE_RELATIVE_TO_LANE = exports.TRACK_SHOULDER_SCALE = exports.TRACK_BOTTOM_SCALE = exports.TRACK_TOP_SCALE = exports.TRACK_ACCELERATION_RATE = exports.TRACK_MAXIMUM_TRAVEL_DISTANCE = exports.TRACK_MAXIMUM_SPEED = exports.TRACK_MAXIMUM_SPEED_DRAG_RATE = exports.TRACK_MAXIMUM_SPEED_BOOST_RATE = exports.TRACK_MAXIMUM_SCROLL_SPEED = void 0;
+exports.DEFAULT_PERFORMANCE_MONITORING_DELAY = exports.NITRO_BLUR_REALTIVE_SIZE_SCALING = exports.NITRO_BLUR_DEFAULT_OFFSET_X = exports.NITRO_BLUR_OFFSET_Y = exports.NITRO_ACTIVATED_TRAIL_OPACITY = exports.NITRO_OFFSET_Y = exports.NITRO_OFFSET_X = exports.NITRO_SCALE = exports.TRAIL_SCALE_IN_PREVIEW = exports.TRAIL_SCALE = exports.STATIC_CAR_ROTATION_FIX = exports.CAR_DEFAULT_LIGHTING = exports.CAR_404_ENHANCED_VERSION = exports.CAR_404_STATIC_VERSION = exports.CAR_NITRO_ADVANCEMENT_DISTANCE = exports.CAR_SHAKE_SHADOW_REDUCTION = exports.CAR_SHAKE_NITRO_BONUS = exports.CAR_SHAKE_DISTANCE = exports.CAR_DEFAULT_FRONT_BACK_OFFSET_X = exports.CAR_BODY_OFFSET_Y = exports.CAR_SHADOW_OFFSET_Y = exports.CAR_SHADOW_SCALE_ADJUST = exports.CAR_SHADOW_OPACITY = exports.CAR_SHADOW_BLUR = exports.CAR_LANE_SCALE_ADJUSTMENT = exports.CAR_DEFAULT_SHAKE_LEVEL = exports.NAMECARD_TETHER_DISTANCE = exports.NAMECARD_SCALE = exports.CROWD_ANIMATION_DURATION = exports.CROWD_ANIMATION_FRAME_COUNT = exports.CROWD_ANIMATION_VARIATIONS = exports.CROWD_DEFAULT_SCALE = exports.RACE_FINISH_FLASH_FADE_TIME = exports.RACE_SOUND_ERROR_MAX_INTERVAL = exports.RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL = exports.RACE_PROGRESS_TWEEN_TIMING = exports.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT = exports.RACE_FINISH_CAR_STOPPING_TIME = exports.RACE_START_NAMECARD_DELAY_TIME = exports.RACE_START_NAMECARD_ENTRY_TIME = exports.RACE_START_CAR_ENTRY_TIME = exports.RACE_AUTO_PROGRESS_DISTANCE = exports.RACE_OFF_SCREEN_FINISH_DISTANCE = exports.RACE_PLAYER_DISTANCE_MODIFIER = exports.RACE_ENDING_ANIMATION_QUALIFYING_THRESHOLD = exports.RACE_ENDING_ANIMATION_STANDARD_THRESHOLD = exports.TRACK_OFFSCREEN_CAR_FINISH = exports.TRACK_NAMECARD_EDGE_PADDING = exports.TRACK_STARTING_LINE_POSITION = exports.TRACK_CAR_LANE_CENTER_OFFSET = exports.TRACK_CAR_SIZE_RELATIVE_TO_LANE = exports.TRACK_SHOULDER_SCALE = exports.TRACK_BOTTOM_SCALE = exports.TRACK_TOP_SCALE = exports.TRACK_ACCELERATION_RATE = exports.TRACK_MAXIMUM_TRAVEL_DISTANCE = exports.TRACK_MAXIMUM_SPEED = exports.TRACK_MAXIMUM_SPEED_DRAG_RATE = exports.TRACK_MAXIMUM_SPEED_BOOST_RATE = exports.TRACK_MAXIMUM_SCROLL_SPEED = void 0;
 // tracks
 var TRACK_MAXIMUM_SCROLL_SPEED = 35;
 exports.TRACK_MAXIMUM_SCROLL_SPEED = TRACK_MAXIMUM_SCROLL_SPEED;
@@ -85402,7 +85563,7 @@ exports.RACE_SOUND_ERROR_MAX_INTERVAL = RACE_SOUND_ERROR_MAX_INTERVAL;
 var RACE_FINISH_FLASH_FADE_TIME = 300; // crowds
 
 exports.RACE_FINISH_FLASH_FADE_TIME = RACE_FINISH_FLASH_FADE_TIME;
-var CROWD_DEFAULT_SCALE = 0.8;
+var CROWD_DEFAULT_SCALE = 0.6;
 exports.CROWD_DEFAULT_SCALE = CROWD_DEFAULT_SCALE;
 var CROWD_ANIMATION_VARIATIONS = 5;
 exports.CROWD_ANIMATION_VARIATIONS = CROWD_ANIMATION_VARIATIONS;
@@ -85455,9 +85616,13 @@ exports.CAR_DEFAULT_LIGHTING = CAR_DEFAULT_LIGHTING;
 var STATIC_CAR_ROTATION_FIX = Math.PI; // trails
 
 exports.STATIC_CAR_ROTATION_FIX = STATIC_CAR_ROTATION_FIX;
-var TRAIL_SCALE = 0.55; // nitros
+var TRAIL_SCALE = 0.55; // trail is slightly increased in size to make it look better
+// in the customizer/store view
 
 exports.TRAIL_SCALE = TRAIL_SCALE;
+var TRAIL_SCALE_IN_PREVIEW = 0.7; // nitros
+
+exports.TRAIL_SCALE_IN_PREVIEW = TRAIL_SCALE_IN_PREVIEW;
 var NITRO_SCALE = 0.75;
 exports.NITRO_SCALE = NITRO_SCALE;
 var NITRO_OFFSET_X = -75;
@@ -86221,6 +86386,13 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
       elapsed: 0,
       current: 0
     });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "tempFreeze", function () {
+      _this.pause();
+
+      setTimeout(function () {
+        return _this.resume();
+      }, 1000);
+    });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setRenderer", function (target) {
       var _assertThisInitialize = (0, _assertThisInitialized2.default)(_this),
           parent = _assertThisInitialize.parent;
@@ -86257,6 +86429,11 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "resume", function () {
       return _this.paused = false;
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "freeze", function () {
+      _this.stopAutoRender();
+
+      _this.render = _utils.noop;
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "onPerformanceChanged", function (perf) {
       _this.animator.options.animationUpdateFrequency = perf.animationAnimationUpdateFrequency;
@@ -86419,7 +86596,10 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
                 }; // start with a canvas renderer
 
                 createCanvasRenderer(this);
-                renderer = this.canvasRenderer; // create WebGL, if supported
+                renderer = this.canvasRenderer; // helper
+
+                window.addEventListener('unload', this.freeze);
+                window.addEventListener('beforeunload', this.tempFreeze); // create WebGL, if supported
 
                 if (!forceCanvas && _ntAnimator.PIXI.utils.isWebGLSupported()) {
                   try {
@@ -86472,7 +86652,7 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
                   });
                 }
 
-              case 31:
+              case 33:
               case "end":
                 return _context.stop();
             }
@@ -86528,6 +86708,10 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
     key: "render",
     // performs rendering
     value: function render() {
+      if (this.paused) {
+        return;
+      }
+
       var renderer = this.renderer,
           view = this.view;
       renderer.render(view);
@@ -86548,7 +86732,10 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
     // checks if this frame should perform rendering
     get: function get() {
       return !this.paused && !!this.isViewActive && this.frame % this.animationRate === 0;
-    }
+    } // temporarily freezes rendering - used in response to the
+    // before unload event to prevent the flash of the WebGL view
+    // when leaving the page
+
   }]);
   return BaseView;
 }(_ntAnimator.EventEmitter); // create a webgl based renderer
@@ -86762,7 +86949,7 @@ function _createStaticCar() {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.LAYER_TRACK_GROUND = exports.LAYER_SHADOW = exports.LAYER_CAR = exports.LAYER_NAMECARD = exports.LAYER_NAMECARD_OVERLAY = exports.LAYER_NITRO_BLUR = exports.LAYER_TRACK_OVERLAY = void 0;
+exports.LAYER_TRACK_GROUND = exports.LAYER_SHADOW = exports.LAYER_TRAIL = exports.LAYER_CAR = exports.LAYER_NAMECARD = exports.LAYER_NAMECARD_OVERLAY = exports.LAYER_NITRO_BLUR = exports.LAYER_TRACK_OVERLAY = void 0;
 var LAYER_TRACK_OVERLAY = 100;
 exports.LAYER_TRACK_OVERLAY = LAYER_TRACK_OVERLAY;
 var LAYER_NITRO_BLUR = 30;
@@ -86773,6 +86960,8 @@ var LAYER_NAMECARD = 80;
 exports.LAYER_NAMECARD = LAYER_NAMECARD;
 var LAYER_CAR = 0;
 exports.LAYER_CAR = LAYER_CAR;
+var LAYER_TRAIL = -49;
+exports.LAYER_TRAIL = LAYER_TRAIL;
 var LAYER_SHADOW = -50;
 exports.LAYER_SHADOW = LAYER_SHADOW;
 var LAYER_TRACK_GROUND = -100;
@@ -86875,9 +87064,7 @@ var ActivateNitroAnimation = /*#__PURE__*/function (_Animation) {
       // update the trail, if any
 
       if (hasTrail) {
-        trail.assign({
-          alpha: props.trailAlpha
-        });
+        trail.alpha = props.trailAlpha;
       } // update the nitro, if any
 
 
@@ -88571,18 +88758,6 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
       this.hasNitro = !!nitro;
     }
     /** handles activating the car nitros */
-    // /** rattles a car by the amount provided */
-    // rattle(amount) {
-    // 	const { state } = this;
-    // 	const { isNitro } = state;
-    // 	// calculate the default amount to shake the car around
-    // 	let shake = ((CAR_SHAKE_DISTANCE * Math.random()) - (CAR_SHAKE_DISTANCE / 2)) * amount;
-    // 	if (isNitro) {
-    // 		shake *= CAR_SHAKE_NITRO_BONUS;
-    // 	}
-    // 	// update the y position
-    // 	this.setY(shake);
-    // }
 
   }], [{
     key: "create",
@@ -88688,8 +88863,8 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
-var Trail = /*#__PURE__*/function (_PIXI$DetatchedContai) {
-  (0, _inherits2.default)(Trail, _PIXI$DetatchedContai);
+var Trail = /*#__PURE__*/function (_PIXI$Container) {
+  (0, _inherits2.default)(Trail, _PIXI$Container);
 
   var _super = _createSuper(Trail);
 
@@ -88712,19 +88887,14 @@ var Trail = /*#__PURE__*/function (_PIXI$DetatchedContai) {
           container = _ref$container === void 0 ? car : _ref$container;
       var action = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _utils.noop;
       this.linkedTo = car;
-      this.attachTo(container);
-      this.each(function (part) {
-        action(part); // sync to the back of the car
-
-        part.x = car.positions.back;
-      });
+      car.addChild(this);
+      this.x = car.position.back;
+      this.zIndex = -1;
     }
   }, {
     key: "alignTo",
     value: function alignTo(car, position) {
-      this.each(function (part) {
-        part.x = car.positions[position] * car.pivot.x;
-      });
+      this.x = car.positions[position] * car.pivot.x;
     } // start creating loot
 
   }, {
@@ -88786,7 +88956,7 @@ var Trail = /*#__PURE__*/function (_PIXI$DetatchedContai) {
     key: "dispose",
     value: function dispose() {
       this.stop();
-      this.each(_ntAnimator.removeDisplayObject);
+      (0, _ntAnimator.removeDisplayObject)(this);
     }
   }, {
     key: "isValid",
@@ -88860,7 +89030,7 @@ var Trail = /*#__PURE__*/function (_PIXI$DetatchedContai) {
     }()
   }]);
   return Trail;
-}(_ntAnimator.PIXI.DetatchedContainer);
+}(_ntAnimator.PIXI.Container);
 
 exports.default = Trail;
 },{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js"}],"utils/color.js":[function(require,module,exports) {
@@ -89801,11 +89971,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
       }, {
         type: 'trail',
         source: trail,
-        action: function action(trail) {
-          return trail.each(function (part) {
-            return (0, _ntAnimator.removeDisplayObject)(part);
-          });
-        }
+        action: _ntAnimator.removeDisplayObject
       }, {
         type: 'player',
         source: (0, _assertThisInitialized2.default)(_this),
@@ -90030,21 +90196,12 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
 
 
                 if (trail) {
-                  layers.trail = trail; // NOTE: support for removing natural inbuilt trails
-                  // since there's a trail, remove any "natural" trails
-                  // that are part of the car itself
-                  // const trails = findDisplayObjectsOfRole(this, 'trail')
-                  // for (const obj of trails) {
-                  // 	removeDisplayObject(obj)
-                  // }
-                  // TODO: trail scaling is hardcoded - we should
-                  // calculate this value
+                  layers.trail = trail; // add to the player view
 
-                  trail.attachTo(this, scale.x * _config.TRAIL_SCALE); // update the position of each
-
-                  trail.each(function (part) {
-                    return part.x = car.positions.back;
-                  });
+                  this.addChild(trail);
+                  trail.zIndex = -10;
+                  trail.x = car.positions.back;
+                  trail.scale.x = trail.scale.y = scale.x * _config.TRAIL_SCALE;
                 } // include the nitro, if any
 
 
@@ -95963,13 +96120,17 @@ function _createCrowd() {
               sprite.y = animator.evaluateExpression(props.y);
             }
 
+            if ('tint' in props) {
+              sprite.tint = props.tint;
+            }
+
             return _context2.abrupt("return", [{
               displayObject: sprite,
               update: _utils.noop,
               dispose: _utils.noop
             }]);
 
-          case 18:
+          case 19:
           case "end":
             return _context2.stop();
         }
@@ -96901,7 +97062,420 @@ function parseScriptArgs(args) {
 
   return [name, config];
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/typeof":"../node_modules/@babel/runtime/helpers/typeof.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","./reactive_gull":"scripts/reactive_gull.js"}],"components/track/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/typeof":"../node_modules/@babel/runtime/helpers/typeof.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","./reactive_gull":"scripts/reactive_gull.js"}],"effects/rain.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
+
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var _ntAnimator = require("nt-animator");
+
+var _utils = require("../utils");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var MAX_RAIN_SHIFT_DISTANCE = -800;
+var width = 800;
+var height = 400;
+
+var RainEffect = /*#__PURE__*/function () {
+  function RainEffect(track, container, animator) {
+    (0, _classCallCheck2.default)(this, RainEffect);
+    (0, _defineProperty2.default)(this, "preferredX", 0);
+    (0, _defineProperty2.default)(this, "isRacing", false);
+    this.track = track;
+    this.container = container;
+    this.animator = animator;
+  }
+
+  (0, _createClass2.default)(RainEffect, [{
+    key: "init",
+    value: function () {
+      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+        var _this = this;
+
+        var animator, track;
+        return _regenerator.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                animator = this.animator, track = this.track;
+                track.on('race:start', function () {
+                  return _this.isRacing = true;
+                });
+                track.on('race:finish', function () {
+                  return _this.isRacing = false;
+                }); // generate some textures
+
+                animator.addTexture('rain_1', makeRainTexture(width, height));
+                animator.addTexture('rain_2', makeRainTexture(width, height));
+                animator.addTexture('rain_3', makeRainTexture(width, height));
+                animator.addTexture('rain_4', makeRainTexture(width, height));
+
+              case 7:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function init() {
+        return _init.apply(this, arguments);
+      }
+
+      return init;
+    }()
+  }, {
+    key: "setup",
+    value: function () {
+      var _setup = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+        var _this2 = this;
+
+        var track, container, effect, update;
+        return _regenerator.default.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                track = this.track, container = this.container;
+                effect = container.effect;
+                update = effect.updateTransform; // save the starting location
+
+                this.startingX = effect.x; // handle updating each time the transform is updated
+
+                effect.updateTransform = function () {
+                  if (_this2.isRacing) {
+                    _this2.preferredX = Math.min(1.5, _this2.preferredX + 0.01);
+                    var shift = (_this2.preferredX + (track.state.typingSpeedModifier || 0) * 3) / 4; // calculate the offset
+
+                    effect.x = shift * MAX_RAIN_SHIFT_DISTANCE;
+                  } else {
+                    effect.x = _this2.startingX;
+                  } // update normally
+
+
+                  update.call(effect);
+                };
+
+              case 5:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function setup() {
+        return _setup.apply(this, arguments);
+      }
+
+      return setup;
+    }()
+  }]);
+  return RainEffect;
+}();
+
+exports.default = RainEffect;
+
+function makeRainTexture(width, height) {
+  var start = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+  var stop = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : Math.PI * 2;
+  var rain = (0, _utils.createSurface)(width, height);
+  rain.ctx.strokeStyle = "white";
+  rain.ctx.translate(rain.width / 2, rain.height / 2);
+  var hw = width / 2;
+  var hh = height / 2; // const max = Math.max(hw, hh);
+  // rain.ctx.fillRect(0, 0, width, height);
+
+  var i = start;
+  var x;
+  var y;
+
+  while (i < stop) {
+    i += Math.random() * 0.1; // get the starting point
+
+    var sx = Math.max(-hw, Math.min(hw, Math.cos(i) * width));
+    var sy = Math.max(-hh, Math.min(hh, Math.sin(i) * height)); // require a valid distance
+
+    if (isNaN(x) || Math.abs(x - sx) + Math.abs(y - sy) < 4) {
+      x = sx;
+      y = sy;
+      continue;
+    }
+
+    x = sx;
+    y = sy; // get the center point
+
+    var mx = sx * 0.66;
+    var my = sy * 0.66; // get the starting point
+
+    var bt = Math.random() * 0.49;
+    var et = bt + Math.random() * 0.2;
+    var bx = (0, _utils.interpolate)(sx, mx, bt);
+    var by = (0, _utils.interpolate)(sy, my, bt);
+    var ex = (0, _utils.interpolate)(sx, mx, et);
+    var ey = (0, _utils.interpolate)(sy, my, et);
+    rain.ctx.beginPath();
+    rain.ctx.globalAlpha = Math.random() * 0.8 + 0.2;
+    rain.ctx.moveTo(bx, by);
+    rain.ctx.lineTo(ex, ey);
+    rain.ctx.stroke();
+  }
+
+  return new _ntAnimator.PIXI.Texture.from(rain.el);
+}
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../utils":"utils/index.js"}],"effects/leaves.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
+
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var _ntAnimator = require("nt-animator");
+
+var _utils = require("../utils");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var width = 600;
+var height = 1000;
+var MIN_SPEED = 3;
+var MAX_SPEED = 23;
+var MIN_GUST = 2;
+var MAX_GUST = 6; // textures
+
+var LEAF_1;
+var LEAF_2;
+var LEAF_3;
+
+var LeavesEffect = /*#__PURE__*/function () {
+  function LeavesEffect(_track, container, animator) {
+    var _this = this;
+
+    (0, _classCallCheck2.default)(this, LeavesEffect);
+    (0, _defineProperty2.default)(this, "isRacing", false);
+    (0, _defineProperty2.default)(this, "createHandler", function (origin, leaves) {
+      var track = _this.track;
+      var update = leaves.updateTransform;
+      var rotationSpeed = 0.01;
+      var width = track.width * 1.2;
+      var halfWidth = width / 2;
+      var offset = 100000 * Math.random(); // tracks the set of leaves behavior
+
+      var modifier = 0; // reset the 
+
+      function reset() {
+        leaves.x = halfWidth;
+        leaves.y = 0;
+        leaves.rotation = Math.random() * 0.2 - 0.1;
+        leaves.dir = Math.random() * rotationSpeed - rotationSpeed / 2;
+      } // override the update transform method
+
+
+      leaves.updateTransform = function () {
+        // update the effect modifier
+        modifier = _this.isRacing ? Math.min(modifier + 0.0025, 1) : 0; // calculate new values
+
+        var now = Math.cos((Date.now() + offset) * 0.001);
+        var adjusted = modifier + Math.min(1.5, track.state.typingSpeedModifier || 0);
+        var gustSpeed = Math.max(0, now * (MIN_GUST + MAX_GUST * adjusted));
+        var speed = MIN_SPEED + MAX_SPEED * adjusted + gustSpeed; // update the visuals
+
+        leaves.x -= speed;
+        leaves.rotation += now * -0.005;
+        leaves.y = now * 0.01 * 100; // reset if needed
+
+        if (leaves.x < -halfWidth) {
+          reset();
+        } // perform the normal update
+
+
+        update.call(leaves);
+      }; // initial state
+
+
+      reset();
+      leaves.x = width * origin;
+    });
+    this.track = _track;
+    this.container = container;
+    this.animator = animator;
+  }
+
+  (0, _createClass2.default)(LeavesEffect, [{
+    key: "init",
+    value: function () {
+      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+        var _this2 = this;
+
+        var track, animator;
+        return _regenerator.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                track = this.track, animator = this.animator; // TODO: use animator.getImage
+
+                _context.next = 3;
+                return createLeaf('iVBORw0KGgoAAAANSUhEUgAAABkAAAAXCAMAAADJPRQhAAAADFBMVEXCXwnIZQnZeAz6nRBH53IJAAAABHRSTlMCVar95AmYiAAAAF9JREFUeNqV0kEOxCAMxdDY//53rmhHSANBar3Mi4AF9TJOc+3XNak1657vgpCRqxhzkl9AFZ2YaDaZcZQ4jbQkmLUhQHMa/T3y4W0+VSNFFfwJPrImxZQt9CTD3n2QC7v2AnVdiqWiAAAAAElFTkSuQmCC');
+
+              case 3:
+                LEAF_1 = _context.sent;
+                _context.next = 6;
+                return createLeaf('iVBORw0KGgoAAAANSUhEUgAAABkAAAAXCAMAAADJPRQhAAAADFBMVEXEhxjNlRzfsCH62ynxcoHCAAAABHRSTlMEdr7+TM65AgAAAF9JREFUeNqN0VEKgEAMA9Gd6f3vrK6wusSC+eyDEOj4Gbq7dlApzPuZAKGuGFI6JRbM85SL+JQqMWX5I+wijayNQEhxw6C6OqOrkZEior6EfdImuGQL3I12D30kcfzKAZY2AlF5aMSDAAAAAElFTkSuQmCC');
+
+              case 6:
+                LEAF_2 = _context.sent;
+                _context.next = 9;
+                return createLeaf('iVBORw0KGgoAAAANSUhEUgAAABkAAAAXCAMAAADJPRQhAAAADFBMVEXCTAnIUQnZYAz6fRB/mqLrAAAABHRSTlMCVar95AmYiAAAAF9JREFUeNqV0kEKwzAMBVHN/PvfubgphkYyJLPUE7YXrodxmuu8rkkbW995F4WsbBJzkl9AFZOYaJrsOErcRkYSzL0lwHAa8z3y4m1e1SBFFfwJXnJPii0t9CTLnn2QD73FAnYAzYazAAAAAElFTkSuQmCC');
+
+              case 9:
+                LEAF_3 = _context.sent;
+                // handle effects
+                track.on('race:start', function () {
+                  return _this2.isRacing = true;
+                });
+                track.on('race:finish', function () {
+                  return _this2.isRacing = false;
+                }); // generate some textures
+
+                animator.addTexture('leaves_1', makeLeavesTexture(width, height));
+                animator.addTexture('leaves_2', makeLeavesTexture(width, height));
+                animator.addTexture('leaves_3', makeLeavesTexture(width, height));
+                animator.addTexture('leaves_4', makeLeavesTexture(width, height));
+
+              case 16:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function init() {
+        return _init.apply(this, arguments);
+      }
+
+      return init;
+    }()
+  }, {
+    key: "setup",
+    value: function () {
+      var _setup = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+        var container, track, effect, leaves, total, i;
+        return _regenerator.default.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                container = this.container, track = this.track;
+                effect = container.effect; // setup each leaf effect
+
+                leaves = (0, _ntAnimator.findDisplayObjectsOfRole)(effect, 'leaves');
+                total = leaves.length;
+
+                for (i = 0; i < total; i++) {
+                  this.createHandler(i / total, leaves[i]);
+                }
+
+              case 5:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function setup() {
+        return _setup.apply(this, arguments);
+      }
+
+      return setup;
+    }()
+  }]);
+  return LeavesEffect;
+}();
+
+exports.default = LeavesEffect;
+
+function createLeaf(src) {
+  return new Promise(function (resolve) {
+    var img = document.createElement('img');
+    img.src = "data:image/png;base64,".concat(src);
+
+    img.onload = function () {
+      return resolve(img);
+    };
+  });
+}
+
+function makeLeavesTexture(width, height) {
+  var shadowSize = 30;
+  var halfShadowSize = shadowSize / 2;
+  var shadow = (0, _utils.createSurface)(shadowSize, shadowSize);
+  shadow.ctx.fillStyle = shadow.ctx.createRadialGradient(halfShadowSize, halfShadowSize, 0, halfShadowSize, halfShadowSize, halfShadowSize);
+  shadow.ctx.fillStyle.addColorStop(0, 'rgba(0,0,0,1)');
+  shadow.ctx.fillStyle.addColorStop(1, 'rgba(0,0,0,0)');
+  shadow.ctx.fillRect(0, 0, shadowSize, shadowSize);
+  var leaves = (0, _utils.createSurface)(width, height);
+  var x = 0;
+  var y = 0;
+  var prevX = -100;
+  var prevY = -100;
+  var images = [LEAF_1, LEAF_2, LEAF_3];
+  var density = 0.6;
+
+  while (x < width) {
+    x += Math.random() * width * density;
+    y = 0;
+
+    while (y < height) {
+      y += Math.random() * height * density; // require a minimum distance
+
+      if (Math.abs(Math.abs(x - prevX) + Math.abs(y - prevY)) < 50) {
+        continue;
+      }
+
+      var scale = Math.random() * 0.5 + 0.5;
+      leaves.ctx.translate(x, y);
+      var offset = 2 + Math.random() * 10;
+      leaves.ctx.globalAlpha = 0.1 + (1 - offset / 12) * 0.1;
+      leaves.ctx.scale(scale, scale);
+      leaves.ctx.drawImage(shadow.el, offset / scale + -halfShadowSize, -halfShadowSize);
+      leaves.ctx.globalAlpha = 1;
+      leaves.ctx.rotate(Math.random() * (Math.PI * 2));
+      var image = images[(0 | x + y) % 3];
+      leaves.ctx.drawImage(image, 0, 0);
+      leaves.ctx.setTransform(1, 0, 0, 1, 0, 0);
+      prevX = x;
+      prevY = y;
+    }
+  }
+
+  return new _ntAnimator.PIXI.Texture.from(leaves.el);
+}
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../utils":"utils/index.js"}],"components/track/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -96941,6 +97515,10 @@ var _preload = _interopRequireDefault(require("./preload"));
 
 var _scripts = require("../../scripts");
 
+var _rain = _interopRequireDefault(require("../../effects/rain"));
+
+var _leaves = _interopRequireDefault(require("../../effects/leaves"));
+
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
@@ -96973,6 +97551,17 @@ var Track = /*#__PURE__*/function () {
     (0, _defineProperty2.default)(this, "segments", []);
     (0, _defineProperty2.default)(this, "overlay", new _ntAnimator.PIXI.ResponsiveContainer());
     (0, _defineProperty2.default)(this, "ground", new _ntAnimator.PIXI.ResponsiveContainer());
+    (0, _defineProperty2.default)(this, "applyEffect", function () {
+      if (!_this.effect) {
+        return;
+      }
+
+      if (_this.effect.zIndex < 0) {
+        _this.ground.addChild(_this.effect);
+      } else {
+        _this.overlay.addChild(_this.effect);
+      }
+    });
     (0, _defineProperty2.default)(this, "stopAmbience", function () {
       var _this$ambience, _this$ambience$curren;
 
@@ -97035,7 +97624,12 @@ var Track = /*#__PURE__*/function () {
       var finishLine = _this.finishLine,
           overlay = _this.overlay,
           ground = _this.ground,
-          view = _this.view; // just in case (in testing)
+          view = _this.view; // move the effect over, if needed
+
+      if (_this.effect) {
+        _this.effect.parent.removeChild(_this.effect);
+      } // just in case (in testing)
+
 
       _this.removeStartingLine(); // reset all
 
@@ -97056,7 +97650,11 @@ var Track = /*#__PURE__*/function () {
       overlay.removeChildren();
       ground.removeChildren();
       overlay.addChild(finishLine.top);
-      ground.addChild(finishLine.bottom);
+      ground.addChild(finishLine.bottom); // restore the effects, if any
+
+      _this.applyEffect(); // show the finish
+
+
       finishLine.visible = true;
     });
     (0, _defineProperty2.default)(this, "removeStartingLine", function () {
@@ -97494,18 +98092,18 @@ var Track = /*#__PURE__*/function () {
     }() // creates a background, if needed
 
   }, {
-    key: "_createBackground",
+    key: "_createEffect",
     value: function () {
-      var _createBackground2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
-        var view, manifest, background;
+      var _createEffect2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
+        var view, manifest, path, effect, Handler, handler;
         return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
             switch (_context6.prev = _context6.next) {
               case 0:
-                view = this.view, manifest = this.manifest;
-                background = manifest.background; // check if present
+                view = this.view, manifest = this.manifest, path = this.path;
+                effect = manifest.effect; // check if present
 
-                if (background) {
+                if (effect) {
                   _context6.next = 4;
                   break;
                 }
@@ -97513,28 +98111,99 @@ var Track = /*#__PURE__*/function () {
                 return _context6.abrupt("return");
 
               case 4:
-                // check for a background color
-                if ((0, _utils.isNumber)(background.color)) view.renderer.backgroundColor = background.color; // check for a composition
+                // check for any scripts that need to run
+                // TODO: maybe add more support, but for now this is fine)
+                Handler = effect.script === 'rain' ? _rain.default : effect.script === 'leaves' ? _leaves.default : null;
+                handler = Handler ? new Handler(view, this, view.animator) : null; // initialization
 
-                if (!(0, _utils.isArray)(background.compose)) {
-                  _context6.next = 11;
+                if (!handler) {
+                  _context6.next = 9;
                   break;
                 }
 
-                _context6.next = 8;
-                return view.animator.compose(background, this.path);
+                _context6.next = 9;
+                return handler.init(view, this, view.animator);
 
-              case 8:
-                this.background = _context6.sent;
-                this.background.zIndex = -1;
-                this.container.addChild(this.background);
+              case 9:
+                if (!(0, _utils.isArray)(effect.compose)) {
+                  _context6.next = 15;
+                  break;
+                }
 
-              case 11:
+                _context6.next = 12;
+                return view.animator.compose(effect, path, manifest);
+
+              case 12:
+                this.effect = _context6.sent;
+                this.effect.zIndex = effect.z || 0;
+                this.applyEffect();
+
+              case 15:
+                if (!handler) {
+                  _context6.next = 18;
+                  break;
+                }
+
+                _context6.next = 18;
+                return handler.setup(view, this, view.animator);
+
+              case 18:
               case "end":
                 return _context6.stop();
             }
           }
         }, _callee6, this);
+      }));
+
+      function _createEffect() {
+        return _createEffect2.apply(this, arguments);
+      }
+
+      return _createEffect;
+    }() // creates a background, if needed
+
+  }, {
+    key: "_createBackground",
+    value: function () {
+      var _createBackground2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7() {
+        var view, manifest, background;
+        return _regenerator.default.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                view = this.view, manifest = this.manifest;
+                background = manifest.background; // check if present
+
+                if (background) {
+                  _context7.next = 4;
+                  break;
+                }
+
+                return _context7.abrupt("return");
+
+              case 4:
+                // check for a background color
+                if ((0, _utils.isNumber)(background.color)) view.renderer.backgroundColor = background.color; // check for a composition
+
+                if (!(0, _utils.isArray)(background.compose)) {
+                  _context7.next = 11;
+                  break;
+                }
+
+                _context7.next = 8;
+                return view.animator.compose(background, this.path);
+
+              case 8:
+                this.background = _context7.sent;
+                this.background.zIndex = -1;
+                this.container.addChild(this.background);
+
+              case 11:
+              case "end":
+                return _context7.stop();
+            }
+          }
+        }, _callee7, this);
       }));
 
       function _createBackground() {
@@ -97547,33 +98216,33 @@ var Track = /*#__PURE__*/function () {
   }, {
     key: "_createForeground",
     value: function () {
-      var _createForeground2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7() {
+      var _createForeground2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8() {
         var view, manifest, foreground, layer;
-        return _regenerator.default.wrap(function _callee7$(_context7) {
+        return _regenerator.default.wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
                 view = this.view, manifest = this.manifest;
                 foreground = manifest.foreground; // check if present
 
                 if (foreground) {
-                  _context7.next = 4;
+                  _context8.next = 4;
                   break;
                 }
 
-                return _context7.abrupt("return");
+                return _context8.abrupt("return");
 
               case 4:
                 if (!(0, _utils.isArray)(foreground.compose)) {
-                  _context7.next = 12;
+                  _context8.next = 12;
                   break;
                 }
 
-                _context7.next = 7;
+                _context8.next = 7;
                 return view.animator.compose(foreground, this.path);
 
               case 7:
-                layer = _context7.sent;
+                layer = _context8.sent;
                 // create a a separate view - this will
                 // be placed over the cars layer
                 this.foreground = new _ntAnimator.PIXI.ResponsiveContainer();
@@ -97583,10 +98252,10 @@ var Track = /*#__PURE__*/function () {
 
               case 12:
               case "end":
-                return _context7.stop();
+                return _context8.stop();
             }
           }
-        }, _callee7, this);
+        }, _callee8, this);
       }));
 
       function _createForeground() {
@@ -97599,12 +98268,12 @@ var Track = /*#__PURE__*/function () {
   }, {
     key: "applyScripts",
     value: function () {
-      var _applyScripts = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8() {
+      var _applyScripts = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9() {
         var _i2, _arr2, container, objs, _iterator4, _step4, _obj$config, obj, _parseScriptArgs, _parseScriptArgs2, name, args, handler;
 
-        return _regenerator.default.wrap(function _callee8$(_context8) {
+        return _regenerator.default.wrap(function _callee9$(_context9) {
           while (1) {
-            switch (_context8.prev = _context8.next) {
+            switch (_context9.prev = _context9.next) {
               case 0:
                 _i2 = 0, _arr2 = [this.overlay, this.ground
                 /*, this.foreground, this.background */
@@ -97612,67 +98281,67 @@ var Track = /*#__PURE__*/function () {
 
               case 1:
                 if (!(_i2 < _arr2.length)) {
-                  _context8.next = 27;
+                  _context9.next = 27;
                   break;
                 }
 
                 container = _arr2[_i2];
                 objs = (0, _ntAnimator.findDisplayObjectsOfRole)(container, 'script');
                 _iterator4 = _createForOfIteratorHelper(objs);
-                _context8.prev = 5;
+                _context9.prev = 5;
 
                 _iterator4.s();
 
               case 7:
                 if ((_step4 = _iterator4.n()).done) {
-                  _context8.next = 16;
+                  _context9.next = 16;
                   break;
                 }
 
                 obj = _step4.value;
                 _parseScriptArgs = (0, _scripts.parseScriptArgs)((_obj$config = obj.config) === null || _obj$config === void 0 ? void 0 : _obj$config.script), _parseScriptArgs2 = (0, _slicedToArray2.default)(_parseScriptArgs, 2), name = _parseScriptArgs2[0], args = _parseScriptArgs2[1];
-                _context8.next = 12;
+                _context9.next = 12;
                 return (0, _scripts.loadScript)(name, args, obj, this.view, this.view.animator);
 
               case 12:
-                handler = _context8.sent;
+                handler = _context9.sent;
 
                 if (handler) {
                   this.scripts.push(handler);
                 }
 
               case 14:
-                _context8.next = 7;
+                _context9.next = 7;
                 break;
 
               case 16:
-                _context8.next = 21;
+                _context9.next = 21;
                 break;
 
               case 18:
-                _context8.prev = 18;
-                _context8.t0 = _context8["catch"](5);
+                _context9.prev = 18;
+                _context9.t0 = _context9["catch"](5);
 
-                _iterator4.e(_context8.t0);
+                _iterator4.e(_context9.t0);
 
               case 21:
-                _context8.prev = 21;
+                _context9.prev = 21;
 
                 _iterator4.f();
 
-                return _context8.finish(21);
+                return _context9.finish(21);
 
               case 24:
                 _i2++;
-                _context8.next = 1;
+                _context9.next = 1;
                 break;
 
               case 27:
               case "end":
-                return _context8.stop();
+                return _context9.stop();
             }
           }
-        }, _callee8, this, [[5, 18, 21, 24]]);
+        }, _callee9, this, [[5, 18, 21, 24]]);
       }));
 
       function applyScripts() {
@@ -97810,16 +98479,16 @@ var Track = /*#__PURE__*/function () {
 
     /** creates a new track instance */
     value: function () {
-      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9(options) {
+      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10(options) {
         var view, seed, activity, instance, y;
-        return _regenerator.default.wrap(function _callee9$(_context9) {
+        return _regenerator.default.wrap(function _callee10$(_context10) {
           while (1) {
-            switch (_context9.prev = _context9.next) {
+            switch (_context10.prev = _context10.next) {
               case 0:
                 view = options.view, seed = options.seed;
                 // create the new track
                 instance = new Track();
-                _context9.prev = 2;
+                _context10.prev = 2;
                 instance.options = options;
                 instance.view = view;
                 instance.container = new _ntAnimator.PIXI.Container(); // include special plugins
@@ -97843,33 +98512,33 @@ var Track = /*#__PURE__*/function () {
 
                 activity = 'preloading resources';
                 view.setLoadingStatus('assets', 'preloading resources');
-                _context9.next = 21;
+                _context10.next = 21;
                 return instance._preloadResources();
 
               case 21:
                 // setup each part
                 activity = 'assembling repeating road';
                 view.setLoadingStatus('init', 'creating road');
-                _context9.next = 25;
+                _context10.next = 25;
                 return instance._createRoad();
 
               case 25:
                 activity = 'assembling starting line';
                 view.setLoadingStatus('init', 'creating starting line');
-                _context9.next = 29;
+                _context10.next = 29;
                 return instance._createStartingLine();
 
               case 29:
                 // todo? create when needed?
                 activity = 'assembling finish line';
                 view.setLoadingStatus('init', 'creating finish line');
-                _context9.next = 33;
+                _context10.next = 33;
                 return instance._createFinishLine();
 
               case 33:
                 // apply scripts, if any
                 activity = 'loading doodad scripts';
-                _context9.next = 36;
+                _context10.next = 36;
                 return instance.applyScripts();
 
               case 36:
@@ -97877,11 +98546,16 @@ var Track = /*#__PURE__*/function () {
                 activity = 'loading ambient sound';
                 view.setLoadingStatus('init', 'creating ambient sound');
 
-                instance._createAmbience(); // await instance._createForeground();
+                instance._createAmbience(); // other extras
+
+
+                _context10.next = 41;
+                return instance._createEffect();
+
+              case 41:
+                // await instance._createForeground();
                 // await instance._createBackground();
                 // set the y position
-
-
                 activity = 'aligning track';
                 view.setLoadingStatus('init', 'aligning track');
                 y = _scaling.TRACK_TOP + _scaling.TRACK_HEIGHT / 2;
@@ -97889,24 +98563,24 @@ var Track = /*#__PURE__*/function () {
                 instance.ground.relativeY = y; // can render
 
                 instance.ready = true;
-                _context9.next = 51;
+                _context10.next = 53;
                 break;
 
-              case 47:
-                _context9.prev = 47;
-                _context9.t0 = _context9["catch"](2);
-                console.error(_context9.t0);
+              case 49:
+                _context10.prev = 49;
+                _context10.t0 = _context10["catch"](2);
+                console.error(_context10.t0);
                 throw new Error(activity);
 
-              case 51:
-                return _context9.abrupt("return", instance);
+              case 53:
+                return _context10.abrupt("return", instance);
 
-              case 52:
+              case 54:
               case "end":
-                return _context9.stop();
+                return _context10.stop();
             }
           }
-        }, _callee9, null, [[2, 47]]);
+        }, _callee10, null, [[2, 49]]);
       }));
 
       function create(_x) {
@@ -97930,7 +98604,7 @@ var getRightEdge = function getRightEdge(t) {
 var byRightEdge = function byRightEdge(a, b) {
   return getRightEdge(a) - getRightEdge(b);
 };
-},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../rng":"rng.js","../../views/track/scaling":"views/track/scaling.js","../../config":"config.js","../../utils":"utils/index.js","./segment":"components/track/segment.js","../../plugins/crowd":"plugins/crowd/index.js","../../audio/ambient":"audio/ambient.js","./preload":"components/track/preload.js","../../scripts":"scripts/index.js"}],"animations/car-entry.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../rng":"rng.js","../../views/track/scaling":"views/track/scaling.js","../../config":"config.js","../../utils":"utils/index.js","./segment":"components/track/segment.js","../../plugins/crowd":"plugins/crowd/index.js","../../audio/ambient":"audio/ambient.js","./preload":"components/track/preload.js","../../scripts":"scripts/index.js","../../effects/rain":"effects/rain.js","../../effects/leaves":"effects/leaves.js"}],"animations/car-entry.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98773,7 +99447,10 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
     finish.volume(_volume.VOLUME_FINISH_LINE_CROWD);
     finish.play(); // start the flash effect
 
-    _this.activateFlash(); // reset all car positions
+    _this.activateFlash(); // notify the race is over
+
+
+    _track.emit('race:finish'); // reset all car positions
 
 
     var _iterator4 = _createForOfIteratorHelper(_players),
@@ -99880,12 +100557,21 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "playerError", function () {
       var selected = Math.ceil(Math.random() * 4);
-      var err = audio.create('sfx', "error_".concat(selected)); // select the correct volume
+      var err = audio.create('sfx', "error_".concat(selected)); // if there's not a sound, don't bother
+
+      if (!err) {
+        return;
+      } // select the correct volume
+
 
       var volume = [_volume.VOLUME_ERROR_1, _volume.VOLUME_ERROR_2, _volume.VOLUME_ERROR_3, _volume.VOLUME_ERROR_4][selected - 1] || _volume.VOLUME_ERROR_DEFAULT; // set the volume
 
-      err.volume(volume);
-      err.play();
+      try {
+        err.volume(volume);
+        err.play();
+      } catch (ex) {
+        console.warn("Unable to play audio: error_".concat(selected), err);
+      }
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "startCountdown", /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
       return _regenerator.default.wrap(function _callee3$(_context3) {
@@ -100018,24 +100704,28 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
           options = _assertThisInitialize10.options; // already playing (this shouldn't happen)
 
 
-      if (raceCompletedAnimation) return; // play the correct background noise
-
-      var victory = players.length === 1;
-      track === null || track === void 0 ? void 0 : track.setAmbience(victory ? 'victory' : 'finish'); // stop the track
+      if (raceCompletedAnimation) return; // stop the track
 
       state.animateTrackMovement = false;
       state.speed = 0;
       state.shake = _config.CAR_DEFAULT_SHAKE_LEVEL;
-      state.isFinished = true;
-      track.showFinishLine(); // stop animating progress
+      state.isFinished = true; // update the track
 
-      _this.raceProgressAnimation.stop(); // play the final animation
+      if (track) {
+        // play the correct background noise
+        var victory = players.length === 1;
+        track.setAmbience(victory ? 'victory' : 'finish'); // display the ending
+
+        track.showFinishLine(); // stop animating progress
+
+        _this.raceProgressAnimation.stop(); // play the final animation
 
 
-      _this.raceCompletedAnimation = new _raceCompleted.default({
-        track: (0, _assertThisInitialized2.default)(_this),
-        players: players
-      });
+        _this.raceCompletedAnimation = new _raceCompleted.default({
+          track: (0, _assertThisInitialized2.default)(_this),
+          players: players
+        });
+      }
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "lastUpdate", +new Date());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "finalizePerformanceTracking", function () {
@@ -100216,20 +100906,31 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "getStartingLinePosition",
     value: function getStartingLinePosition() {
-      var height = this.height,
-          options = this.options; // get the height ratio against the target
-      // size that scaling is based on
-
-      var ratio = height / options.scale.height;
-
-      if (isNaN(ratio)) {
-        ratio = 1;
-      } // calculate the correct position
-
-
-      return _config.TRACK_STARTING_LINE_POSITION * ratio;
+      return _config.TRACK_STARTING_LINE_POSITION; // responsive track support
+      // const { height, options } = this;
+      // // get the height ratio against the target
+      // // size that scaling is based on
+      // let ratio = height / options.scale.height;
+      // if (isNaN(ratio)) {
+      // 	ratio = 1;
+      // }
+      // // calculate the correct position
+      // return TRACK_STARTING_LINE_POSITION * ratio;
     }
     /** assigns the current track */
+
+  }, {
+    key: "simulateFinish",
+    value: function simulateFinish() {
+      this.state.isFinished = true;
+      this.track.showFinishLine();
+      var complete = new _raceCompleted.default({
+        track: this,
+        players: this.players
+      });
+      complete.play({});
+    }
+    /** activates the finished race state */
 
   }, {
     key: "render",
@@ -100749,13 +101450,9 @@ var _trail = _interopRequireDefault(require("../../components/trail"));
 
 var _color = require("../../utils/color");
 
+var _config = require("../../config");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
-
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
@@ -100987,22 +101684,22 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
     }());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "createCar", /*#__PURE__*/function () {
       var _ref4 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(config) {
-        var view, _this$options, _this$options$tweaks, tweaks, _this$options$backgro, backgroundColor, inside, outer, car, bounds, display, target, scale, configScale, trail, scaleAdjustMagicNumber, adjustedScale, _iterator, _step, part;
-
+        var view, tweaks, player, container, car, bounds, display, target, scale, configScale, trail;
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
                 view = (0, _assertThisInitialized2.default)(_this);
-                _this$options = _this.options, _this$options$tweaks = _this$options.tweaks, tweaks = _this$options$tweaks === void 0 ? {} : _this$options$tweaks, _this$options$backgro = _this$options.backgroundColor, backgroundColor = _this$options$backgro === void 0 ? 0xffffff : _this$options$backgro; // create the new car
+                tweaks = _objectSpread(_objectSpread({}, _this.options.tweaks || {}), config.tweaks || {}); // create the new car
 
-                inside = new _ntAnimator.PIXI.Container();
-                outer = new _ntAnimator.PIXI.ResponsiveContainer();
+                player = new _ntAnimator.PIXI.Container();
+                container = new _ntAnimator.PIXI.ResponsiveContainer();
                 _context4.next = 6;
                 return _car.default.create(_objectSpread(_objectSpread({
                   view: view
                 }, config), {}, {
                   baseHeight: DEFAULT_MAX_HEIGHT,
+                  tweaks: tweaks,
                   // lighting is flipped because the container
                   // is rotated in the view
                   lighting: _objectSpread({
@@ -101029,16 +101726,18 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 car.scale.x = scale;
                 car.scale.y = scale; // check for a bonus scale modifier
 
-                configScale = !isNaN(config.scale) ? config.scale : 1;
-                car.scale.x *= configScale;
-                car.scale.y *= configScale; // include the trail, if any
+                configScale = !isNaN(config.scale) ? config.scale : 1; // shared scaling
+
+                player.x *= configScale;
+                player.y *= configScale;
+                player.addChild(car); // include the trail, if any
 
                 if (!config.trail) {
-                  _context4.next = 29;
+                  _context4.next = 28;
                   break;
                 }
 
-                _context4.next = 21;
+                _context4.next = 22;
                 return _trail.default.create(_objectSpread(_objectSpread({
                   view: view
                 }, config), {}, {
@@ -101046,53 +101745,26 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                   type: config.trail
                 }));
 
-              case 21:
+              case 22:
                 trail = _context4.sent;
                 // add to the view
-                trail.attachTo(car);
-                trail.alignTo(car, 'back'); // TODO: magic number for Garage view and trails.
-                // Need to determine trail scaling better
-
-                scaleAdjustMagicNumber = 1.4;
-                adjustedScale = configScale * scale * scaleAdjustMagicNumber;
-                _iterator = _createForOfIteratorHelper(trail.parts);
-
-                try {
-                  for (_iterator.s(); !(_step = _iterator.n()).done;) {
-                    part = _step.value;
-                    part.scale.x *= adjustedScale;
-                    part.scale.y *= adjustedScale;
-                  } // This is intended to cause trails to face the
-                  // correct direction when reversed. This may be done eventually
-                  // // check for specials
-                  // const reversed = findDisplayObjectsOfRole(car, 'reversable')
-                  // for (const obj of reversed) {
-                  // 	// add more props as required
-                  // 	if (obj.config.reverse?.flipY) {
-                  // 		obj.scale.y *= -1
-                  // 	}
-                  // }
-                  // mark so it knows to make
-                  // additional room for the trail
-
-                } catch (err) {
-                  _iterator.e(err);
-                } finally {
-                  _iterator.f();
-                }
+                player.addChild(trail);
+                trail.zIndex = -10;
+                trail.x = car.positions.back * (car.pivot.x / configScale);
+                player.sortChildren(); // mark so it knows to make
+                // additional room for the trail
 
                 outer.hasTrail = true;
 
-              case 29:
+              case 28:
                 // set the inner container
                 console.log(config);
                 inside.x = config.offsetX || 0;
                 inside.y = config.offsetY || 0; // setup the container
 
-                inside.addChild(car);
-                outer.addChild(inside);
-                outer.relativeY = 0.5;
-                outer.relativeX = 0.5; // car shadow fixes
+                container.addChild(player);
+                container.relativeY = 0.5;
+                container.relativeX = 0.5; // car shadow fixes
 
                 if ((0, _utils.isNumber)(tweaks.rotation)) {
                   outer.rotation += Math.PI * 2 * tweaks.rotation;
@@ -101100,7 +101772,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
                 return _context4.abrupt("return", outer);
 
-              case 38:
+              case 36:
               case "end":
                 return _context4.stop();
             }
@@ -101322,7 +101994,7 @@ function createBackdrop(display) {
   sprite.width *= 2;
   return sprite;
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/car":"components/car/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../utils":"utils/index.js","../../components/activity":"components/activity.js","../../components/trail":"components/trail/index.js","../../utils/color":"utils/color.js"}],"views/preview/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/car":"components/car/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../utils":"utils/index.js","../../components/activity":"components/activity.js","../../components/trail":"components/trail/index.js","../../utils/color":"utils/color.js","../../config":"config.js"}],"views/preview/index.js":[function(require,module,exports) {
 
 },{}],"components/treadmill.js":[function(require,module,exports) {
 "use strict";
@@ -101587,6 +102259,10 @@ var _base = require("../base");
 
 var _treadmill = _interopRequireDefault(require("../../components/treadmill"));
 
+var _config = require("../../config");
+
+var _layers = require("../track/layers");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
@@ -101598,7 +102274,9 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
 // config
-var DEFAULT_MAX_HEIGHT = 250; // creates a rolling view for an individual car
+var DEFAULT_MAX_HEIGHT = 250; // extra scaling when looking at trails
+
+var CRUISE_VIEW_BONUS_SCALING = 1.3; // creates a rolling view for an individual car
 
 var CruiseView = /*#__PURE__*/function (_BaseView) {
   (0, _inherits2.default)(CruiseView, _BaseView);
@@ -101753,6 +102431,7 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
                   view: this,
                   type: options.type,
                   isAnimated: options.isAnimated,
+                  tweaks: options.tweaks,
                   hue: options.hue || 0,
                   baseHeight: baseHeight,
                   lighting: {
@@ -101772,30 +102451,31 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
                 container.addChild(car);
 
                 if (!options.trail) {
-                  _context3.next = 14;
+                  _context3.next = 18;
                   break;
                 }
 
                 _context3.next = 12;
                 return _trail.default.create({
                   view: this,
-                  baseHeight: baseHeight * 1.2,
+                  baseHeight: baseHeight * CRUISE_VIEW_BONUS_SCALING,
                   type: options.trail
                 });
 
               case 12:
                 trail = _context3.sent;
                 // link to a car
-                trail.link({
-                  car: car,
-                  container: container
-                });
+                container.addChild(trail);
+                trail.scale.x = trail.scale.y = _config.TRAIL_SCALE_IN_PREVIEW * CRUISE_VIEW_BONUS_SCALING;
+                trail.zIndex = _layers.LAYER_TRAIL;
+                trail.x = car.positions.back;
+                container.sortChildren();
 
-              case 14:
+              case 18:
                 // add the car
                 this.car = container;
 
-              case 15:
+              case 19:
               case "end":
                 return _context3.stop();
             }
@@ -101904,15 +102584,133 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
 }(_base.BaseView);
 
 exports.default = CruiseView;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../components/treadmill":"components/treadmill.js"}],"views/customizer/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../components/treadmill":"components/treadmill.js","../../config":"config.js","../track/layers":"views/track/layers.js"}],"utils/wait.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.waitForTime = waitForTime;
+exports.waitForCondition = waitForCondition;
+
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
+
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+var pending = {};
+
+function waitForTime(_x) {
+  return _waitForTime.apply(this, arguments);
+} // handles waiting for conditions
+
+
+function _waitForTime() {
+  _waitForTime = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(time) {
+    return _regenerator.default.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            return _context.abrupt("return", new Promise(function (resolve) {
+              return setTimeout(resolve, time);
+            }));
+
+          case 1:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee);
+  }));
+  return _waitForTime.apply(this, arguments);
+}
+
+function waitForCondition(_x2, _x3, _x4) {
+  return _waitForCondition.apply(this, arguments);
+}
+
+function _waitForCondition() {
+  _waitForCondition = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(id, params, condition) {
+    var interval, existing, _iterator, _step, item, ref;
+
+    return _regenerator.default.wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            interval = params.interval || 100; // if only a single wait is allowed, clear
+            // the previous ones
+
+            if (params.single) {
+              existing = pending[id] || [];
+              _iterator = _createForOfIteratorHelper(existing);
+
+              try {
+                for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                  item = _step.value;
+
+                  try {
+                    clearTimeout(item.ref);
+
+                    if (params.rejectOnAbort) {
+                      item.reject();
+                    }
+                  } // don't fail for this
+                  catch (ex) {}
+                }
+              } catch (err) {
+                _iterator.e(err);
+              } finally {
+                _iterator.f();
+              }
+            } // save the reference
+
+
+            ref = {};
+            pending[id] = pending[id] || [];
+            pending[id].push(ref); // give back the promise to wait for
+
+            return _context2.abrupt("return", new Promise(function (resolve, reject) {
+              ref.reject = reject;
+              ref.resolve = resolve; // handles checking for functions
+
+              function check() {
+                // check if this passed or not
+                if (condition() === true) {
+                  clearTimeout(ref.pending);
+                  return resolve();
+                } // queue the next attempt
+
+
+                ref.pending = setTimeout(check, interval);
+              } // trigger the watcher
+
+
+              setTimeout(check, interval);
+            }));
+
+          case 6:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2);
+  }));
+  return _waitForCondition.apply(this, arguments);
+}
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js"}],"views/customizer/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = void 0;
-
-var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
 
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
@@ -101943,6 +102741,12 @@ var _treadmill = _interopRequireDefault(require("../../components/treadmill"));
 var _car = _interopRequireDefault(require("../../components/car"));
 
 var _trail = _interopRequireDefault(require("../../components/trail"));
+
+var _config = require("../../config");
+
+var _layers = require("../track/layers");
+
+var _wait = require("../../utils/wait");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -102140,6 +102944,8 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
     key: "_createSprayer",
     value: function () {
       var _createSprayer2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+        var _sprayer$controller;
+
         var sprayer;
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
@@ -102152,7 +102958,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 sprayer = _context4.sent;
                 sprayer.y = CONTENT_Y;
                 sprayer.x = CONTENT_X;
-                sprayer.controller.stopEmitters();
+                (_sprayer$controller = sprayer.controller) === null || _sprayer$controller === void 0 ? void 0 : _sprayer$controller.stopEmitters();
                 this.sprayer = sprayer;
                 this.workspace.addChild(sprayer);
 
@@ -102169,38 +102975,88 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
       }
 
       return _createSprayer;
-    }() // changes the paint for a car
-
+    }()
   }, {
-    key: "setPaint",
+    key: "waitForActivity",
     value: function () {
-      var _setPaint = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(hue) {
+      var _waitForActivity = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(activity) {
         var _this3 = this;
 
         return _regenerator.default.wrap(function _callee5$(_context5) {
           while (1) {
             switch (_context5.prev = _context5.next) {
               case 0:
-                this.sprayer.controller.activateEmitters();
-                clearTimeout(this.__pendingHueShift);
-                clearTimeout(this.__clearSprayingEffect); // perform the switch
+                _context5.next = 2;
+                return (0, _wait.waitForCondition)("customizer:wait-for-car-to-".concat(activity), {
+                  single: true
+                }, function () {
+                  return !!_this3.isReady;
+                });
 
-                this.__pendingHueShift = setTimeout(function () {
-                  return _this3.car.repaintCar(hue);
-                }, 300);
-                this.__clearSprayingEffect = setTimeout(function () {
-                  return _this3.sprayer.controller.stopEmitters();
-                }, 1000);
+              case 2:
+                return _context5.abrupt("return", _context5.sent);
 
-              case 5:
+              case 3:
               case "end":
                 return _context5.stop();
             }
           }
-        }, _callee5, this);
+        }, _callee5);
       }));
 
-      function setPaint(_x2) {
+      function waitForActivity(_x2) {
+        return _waitForActivity.apply(this, arguments);
+      }
+
+      return waitForActivity;
+    }() // changes the paint for a car
+
+  }, {
+    key: "setPaint",
+    value: function () {
+      var _setPaint = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(hue) {
+        var _this4 = this;
+
+        var _this$sprayer$control;
+
+        return _regenerator.default.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                _context6.next = 2;
+                return this.waitForActivity('paint');
+
+              case 2:
+                // performt the paint effect
+                if (this.sprayer) {
+                  (_this$sprayer$control = this.sprayer.controller) === null || _this$sprayer$control === void 0 ? void 0 : _this$sprayer$control.activateEmitters();
+                  clearTimeout(this.__pendingHueShift);
+                  clearTimeout(this.__clearSprayingEffect);
+                  this.__clearSprayingEffect = setTimeout(function () {
+                    var _this4$sprayer, _this4$sprayer$contro;
+
+                    (_this4$sprayer = _this4.sprayer) === null || _this4$sprayer === void 0 ? void 0 : (_this4$sprayer$contro = _this4$sprayer.controller) === null || _this4$sprayer$contro === void 0 ? void 0 : _this4$sprayer$contro.stopEmitters();
+                  }, 1000);
+                } // perform the switch
+                // if the car is missing, then it's probably in
+                // a transitional phase and can be skipped
+
+
+                this.__pendingHueShift = setTimeout(function () {
+                  var _this4$car;
+
+                  (_this4$car = _this4.car) === null || _this4$car === void 0 ? void 0 : _this4$car.repaintCar(hue);
+                }, 300);
+
+              case 4:
+              case "end":
+                return _context6.stop();
+            }
+          }
+        }, _callee6, this);
+      }));
+
+      function setPaint(_x3) {
         return _setPaint.apply(this, arguments);
       }
 
@@ -102210,32 +103066,34 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "setCar",
     value: function () {
-      var _setCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(_ref) {
-        var type, hue, isAnimated, trail, car, container;
-        return _regenerator.default.wrap(function _callee6$(_context6) {
+      var _setCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(_ref) {
+        var type, hue, isAnimated, trail, tweaks, car, container;
+        return _regenerator.default.wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
-                type = _ref.type, hue = _ref.hue, isAnimated = _ref.isAnimated, trail = _ref.trail;
+                type = _ref.type, hue = _ref.hue, isAnimated = _ref.isAnimated, trail = _ref.trail, tweaks = _ref.tweaks;
+                this.isReady = false; // clear the existing data
 
                 this._removeExistingCars(); // create the new car instance
 
 
-                _context6.next = 4;
+                _context7.next = 5;
                 return _car.default.create({
                   view: this,
                   baseHeight: 150,
                   type: type,
                   isAnimated: isAnimated,
                   hue: hue,
+                  tweaks: tweaks,
                   lighting: {
                     x: -5,
                     y: 7
                   }
                 });
 
-              case 4:
-                car = _context6.sent;
+              case 5:
+                car = _context7.sent;
                 // put the car inside of a container that
                 // can be used to attach trails and 
                 // other effects to
@@ -102255,25 +103113,27 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 delete this.trail;
 
                 if (!trail) {
-                  _context6.next = 19;
+                  _context7.next = 20;
                   break;
                 }
 
-                _context6.next = 19;
-                return this.setTrail(trail);
-
-              case 19:
-                return _context6.abrupt("return", this._animatePlayerCarIntoView(this.container));
+                _context7.next = 20;
+                return this.setTrail(trail, false);
 
               case 20:
+                // animate the new car into view
+                this.isReady = true;
+                return _context7.abrupt("return", this._animatePlayerCarIntoView(this.container));
+
+              case 22:
               case "end":
-                return _context6.stop();
+                return _context7.stop();
             }
           }
-        }, _callee6, this);
+        }, _callee7, this);
       }));
 
-      function setCar(_x3) {
+      function setCar(_x4) {
         return _setCar.apply(this, arguments);
       }
 
@@ -102282,65 +103142,65 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "setTrail",
     value: function () {
-      var _setTrail = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(type) {
-        var _this$trail,
-            _this4 = this;
+      var _setTrail = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(type) {
+        var _this$trail;
 
-        var trail, parts, _iterator, _step, part;
-
-        return _regenerator.default.wrap(function _callee7$(_context7) {
+        var waitForReady,
+            trail,
+            _args8 = arguments;
+        return _regenerator.default.wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
+                waitForReady = _args8.length > 1 && _args8[1] !== undefined ? _args8[1] : true;
+
+                if (!waitForReady) {
+                  _context8.next = 4;
+                  break;
+                }
+
+                _context8.next = 4;
+                return this.waitForActivity('trail');
+
+              case 4:
                 (_this$trail = this.trail) === null || _this$trail === void 0 ? void 0 : _this$trail.dispose(); // if there's not a trail, they probably set
                 // it to none
 
                 if (type) {
-                  _context7.next = 3;
+                  _context8.next = 7;
                   break;
                 }
 
-                return _context7.abrupt("return");
+                return _context8.abrupt("return");
 
-              case 3:
-                _context7.next = 5;
+              case 7:
+                _context8.next = 9;
                 return _trail.default.create({
                   view: this,
                   baseHeight: 130,
                   type: type
                 });
 
-              case 5:
-                trail = _context7.sent;
+              case 9:
+                trail = _context8.sent;
 
                 // in case of an unusual scenario where
                 // a trail might not be disposed, go ahead and target
                 // each trail part and remove it individually
                 try {
-                  parts = (0, _ntAnimator.findDisplayObjectsOfRole)(this.container, 'trail-part');
-                  _iterator = _createForOfIteratorHelper(parts);
-
-                  try {
-                    for (_iterator.s(); !(_step = _iterator.n()).done;) {
-                      part = _step.value;
-                      (0, _ntAnimator.removeDisplayObject)(part);
-                    }
-                  } catch (err) {
-                    _iterator.e(err);
-                  } finally {
-                    _iterator.f();
+                  if (this.trail) {
+                    (0, _ntAnimator.removeDisplayObject)(this.trail);
                   }
                 } // nothing to do here
                 catch (ex) {} // attach to the view
 
 
                 this.trail = trail;
-                this.trail.attachTo(this.container);
-                this.trail.each(function (part) {
-                  part.role = ['trail-part'].concat((0, _toConsumableArray2.default)(part.role || []));
-                  part.alpha = 0;
-                  part.x = _this4.car.positions.back;
-                }); // also, fade in the trails
+                this.container.addChild(this.trail);
+                this.trail.x = this.car.positions.back;
+                this.trail.scale.x = this.trail.scale.y = _config.TRAIL_SCALE_IN_PREVIEW;
+                this.trail.zIndex = _layers.LAYER_TRAIL;
+                this.container.sortChildren(); // also, fade in the trails
 
                 (0, _ntAnimator.animate)({
                   duration: 500,
@@ -102352,21 +103212,19 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                   },
                   loop: false,
                   update: function update(_update) {
-                    trail.each(function (part) {
-                      return part.alpha = _update.t;
-                    });
+                    trail.alpha = _update.t;
                   }
                 });
 
-              case 11:
+              case 18:
               case "end":
-                return _context7.stop();
+                return _context8.stop();
             }
           }
-        }, _callee7, this);
+        }, _callee8, this);
       }));
 
-      function setTrail(_x4) {
+      function setTrail(_x5) {
         return _setTrail.apply(this, arguments);
       }
 
@@ -102411,12 +103269,12 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
           // finishing
           complete: function complete() {
             // if there's a left over car
-            var _iterator2 = _createForOfIteratorHelper(_this6.viewport.children),
-                _step2;
+            var _iterator = _createForOfIteratorHelper(_this6.viewport.children),
+                _step;
 
             try {
-              for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-                var child = _step2.value;
+              for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                var child = _step.value;
 
                 if (child.ready && child.isCar && child !== obj) {
                   (0, _ntAnimator.removeDisplayObject)(child);
@@ -102424,9 +103282,9 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
               } // finish
 
             } catch (err) {
-              _iterator2.e(err);
+              _iterator.e(err);
             } finally {
-              _iterator2.f();
+              _iterator.f();
             }
 
             obj.ready = true;
@@ -102439,12 +103297,12 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "_removeExistingCars",
     value: function _removeExistingCars() {
-      var _iterator3 = _createForOfIteratorHelper(this.viewport.children),
-          _step3;
+      var _iterator2 = _createForOfIteratorHelper(this.viewport.children),
+          _step2;
 
       try {
         var _loop = function _loop() {
-          var child = _step3.value;
+          var child = _step2.value;
 
           if (!child.isCar) {
             return "continue";
@@ -102472,15 +103330,15 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
           });
         };
 
-        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
           var _ret = _loop();
 
           if (_ret === "continue") continue;
         }
       } catch (err) {
-        _iterator3.e(err);
+        _iterator2.e(err);
       } finally {
-        _iterator3.f();
+        _iterator2.f();
       }
     } // NOT IMPLEMENTED YET
     // setNamecard () { }
@@ -102590,7 +103448,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
 }(_base.BaseView);
 
 exports.default = CustomizerView;
-},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../base":"views/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../components/treadmill":"components/treadmill.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js"}],"views/animation/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../base":"views/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../components/treadmill":"components/treadmill.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","../../config":"config.js","../track/layers":"views/track/layers.js","../../utils/wait":"utils/wait.js"}],"views/animation/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102623,6 +103481,8 @@ var _ntAnimator = require("nt-animator");
 var _trail = _interopRequireDefault(require("../../components/trail"));
 
 var _base = require("../base");
+
+var _layers = require("../track/layers");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -102846,8 +103706,8 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
                 // the trail lines up correctly using the 
                 // attachTo function
                 contain = new _ntAnimator.PIXI.Container();
-                contain.addChild(bumper);
-                trail.attachTo(contain); // assemble all layers
+                contain.addChild(trail);
+                contain.addChild(bumper); // assemble all layers
 
                 if (bg) {
                   this.container.addChild(bg);
@@ -102925,7 +103785,7 @@ function createBumper(img) {
   cache[img.src] = fade.canvas;
   return fade.canvas;
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../components/trail":"components/trail/index.js","../base":"views/base.js"}],"index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../components/trail":"components/trail/index.js","../base":"views/base.js","../track/layers":"views/track/layers.js"}],"index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {

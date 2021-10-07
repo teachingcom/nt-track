@@ -179,20 +179,11 @@ export default class Player extends PIXI.ResponsiveContainer {
 		if (trail) {
 			layers.trail = trail;
 
-			// NOTE: support for removing natural inbuilt trails
-			// since there's a trail, remove any "natural" trails
-			// that are part of the car itself
-			// const trails = findDisplayObjectsOfRole(this, 'trail')
-			// for (const obj of trails) {
-			// 	removeDisplayObject(obj)
-			// }
-
-			// TODO: trail scaling is hardcoded - we should
-			// calculate this value
-			trail.attachTo(this, scale.x * TRAIL_SCALE);
-			
-			// update the position of each
-			trail.each(part => part.x = car.positions.back);
+			// add to the player view
+			this.addChild(trail);
+			trail.zIndex = -10;
+			trail.x = car.positions.back;
+			trail.scale.x = trail.scale.y = scale.x * TRAIL_SCALE;
 		}
 		
 		// include the nitro, if any
@@ -262,7 +253,7 @@ export default class Player extends PIXI.ResponsiveContainer {
 			{ type: 'car', source: car, action: removeDisplayObject },
 			{ type: 'namecard', source: namecard, action: removeDisplayObject },
 			{ type: 'shadow', source: shadow, action: removeDisplayObject },
-			{ type: 'trail', source: trail, action: trail => trail.each(part => removeDisplayObject(part)) },
+			{ type: 'trail', source: trail, action: removeDisplayObject },
 			{ type: 'player', source: this, action: removeDisplayObject }
 		]
 

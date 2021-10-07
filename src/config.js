@@ -32,7 +32,7 @@ export const RACE_SOUND_ERROR_MAX_INTERVAL = 500
 export const RACE_FINISH_FLASH_FADE_TIME = 300
 
 // crowds
-export const CROWD_DEFAULT_SCALE = 0.8
+export const CROWD_DEFAULT_SCALE = 0.6
 export const CROWD_ANIMATION_VARIATIONS = 5
 export const CROWD_ANIMATION_FRAME_COUNT = 6
 export const CROWD_ANIMATION_DURATION = 1000
@@ -67,6 +67,9 @@ export const STATIC_CAR_ROTATION_FIX = Math.PI
 
 // trails
 export const TRAIL_SCALE = 0.55
+// trail is slightly increased in size to make it look better
+// in the customizer/store view
+export const TRAIL_SCALE_IN_PREVIEW = 0.7
 
 // nitros
 export const NITRO_SCALE = 0.75

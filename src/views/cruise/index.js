@@ -3,9 +3,14 @@ import Trail from '../../components/trail'
 import { animate, getBoundsForRole, PIXI } from 'nt-animator'
 import { BaseView } from '../base'
 import Treadmill from '../../components/treadmill'
+import { TRAIL_SCALE_IN_PREVIEW } from '../../config'
+import { LAYER_TRAIL } from '../track/layers'
 
 // config
 const DEFAULT_MAX_HEIGHT = 250
+
+// extra scaling when looking at trails
+const CRUISE_VIEW_BONUS_SCALING = 1.3
 
 // creates a rolling view for an individual car
 export default class CruiseView extends BaseView {
@@ -75,6 +80,7 @@ export default class CruiseView extends BaseView {
 			view: this, 
       type: options.type,
       isAnimated: options.isAnimated,
+      tweaks: options.tweaks,
 			hue: options.hue || 0,
       baseHeight,
       lighting: { x: -5, y: 7 }
@@ -92,12 +98,16 @@ export default class CruiseView extends BaseView {
     if (options.trail) {
       const trail = await Trail.create({
         view: this,
-        baseHeight: baseHeight * 1.2,
+        baseHeight: baseHeight * CRUISE_VIEW_BONUS_SCALING,
         type: options.trail
       })
 
       // link to a car
-      trail.link({ car, container })
+      container.addChild(trail)
+      trail.scale.x = trail.scale.y = TRAIL_SCALE_IN_PREVIEW * CRUISE_VIEW_BONUS_SCALING
+      trail.zIndex = LAYER_TRAIL
+      trail.x = car.positions.back
+      container.sortChildren()
     }
 
     // add the car

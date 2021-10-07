@@ -495,21 +495,6 @@ export default class Car extends PIXI.Container {
 			complete: () => state.isNitro = false
 		});
 	}
-	
-	// /** rattles a car by the amount provided */
-	// rattle(amount) {
-	// 	const { state } = this;
-	// 	const { isNitro } = state;
-
-	// 	// calculate the default amount to shake the car around
-	// 	let shake = ((CAR_SHAKE_DISTANCE * Math.random()) - (CAR_SHAKE_DISTANCE / 2)) * amount;
-	// 	if (isNitro) {
-	// 		shake *= CAR_SHAKE_NITRO_BONUS;
-	// 	}
-
-	// 	// update the y position
-	// 	this.setY(shake);
-	// }
 
 }
 

@@ -140,9 +140,15 @@ export default async function createCrowd (animator, controller, path, layer, da
   if ('x' in props) {
     sprite.x = animator.evaluateExpression(props.x)
   }
+  
   if ('y' in props) {
     sprite.y = animator.evaluateExpression(props.y)
   }
+
+  if ('tint' in props) {
+    sprite.tint = props.tint;
+  }
+
   return [{ displayObject: sprite, update: noop, dispose: noop }]
 }
 

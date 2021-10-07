@@ -153,7 +153,7 @@ export default class ActivateNitroAnimation extends Animation {
 
 		// update the trail, if any
 		if (hasTrail) {
-			trail.assign({ alpha: props.trailAlpha });
+			trail.alpha = props.trailAlpha;
 		}
 
 		// update the nitro, if any

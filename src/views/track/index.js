@@ -275,17 +275,20 @@ export default class TrackView extends BaseView {
 	}
 
 	getStartingLinePosition() {
-		const { height, options } = this;
+		return TRACK_STARTING_LINE_POSITION;
 		
-		// get the height ratio against the target
-		// size that scaling is based on
-		let ratio = height / options.scale.height;
-		if (isNaN(ratio)) {
-			ratio = 1;
-		}
+		// responsive track support
+		// const { height, options } = this;
+		
+		// // get the height ratio against the target
+		// // size that scaling is based on
+		// let ratio = height / options.scale.height;
+		// if (isNaN(ratio)) {
+		// 	ratio = 1;
+		// }
 
-		// calculate the correct position
-		return TRACK_STARTING_LINE_POSITION * ratio;
+		// // calculate the correct position
+		// return TRACK_STARTING_LINE_POSITION * ratio;
 	}
 
 	/** assigns the current track */
@@ -430,6 +433,11 @@ export default class TrackView extends BaseView {
 		const selected = Math.ceil(Math.random() * 4);
 		const err = audio.create('sfx', `error_${selected}`);
 
+		// if there's not a sound, don't bother
+		if (!err) {
+			return;
+		}
+
 		// select the correct volume
 		const volume = [
 			VOLUME_ERROR_1,
@@ -439,8 +447,13 @@ export default class TrackView extends BaseView {
 		][ selected - 1 ] || VOLUME_ERROR_DEFAULT;
 
 		// set the volume
-		err.volume(volume);
-		err.play();
+		try {
+			err.volume(volume);
+			err.play();
+		}
+		catch (ex) {
+			console.warn(`Unable to play audio: error_${selected}`, err);
+		}
 	}
 
 	/** starts the game countdown */
@@ -544,6 +557,13 @@ export default class TrackView extends BaseView {
 		raceCompletedAnimation.play({ });
 	}
 
+	simulateFinish() { 
+		this.state.isFinished = true;
+		this.track.showFinishLine();
+		const complete = new RaceCompletedAnimation({ track: this, players: this.players });	
+		complete.play({ })
+	}
+
 	/** activates the finished race state */
 	finishRace = () => {
 		this.finalizePerformanceTracking();
@@ -554,23 +574,28 @@ export default class TrackView extends BaseView {
 		
 		// already playing (this shouldn't happen)
 		if (raceCompletedAnimation) return;
-
-		// play the correct background noise
-		const victory = players.length === 1;
-		track?.setAmbience(victory ? 'victory' : 'finish');
-
+		
 		// stop the track
 		state.animateTrackMovement = false;
 		state.speed = 0;
 		state.shake = CAR_DEFAULT_SHAKE_LEVEL;
 		state.isFinished = true;
-		track.showFinishLine();
+		
+		// update the track
+		if (track) {
+			// play the correct background noise
+			const victory = players.length === 1;
+			track.setAmbience(victory ? 'victory' : 'finish');
 
-		// stop animating progress
-		this.raceProgressAnimation.stop();
-
-		// play the final animation
-		this.raceCompletedAnimation = new RaceCompletedAnimation({ track: this, players });	
+			// display the ending
+			track.showFinishLine();
+			
+			// stop animating progress
+			this.raceProgressAnimation.stop();
+			
+			// play the final animation
+			this.raceCompletedAnimation = new RaceCompletedAnimation({ track: this, players });	
+		}
 	}
 
 	lastUpdate = +new Date;
