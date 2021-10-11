@@ -209,7 +209,7 @@ export default class GarageView extends BaseView {
 		// padding to make sure effects (if any) are visible
 		const display = this.getDisplaySize();
 		const target = display.height;
-		const scale = (target / bounds.height) * EFFECTS_PADDING_SCALING;
+		const scale =  1.1 // (target / bounds.height) * EFFECTS_PADDING_SCALING;
 
 		// setup the car
 		car.pivot.x = 0.5;
@@ -235,20 +235,21 @@ export default class GarageView extends BaseView {
 			})
 
 			// add to the view
+			console.log('aht', scale, configScale)
 			player.addChild(trail);
 			trail.zIndex = -10;
-			trail.x = car.positions.back * (car.pivot.x / configScale);
+			trail.scale.x = trail.scale.y = scale
+			trail.x = car.positions.back * (car.pivot.x * (scale / configScale));
 			player.sortChildren();
 
 			// mark so it knows to make
 			// additional room for the trail
-			outer.hasTrail = true
+			container.hasTrail = true
 		}
 
 		// set the inner container
-		console.log(config);
-		inside.x = config.offsetX || 0;
-		inside.y = config.offsetY || 0;
+		player.x = config.offsetX || 0;
+		player.y = config.offsetY || 0;
 		
 		// setup the container
 		container.addChild(player);
@@ -257,10 +258,10 @@ export default class GarageView extends BaseView {
 
 		// car shadow fixes
 		if (isNumber(tweaks.rotation)) {
-			outer.rotation += (Math.PI * 2) * tweaks.rotation;
+			container.rotation += (Math.PI * 2) * tweaks.rotation;
 		}
 
-		return outer;
+		return container;
 	}
 
 	// align the stage as required
