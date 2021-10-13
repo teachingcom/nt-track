@@ -86450,7 +86450,6 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
       return _this.isViewActive = active;
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "onWindowUnload", function () {
-      console.log('revent');
       cancelAnimationFrame(_this._nextFrame);
 
       _this.render = function () {};

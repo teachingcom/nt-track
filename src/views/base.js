@@ -206,7 +206,6 @@ export class BaseView extends EventEmitter {
 	// update state info
 	onViewActiveStateChanged = active => this.isViewActive = active
 	onWindowUnload = () => {
-		console.log('revent')
 		cancelAnimationFrame(this._nextFrame);
 		this.render = () => { }
 	}
