@@ -57,7 +57,6 @@ export default class GarageView extends BaseView {
 	setupInspectionMode = (options) => {
 		const { container } = options
 
-
 		// create the trail backdrop, if needed
 		const display = this.getDisplaySize();
 		const backdrop = createBackdrop(display);
@@ -198,7 +197,7 @@ export default class GarageView extends BaseView {
 
 			// lighting is flipped because the container
 			// is rotated in the view
-			lighting: { x: -3, y: -5, alpha: 0.33, ...tweaks.lighting }
+			lighting: { x: -3, y: 5, alpha: 0.33, ...tweaks.lighting }
 		});
 		
 		// finds the bounds for a car - if nothing was
@@ -210,7 +209,7 @@ export default class GarageView extends BaseView {
 		// padding to make sure effects (if any) are visible
 		const display = this.getDisplaySize();
 		const target = display.height;
-		const scale = (target / bounds.height) * EFFECTS_PADDING_SCALING;
+		const scale =  1.25 // (target / bounds.height) * EFFECTS_PADDING_SCALING;
 
 		// setup the car
 		car.pivot.x = 0.5;
@@ -236,15 +235,21 @@ export default class GarageView extends BaseView {
 			})
 
 			// add to the view
+			console.log('aht', scale, configScale)
 			player.addChild(trail);
 			trail.zIndex = -10;
-			trail.x = car.positions.back * (car.pivot.x / configScale);
+			trail.scale.x = trail.scale.y = scale
+			trail.x = car.positions.back * (car.pivot.x * (scale / configScale));
 			player.sortChildren();
 
 			// mark so it knows to make
 			// additional room for the trail
 			container.hasTrail = true
 		}
+
+		// set the inner container
+		player.x = config.offsetX || 0;
+		player.y = config.offsetY || 0;
 		
 		// setup the container
 		container.addChild(player);

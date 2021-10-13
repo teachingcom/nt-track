@@ -77058,8 +77058,9 @@ function applyDynamicProperties(obj, props) {
     // these to bump up and down in size by 1 pixel slightly
 
     update = (0, _utils.appendFunc)(update, function (obj, stage) {
-      var currentScale = obj.height / obj.getBounds().height;
+      var currentScale = Math.ceil(obj.height / obj.getBounds().height * 100) / 100;
       obj.scale.y = (0, _utils.toPrecision)(Math.min(10, currentScale * (props.scaleY || 1)) * (stage.scaleY || 1), 2);
+      obj.y = Math.floor(obj.y);
     });
   } // if nothing was found, just skip
 
@@ -86448,6 +86449,11 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "onViewActiveStateChanged", function (active) {
       return _this.isViewActive = active;
     });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "onWindowUnload", function () {
+      cancelAnimationFrame(_this._nextFrame);
+
+      _this.render = function () {};
+    });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "onWebGLContextLost", function () {
       _this.webGLContextLost = true;
 
@@ -86542,7 +86548,15 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                scale = options.scale, forceCanvas = options.forceCanvas; // save some options
+                scale = options.scale, forceCanvas = options.forceCanvas; // webgl has a problem where render attempts that
+                // take place when the page is unloading may cause
+                // the area to go black. if possible, capture the
+                // window unloading and disable rendering attempts
+
+                if (window) {
+                  window.addEventListener('beforeunload', this.onWindowUnload);
+                } // save some options
+
 
                 this.options = options;
                 this.scale = options.scale;
@@ -86637,7 +86651,7 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
                   });
                 }
 
-              case 32:
+              case 33:
               case "end":
                 return _context.stop();
             }
@@ -101689,7 +101703,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                   // is rotated in the view
                   lighting: _objectSpread({
                     x: -3,
-                    y: -5,
+                    y: 5,
                     alpha: 0.33
                   }, tweaks.lighting)
                 }));
@@ -101704,7 +101718,8 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
                 display = _this.getDisplaySize();
                 target = display.height;
-                scale = target / bounds.height * EFFECTS_PADDING_SCALING; // setup the car
+                scale = 1.25; // (target / bounds.height) * EFFECTS_PADDING_SCALING;
+                // setup the car
 
                 car.pivot.x = 0.5;
                 car.pivot.y = 0.5;
@@ -101718,7 +101733,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 player.addChild(car); // include the trail, if any
 
                 if (!config.trail) {
-                  _context4.next = 28;
+                  _context4.next = 30;
                   break;
                 }
 
@@ -101733,16 +101748,21 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
               case 22:
                 trail = _context4.sent;
                 // add to the view
+                console.log('aht', scale, configScale);
                 player.addChild(trail);
                 trail.zIndex = -10;
-                trail.x = car.positions.back * (car.pivot.x / configScale);
+                trail.scale.x = trail.scale.y = scale;
+                trail.x = car.positions.back * (car.pivot.x * (scale / configScale));
                 player.sortChildren(); // mark so it knows to make
                 // additional room for the trail
 
                 container.hasTrail = true;
 
-              case 28:
-                // setup the container
+              case 30:
+                // set the inner container
+                player.x = config.offsetX || 0;
+                player.y = config.offsetY || 0; // setup the container
+
                 container.addChild(player);
                 container.relativeY = 0.5;
                 container.relativeX = 0.5; // car shadow fixes
@@ -101753,7 +101773,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
                 return _context4.abrupt("return", container);
 
-              case 33:
+              case 37:
               case "end":
                 return _context4.stop();
             }
