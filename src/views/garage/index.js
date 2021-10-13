@@ -209,7 +209,7 @@ export default class GarageView extends BaseView {
 		// padding to make sure effects (if any) are visible
 		const display = this.getDisplaySize();
 		const target = display.height;
-		const scale =  1.1 // (target / bounds.height) * EFFECTS_PADDING_SCALING;
+		const scale =  1.25 // (target / bounds.height) * EFFECTS_PADDING_SCALING;
 
 		// setup the car
 		car.pivot.x = 0.5;

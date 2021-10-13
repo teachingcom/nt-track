@@ -101719,7 +101719,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
                 display = _this.getDisplaySize();
                 target = display.height;
-                scale = 1.1; // (target / bounds.height) * EFFECTS_PADDING_SCALING;
+                scale = 1.25; // (target / bounds.height) * EFFECTS_PADDING_SCALING;
                 // setup the car
 
                 car.pivot.x = 0.5;
