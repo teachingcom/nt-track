@@ -203,12 +203,12 @@ export default class GarageView extends BaseView {
 		// finds the bounds for a car - if nothing was
 		// found then it's most likely a simple car. 
 		// use the sprite height of the car
-		const bounds = getBoundsForRole(car, 'base') || car;
+		// const bounds = getBoundsForRole(car, 'base') || car;
 
 		// calculate scale - include some extra
 		// padding to make sure effects (if any) are visible
 		const display = this.getDisplaySize();
-		const target = display.height;
+		// const target = display.height;
 		const scale =  1.25 // (target / bounds.height) * EFFECTS_PADDING_SCALING;
 
 		// setup the car
@@ -221,8 +221,8 @@ export default class GarageView extends BaseView {
 		const configScale = !isNaN(config.scale) ? config.scale : 1
 		
 		// shared scaling
-		player.x *= configScale;
-		player.y *= configScale;
+		player.scale.x *= configScale;
+		player.scale.y *= configScale;
 		player.addChild(car);
 
 		// include the trail, if any
@@ -235,7 +235,6 @@ export default class GarageView extends BaseView {
 			})
 
 			// add to the view
-			console.log('aht', scale, configScale)
 			player.addChild(trail);
 			trail.zIndex = -10;
 			trail.scale.x = trail.scale.y = scale

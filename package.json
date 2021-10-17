@@ -1,6 +1,6 @@
 {
   "name": "nt-track",
-  "version": "1.0.20",
+  "version": "1.0.38",
   "description": "",
   "main": "dist/index.js",
   "scripts": {

@@ -101683,7 +101683,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
     }());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "createCar", /*#__PURE__*/function () {
       var _ref4 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(config) {
-        var view, tweaks, player, container, car, bounds, display, target, scale, configScale, trail;
+        var view, tweaks, player, container, car, display, scale, configScale, trail;
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
@@ -101713,11 +101713,11 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 // finds the bounds for a car - if nothing was
                 // found then it's most likely a simple car. 
                 // use the sprite height of the car
-                bounds = (0, _ntAnimator.getBoundsForRole)(car, 'base') || car; // calculate scale - include some extra
+                // const bounds = getBoundsForRole(car, 'base') || car;
+                // calculate scale - include some extra
                 // padding to make sure effects (if any) are visible
+                display = _this.getDisplaySize(); // const target = display.height;
 
-                display = _this.getDisplaySize();
-                target = display.height;
                 scale = 1.25; // (target / bounds.height) * EFFECTS_PADDING_SCALING;
                 // setup the car
 
@@ -101728,16 +101728,16 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
                 configScale = !isNaN(config.scale) ? config.scale : 1; // shared scaling
 
-                player.x *= configScale;
-                player.y *= configScale;
+                player.scale.x *= configScale;
+                player.scale.y *= configScale;
                 player.addChild(car); // include the trail, if any
 
                 if (!config.trail) {
-                  _context4.next = 30;
+                  _context4.next = 27;
                   break;
                 }
 
-                _context4.next = 22;
+                _context4.next = 20;
                 return _trail.default.create(_objectSpread(_objectSpread({
                   view: view
                 }, config), {}, {
@@ -101745,10 +101745,9 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                   type: config.trail
                 }));
 
-              case 22:
+              case 20:
                 trail = _context4.sent;
                 // add to the view
-                console.log('aht', scale, configScale);
                 player.addChild(trail);
                 trail.zIndex = -10;
                 trail.scale.x = trail.scale.y = scale;
@@ -101758,7 +101757,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
                 container.hasTrail = true;
 
-              case 30:
+              case 27:
                 // set the inner container
                 player.x = config.offsetX || 0;
                 player.y = config.offsetY || 0; // setup the container
@@ -101773,7 +101772,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
                 return _context4.abrupt("return", container);
 
-              case 37:
+              case 34:
               case "end":
                 return _context4.stop();
             }
@@ -103862,7 +103861,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '1.0.20';
+  window.NTTRACK = '1.0.38';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"views/preview/index.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
