@@ -20,7 +20,7 @@ export default class CountdownAnimation extends Animation {
 		const { animator } = this;
 		
 		// save references
-		let countdown = null // await animator.create('extras/countdown');
+		let countdown = await animator.create('extras/countdown');
 		if (!countdown) {
 			return new BackupCountdown(this);
 		}

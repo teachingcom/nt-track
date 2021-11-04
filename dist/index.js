@@ -100100,16 +100100,20 @@ var CountdownAnimation = /*#__PURE__*/function (_Animation) {
               case 0:
                 animator = this.animator; // save references
 
-                countdown = null; // await animator.create('extras/countdown');
+                _context.next = 3;
+                return animator.create('extras/countdown');
+
+              case 3:
+                countdown = _context.sent;
 
                 if (countdown) {
-                  _context.next = 4;
+                  _context.next = 6;
                   break;
                 }
 
                 return _context.abrupt("return", new BackupCountdown(this));
 
-              case 4:
+              case 6:
                 // create the object
                 _findDisplayObjectsOf = (0, _ntAnimator.findDisplayObjectsOfRole)(countdown, 'go'), _findDisplayObjectsOf2 = (0, _slicedToArray2.default)(_findDisplayObjectsOf, 1), go = _findDisplayObjectsOf2[0];
                 _findDisplayObjectsOf3 = (0, _ntAnimator.findDisplayObjectsOfRole)(countdown, 'numbers'), _findDisplayObjectsOf4 = (0, _slicedToArray2.default)(_findDisplayObjectsOf3, 1), numbers = _findDisplayObjectsOf4[0];
@@ -100136,7 +100140,7 @@ var CountdownAnimation = /*#__PURE__*/function (_Animation) {
                 go.alpha = 0;
                 this.setColor(0xff0000);
 
-              case 24:
+              case 26:
               case "end":
                 return _context.stop();
             }
