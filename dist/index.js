@@ -889,6 +889,23 @@ function _asyncToGenerator(fn) {
 }
 
 module.exports = _asyncToGenerator;
+},{}],"../node_modules/@babel/runtime/helpers/defineProperty.js":[function(require,module,exports) {
+function _defineProperty(obj, key, value) {
+  if (key in obj) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+
+  return obj;
+}
+
+module.exports = _defineProperty;
 },{}],"../node_modules/howler/dist/howler.js":[function(require,module,exports) {
 var define;
 var global = arguments[3];
@@ -4112,23 +4129,6 @@ function _createClass(Constructor, protoProps, staticProps) {
 }
 
 module.exports = _createClass;
-},{}],"../node_modules/@babel/runtime/helpers/defineProperty.js":[function(require,module,exports) {
-function _defineProperty(obj, key, value) {
-  if (key in obj) {
-    Object.defineProperty(obj, key, {
-      value: value,
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-  } else {
-    obj[key] = value;
-  }
-
-  return obj;
-}
-
-module.exports = _defineProperty;
 },{}],"audio/sound.js":[function(require,module,exports) {
 "use strict";
 
@@ -4316,6 +4316,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.configureSFX = configureSFX;
 exports.configureMusic = configureMusic;
 exports.setBaseUrl = setBaseUrl;
+exports.createFakeSound = createFakeSound;
 exports.register = register;
 exports.fadeIn = fadeIn;
 exports.fadeOut = fadeOut;
@@ -4326,11 +4327,17 @@ var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"))
 
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
 var _howler = require("howler");
 
 var _sound = require("./sound");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 /** keeps track of active audio files */
 var AUDIO = {};
@@ -4341,11 +4348,47 @@ var baseUrl = '/sounds'; // mute by default
 
 _sound.Sound.volume = 0;
 _sound.Sound.sfxEnabled = false;
-_sound.Sound.musicEnabled = false;
+_sound.Sound.musicEnabled = false; // try to disable sound by default
 
-_howler.Howler.volume(0);
+try {
+  _howler.Howler.volume(0);
+} catch (ex) {} // incase of failed audio attempts
+// just use a fake object to prevent crashes
+
+
+var FAKE_SOUND = {
+  volume: function volume() {
+    return 1;
+  },
+  rate: function rate() {
+    return 0;
+  },
+  loop: function loop() {
+    return 0;
+  },
+  fade: function fade() {
+    return 0;
+  },
+  fadeOut: function fadeOut() {
+    return 0;
+  },
+  fadeIn: function fadeIn() {
+    return 0;
+  },
+  reset: function reset() {
+    return 0;
+  },
+  stop: function stop() {
+    return 0;
+  },
+  pause: function pause() {
+    return 0;
+  },
+  play: function play() {
+    return 0;
+  }
+};
 /** changes the sound effect state */
-
 
 function configureSFX(config) {
   // change enabled state
@@ -4372,6 +4415,11 @@ function configureMusic(config) {}
 
 function setBaseUrl(url) {
   baseUrl = url;
+} // fake sound to prevent game errors
+
+
+function createFakeSound() {
+  return _objectSpread({}, FAKE_SOUND);
 }
 /** includes a sound to be played */
 
@@ -4480,7 +4528,7 @@ function create(type, sprite) {
 
   if (!sound) {
     console.warn("Play request for ".concat(sprite, " failed: not found"));
-    return;
+    return FAKE_SOUND;
   } // start the audio
 
 
@@ -4496,7 +4544,7 @@ function create(type, sprite) {
 
 
 function MissingSoundException() {}
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","howler":"../node_modules/howler/dist/howler.js","./sound":"audio/sound.js"}],"../node_modules/@babel/runtime/helpers/assertThisInitialized.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","howler":"../node_modules/howler/dist/howler.js","./sound":"audio/sound.js"}],"../node_modules/@babel/runtime/helpers/assertThisInitialized.js":[function(require,module,exports) {
 function _assertThisInitialized(self) {
   if (self === void 0) {
     throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
@@ -79277,11 +79325,21 @@ function decToHex(dec) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.setMaximumImageLoadAttempts = setMaximumImageLoadAttempts;
 exports.default = loadImage;
+var TIME_BETWEEN_IMAGE_LOAD_ATTEMPTS = 250;
+var MAXIMUM_IMAGE_LOAD_ATTEMPTS = Number.MAX_SAFE_INTEGER; // manage image loading attempt times
 
+function setMaximumImageLoadAttempts(maxAttempts) {
+  var timeBetweenAttempts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : TIME_BETWEEN_IMAGE_LOAD_ATTEMPTS;
+  MAXIMUM_IMAGE_LOAD_ATTEMPTS = maxAttempts;
+  TIME_BETWEEN_IMAGE_LOAD_ATTEMPTS = timeBetweenAttempts;
+}
 /** handles loading an external image url
  * @param {string} url The url of the image to load
 */
+
+
 function loadImage(url, version) {
   return new Promise(function (resolve, reject) {
     // prevent accidental double slashes
@@ -79290,9 +79348,11 @@ function loadImage(url, version) {
     parts[last] = parts[last].replace(/\/+/g, '/');
     url = parts.join('://'); // reserve the image
 
-    var img; // limit attempts to reload
+    var img;
+    var willFail = false; // Math.random() < 0.3
+    // limit attempts to reload
 
-    var attempts = 3; // tracking image loading
+    var attempts = MAXIMUM_IMAGE_LOAD_ATTEMPTS; // tracking image loading
 
     var checkIfLoaded; // get the image to load
 
@@ -79300,7 +79360,12 @@ function loadImage(url, version) {
 
     var request = function request() {
       var success = handle(true);
-      var fail = handle(false); // create the image
+      var fail = handle(false);
+
+      if (willFail) {
+        return fail();
+      } // create the image
+
 
       img = new Image();
       img.onload = success;
@@ -79313,7 +79378,7 @@ function loadImage(url, version) {
         if (img.complete && img.naturalHeight !== 0) {
           success();
         }
-      }, 200); // replace the image url
+      }, TIME_BETWEEN_IMAGE_LOAD_ATTEMPTS); // replace the image url
 
       setTimeout(function () {
         img.src = src;
@@ -79331,7 +79396,12 @@ function loadImage(url, version) {
         // clear extra checks
 
 
-        clearInterval(checkIfLoaded); // finished
+        clearInterval(checkIfLoaded);
+
+        if (!success) {
+          console.error("[error] failed to load ".concat(url));
+        } // finished
+
 
         resolve(success ? img : null); // // execute all waiting requests
         // try {
@@ -79404,7 +79474,7 @@ function _loadSpritesheet() {
               break;
             }
 
-            throw new ImageRequestFailedException();
+            throw new ImageRequestFailedException(url);
 
           case 7:
             // create a spritesheet with the image. If the image is
@@ -79452,7 +79522,9 @@ function generateSprites(image, spritesheetId, spritesheet, ext) {
   }
 }
 
-function ImageRequestFailedException() {}
+function ImageRequestFailedException(src) {
+  this.src = src;
+}
 },{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","../../pixi/lib":"pixi/lib.js","./loadImage":"animation/resources/loadImage.js"}],"animation/resources/getSpritesheet.js":[function(require,module,exports) {
 "use strict";
 
@@ -84992,6 +85064,12 @@ Object.defineProperty(exports, "loadImage", {
     return _loadImage.default;
   }
 });
+Object.defineProperty(exports, "setMaximumImageLoadAttempts", {
+  enumerable: true,
+  get: function () {
+    return _loadImage.setMaximumImageLoadAttempts;
+  }
+});
 Object.defineProperty(exports, "EventEmitter", {
   enumerable: true,
   get: function () {
@@ -85060,7 +85138,7 @@ var _detatchedContainer = _interopRequireDefault(require("./pixi/detatched-conta
 
 var _toggle = _interopRequireDefault(require("./animation/toggle"));
 
-var _loadImage = _interopRequireDefault(require("./animation/resources/loadImage"));
+var _loadImage = _interopRequireWildcard(require("./animation/resources/loadImage"));
 
 var _eventEmitter = require("./common/event-emitter");
 
@@ -85073,6 +85151,10 @@ var _animatedSprite = _interopRequireDefault(require("./pixi/utils/animated-spri
 var _graphics = require("./utils/graphics");
 
 var _remove = require("./pixi/utils/remove");
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -96529,6 +96611,8 @@ var AmbientAudio = function AmbientAudio(options) {
     }
   });
   (0, _defineProperty2.default)(this, "next", function () {
+    var _sound$source;
+
     if (_this.isStopped) return; // start fading the active sound
 
     if (_this.index > 0) {
@@ -96543,7 +96627,7 @@ var AmbientAudio = function AmbientAudio(options) {
     var next = ++_this.index % _this.sounds.length;
     var sound = _this.sounds[next]; // fade in the next
 
-    sound.source.seek(0, sound.id);
+    (_sound$source = sound.source) === null || _sound$source === void 0 ? void 0 : _sound$source.seek(0, sound.id);
     sound.fade(0, _volume.VOLUME_AMBIENT_AUDIO, 500); // active the next section
     // TODO: this is a hack - the duration needs to
     // come from the sound being played
@@ -96707,7 +96791,7 @@ var AssetPreloader = /*#__PURE__*/function () {
 
             case 33:
               _context.next = 35;
-              return Promise.all(pending);
+              return Promise.allSettled(pending);
 
             case 35:
               _this.results = _context.sent;
@@ -96725,11 +96809,18 @@ var AssetPreloader = /*#__PURE__*/function () {
 
       for (var i = resources.length; i-- > 0;) {
         var resource = resources[i];
-        var result = results[i]; // this failed to load
+        var type = resource.type,
+            src = resource.src,
+            ignoreFailures = resource.ignoreFailures;
+        var status = results[i].status;
+        var failed = status === 'rejected';
 
-        if (!result) {
-          var type = resource.type,
-              src = resource.src;
+        if (failed) {
+          console.error("failed to load ".concat(type, ":"), src);
+        } // this failed to load
+
+
+        if (failed && !ignoreFailures) {
           _this.status = "".concat(type, " load error ").concat(src);
           throw new AssetLoadingError();
         }
@@ -97518,6 +97609,8 @@ var _rain = _interopRequireDefault(require("../../effects/rain"));
 
 var _leaves = _interopRequireDefault(require("../../effects/leaves"));
 
+var _audio = require("../../audio");
+
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
@@ -97571,11 +97664,12 @@ var Track = /*#__PURE__*/function () {
       var ambience = _this.ambience;
 
       if (!ambience) {
+        ambience.current = (0, _audio.createFakeSound)();
         return;
       } // get the current audio
 
 
-      var playing = ambience.current; // start the next audio
+      var playing = ambience.current || (0, _audio.createFakeSound)(); // start the next audio
 
       if (type === 'start') {
         ambience.current = ambience.pre || ambience.default;
@@ -97588,7 +97682,12 @@ var Track = /*#__PURE__*/function () {
           } // currently racing
           else if (type === 'finish') {
               ambience.current = ambience.defeat || ambience.finish || ambience.default;
-            } // start the new audio
+            } // ensure there's an object
+
+
+      if (!ambience.current) {
+        ambience.current = (0, _audio.createFakeSound)();
+      } // start the new audio
 
 
       if (playing !== ambience.current) {
@@ -97809,23 +97908,29 @@ var Track = /*#__PURE__*/function () {
                 }, // include other image files
                 {
                   type: 'spritesheet',
-                  src: 'extras/countdown'
+                  src: 'extras/countdown',
+                  ignoreFailures: true
+                }, // other random images
+                {
+                  type: 'spritesheet',
+                  src: 'particles',
+                  ignoreFailures: true
                 }, {
                   type: 'spritesheet',
-                  src: 'particles'
-                }, {
-                  type: 'spritesheet',
-                  src: 'images'
+                  src: 'images',
+                  ignoreFailures: true
                 }, // common audio
                 {
                   type: 'audio',
                   src: 'common',
-                  sprites: animator.manifest.sounds
+                  sprites: animator.manifest.sounds,
+                  ignoreFailures: true
                 }, {
                   type: 'audio',
                   src: sfx,
                   key: trackId,
-                  sprites: animator.manifest.sounds
+                  sprites: animator.manifest.sounds,
+                  ignoreFailures: true
                 }]);
 
               case 9:
@@ -98568,7 +98673,7 @@ var Track = /*#__PURE__*/function () {
               case 49:
                 _context10.prev = 49;
                 _context10.t0 = _context10["catch"](2);
-                console.error(_context10.t0);
+                console.error('Error in track component:', activity, _context10.t0);
                 throw new Error(activity);
 
               case 53:
@@ -98603,7 +98708,7 @@ var getRightEdge = function getRightEdge(t) {
 var byRightEdge = function byRightEdge(a, b) {
   return getRightEdge(a) - getRightEdge(b);
 };
-},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../rng":"rng.js","../../views/track/scaling":"views/track/scaling.js","../../config":"config.js","../../utils":"utils/index.js","./segment":"components/track/segment.js","../../plugins/crowd":"plugins/crowd/index.js","../../audio/ambient":"audio/ambient.js","./preload":"components/track/preload.js","../../scripts":"scripts/index.js","../../effects/rain":"effects/rain.js","../../effects/leaves":"effects/leaves.js"}],"animations/car-entry.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../rng":"rng.js","../../views/track/scaling":"views/track/scaling.js","../../config":"config.js","../../utils":"utils/index.js","./segment":"components/track/segment.js","../../plugins/crowd":"plugins/crowd/index.js","../../audio/ambient":"audio/ambient.js","./preload":"components/track/preload.js","../../scripts":"scripts/index.js","../../effects/rain":"effects/rain.js","../../effects/leaves":"effects/leaves.js","../../audio":"audio/index.js"}],"animations/car-entry.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99800,6 +99905,8 @@ var _volume = require("../audio/volume");
 
 var audio = _interopRequireWildcard(require("../audio"));
 
+var _utils = require("../utils");
+
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
@@ -99993,20 +100100,16 @@ var CountdownAnimation = /*#__PURE__*/function (_Animation) {
               case 0:
                 animator = this.animator; // save references
 
-                _context.next = 3;
-                return animator.create('extras/countdown');
-
-              case 3:
-                countdown = _context.sent;
+                countdown = null; // await animator.create('extras/countdown');
 
                 if (countdown) {
-                  _context.next = 6;
+                  _context.next = 4;
                   break;
                 }
 
-                throw new Error('Missing Countdown animation');
+                return _context.abrupt("return", new BackupCountdown(this));
 
-              case 6:
+              case 4:
                 // create the object
                 _findDisplayObjectsOf = (0, _ntAnimator.findDisplayObjectsOfRole)(countdown, 'go'), _findDisplayObjectsOf2 = (0, _slicedToArray2.default)(_findDisplayObjectsOf, 1), go = _findDisplayObjectsOf2[0];
                 _findDisplayObjectsOf3 = (0, _ntAnimator.findDisplayObjectsOfRole)(countdown, 'numbers'), _findDisplayObjectsOf4 = (0, _slicedToArray2.default)(_findDisplayObjectsOf3, 1), numbers = _findDisplayObjectsOf4[0];
@@ -100026,14 +100129,14 @@ var CountdownAnimation = /*#__PURE__*/function (_Animation) {
                 this.countdown = countdown;
                 this.numbers = numbers;
                 this.flash = flash;
-                this.container = container;
                 this.colors = colors;
+                this.container = container;
                 this.isReady = true; // hide the go text
 
                 go.alpha = 0;
                 this.setColor(0xff0000);
 
-              case 26:
+              case 24:
               case "end":
                 return _context.stop();
             }
@@ -100075,7 +100178,119 @@ function pop(target) {
     }
   });
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","./base":"animations/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../audio/volume":"audio/volume.js","../audio":"audio/index.js"}],"views/track/index.js":[function(require,module,exports) {
+
+var BackupCountdown = function BackupCountdown(instance) {
+  var _this2 = this;
+
+  (0, _classCallCheck2.default)(this, BackupCountdown);
+  (0, _defineProperty2.default)(this, "setDigit", function (id) {
+    _this2.digit_3.visible = _this2.digit_1.visible = _this2.digit_2.visible = _this2.digit_go.visible = false; // set the visible digit
+
+    if (id) {
+      var digit = _this2["digit_".concat(id)];
+
+      digit.visible = true;
+    }
+  });
+  this.instance = instance; // generate backup countdowns
+
+  var surface = (0, _utils.createSurface)(400, 300);
+  var ctx = surface.ctx,
+      el = surface.el,
+      clear = surface.clear; // create each numeric countdown
+
+  for (var _i = 0, _arr = ['3', '2', '1', 'GO']; _i < _arr.length; _i++) {
+    var text = _arr[_i];
+    var id = text.toLowerCase();
+    clear(); // draw labels
+
+    ctx.fillStyle = 'white';
+    ctx.shadowOffsetY = 3;
+    ctx.shadowBlur = 5;
+    ctx.shadowColor = 'black';
+    ctx.font = 'bold 160px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle'; // check for the final
+
+    if (id == 'go') {
+      ctx.font = 'bold 220px sans-serif';
+      ctx.shadowOffsetY = 3;
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = '#00ff00';
+    } // draw the number
+
+
+    ctx.fillText(text, 200, 150); // generate a texture for the number
+
+    var img = document.createElement('img');
+    img.src = el.toDataURL();
+    document.body.appendChild(img); // create a game sprite
+
+    var texture = _ntAnimator.PIXI.Texture.from(img);
+
+    var sprite = new _ntAnimator.PIXI.Sprite(texture); // add to the view
+
+    sprite.visible = false;
+    sprite.pivot.x = 150;
+    sprite.pivot.y = 150;
+    sprite.x = instance.track.cx;
+    sprite.y = instance.track.cy;
+    sprite.zIndex = 9999;
+    instance.stage.addChild(sprite); // save a reference
+
+    this["digit_".concat(id)] = sprite;
+  } // prevent errors by overriding methods
+
+
+  instance.setColor = function () {};
+
+  instance.dispose = function () {};
+
+  instance.hideCountdown = function () {};
+
+  instance.isReady = true; // setup special replacement functions
+
+  instance.show3 = function () {
+    return _this2.setDigit(3);
+  };
+
+  instance.show2 = function () {
+    return _this2.setDigit(2);
+  };
+
+  instance.show1 = function () {
+    return _this2.setDigit(1);
+  }; // end the animation
+
+
+  instance.finish = /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+    return _regenerator.default.wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            _this2.setDigit('go'); // notify this has started
+
+
+            if (instance.onBeginRace) {
+              instance.onBeginRace();
+            } // hide the digit
+
+
+            _context2.next = 4;
+            return (0, _utils.wait)(1000);
+
+          case 4:
+            _this2.setDigit(null);
+
+          case 5:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2);
+  }));
+};
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","./base":"animations/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../audio/volume":"audio/volume.js","../audio":"audio/index.js","../utils":"utils/index.js"}],"views/track/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100446,7 +100661,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 _context2.prev = 23;
                 _context2.t1 = _context2["catch"](14);
                 // delete this.countdown;
-                console.error("Failed to load required files for countdown animation");
+                console.error("Failed to load required files for countdown animation", _context2.t1);
                 throw new CountdownAssetError();
 
               case 27:
@@ -100461,19 +100676,28 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 throw new CountdownAssetError();
 
               case 31:
-                // track is ready to go
+                // ambience is optional
+                try {
+                  track.setAmbience('start');
+                } catch (ex) {
+                  _this.setLoadingStatus('init', 'track audio was not loaded');
+
+                  console.error("Audio did not load successfully");
+                } // track is ready to go
+
+
                 _this.resolveTask('load_track');
 
-                _context2.next = 38;
+                _context2.next = 39;
                 break;
 
-              case 34:
-                _context2.prev = 34;
+              case 35:
+                _context2.prev = 35;
                 _context2.t2 = _context2["catch"](2);
                 console.log(_context2.t2);
                 throw new TrackCreationError();
 
-              case 38:
+              case 39:
                 // add the scroling ground
                 stage.addChild(track.ground);
                 track.ground.zIndex = _layers.LAYER_TRACK_GROUND;
@@ -100481,9 +100705,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
                 stage.addChild(track.overlay);
                 track.overlay.zIndex = _layers.LAYER_TRACK_OVERLAY;
-                track.overlay.relativeX = 0.5; // start the ambience
-
-                track.setAmbience('start'); // sort the layers
+                track.overlay.relativeX = 0.5; // sort the layers
 
                 stage.sortChildren(); // resolve waiting track requests
 
@@ -100494,7 +100716,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 return _context2.stop();
             }
           }
-        }, _callee2, null, [[2, 34], [3, 10], [14, 23]]);
+        }, _callee2, null, [[2, 35], [3, 10], [14, 23]]);
       }));
 
       return function (_x3) {

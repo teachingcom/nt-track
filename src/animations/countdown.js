@@ -2,6 +2,7 @@ import Animation from "./base";
 import { PIXI, findDisplayObjectsOfRole, animate } from "nt-animator";
 import { VOLUME_COUNTDOWN_ANNOUNCER, VOLUME_START_ACCELERATION } from "../audio/volume";
 import * as audio from '../audio';
+import { createSurface, wait } from "../utils";
 
 export default class CountdownAnimation extends Animation {
 
@@ -19,8 +20,10 @@ export default class CountdownAnimation extends Animation {
 		const { animator } = this;
 		
 		// save references
-		const countdown = await animator.create('extras/countdown');
-		if (!countdown) throw new Error('Missing Countdown animation');
+		let countdown = null // await animator.create('extras/countdown');
+		if (!countdown) {
+			return new BackupCountdown(this);
+		}
 
 		// create the object
 		const [ go ] = findDisplayObjectsOfRole(countdown, 'go');
@@ -38,14 +41,14 @@ export default class CountdownAnimation extends Animation {
 		container.relativeY = 0.5;
 		container.alpha = 0;
 		container.addChild(countdown);
-
+		
 		// save refs
 		this.go = go;
 		this.countdown = countdown;
 		this.numbers = numbers;
 		this.flash = flash;
-		this.container = container;
 		this.colors = colors;
+		this.container = container;
 		this.isReady = true;
 
 		// hide the go text
@@ -205,4 +208,100 @@ function pop(target, speed = 350, min = 0.7, max = 1) {
 		ease: 'easeOutSine',
 		update: prop => target.scale.x = target.scale.y = prop.scale
 	});
+}
+
+
+
+class BackupCountdown {
+	constructor(instance) {
+		this.instance = instance;
+
+		// generate backup countdowns
+		const surface = createSurface(400, 300);
+		const { ctx, el, clear } = surface;
+
+		// create each numeric countdown
+		for (const text of ['3','2','1','GO']) {
+			const id = text.toLowerCase();
+			clear();
+			
+			// draw labels
+			ctx.fillStyle = 'white';
+			ctx.shadowOffsetY = 3;
+			ctx.shadowBlur = 5;
+			ctx.shadowColor = 'black';
+			ctx.font = 'bold 160px sans-serif';
+			ctx.textAlign = 'center';
+			ctx.textBaseline = 'middle';
+			
+			// check for the final
+			if (id == 'go') {
+				ctx.font = 'bold 220px sans-serif';
+				ctx.shadowOffsetY = 3;
+				ctx.shadowBlur = 15;
+				ctx.shadowColor = '#00ff00';
+			}
+			
+			// draw the number
+			ctx.fillText(text, 200, 150);
+
+			// generate a texture for the number
+			const img = document.createElement('img');
+			img.src = el.toDataURL();
+			document.body.appendChild(img);
+
+			// create a game sprite
+			const texture = PIXI.Texture.from(img);
+			const sprite = new PIXI.Sprite(texture);
+
+			// add to the view
+			sprite.visible = false;
+			sprite.pivot.x = 150;
+			sprite.pivot.y = 150;
+			sprite.x = instance.track.cx;
+			sprite.y = instance.track.cy;
+			sprite.zIndex = 9999;
+			instance.stage.addChild(sprite);
+
+			// save a reference
+			this[`digit_${id}`] = sprite;
+		}
+
+		// prevent errors by overriding methods
+		instance.setColor = () => { };
+		instance.dispose = () => { };
+		instance.hideCountdown = () => { };
+		instance.isReady = true;
+		
+		// setup special replacement functions
+		instance.show3 = () => this.setDigit(3);
+		instance.show2 = () => this.setDigit(2);
+		instance.show1 = () => this.setDigit(1);
+
+		// end the animation
+		instance.finish = async () => {
+			this.setDigit('go');
+
+			// notify this has started
+			if (instance.onBeginRace) {
+				instance.onBeginRace();
+			}
+
+			// hide the digit
+			await wait(1000);
+			this.setDigit(null);
+		};
+
+	}
+
+	setDigit = (id) => {
+		this.digit_3.visible = this.digit_1.visible = this.digit_2.visible = this.digit_go.visible = false;
+
+		// set the visible digit
+		if (id) {
+			const digit = this[`digit_${id}`];
+			digit.visible = true;
+		}
+	}
+
 }

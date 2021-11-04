@@ -331,7 +331,7 @@ export default class TrackView extends BaseView {
 			// unable to load the countdown
 			catch(ex) {
 				// delete this.countdown;
-				console.error(`Failed to load required files for countdown animation`);
+				console.error(`Failed to load required files for countdown animation`, ex);
 				throw new CountdownAssetError();
 			}
 
@@ -340,6 +340,15 @@ export default class TrackView extends BaseView {
 				this.setLoadingStatus('init', 'countdown was incomplete');
 				console.error(`Countdown did not load successfully`);
 				throw new CountdownAssetError();
+			}
+
+			// ambience is optional
+			try {
+				track.setAmbience('start');
+			}
+			catch (ex) {
+				this.setLoadingStatus('init', 'track audio was not loaded');
+				console.error(`Audio did not load successfully`);
 			}
 
 			// track is ready to go
@@ -361,9 +370,6 @@ export default class TrackView extends BaseView {
 		track.overlay.zIndex = LAYER_TRACK_OVERLAY;
 		track.overlay.relativeX = 0.5;
 
-		// start the ambience
-		track.setAmbience('start');
-		
 		// sort the layers
 		stage.sortChildren();
 

@@ -24,7 +24,7 @@ export default class AssetPreloader {
 		
 		// queue up all pending asset loading requests
 		for (const resource of resources) {
-			const { type, src, key, sprites } = resource
+			let { type, src, key, sprites } = resource
 			
 			// loading image assets
 			let task
@@ -48,7 +48,7 @@ export default class AssetPreloader {
 		}
 
 		// wait for results
-		this.results = await Promise.all(pending)
+		this.results = await Promise.allSettled(pending)
 	}
 
 	// check if each resource is valid
@@ -58,11 +58,16 @@ export default class AssetPreloader {
 		// verify all resources loaded successfully
 		for (let i = resources.length; i-- > 0;) {
 			const resource = resources[i]
-			const result = results[i]
+			const { type, src, ignoreFailures } = resource
+			const { status } = results[i]
+			const failed = status === 'rejected'
+
+			if (failed) {
+				console.error(`failed to load ${type}:`, src)
+			}
 
 			// this failed to load
-			if (!result) {
-				const { type, src } = resource
+			if (failed && !ignoreFailures) {
 				this.status = `${type} load error ${src}`
 				throw new AssetLoadingError()
 			}

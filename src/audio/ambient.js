@@ -63,7 +63,7 @@ export default class AmbientAudio {
 		const sound = this.sounds[next];
 
 		// fade in the next
-		sound.source.seek(0, sound.id);
+		sound.source?.seek(0, sound.id);
 		sound.fade(0, VOLUME_AMBIENT_AUDIO, 500);
 
 		// active the next section

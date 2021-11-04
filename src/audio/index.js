@@ -14,7 +14,27 @@ let baseUrl = '/sounds'
 Sound.volume = 0
 Sound.sfxEnabled = false
 Sound.musicEnabled = false
-Howler.volume(0)
+
+// try to disable sound by default
+try { 
+  Howler.volume(0);
+}
+catch (ex) { }
+
+// incase of failed audio attempts
+// just use a fake object to prevent crashes
+const FAKE_SOUND = {
+  volume: () => 1,
+  rate: () => 0,
+  loop: () => 0,
+  fade: () => 0,
+  fadeOut: () => 0,
+  fadeIn: () => 0,
+  reset: () => 0,
+  stop: () => 0,
+  pause: () => 0,
+  play: () => 0
+};
 
 /** changes the sound effect state */
 export function configureSFX (config) {
@@ -42,6 +62,11 @@ export function configureMusic (config) {
 /** changes the root url to load audio from */
 export function setBaseUrl (url) {
   baseUrl = url
+}
+
+// fake sound to prevent game errors
+export function createFakeSound() {
+  return { ...FAKE_SOUND }
 }
 
 /** includes a sound to be played */
@@ -133,7 +158,7 @@ export function create (type, sprite) {
   // no sound was found
   if (!sound) {
     console.warn(`Play request for ${sprite} failed: not found`)
-    return
+    return FAKE_SOUND;
   }
 
   // start the audio

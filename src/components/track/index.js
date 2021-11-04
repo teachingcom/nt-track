@@ -11,6 +11,7 @@ import { loadScript, parseScriptArgs } from '../../scripts';
 
 import RainEffect from '../../effects/rain';
 import LeavesEffect from '../../effects/leaves';
+import { createFakeSound } from '../../audio';
 
 // total number of road slices to create
 // consider making this calculated as needed
@@ -95,7 +96,7 @@ export default class Track {
 			instance.ready = true;
 		}
 		catch (ex) {
-			console.error(ex);
+			console.error('Error in track component:', activity, ex);
 			throw new Error(activity)
 		}
 
@@ -174,13 +175,15 @@ export default class Track {
 				{ type: 'spritesheet', src: trackAssetsUrl },
 				
 				// include other image files
-				{ type: 'spritesheet', src: 'extras/countdown' },
-				{ type: 'spritesheet', src: 'particles' },
-				{ type: 'spritesheet', src: 'images' },
+				{ type: 'spritesheet', src: 'extras/countdown', ignoreFailures: true },
+
+				// other random images
+				{ type: 'spritesheet', src: 'particles', ignoreFailures: true },
+				{ type: 'spritesheet', src: 'images', ignoreFailures: true },
 	
 				// common audio
-				{ type: 'audio', src: 'common', sprites: animator.manifest.sounds },
-				{ type: 'audio', src: sfx, key: trackId, sprites: animator.manifest.sounds }
+				{ type: 'audio', src: 'common', sprites: animator.manifest.sounds, ignoreFailures: true },
+				{ type: 'audio', src: sfx, key: trackId, sprites: animator.manifest.sounds, ignoreFailures: true }
 			])
 
 			// assets have loaded
@@ -421,11 +424,12 @@ export default class Track {
 	setAmbience = (type, options = { }) => {
 		const { ambience } = this;
 		if (!ambience) {
+			ambience.current = createFakeSound();
 			return;
 		}
 
 		// get the current audio
-		const playing = ambience.current;
+		const playing = ambience.current || createFakeSound();
 		
 		// start the next audio
 		if (type === 'start') {
@@ -442,6 +446,11 @@ export default class Track {
 		// currently racing
 		else if (type === 'finish') {
 			ambience.current = ambience.defeat || ambience.finish || ambience.default;
+		}
+
+		// ensure there's an object
+		if (!ambience.current) {
+			ambience.current = createFakeSound();
 		}
 
 		// start the new audio
