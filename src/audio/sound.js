@@ -5,7 +5,12 @@ export class Sound {
 
 	/** checks if sound can be played at all */
 	static get isAudioContextAvailable() {
-		return Howler.ctx.state === 'running';
+		try {
+			return Howler.ctx.state === 'running';
+		}
+		catch (ex) {
+			return false;
+		}
 	}
 
 	static sfxEnabled = true;
@@ -133,12 +138,12 @@ export class Sound {
 	
 	/** play the audio */
 	play = () => {
-
-		// if there's no audio context, don't bother
-		if (!Sound.isAudioContextAvailable) return;
-
-		// do not crash for failed sounds
 		try {
+
+			// if there's no audio context, don't bother
+			if (!Sound.isAudioContextAvailable) return;
+
+			// do not crash for failed sounds
 			// play the sound
 			const { id } = this;
 			this.lastInstancePlay = +new Date;

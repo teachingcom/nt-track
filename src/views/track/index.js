@@ -198,8 +198,8 @@ export default class TrackView extends BaseView {
 			
 			// set the active player, if needed
 			if (isPlayer) {
-				this.activePlayerId = id;
-				this.activePlayer = player;
+				// this.activePlayerId = id;
+				// this.activePlayer = player;
 				player.isPlayer = true;
 			}
 

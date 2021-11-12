@@ -180,8 +180,8 @@ export default class RaceProgressAnimation extends Animation {
 		const { track } = this;
 		const { activePlayer, players } = track;
 
-		// // if the active player isn't ready yet
-		// // then don't fail - this shouldn't ever happen
+		// if the active player isn't ready yet
+		// then don't fail - this shouldn't ever happen
 		if (!activePlayer) return;
 
 		// // always update the active player first

@@ -61,7 +61,7 @@ export default class RaceCompletedAnimation extends Animation {
 		player.place = place;
 
 		// did they beat the player
-		const playerFinishPlace = finishingPlaces[activePlayer.id] || Number.MAX_SAFE_INTEGER;
+		const playerFinishPlace = finishingPlaces[activePlayer?.id] || Number.MAX_SAFE_INTEGER;
 		const finishedBeforePlayer = place < playerFinishPlace;
 		
 		// update the plauer and ending, if any
@@ -102,10 +102,22 @@ export default class RaceCompletedAnimation extends Animation {
 		const { track } = this;
 		const { activePlayer } = track;
 
-		// the active player must be finished before this happens
-		if (!activePlayer.completedAt) return;
+		// if we know there's an active player and they haven't completed
+		// yet, keep waiting - They need to cross the finish line
+		if (activePlayer && !activePlayer.completedAt) {
+			return;
+		}
 
+		console.log('missing active player', activePlayer)
+
+		// if there's no active player reference (not sure how this 
+		// can happen), then we need to animate the finished
+		if (this.hasAnimatedFinishes) {
+			return;
+		}
+		
 		// animate any new cars
+		this.hasAnimatedFinishes = true;
 		this.animateRecentFinishes();
 	}
 

@@ -4154,7 +4154,11 @@ var Sound = /*#__PURE__*/function () {
 
     /** checks if sound can be played at all */
     get: function get() {
-      return _howler.Howler.ctx.state === 'running';
+      try {
+        return _howler.Howler.ctx.state === 'running';
+      } catch (ex) {
+        return false;
+      }
     }
   }]);
 
@@ -4205,11 +4209,11 @@ var Sound = /*#__PURE__*/function () {
       _this.source.pause(id);
     });
     (0, _defineProperty2.default)(this, "play", function () {
-      // if there's no audio context, don't bother
-      if (!Sound.isAudioContextAvailable) return; // do not crash for failed sounds
-
       try {
+        // if there's no audio context, don't bother
+        if (!Sound.isAudioContextAvailable) return; // do not crash for failed sounds
         // play the sound
+
         var id = _this.id;
         _this.lastInstancePlay = +new Date();
 
@@ -79327,8 +79331,9 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.setMaximumImageLoadAttempts = setMaximumImageLoadAttempts;
 exports.default = loadImage;
-var TIME_BETWEEN_IMAGE_LOAD_ATTEMPTS = 250;
-var MAXIMUM_IMAGE_LOAD_ATTEMPTS = Number.MAX_SAFE_INTEGER; // manage image loading attempt times
+var TIME_BETWEEN_IMAGE_LOAD_ATTEMPTS = 1000;
+var MAXIMUM_IMAGE_LOAD_ATTEMPTS = 10; // Number.MAX_SAFE_INTEGER;
+// manage image loading attempt times
 
 function setMaximumImageLoadAttempts(maxAttempts) {
   var timeBetweenAttempts = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : TIME_BETWEEN_IMAGE_LOAD_ATTEMPTS;
@@ -99325,7 +99330,7 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
 
       player.place = place; // did they beat the player
 
-      var playerFinishPlace = finishingPlaces[activePlayer.id] || Number.MAX_SAFE_INTEGER;
+      var playerFinishPlace = finishingPlaces[activePlayer === null || activePlayer === void 0 ? void 0 : activePlayer.id] || Number.MAX_SAFE_INTEGER;
       var finishedBeforePlayer = place < playerFinishPlace; // update the plauer and ending, if any
 
       var namecard = player.namecard,
@@ -99587,10 +99592,22 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
           _ref3$complete = _ref3.complete,
           complete = _ref3$complete === void 0 ? _utils.noop : _ref3$complete;
       var track = this.track;
-      var activePlayer = track.activePlayer; // the active player must be finished before this happens
+      var activePlayer = track.activePlayer; // if we know there's an active player and they haven't completed
+      // yet, keep waiting - They need to cross the finish line
 
-      if (!activePlayer.completedAt) return; // animate any new cars
+      if (activePlayer && !activePlayer.completedAt) {
+        return;
+      }
 
+      console.log('missing active player', activePlayer); // if there's no active player reference (not sure how this 
+      // can happen), then we need to animate the finished
+
+      if (this.hasAnimatedFinishes) {
+        return;
+      } // animate any new cars
+
+
+      this.hasAnimatedFinishes = true;
       this.animateRecentFinishes();
     } // calculate all player finishes that have been done for
     // an extended period of time - since we don't know the actual
@@ -99803,8 +99820,8 @@ var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
           track = _assertThisInitialize5.track;
 
       var activePlayer = track.activePlayer,
-          players = track.players; // // if the active player isn't ready yet
-      // // then don't fail - this shouldn't ever happen
+          players = track.players; // if the active player isn't ready yet
+      // then don't fail - this shouldn't ever happen
 
       if (!activePlayer) return; // // always update the active player first
 
@@ -100506,8 +100523,8 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
               case 20:
                 // set the active player, if needed
                 if (isPlayer) {
-                  _this.activePlayerId = id;
-                  _this.activePlayer = player;
+                  // this.activePlayerId = id;
+                  // this.activePlayer = player;
                   player.isPlayer = true;
                 } // check for a plugin with special car rules
 
