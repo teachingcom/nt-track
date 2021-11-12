@@ -100523,8 +100523,8 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
               case 20:
                 // set the active player, if needed
                 if (isPlayer) {
-                  // this.activePlayerId = id;
-                  // this.activePlayer = player;
+                  _this.activePlayerId = id;
+                  _this.activePlayer = player;
                   player.isPlayer = true;
                 } // check for a plugin with special car rules
 
