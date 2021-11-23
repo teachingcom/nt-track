@@ -18,7 +18,7 @@
     "animejs": "^3.2.0",
     "clone-deep": "^4.0.1",
     "deep-defaults": "^1.0.5",
-    "deep-get-set": "^1.1.0",
+    "deep-get-set": "^1.1.1",
     "gameloop": "^1.1.4",
     "howler": "^2.2.0",
     "popmotion": "^8.7.5",
