@@ -22,6 +22,7 @@
     "gameloop": "^1.1.4",
     "howler": "^2.2.0",
     "popmotion": "^8.7.5",
+    "promise.allsettled": "^1.0.5",
     "random-seed": "^0.3.0"
   },
   "devDependencies": {

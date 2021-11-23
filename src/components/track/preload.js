@@ -1,4 +1,5 @@
 import * as audio from '../../audio'
+import allSettled from 'promise.allsettled';
 
 // handles preloading external assets
 export default class AssetPreloader {
@@ -48,7 +49,7 @@ export default class AssetPreloader {
 		}
 
 		// wait for results
-		this.results = await Promise.allSettled(pending)
+		this.results = await allSettled(pending)
 	}
 
 	// check if each resource is valid
