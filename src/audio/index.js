@@ -82,7 +82,6 @@ export async function register (src, sprites, key = src) {
 
     // handle finalizing the sound
     const onLoaded = () => {
-
       for (const id in sprites) {
         AUDIO[id] = sound
       }
@@ -92,11 +91,13 @@ export async function register (src, sprites, key = src) {
 
     // load the sound
     let src = `${baseUrl}/${key}.mp3`.replace(/\/+/g, '/')
-
+    
     // check for a version
     if (sprites.version) {
       src += `?${sprites.version}`
     }
+
+    console.log('[audio]', src)
 
     // load the audio
     const sound = new Howl({

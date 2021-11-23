@@ -65,6 +65,7 @@ export default class AssetPreloader {
 
 			if (failed) {
 				console.error(`failed to load ${type}:`, src)
+				console.log(results[i]);
 			}
 
 			// this failed to load

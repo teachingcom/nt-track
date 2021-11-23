@@ -4464,8 +4464,9 @@ function _register() {
 
               if (sprites.version) {
                 src += "?".concat(sprites.version);
-              } // load the audio
+              }
 
+              console.log('[audio]', src); // load the audio
 
               var sound = new _howler.Howl({
                 src: src,
@@ -100520,6 +100521,7 @@ var AssetPreloader = /*#__PURE__*/function () {
 
         if (failed) {
           console.error("failed to load ".concat(type, ":"), src);
+          console.log(results[i]);
         } // this failed to load
 
 
