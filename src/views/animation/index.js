@@ -89,7 +89,6 @@ export default class AnimationView extends BaseView {
 			bumper.pivot.y = bumper.height * 0.5
 			bumper.scale.x = bumper.scale.y = 0.7
 		}
-		
 
 		// create the trail
 		const trail = await Trail.create({
@@ -97,6 +96,16 @@ export default class AnimationView extends BaseView {
 			baseHeight: this.preferredHeight,
 			type: this.options.path
 		});
+
+		// trim the view so the gradient car doesn't
+		// peek any trails underneath
+		const graphics = new PIXI.Graphics();
+		graphics.beginFill(0xFF3300);
+		graphics.drawRect(0, 0, 800, 500);
+		graphics.endFill();
+		graphics.pivot.x = 800;
+		graphics.x = trail.x
+		trail.mask = graphics;
 
 		// setup the main container
 		this.container.scale.x = this.container.scale.y = this.options.scale || 1

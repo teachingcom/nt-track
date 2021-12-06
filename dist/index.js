@@ -107569,7 +107569,7 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
     key: "_initTrailPreview",
     value: function () {
       var _initTrailPreview2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
-        var _this$options, getCarUrl, playerCar, bumper, url, img, back, texture, trail, bg, contain;
+        var _this$options, getCarUrl, playerCar, bumper, url, img, back, texture, trail, graphics, bg, contain;
 
         return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
@@ -107621,27 +107621,36 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
 
               case 23:
                 trail = _context3.sent;
-                // setup the main container
+                // trim the view so the gradient car doesn't
+                // peek any trails underneath
+                graphics = new _ntAnimator.PIXI.Graphics();
+                graphics.beginFill(0xFF3300);
+                graphics.drawRect(0, 0, 800, 500);
+                graphics.endFill();
+                graphics.pivot.x = 800;
+                graphics.x = trail.x;
+                trail.mask = graphics; // setup the main container
+
                 this.container.scale.x = this.container.scale.y = this.options.scale || 1;
                 this.container.relativeX = 0.75; // set the position for the faded background
                 // to help the trails stand out more
 
                 if (this.options.hideBackground) {
-                  _context3.next = 34;
+                  _context3.next = 41;
                   break;
                 }
 
-                _context3.next = 29;
+                _context3.next = 36;
                 return this.animator.getSprite('extras/shop', 'asset_bg');
 
-              case 29:
+              case 36:
                 bg = _context3.sent;
                 bg.pivot.x = bg.width;
                 bg.pivot.y = bg.height * 0.5;
                 bg.alpha = 0.66;
                 bg.x = bg.width * 0.2;
 
-              case 34:
+              case 41:
                 // since we're using the trail class for the trail
                 // we need a shared container to help make sure
                 // the trail lines up correctly using the 
@@ -107656,7 +107665,7 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
 
                 this.container.addChild(contain);
 
-              case 39:
+              case 46:
               case "end":
                 return _context3.stop();
             }
