@@ -478,7 +478,7 @@ export default class TrackView extends BaseView {
 	setProgress = (id, { progress, finished, typed, typingSpeedModifier, completed }) => {
 		const { state, raceCompletedAnimation } = this;
 		const player = this.getPlayerById(id);
-		
+
 		// don't crash if the player wasn't found
 		if (!player) return;
 		
@@ -608,7 +608,7 @@ export default class TrackView extends BaseView {
 
 	// handle rendering the track in the requested state
 	render(force) {
-		
+
 		// calculate the delta
 		const now = Date.now();
 		
@@ -617,15 +617,13 @@ export default class TrackView extends BaseView {
 		const {
 			state,
 			track,
+			stage,
 			raceProgressAnimation,
 			raceCompletedAnimation
 		} = this;
 
 		state.delta = this.getDeltaTime(now);
 		this.lastUpdate = now;
-
-		// if throttling
-		if (!this.shouldAnimateFrame && !force) return;
 		
 		// gather some data
 		const { animateTrackMovement, trackMovementAmount } = state;
@@ -665,12 +663,16 @@ export default class TrackView extends BaseView {
 			raceProgressAnimation.update();
 		}
 		
-		// redraw		
-		super.render();
-
 		// race is finished
-		if (raceCompletedAnimation)
+		if (raceCompletedAnimation) {
 			raceCompletedAnimation.update();
+		}
+		
+		// if throttling
+		if (!this.shouldAnimateFrame && !force) return;
+
+		// perform the draw
+		super.render();
 	}
 
 	// save the FPS and performance score

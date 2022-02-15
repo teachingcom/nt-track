@@ -75728,6 +75728,147 @@ var CycleExpression = function CycleExpression(prop, args) {
 
 exports.default = CycleExpression;
 (0, _defineProperty2.default)(CycleExpression, "start", Date.now());
+},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../utils":"utils/index.js","../mappings":"animation/mappings.js"}],"animation/dynamic-expressions/JitterExpression.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.JitterExpression = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var _utils = require("../../utils");
+
+var mappings = _interopRequireWildcard(require("../mappings"));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+var JitterExpression = function JitterExpression(prop, args) {
+  var _this = this;
+
+  (0, _classCallCheck2.default)(this, JitterExpression);
+  (0, _defineProperty2.default)(this, "offset", 0);
+  (0, _defineProperty2.default)(this, "scale", 1);
+  (0, _defineProperty2.default)(this, "flip", 1);
+  (0, _defineProperty2.default)(this, "update", function (target, stage) {
+    var ts = (Date.now() - JitterExpression.start + _this.offset) * _this.scale;
+
+    if (ts > _this.nextUpdate) {
+      _this.target = Math.random() * (_this.max - _this.min) + _this.min;
+
+      if (!_this.current) {
+        _this.current = _this.target;
+        _this.nextUpdate = ts;
+      } else {
+        _this.nextUpdate = ts + _this.freq;
+      }
+    } else {
+      _this.current += (_this.target - _this.current) * _this.rate * _this.modifier(target, stage);
+    } // if (!this.current) {
+    // 	this.current = this.start 
+    // }
+
+
+    console.log(_this.target, _this.current);
+    var value = _this.current * _this.flip;
+
+    _this.mapping(target, _this.convertToInt ? 0 | value : value); // const sine = this.calc(ts) * this.modifier(target, stage)
+    // const percent = ((sine + 1) / 2)
+    // const value = (((percent * (this.max - this.min)) + this.min)) * this.flip
+
+  });
+  this.prop = prop;
+  this.mapping = mappings.lookup(prop);
+
+  this.modifier = function () {
+    return 1;
+  };
+
+  var min = 0;
+  var max = 1;
+  var freq = 1000;
+  var rate = 0.1;
+
+  var _iterator = _createForOfIteratorHelper(args),
+      _step;
+
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var arg = _step.value;
+      var isObj = (0, _utils.isObject)(arg);
+
+      if (arg === 'int') {
+        this.convertToInt = true;
+      } else if (arg === 'invert') {
+        this.flip = -1;
+      } else if (isObj && 'min' in arg) {
+        min = arg.min;
+      } else if (isObj && 'max' in arg) {
+        max = arg.max;
+      } else if (isObj && 'freq' in arg) {
+        freq = arg.freq;
+      } else if (isObj && 'rate' in arg) {
+        rate = arg.rate;
+      } else if (isObj && 'relative_to_stage' in arg) {
+        (function () {
+          var key = arg.relative_to_stage;
+
+          _this.modifier = function (target, stage) {
+            return stage[key] || 0;
+          };
+        })();
+      } else if (isObj && 'relative_to_self' in arg) {
+        (function () {
+          var key = arg.relative_to_self;
+
+          _this.modifier = function (target, stage) {
+            return target[key] || 0;
+          };
+        })();
+      } else if (isObj && 'scale' in arg) {
+        this.scale = arg.scale * 0.01;
+      } else if (arg === 'stagger' || isObj && arg.stagger) {
+        this.offset += 0 | (arg.stagger || 10000) * Math.random();
+      } else if (arg.offset) {
+        this.offset = arg.offset * 1000;
+      }
+    } // if there's no max value then
+    // max the range from 0-min
+
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+
+  if (isNaN(max)) {
+    max = min;
+    min = 0;
+  } // save the args
+
+
+  this.min = min;
+  this.max = max;
+  this.freq = freq;
+  this.rate = rate;
+  this.nextUpdate = 0;
+};
+
+exports.JitterExpression = JitterExpression;
+(0, _defineProperty2.default)(JitterExpression, "start", Date.now());
 },{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../utils":"utils/index.js","../mappings":"animation/mappings.js"}],"animation/expressions.js":[function(require,module,exports) {
 "use strict";
 
@@ -75775,6 +75916,8 @@ var _averageExpression = _interopRequireDefault(require("./dynamic-expressions/a
 var _sumExpression = _interopRequireDefault(require("./dynamic-expressions/sum-expression"));
 
 var _cycleExpression = _interopRequireDefault(require("./dynamic-expressions/cycle-expression"));
+
+var _JitterExpression = require("./dynamic-expressions/JitterExpression");
 
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
@@ -75829,6 +75972,9 @@ var DYNAMICS = {
   },
   ':avg': {
     instance: _averageExpression.default
+  },
+  ':jit': {
+    instance: _JitterExpression.JitterExpression
   },
   ':mod': {
     instance: _modExpression.default
@@ -76043,7 +76189,7 @@ function shuffle(items) {
 
   items.push.apply(items, shuffled);
 }
-},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","../utils":"utils/index.js","./mappings":"animation/mappings.js","../randomizer":"randomizer.js","./variables":"animation/variables.js","./dynamic-expressions/get-random":"animation/dynamic-expressions/get-random.js","./dynamic-expressions/mod-expression":"animation/dynamic-expressions/mod-expression.js","./dynamic-expressions/sine-expressions":"animation/dynamic-expressions/sine-expressions.js","./dynamic-expressions/relative-expressions":"animation/dynamic-expressions/relative-expressions.js","./dynamic-expressions/bezier-expression":"animation/dynamic-expressions/bezier-expression.js","./dynamic-expressions/average-expression":"animation/dynamic-expressions/average-expression.js","./dynamic-expressions/sum-expression":"animation/dynamic-expressions/sum-expression.js","./dynamic-expressions/cycle-expression":"animation/dynamic-expressions/cycle-expression.js"}],"../node_modules/idb-keyval/dist/idb-keyval.mjs":[function(require,module,exports) {
+},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","../utils":"utils/index.js","./mappings":"animation/mappings.js","../randomizer":"randomizer.js","./variables":"animation/variables.js","./dynamic-expressions/get-random":"animation/dynamic-expressions/get-random.js","./dynamic-expressions/mod-expression":"animation/dynamic-expressions/mod-expression.js","./dynamic-expressions/sine-expressions":"animation/dynamic-expressions/sine-expressions.js","./dynamic-expressions/relative-expressions":"animation/dynamic-expressions/relative-expressions.js","./dynamic-expressions/bezier-expression":"animation/dynamic-expressions/bezier-expression.js","./dynamic-expressions/average-expression":"animation/dynamic-expressions/average-expression.js","./dynamic-expressions/sum-expression":"animation/dynamic-expressions/sum-expression.js","./dynamic-expressions/cycle-expression":"animation/dynamic-expressions/cycle-expression.js","./dynamic-expressions/JitterExpression":"animation/dynamic-expressions/JitterExpression.js"}],"../node_modules/idb-keyval/dist/idb-keyval.mjs":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103096,8 +103242,13 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
       try {
         for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
           var player = _step2.value;
+
           // never include the player character (shouldn't happen)
-          if (player.isPlayer) continue; // compare the time
+          // check if they're already finished (this shouldn't happen either)
+          if (player.isPlayer || _this.onTrack[player.id]) {
+            continue;
+          } // compare the time
+
 
           var diff = now - player.lastUpdate;
 
@@ -103297,17 +103448,9 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
 
       if (activePlayer && !activePlayer.completedAt) {
         return;
-      }
-
-      console.log('missing active player', activePlayer); // if there's no active player reference (not sure how this 
-      // can happen), then we need to animate the finished
-
-      if (this.hasAnimatedFinishes) {
-        return;
       } // animate any new cars
 
 
-      this.hasAnimatedFinishes = true;
       this.animateRecentFinishes();
     } // calculate all player finishes that have been done for
     // an extended period of time - since we don't know the actual
@@ -104884,12 +105027,11 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       this.frame++;
       var state = this.state,
           track = this.track,
+          stage = this.stage,
           raceProgressAnimation = this.raceProgressAnimation,
           raceCompletedAnimation = this.raceCompletedAnimation;
       state.delta = this.getDeltaTime(now);
-      this.lastUpdate = now; // if throttling
-
-      if (!this.shouldAnimateFrame && !force) return; // gather some data
+      this.lastUpdate = now; // gather some data
 
       var animateTrackMovement = state.animateTrackMovement,
           trackMovementAmount = state.trackMovementAmount;
@@ -104917,12 +105059,17 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
         track.updateScripts(state);
         track.update(state);
         raceProgressAnimation.update();
-      } // redraw		
+      } // race is finished
 
 
-      (0, _get2.default)((0, _getPrototypeOf2.default)(TrackView.prototype), "render", this).call(this); // race is finished
+      if (raceCompletedAnimation) {
+        raceCompletedAnimation.update();
+      } // if throttling
 
-      if (raceCompletedAnimation) raceCompletedAnimation.update();
+
+      if (!this.shouldAnimateFrame && !force) return; // perform the draw
+
+      (0, _get2.default)((0, _getPrototypeOf2.default)(TrackView.prototype), "render", this).call(this);
     } // save the FPS and performance score
 
   }, {

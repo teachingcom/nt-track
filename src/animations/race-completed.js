@@ -107,17 +107,7 @@ export default class RaceCompletedAnimation extends Animation {
 		if (activePlayer && !activePlayer.completedAt) {
 			return;
 		}
-
-		console.log('missing active player', activePlayer)
-
-		// if there's no active player reference (not sure how this 
-		// can happen), then we need to animate the finished
-		if (this.hasAnimatedFinishes) {
-			return;
-		}
-		
 		// animate any new cars
-		this.hasAnimatedFinishes = true;
 		this.animateRecentFinishes();
 	}
 
@@ -133,7 +123,10 @@ export default class RaceCompletedAnimation extends Animation {
 		for (const player of finished) {
 
 			// never include the player character (shouldn't happen)
-			if (player.isPlayer) continue;
+			// check if they're already finished (this shouldn't happen either)
+			if (player.isPlayer || this.onTrack[player.id]) {
+				continue;
+			}
 
 			// compare the time
 			const diff = now - player.lastUpdate;
