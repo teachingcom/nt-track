@@ -75806,18 +75806,11 @@ var JitterExpression = function JitterExpression(prop, args) {
       }
     } else {
       _this.current += (_this.target - _this.current) * _this.rate * _this.modifier(target, stage);
-    } // if (!this.current) {
-    // 	this.current = this.start 
-    // }
+    }
 
-
-    console.log(_this.target, _this.current);
     var value = _this.current * _this.flip;
 
-    _this.mapping(target, _this.convertToInt ? 0 | value : value); // const sine = this.calc(ts) * this.modifier(target, stage)
-    // const percent = ((sine + 1) / 2)
-    // const value = (((percent * (this.max - this.min)) + this.min)) * this.flip
-
+    _this.mapping(target, _this.convertToInt ? 0 | value : value);
   });
   this.prop = prop;
   this.mapping = mappings.lookup(prop);
@@ -83119,7 +83112,7 @@ function applyParticleOverride(target) {
     }
 
     // perform normal updateialzation
-    update.apply(this, args); // apply the default starting rotation
+    var result = update.apply(this, args); // apply the default starting rotation
 
     if (this.rotationModifier) {
       this.rotation += this.rotationModifier;
@@ -83129,6 +83122,7 @@ function applyParticleOverride(target) {
     if (this.emitter.config.flipParticleX && this.scale.x > 0) this.scale.x *= -1; // allow sprite flipping on y axis
 
     if (this.emitter.config.flipParticleY && this.scale.y > 0) this.scale.y *= -1;
+    return result;
   };
 
   target.prototype.init = function () {
