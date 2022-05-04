@@ -634,6 +634,9 @@ export default class TrackView extends BaseView {
 			? Math.max(0, Math.min(TRACK_MAXIMUM_SPEED, state.speed + (trackMovementAmount * state.delta)))
 			: 0;
 
+		// set the base speed for variables
+		this.animationVariables.base_speed = state.speed;
+
 		// increase the track movement by the speed bonus
 		// allows up to an extra 75% of the normal speed
 		if (isRaceActive) {

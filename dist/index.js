@@ -105259,7 +105259,9 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
           trackMovementAmount = state.trackMovementAmount;
       var isRaceActive = state.isStarted && !state.isFinished; // speeding up the view
 
-      state.speed = animateTrackMovement ? Math.max(0, Math.min(_config.TRACK_MAXIMUM_SPEED, state.speed + trackMovementAmount * state.delta)) : 0; // increase the track movement by the speed bonus
+      state.speed = animateTrackMovement ? Math.max(0, Math.min(_config.TRACK_MAXIMUM_SPEED, state.speed + trackMovementAmount * state.delta)) : 0; // set the base speed for variables
+
+      this.animationVariables.base_speed = state.speed; // increase the track movement by the speed bonus
       // allows up to an extra 75% of the normal speed
 
       if (isRaceActive) {
