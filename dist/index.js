@@ -107147,12 +107147,13 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
 
               case 16:
                 // make sure the game animates relative values
-                this.animationVariables.speed = 1; // begin rendering
+                this.animationVariables.speed = 1;
+                this.animationVariables.base_speed = 1; // begin rendering
 
                 this.startAutoRender();
                 this.ready = true;
 
-              case 19:
+              case 20:
               case "end":
                 return _context.stop();
             }
@@ -108182,7 +108183,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '1.0.50';
+  window.NTTRACK = '1.0.52';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

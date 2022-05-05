@@ -49,6 +49,7 @@ export default class CustomizerView extends BaseView {
 
     // make sure the game animates relative values
     this.animationVariables.speed = 1
+    this.animationVariables.base_speed = 1
     
     // begin rendering
     this.startAutoRender()
