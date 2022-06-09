@@ -103888,9 +103888,16 @@ var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
           players = track.players; // if the active player isn't ready yet
       // then don't fail - this shouldn't ever happen
 
-      if (!activePlayer) return; // // always update the active player first
+      if (!activePlayer) return; // always update the active player first
 
-      _this.updatePlayer(activePlayer); // update remaining players
+      var progress = activePlayer.relativeX;
+
+      _this.updatePlayer(activePlayer); // revert, if needed
+
+
+      if (isNaN(activePlayer.relativeX)) {
+        activePlayer.relativeX = progress;
+      } // update remaining players
 
 
       var _iterator = _createForOfIteratorHelper(players),
@@ -103900,8 +103907,16 @@ var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
         for (_iterator.s(); !(_step = _iterator.n()).done;) {
           var player = _step.value;
           if (player.isPlayer) continue;
+          var before = player.relativeX;
 
-          _this.updatePlayer(player);
+          _this.updatePlayer(player); // in case of an error, just revert to the
+          // prior value
+
+
+          if (isNaN(player.relativeX)) {
+            console.log('is correcting number');
+            player.relativeX = before;
+          }
         }
       } catch (err) {
         _iterator.e(err);

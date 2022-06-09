@@ -184,13 +184,27 @@ export default class RaceProgressAnimation extends Animation {
 		// then don't fail - this shouldn't ever happen
 		if (!activePlayer) return;
 
-		// // always update the active player first
+		// always update the active player first
+		const progress = activePlayer.relativeX;
 		this.updatePlayer(activePlayer);
+
+		// revert, if needed
+		if (isNaN(activePlayer.relativeX)) {
+			activePlayer.relativeX = progress;
+		}
 
 		// update remaining players
 		for (const player of players) {
 			if (player.isPlayer) continue;
+			const before = player.relativeX;
 			this.updatePlayer(player);
+
+			// in case of an error, just revert to the
+			// prior value
+			if (isNaN(player.relativeX)) {
+				console.log('is correcting number');
+				player.relativeX = before;
+			}
 		}
 
 	}
