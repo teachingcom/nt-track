@@ -83936,53 +83936,52 @@ function _createMask() {
 
             phase = '';
             _context.prev = 2;
-            console.log('is going to create mask'); // NOTE: sprites are added a wrapper container on purpose
+            // NOTE: sprites are added a wrapper container on purpose
             // because any animations that modify scale will interfere
             // with scaling done to fit within responsive containers
-
             container = new _lib.PIXI.Container();
             container.isMask = true;
             container.role = (0, _utils2.toRole)(layer.role);
             container.path = layer.path; // gather all required images
 
             phase = 'resolving images';
-            _context.next = 11;
+            _context.next = 10;
             return (0, _resolveImages.default)(animator, path, composition, layer);
 
-          case 11:
+          case 10:
             images = _context.sent;
             // create textures for each sprite
             phase = 'generating textures';
-            _context.prev = 13;
+            _context.prev = 12;
             textures = images; // map(images, createTextureFromImage);
 
-            _context.next = 21;
+            _context.next = 20;
             break;
 
-          case 17:
-            _context.prev = 17;
-            _context.t0 = _context["catch"](13);
+          case 16:
+            _context.prev = 16;
+            _context.t0 = _context["catch"](12);
             console.error("Failed to create a texture for ".concat(path), composition);
             throw _context.t0;
 
-          case 21:
+          case 20:
             // create the instance of the sprite
             phase = 'creating mask instance'; // using bounds
 
             if (!(textures.length === 0)) {
-              _context.next = 33;
+              _context.next = 32;
               break;
             }
 
             if (!(isNaN(layer.width) || isNaN(layer.height) || layer.width === 0 || layer.height === 0)) {
-              _context.next = 26;
+              _context.next = 25;
               break;
             }
 
             phase = 'validating mask bounds';
             throw new _errors.InvalidMaskBoundsException();
 
-          case 26:
+          case 25:
             // create the mask
             maskGenerator.canvas.width = layer.width;
             maskGenerator.canvas.height = layer.height;
@@ -83990,17 +83989,16 @@ function _createMask() {
             maskGenerator.ctx.fillRect(0, 0, layer.width, layer.height); // create the sprite
 
             mask = new _lib.PIXI.Sprite.from(maskGenerator.canvas);
-            _context.next = 37;
+            _context.next = 35;
             break;
 
-          case 33:
-            console.log("create from sprite");
+          case 32:
             isAnimated = images.length > 1;
             mask = isAnimated ? new _lib.PIXI.AnimatedSprite(textures) : new _lib.PIXI.Sprite(textures[0]); // if animated, start playback
 
             if (isAnimated) mask.play();
 
-          case 37:
+          case 35:
             // match up names
             (0, _normalize.normalizeProps)(layer.props); // create dynamically rendered properties
 
@@ -84033,18 +84031,18 @@ function _createMask() {
               update: update
             }]);
 
-          case 57:
-            _context.prev = 57;
+          case 55:
+            _context.prev = 55;
             _context.t1 = _context["catch"](2);
             console.error("Failed to create mask ".concat(path, " while ").concat(phase));
             throw _context.t1;
 
-          case 61:
+          case 59:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[2, 57], [13, 17]]);
+    }, _callee, null, [[2, 55], [12, 16]]);
   }));
   return _createMask.apply(this, arguments);
 }
@@ -108172,7 +108170,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '1.0.52';
+  window.NTTRACK = '1.1.0';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
