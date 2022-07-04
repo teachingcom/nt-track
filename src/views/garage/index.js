@@ -108,7 +108,7 @@ export default class GarageView extends BaseView {
 		
 		// repaint the view
 		else if (previous?.hue !== config.hue) {
-			this.repaintCar(config);
+			await this.repaintCar(config);
 		}
 	}
 

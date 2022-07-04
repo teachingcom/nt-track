@@ -285,7 +285,7 @@ export default class Car extends PIXI.Container {
 
 		// recolor as needed
 		try {
-			this.repaintCar(hue)
+			await this.repaintCar(hue)
 		}
 		catch (ex) {
 			console.warn('failed', ex);

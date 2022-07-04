@@ -235,8 +235,8 @@ export default class Player extends PIXI.ResponsiveContainer {
 		}
 	}
 
-	repaintCar (hue) {
-		this.car.repaintCar(hue)
+	async repaintCar (hue) {
+		await this.car.repaintCar(hue)
 	}
 
 	// cancels animating progress

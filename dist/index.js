@@ -80257,7 +80257,6 @@ function createTextureFromImage(img) {
     } // get sprite info
 
 
-    console.log('will create', img);
     spritesheet = img.getAttribute('spritesheet');
     sprite = img.getAttribute('sprite');
     var useCache = spritesheet && sprite; // texture to load
@@ -84018,7 +84017,11 @@ function _createMask() {
             container.addChild(mask);
             container.isMask = true;
             container.name = layer.name;
-            container.maskInstance = mask; // set some default values
+            container.maskInstance = mask; // never hue shift a mask
+
+            container.config = {
+              ignoreHueShift: true
+            }; // set some default values
 
             mask.pivot.x = mask.width / 2;
             mask.pivot.y = mask.height / 2; // include this instance
@@ -84031,18 +84034,18 @@ function _createMask() {
               update: update
             }]);
 
-          case 55:
-            _context.prev = 55;
+          case 56:
+            _context.prev = 56;
             _context.t1 = _context["catch"](2);
             console.error("Failed to create mask ".concat(path, " while ").concat(phase));
             throw _context.t1;
 
-          case 59:
+          case 60:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[2, 55], [12, 16]]);
+    }, _callee, null, [[2, 56], [12, 16]]);
   }));
   return _createMask.apply(this, arguments);
 }
@@ -89138,19 +89141,25 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
                 return _context6.abrupt("return");
 
               case 4:
-                // recolor as needed
-                try {
-                  this.repaintCar(hue);
-                } catch (ex) {
-                  console.warn('failed', ex);
-                }
+                _context6.prev = 4;
+                _context6.next = 7;
+                return this.repaintCar(hue);
 
-              case 5:
+              case 7:
+                _context6.next = 12;
+                break;
+
+              case 9:
+                _context6.prev = 9;
+                _context6.t0 = _context6["catch"](4);
+                console.warn('failed', _context6.t0);
+
+              case 12:
               case "end":
                 return _context6.stop();
             }
           }
-        }, _callee6, this);
+        }, _callee6, this, [[4, 9]]);
       }));
 
       function _initFilters() {
@@ -90793,9 +90802,29 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
     }
   }, {
     key: "repaintCar",
-    value: function repaintCar(hue) {
-      this.car.repaintCar(hue);
-    } // cancels animating progress
+    value: function () {
+      var _repaintCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(hue) {
+        return _regenerator.default.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                _context6.next = 2;
+                return this.car.repaintCar(hue);
+
+              case 2:
+              case "end":
+                return _context6.stop();
+            }
+          }
+        }, _callee6, this);
+      }));
+
+      function repaintCar(_x5) {
+        return _repaintCar.apply(this, arguments);
+      }
+
+      return repaintCar;
+    }() // cancels animating progress
 
   }, {
     key: "updateTransform",
@@ -90894,11 +90923,11 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
   }], [{
     key: "create",
     value: function () {
-      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(options) {
+      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(options) {
         var instance, car, trail, nitro, namecard, resolved;
-        return _regenerator.default.wrap(function _callee6$(_context6) {
+        return _regenerator.default.wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
                 instance = new Player();
                 instance.options = options;
@@ -90909,12 +90938,12 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                 nitro = instance._initNitro();
                 namecard = instance._initNameCard(); // wait for the result
 
-                _context6.next = 9;
+                _context7.next = 9;
                 return Promise.all([car, trail, nitro, namecard]);
 
               case 9:
-                resolved = _context6.sent;
-                _context6.next = 12;
+                resolved = _context7.sent;
+                _context7.next = 12;
                 return instance._assemble.apply(instance, (0, _toConsumableArray2.default)(resolved));
 
               case 12:
@@ -90927,17 +90956,17 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                 instance.zIndex = options.lane; // make sure there's a player ID
 
                 instance.id = options.id || "player_".concat(+new Date());
-                return _context6.abrupt("return", instance);
+                return _context7.abrupt("return", instance);
 
               case 18:
               case "end":
-                return _context6.stop();
+                return _context7.stop();
             }
           }
-        }, _callee6);
+        }, _callee7);
       }));
 
-      function create(_x5) {
+      function create(_x6) {
         return _create.apply(this, arguments);
       }
 
@@ -105845,14 +105874,26 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 previous = _this.config;
                 _this.config = config; // check for reasons to reload the car
 
-                if ((previous === null || previous === void 0 ? void 0 : previous.type) !== config.type || (previous === null || previous === void 0 ? void 0 : previous.trail) !== config.trail) {
-                  _this.setCar(_this.config);
-                } // repaint the view
-                else if ((previous === null || previous === void 0 ? void 0 : previous.hue) !== config.hue) {
-                    _this.repaintCar(config);
-                  }
+                if (!((previous === null || previous === void 0 ? void 0 : previous.type) !== config.type || (previous === null || previous === void 0 ? void 0 : previous.trail) !== config.trail)) {
+                  _context.next = 6;
+                  break;
+                }
 
-              case 3:
+                _this.setCar(_this.config);
+
+                _context.next = 9;
+                break;
+
+              case 6:
+                if (!((previous === null || previous === void 0 ? void 0 : previous.hue) !== config.hue)) {
+                  _context.next = 9;
+                  break;
+                }
+
+                _context.next = 9;
+                return _this.repaintCar(config);
+
+              case 9:
               case "end":
                 return _context.stop();
             }
@@ -108170,7 +108211,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '1.1.0';
+  window.NTTRACK = '1.1.1';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
