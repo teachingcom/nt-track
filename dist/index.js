@@ -83448,6 +83448,7 @@ function _createEmitter() {
             config.noRotation = !!emit.noRotation;
             config.addAtBack = !!emit.atBack;
             config.orderedArt = !!emit.orderedArt;
+            config.hueShift = !!emit.hueShift;
             config.flipParticleX = !!(emit.flipParticleX || emit.flipX || emit['flip.x']);
             config.flipParticleY = !!(emit.flipParticleY || emit.flipY || emit['flip.y']);
 
@@ -83602,18 +83603,18 @@ function _createEmitter() {
               dispose: dispose
             }]);
 
-          case 72:
-            _context.prev = 72;
+          case 73:
+            _context.prev = 73;
             _context.t2 = _context["catch"](7);
             console.error("Failed to create emitter ".concat(path, " while ").concat(phase));
             throw _context.t2;
 
-          case 76:
+          case 77:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[7, 72]]);
+    }, _callee, null, [[7, 73]]);
   }));
   return _createEmitter.apply(this, arguments);
 }
@@ -89175,6 +89176,8 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
             _iterator3,
             _step3,
             _emitter$emitter,
+            _emitter$emitter$conf,
+            _emitter$emitter2,
             emitter,
             safety,
             change,
@@ -89196,7 +89199,8 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
                     for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
                       emitter = _step3.value;
 
-                      if (emitter === null || emitter === void 0 ? void 0 : (_emitter$emitter = emitter.emitter) === null || _emitter$emitter === void 0 ? void 0 : _emitter$emitter.startColor) {
+                      if ((emitter === null || emitter === void 0 ? void 0 : (_emitter$emitter = emitter.emitter) === null || _emitter$emitter === void 0 ? void 0 : (_emitter$emitter$conf = _emitter$emitter.config) === null || _emitter$emitter$conf === void 0 ? void 0 : _emitter$emitter$conf.hueShift) && (emitter === null || emitter === void 0 ? void 0 : (_emitter$emitter2 = emitter.emitter) === null || _emitter$emitter2 === void 0 ? void 0 : _emitter$emitter2.startColor)) {
+                        // apply the hue shift
                         safety = 10;
                         change = emitter.emitter.startColor;
 
@@ -108322,7 +108326,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '1.1.2';
+  window.NTTRACK = '1.1.3';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

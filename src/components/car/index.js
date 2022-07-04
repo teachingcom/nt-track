@@ -278,8 +278,9 @@ export default class Car extends PIXI.Container {
 		// consider moving this elsewhere
 		if (hue) {
 			for (const emitter of car.controller.emitters) {
-				if (emitter?.emitter?.startColor) {
-					
+				if (emitter?.emitter?.config?.hueShift && emitter?.emitter?.startColor) {
+
+					// apply the hue shift
 					let safety = 10;
 					let change = emitter.emitter.startColor;
 					do {
