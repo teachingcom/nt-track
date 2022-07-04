@@ -88016,6 +88016,8 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = hueShift;
+exports.shiftDecimal = shiftDecimal;
+exports.shiftRgbColor = shiftRgbColor;
 
 var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
 
@@ -88279,15 +88281,12 @@ function HSLShiftWorker() {
         r = c;
         g = 0;
         b = x;
-      }
+      } // save the change
 
-      r = Math.round((r + m) * 255);
-      g = Math.round((g + m) * 255);
-      b = Math.round((b + m) * 255); // save the change
 
-      pixels[i] = r;
-      pixels[i + 1] = g;
-      pixels[i + 2] = b;
+      pixels[i] = Math.round((r + m) * 255);
+      pixels[i + 1] = Math.round((g + m) * 255);
+      pixels[i + 2] = Math.round((b + m) * 255);
     } // notify this is done
 
 
@@ -88309,6 +88308,76 @@ function getRootTexture(sprite) {
   }
 
   return previous;
+}
+
+function shiftDecimal(dec, hue) {
+  var color = [(dec & 0xff0000) >> 16, (dec & 0x00ff00) >> 8, dec & 0x0000ff];
+  shiftColor(color, hue);
+  return (color[0] << 16) + (color[1] << 8) + color[2];
+} // workers can't access outside functions, so unfortunately we
+// have to duplicate this code here
+
+
+function shiftRgbColor(color, hue) {
+  var r = color.r / 255;
+  var g = color.g / 255;
+  var b = color.b / 255; // Find greatest and smallest channel values
+
+  var cmin = Math.min(r, g, b);
+  var cmax = Math.max(r, g, b);
+  var delta = cmax - cmin;
+  var h = 0;
+  var s = 0;
+  var l = 0; // Calculate hue
+  // No difference
+
+  if (delta === 0) h = 0; // Red is max
+  else if (cmax === r) h = (g - b) / delta % 6; // Green is max
+    else if (cmax === g) h = (b - r) / delta + 2; // Blue is max
+      else h = (r - g) / delta + 4;
+  h = Math.round(h * 60);
+  h += hue; // Make negative hues positive behind 360°
+
+  if (h < 0) h += 360;
+  h %= 360; // Calculate lightness
+
+  l = (cmax + cmin) / 2; // Calculate saturation
+
+  s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+  var c = (1 - Math.abs(2 * l - 1)) * s,
+      x = c * (1 - Math.abs(h / 60 % 2 - 1)),
+      m = l - c / 2;
+
+  if (0 <= h && h < 60) {
+    r = c;
+    g = x;
+    b = 0;
+  } else if (60 <= h && h < 120) {
+    r = x;
+    g = c;
+    b = 0;
+  } else if (120 <= h && h < 180) {
+    r = 0;
+    g = c;
+    b = x;
+  } else if (180 <= h && h < 240) {
+    r = 0;
+    g = x;
+    b = c;
+  } else if (240 <= h && h < 300) {
+    r = x;
+    g = 0;
+    b = c;
+  } else if (300 <= h && h < 360) {
+    r = c;
+    g = 0;
+    b = x;
+  } // save the change
+
+
+  color.r = Math.round((r + m) * 255);
+  color.g = Math.round((g + m) * 255);
+  color.b = Math.round((b + m) * 255);
 }
 },{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js"}],"audio/volume.js":[function(require,module,exports) {
 "use strict";
@@ -88567,9 +88636,13 @@ var _activateNitro = _interopRequireDefault(require("../../animations/activate-n
 
 var _textureGenerator = _interopRequireDefault(require("./texture-generator"));
 
-var _hueShift = _interopRequireDefault(require("./hue-shift"));
+var _hueShift = _interopRequireWildcard(require("./hue-shift"));
 
 var _carMappings = require("../../car-mappings");
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -89095,17 +89168,55 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
     key: "repaintCar",
     // repaints the current car
     value: function () {
-      var _repaintCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(hue) {
-        var car;
+      var _repaintCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
+        var hue,
+            shiftTo,
+            car,
+            _iterator3,
+            _step3,
+            _emitter$emitter,
+            emitter,
+            safety,
+            change,
+            _args5 = arguments;
+
         return _regenerator.default.wrap(function _callee5$(_context5) {
           while (1) {
             switch (_context5.prev = _context5.next) {
               case 0:
-                car = this.car;
-                _context5.next = 3;
-                return (0, _hueShift.default)(car, 0 | hue);
+                hue = _args5.length > 0 && _args5[0] !== undefined ? _args5[0] : 0;
+                shiftTo = 0 | hue;
+                car = this.car; // hue shift colors in car based emitters
+                // consider moving this elsewhere
 
-              case 3:
+                if (hue) {
+                  _iterator3 = _createForOfIteratorHelper(car.controller.emitters);
+
+                  try {
+                    for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+                      emitter = _step3.value;
+
+                      if (emitter === null || emitter === void 0 ? void 0 : (_emitter$emitter = emitter.emitter) === null || _emitter$emitter === void 0 ? void 0 : _emitter$emitter.startColor) {
+                        safety = 10;
+                        change = emitter.emitter.startColor;
+
+                        do {
+                          (0, _hueShift.shiftRgbColor)(change.value, hue);
+                          change = change.next;
+                        } while (change && --safety > 0);
+                      }
+                    }
+                  } catch (err) {
+                    _iterator3.e(err);
+                  } finally {
+                    _iterator3.f();
+                  }
+                }
+
+                _context5.next = 6;
+                return (0, _hueShift.default)(car, shiftTo);
+
+              case 6:
               case "end":
                 return _context5.stop();
             }
@@ -89113,7 +89224,7 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
         }, _callee5, this);
       }));
 
-      function repaintCar(_x3) {
+      function repaintCar() {
         return _repaintCar.apply(this, arguments);
       }
 
@@ -89345,7 +89456,7 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
         }, _callee8, null, [[3, 8]]);
       }));
 
-      function create(_x4) {
+      function create(_x3) {
         return _create.apply(this, arguments);
       }
 
@@ -108211,7 +108322,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '1.1.1';
+  window.NTTRACK = '1.1.2';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

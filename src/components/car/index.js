@@ -23,7 +23,7 @@ import {
 // animations
 import ActivateNitroAnimation from '../../animations/activate-nitro';
 import generateTextures from './texture-generator';
-import hueShift from './hue-shift';
+import hueShift, { shiftRgbColor } from './hue-shift';
 import { getCarPlugin } from '../../car-mappings';
 
 export default class Car extends PIXI.Container {
@@ -270,9 +270,28 @@ export default class Car extends PIXI.Container {
 	}
 
 	// repaints the current car
-	async repaintCar(hue) { 
+	async repaintCar(hue = 0) { 
+		const shiftTo = 0 | hue;
 		const { car } = this;
-		await hueShift(car, 0 | hue);
+
+		// hue shift colors in car based emitters
+		// consider moving this elsewhere
+		if (hue) {
+			for (const emitter of car.controller.emitters) {
+				if (emitter?.emitter?.startColor) {
+					
+					let safety = 10;
+					let change = emitter.emitter.startColor;
+					do {
+						shiftRgbColor(change.value, hue);
+						change = change.next;
+					}
+					while (change && --safety > 0);
+				}
+			}
+		}
+			
+		await hueShift(car, shiftTo);
 	}
 
 	// setup visual filters

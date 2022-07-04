@@ -130,6 +130,7 @@ async function applyHueShift (texture, targets, hue) {
 
 // performs a hue shift in a worker thread
 function HSLShiftWorker () {
+
   // waits for incoming messages
   this.onmessage = function (msg) {
     const { pixels, hue } = msg.data
@@ -162,25 +163,25 @@ function HSLShiftWorker () {
       // Blue is max
       else
         h = (r - g) / delta + 4;
-    
+
       h = Math.round(h * 60);
-    
+
       h += hue;
         
       // Make negative hues positive behind 360°
       if (h < 0) h += 360;
       h %= 360;
-    
+
       // Calculate lightness
       l = (cmax + cmin) / 2;
-    
+
       // Calculate saturation
       s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
-    
+
       let c = (1 - Math.abs(2 * l - 1)) * s,
           x = c * (1 - Math.abs((h / 60) % 2 - 1)),
           m = l - c/2;
-    
+
       if (0 <= h && h < 60) {
         r = c; g = x; b = 0;
       } else if (60 <= h && h < 120) {
@@ -194,15 +195,11 @@ function HSLShiftWorker () {
       } else if (300 <= h && h < 360) {
         r = c; g = 0; b = x;
       }
-    
-      r = Math.round((r + m) * 255);
-      g = Math.round((g + m) * 255);
-      b = Math.round((b + m) * 255);
-    
+
       // save the change
-      pixels[i] = r;
-      pixels[i + 1] = g;
-      pixels[i + 2] = b;
+      pixels[i] = Math.round((r + m) * 255);
+      pixels[i + 1] = Math.round((g + m) * 255);
+      pixels[i + 2] = Math.round((b + m) * 255);
     }
 
     // notify this is done
@@ -226,4 +223,83 @@ function getRootTexture(sprite) {
 
   return previous;
   
+}
+
+export function shiftDecimal(dec, hue) {
+  const color = [
+    (dec & 0xff0000) >> 16,
+    (dec & 0x00ff00) >> 8,
+    (dec & 0x0000ff)
+  ];
+
+  shiftColor(color, hue)
+
+  return (color[0] << 16) + (color[1] << 8) + color[2]
+}
+
+// workers can't access outside functions, so unfortunately we
+// have to duplicate this code here
+export function shiftRgbColor(color, hue) { 
+  let r = color.r / 255
+  let g = color.g / 255
+  let b = color.b / 255
+
+  // Find greatest and smallest channel values
+  const cmin = Math.min(r, g, b)
+  const cmax = Math.max(r, g, b)
+  const delta = cmax - cmin
+  let h = 0
+  let s = 0
+  let l = 0
+
+  // Calculate hue
+  // No difference
+  if (delta === 0)
+    h = 0;
+  // Red is max
+  else if (cmax === r)
+    h = ((g - b) / delta) % 6;
+  // Green is max
+  else if (cmax === g)
+    h = (b - r) / delta + 2;
+  // Blue is max
+  else
+    h = (r - g) / delta + 4;
+
+  h = Math.round(h * 60);
+
+  h += hue;
+    
+  // Make negative hues positive behind 360°
+  if (h < 0) h += 360;
+  h %= 360;
+
+  // Calculate lightness
+  l = (cmax + cmin) / 2;
+
+  // Calculate saturation
+  s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+
+  let c = (1 - Math.abs(2 * l - 1)) * s,
+      x = c * (1 - Math.abs((h / 60) % 2 - 1)),
+      m = l - c/2;
+
+  if (0 <= h && h < 60) {
+    r = c; g = x; b = 0;
+  } else if (60 <= h && h < 120) {
+    r = x; g = c; b = 0;
+  } else if (120 <= h && h < 180) {
+    r = 0; g = c; b = x;
+  } else if (180 <= h && h < 240) {
+    r = 0; g = x; b = c;
+  } else if (240 <= h && h < 300) {
+    r = x; g = 0; b = c;
+  } else if (300 <= h && h < 360) {
+    r = c; g = 0; b = x;
+  }
+
+  // save the change
+  color.r = Math.round((r + m) * 255);
+  color.g = Math.round((g + m) * 255);
+  color.b = Math.round((b + m) * 255);
 }
