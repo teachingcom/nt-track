@@ -1,6 +1,6 @@
 
 import { PIXI, findDisplayObjectsOfRole, createPlaceholderImage } from 'nt-animator';
-import { merge, isNumber, noop } from '../../utils';
+import { merge, isNumber, noop, isArray } from '../../utils';
 import { createStaticCar } from './create-static-car';
 
 // layers and positions
@@ -276,16 +276,31 @@ export default class Car extends PIXI.Container {
 
 		// hue shift colors in car based emitters
 		// consider moving this elsewhere
-		if (hue) {
+		if (isNumber(hue) && isArray(car?.controller?.emitters)) {
 			for (const emitter of car.controller.emitters) {
 				if (emitter?.emitter?.config?.hueShift && emitter?.emitter?.startColor) {
+					
+					// make sure to save colors, if needed
+					if (!emitter._startingColors) {
+						emitter._startingColors = [ ];
+					}
 
 					// apply the hue shift
+					let index = 0;
 					let safety = 10;
 					let change = emitter.emitter.startColor;
 					do {
-						shiftRgbColor(change.value, hue);
+
+						// read write the color
+						const color = emitter._startingColors[index] || change.value;
+						emitter._startingColors[index] = color;
+
+						// apply the color
+						shiftRgbColor(color, hue);
+						
+						// move to the next color
 						change = change.next;
+						index++;
 					}
 					while (change && --safety > 0);
 				}

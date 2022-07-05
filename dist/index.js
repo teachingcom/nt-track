@@ -89170,6 +89170,8 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
     // repaints the current car
     value: function () {
       var _repaintCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
+        var _car$controller;
+
         var hue,
             shiftTo,
             car,
@@ -89179,8 +89181,10 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
             _emitter$emitter$conf,
             _emitter$emitter2,
             emitter,
+            index,
             safety,
             change,
+            color,
             _args5 = arguments;
 
         return _regenerator.default.wrap(function _callee5$(_context5) {
@@ -89192,7 +89196,7 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
                 car = this.car; // hue shift colors in car based emitters
                 // consider moving this elsewhere
 
-                if (hue) {
+                if ((0, _utils.isNumber)(hue) && (0, _utils.isArray)(car === null || car === void 0 ? void 0 : (_car$controller = car.controller) === null || _car$controller === void 0 ? void 0 : _car$controller.emitters)) {
                   _iterator3 = _createForOfIteratorHelper(car.controller.emitters);
 
                   try {
@@ -89200,13 +89204,25 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
                       emitter = _step3.value;
 
                       if ((emitter === null || emitter === void 0 ? void 0 : (_emitter$emitter = emitter.emitter) === null || _emitter$emitter === void 0 ? void 0 : (_emitter$emitter$conf = _emitter$emitter.config) === null || _emitter$emitter$conf === void 0 ? void 0 : _emitter$emitter$conf.hueShift) && (emitter === null || emitter === void 0 ? void 0 : (_emitter$emitter2 = emitter.emitter) === null || _emitter$emitter2 === void 0 ? void 0 : _emitter$emitter2.startColor)) {
-                        // apply the hue shift
+                        // make sure to save colors, if needed
+                        if (!emitter._startingColors) {
+                          emitter._startingColors = [];
+                        } // apply the hue shift
+
+
+                        index = 0;
                         safety = 10;
                         change = emitter.emitter.startColor;
 
                         do {
-                          (0, _hueShift.shiftRgbColor)(change.value, hue);
+                          // read write the color
+                          color = emitter._startingColors[index] || change.value;
+                          emitter._startingColors[index] = color; // apply the color
+
+                          (0, _hueShift.shiftRgbColor)(color, hue); // move to the next color
+
                           change = change.next;
+                          index++;
                         } while (change && --safety > 0);
                       }
                     }
@@ -108326,7 +108342,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '1.1.3';
+  window.NTTRACK = '1.1.4';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
