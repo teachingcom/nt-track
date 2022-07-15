@@ -17,6 +17,10 @@ import {
 	TRACK_STARTING_LINE_POSITION
 } from '../../config';
 
+const INTRO_DURATION = 10000;
+// const INTRO_DURATION = 2000;
+// const INTRO_MIDPOINT = INTRO_DURATION / 2;
+
 import {
 	LAYER_NAMECARD,
 	LAYER_TRACK_GROUND,
@@ -42,15 +46,19 @@ import CountdownAnimation from '../../animations/countdown';
 export default class TrackView extends BaseView {
 
 	constructor(...args) { 
+		
 		// do not anti-alias - this will be done using SSAA
-		// PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
-		PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.LINEAR
+		PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
+		// PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.LINEAR
 		PIXI.settings.PRECISION_VERTEX = PIXI.PRECISION.LOW
 		PIXI.settings.PRECISION_FRAGMENT = PIXI.PRECISION.LOW
 		PIXI.settings.MIPMAP_TEXTURES = PIXI.MIPMAP_MODES.OFF
 		PIXI.settings.ROUND_PIXELS = true
-
+		// PIXI.settings.ROUND_PIXELS = false
+		
 		super(...args)
+
+		window.TRACK = this
 	}
 
 	// global effect filter
@@ -190,6 +198,7 @@ export default class TrackView extends BaseView {
 		try {
 			player = await Player.create(playerOptions);
 			player.track = this;
+			player.lane = lane;
 
 			// if this player failed to load, abandon the
 			// attempt
@@ -549,6 +558,10 @@ export default class TrackView extends BaseView {
 		state.animateTrackMovement = true;
 		state.trackMovementAmount = TRACK_ACCELERATION_RATE;
 		state.isStarted = true;
+
+		// handle intro offsets
+		state.introTimeRemaining = +new Date + INTRO_DURATION;
+		state.showIntro = true;
 	}
 
 	// performs the ending
@@ -574,6 +587,10 @@ export default class TrackView extends BaseView {
 	finishRace = () => {
 		this.finalizePerformanceTracking();
 
+		// if for some reason they finish before the intro is done
+		this.state.showIntro = false;
+		this.view.position.x = 0;
+
 		// the race has been marked as finished, show the completion
 		// until the player is marked ready
 		const { players, track, raceCompletedAnimation, state, options } = this;
@@ -595,6 +612,7 @@ export default class TrackView extends BaseView {
 
 			// display the ending
 			track.showFinishLine();
+			this.setFocus(0, 0, 1);
 			
 			// stop animating progress
 			this.raceProgressAnimation.stop();
@@ -608,7 +626,6 @@ export default class TrackView extends BaseView {
 
 	// handle rendering the track in the requested state
 	render(force) {
-
 		// calculate the delta
 		const now = Date.now();
 		
@@ -617,10 +634,26 @@ export default class TrackView extends BaseView {
 		const {
 			state,
 			track,
+			showIntro,
 			stage,
 			raceProgressAnimation,
 			raceCompletedAnimation
 		} = this;
+
+
+		const FALLBACK_DISTANCE = 500
+		if (state.showIntro) {
+			const diff = Math.sin(((state.introTimeRemaining - now) / INTRO_DURATION) * Math.PI);
+			if (diff < 0) {
+				state.showIntro = false;
+				this.view.position.x = 0
+			}
+			else if (this.view && this.view.position) {
+				this.view.position.x = (diff || 0) * -FALLBACK_DISTANCE
+			}
+		}
+
+		// screeeeeen shaaaaaaaaaake
 
 		state.delta = this.getDeltaTime(now);
 		this.lastUpdate = now;
@@ -628,6 +661,18 @@ export default class TrackView extends BaseView {
 		// gather some data
 		const { animateTrackMovement, trackMovementAmount } = state;
 		const isRaceActive = state.isStarted && !state.isFinished;
+
+		if (isRaceActive && !state.showIntro) {
+			if (!this.startActive) {
+				this.startActive = +new Date;
+			}
+
+			const off = now - this.startActive;
+			const percent = Math.abs(Math.sin(off * 0.0001)) / (Math.PI);
+			const y = ((this.height * this.activePlayer.relativeY) * percent) * 0.7;
+			const x = ((this.width * this.activePlayer.relativeX) * percent) * 0.7;
+			this.setFocus(x, y, 1 + (percent * 0.7));
+		}
 
 		// speeding up the view
 		state.speed = animateTrackMovement

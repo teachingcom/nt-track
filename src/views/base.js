@@ -298,6 +298,14 @@ export class BaseView extends EventEmitter {
 		this.resize();
 	}
 
+	setFocus(x, y, zoom) {
+		this.view.position.y = (y * zoom) * 0.5;
+
+		this.view.position.x = (x * zoom) * 0.5;
+
+		this.stage.scale.x = this.stage.scale.y = zoom;
+	}
+
 	/** resizes to match the container element */
 	resize = () => {
 		const { parent, view, renderer } = this;

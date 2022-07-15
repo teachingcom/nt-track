@@ -86048,7 +86048,7 @@ var TRACK_CAR_SIZE_RELATIVE_TO_LANE = 0.75;
 exports.TRACK_CAR_SIZE_RELATIVE_TO_LANE = TRACK_CAR_SIZE_RELATIVE_TO_LANE;
 var TRACK_CAR_LANE_CENTER_OFFSET = 0.03;
 exports.TRACK_CAR_LANE_CENTER_OFFSET = TRACK_CAR_LANE_CENTER_OFFSET;
-var TRACK_STARTING_LINE_POSITION = 0.35;
+var TRACK_STARTING_LINE_POSITION = 0.435;
 exports.TRACK_STARTING_LINE_POSITION = TRACK_STARTING_LINE_POSITION;
 var TRACK_NAMECARD_EDGE_PADDING = 10;
 exports.TRACK_NAMECARD_EDGE_PADDING = TRACK_NAMECARD_EDGE_PADDING;
@@ -87246,6 +87246,15 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
       };
     } // second function to make clear what's happening when
     // used outside of the track repo
+
+  }, {
+    key: "setFocus",
+    value: function setFocus(x, y, zoom) {
+      this.view.position.y = y * zoom * 0.5;
+      this.view.position.x = x * zoom * 0.5;
+      this.stage.scale.x = this.stage.scale.y = zoom;
+    }
+    /** resizes to match the container element */
 
   }, {
     key: "shouldAnimateFrame",
@@ -103860,6 +103869,8 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
+var INTRO_OFFSET_DURATION = 10000;
+
 var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
   (0, _inherits2.default)(RaceProgressAnimation, _Animation);
 
@@ -104599,6 +104610,9 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
+var INTRO_DURATION = 10000; // const INTRO_DURATION = 2000;
+// const INTRO_MIDPOINT = INTRO_DURATION / 2;
+
 /** creates a track view that supports multiple cars for racing */
 var TrackView = /*#__PURE__*/function (_BaseView) {
   (0, _inherits2.default)(TrackView, _BaseView);
@@ -104610,12 +104624,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
     (0, _classCallCheck2.default)(this, TrackView);
     // do not anti-alias - this will be done using SSAA
-    // PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
-    _ntAnimator.PIXI.settings.SCALE_MODE = _ntAnimator.PIXI.SCALE_MODES.LINEAR;
+    _ntAnimator.PIXI.settings.SCALE_MODE = _ntAnimator.PIXI.SCALE_MODES.NEAREST; // PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.LINEAR
+
     _ntAnimator.PIXI.settings.PRECISION_VERTEX = _ntAnimator.PIXI.PRECISION.LOW;
     _ntAnimator.PIXI.settings.PRECISION_FRAGMENT = _ntAnimator.PIXI.PRECISION.LOW;
     _ntAnimator.PIXI.settings.MIPMAP_TEXTURES = _ntAnimator.PIXI.MIPMAP_MODES.OFF;
-    _ntAnimator.PIXI.settings.ROUND_PIXELS = true;
+    _ntAnimator.PIXI.settings.ROUND_PIXELS = true; // PIXI.settings.ROUND_PIXELS = false
 
     for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];
@@ -104722,17 +104736,18 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
               case 16:
                 player = _context.sent;
-                player.track = (0, _assertThisInitialized2.default)(_this); // if this player failed to load, abandon the
+                player.track = (0, _assertThisInitialized2.default)(_this);
+                player.lane = lane; // if this player failed to load, abandon the
                 // attempt
 
                 if (!(isPlayer && !player.hasRequiredAssets)) {
-                  _context.next = 20;
+                  _context.next = 21;
                   break;
                 }
 
                 throw new PlayerAssetError();
 
-              case 20:
+              case 21:
                 // set the active player, if needed
                 if (isPlayer) {
                   _this.activePlayerId = id;
@@ -104744,11 +104759,11 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 _player = player, car = _player.car;
 
                 if (!((_car$plugin = car.plugin) === null || _car$plugin === void 0 ? void 0 : _car$plugin.extend)) {
-                  _context.next = 25;
+                  _context.next = 26;
                   break;
                 }
 
-                _context.next = 25;
+                _context.next = 26;
                 return car.plugin.extend({
                   animator: animator,
                   car: car,
@@ -104756,7 +104771,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   track: (0, _assertThisInitialized2.default)(_this)
                 });
 
-              case 25:
+              case 26:
                 // with the player, include their namecard
                 namecard = player.layers.namecard;
 
@@ -104799,11 +104814,11 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   state.playerHasEntered = true;
                 }
 
-                _context.next = 43;
+                _context.next = 44;
                 break;
 
-              case 36:
-                _context.prev = 36;
+              case 37:
+                _context.prev = 37;
                 _context.t0 = _context["catch"](13);
                 delete activePlayers[data.id];
                 state.totalPlayers--; // if the player was created, try and remove it
@@ -104812,18 +104827,18 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 // a breaking exception
 
                 if (!isPlayer) {
-                  _context.next = 43;
+                  _context.next = 44;
                   break;
                 }
 
                 throw _context.t0;
 
-              case 43:
+              case 44:
               case "end":
                 return _context.stop();
             }
           }
-        }, _callee, null, [[13, 36]]);
+        }, _callee, null, [[13, 37]]);
       }));
 
       return function (_x, _x2) {
@@ -105134,7 +105149,10 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
       state.animateTrackMovement = true;
       state.trackMovementAmount = _config.TRACK_ACCELERATION_RATE;
-      state.isStarted = true;
+      state.isStarted = true; // handle intro offsets
+
+      state.introTimeRemaining = +new Date() + INTRO_DURATION;
+      state.showIntro = true;
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "finalizeRace", function () {
       var _assertThisInitialize9 = (0, _assertThisInitialized2.default)(_this),
@@ -105146,9 +105164,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       raceCompletedAnimation.play({});
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "finishRace", function () {
-      _this.finalizePerformanceTracking(); // the race has been marked as finished, show the completion
-      // until the player is marked ready
+      _this.finalizePerformanceTracking(); // if for some reason they finish before the intro is done
 
+
+      _this.state.showIntro = false;
+      _this.view.position.x = 0; // the race has been marked as finished, show the completion
+      // until the player is marked ready
 
       var _assertThisInitialize10 = (0, _assertThisInitialized2.default)(_this),
           players = _assertThisInitialize10.players,
@@ -105170,7 +105191,10 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
         var victory = players.length === 1;
         track.setAmbience(victory ? 'victory' : 'finish'); // display the ending
 
-        track.showFinishLine(); // stop animating progress
+        track.showFinishLine();
+
+        _this.setFocus(0, 0, 1); // stop animating progress
+
 
         _this.raceProgressAnimation.stop(); // play the final animation
 
@@ -105195,6 +105219,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
         _this.performance.finalize();
       }
     });
+    window.TRACK = (0, _assertThisInitialized2.default)(_this);
     return _this;
   } // global effect filter
 
@@ -105396,15 +105421,43 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       this.frame++;
       var state = this.state,
           track = this.track,
+          showIntro = this.showIntro,
           stage = this.stage,
           raceProgressAnimation = this.raceProgressAnimation,
           raceCompletedAnimation = this.raceCompletedAnimation;
+      var FALLBACK_DISTANCE = 500;
+
+      if (state.showIntro) {
+        var diff = Math.sin((state.introTimeRemaining - now) / INTRO_DURATION * Math.PI);
+
+        if (diff < 0) {
+          state.showIntro = false;
+          this.view.position.x = 0;
+        } else if (this.view && this.view.position) {
+          this.view.position.x = (diff || 0) * -FALLBACK_DISTANCE;
+        }
+      } // screeeeeen shaaaaaaaaaake
+
+
       state.delta = this.getDeltaTime(now);
       this.lastUpdate = now; // gather some data
 
       var animateTrackMovement = state.animateTrackMovement,
           trackMovementAmount = state.trackMovementAmount;
-      var isRaceActive = state.isStarted && !state.isFinished; // speeding up the view
+      var isRaceActive = state.isStarted && !state.isFinished;
+
+      if (isRaceActive && !state.showIntro) {
+        if (!this.startActive) {
+          this.startActive = +new Date();
+        }
+
+        var off = now - this.startActive;
+        var percent = Math.abs(Math.sin(off * 0.0001)) / Math.PI;
+        var y = this.height * this.activePlayer.relativeY * percent * 0.7;
+        var x = this.width * this.activePlayer.relativeX * percent * 0.7;
+        this.setFocus(x, y, 1 + percent * 0.7);
+      } // speeding up the view
+
 
       state.speed = animateTrackMovement ? Math.max(0, Math.min(_config.TRACK_MAXIMUM_SPEED, state.speed + trackMovementAmount * state.delta)) : 0; // set the base speed for variables
 

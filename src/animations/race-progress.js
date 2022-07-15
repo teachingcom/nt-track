@@ -9,6 +9,8 @@ import {
 	TRACK_STARTING_LINE_POSITION,
 } from "../config";
 
+const INTRO_OFFSET_DURATION = 10000
+
 export default class RaceProgressAnimation extends Animation {
 
 	constructor({ track, players, player, isQualifyingRace = false }) {
