@@ -102690,7 +102690,7 @@ var Track = /*#__PURE__*/function () {
       var reset;
       var max; // check for off screen
 
-      var offscreen = this.view.width / this.view.view.scaleX * -0.5; // update each segment
+      var offscreen = this.view.width / this.view.view.scaleX * -1; // update each segment
 
       diff = Math.floor(diff);
 
@@ -105453,9 +105453,9 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
         var off = now - this.startActive;
         var percent = Math.abs(Math.sin(off * 0.0001)) / Math.PI;
-        var y = this.height * this.activePlayer.relativeY * percent * 0.7;
-        var x = this.width * this.activePlayer.relativeX * percent * 0.7;
-        this.setFocus(x, y, 1 + percent * 0.7);
+        var y = this.height * this.activePlayer.relativeY * percent * 0.5;
+        var x = this.width * this.activePlayer.relativeX * percent * 0.5;
+        this.setFocus(x, y, 1 + percent * 2 * 0.7);
       } // speeding up the view
 
 

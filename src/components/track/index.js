@@ -602,7 +602,7 @@ export default class Track {
 		let max;
 
 		// check for off screen
-		const offscreen = (this.view.width / this.view.view.scaleX) * -0.5;
+		const offscreen = (this.view.width / this.view.view.scaleX) * -1;
 
 		// update each segment
 		diff = Math.floor(diff);
