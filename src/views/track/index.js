@@ -668,10 +668,11 @@ export default class TrackView extends BaseView {
 			}
 
 			const off = now - this.startActive;
-			const percent = Math.abs(Math.sin(off * 0.0001)) / (Math.PI);
-			const y = ((this.height * this.activePlayer.relativeY) * percent) * 0.5;
+			const sine = Math.sin(off * 0.0001)
+			const percent = Math.abs(sine) / (Math.PI);
+			const y = (((this.height * this.activePlayer.relativeY) * percent) * 0.3) + ((Math.cos(off * 0.002) * sine) * 90);
 			const x = ((this.width * this.activePlayer.relativeX) * percent) * 0.5;
-			this.setFocus(x, y, 1 + ((percent * 2) * 0.7));
+			this.setFocus(x, y, 1 + ((percent * 1.7) * 0.7));
 		}
 
 		// speeding up the view
