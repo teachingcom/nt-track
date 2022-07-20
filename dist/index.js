@@ -105192,9 +105192,9 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
         track.setAmbience(victory ? 'victory' : 'finish'); // display the ending
 
         track.showFinishLine();
-
-        _this.setFocus(0, 0, 1); // stop animating progress
-
+        setTimeout(function () {
+          _this.setFocus(0, 0, 1);
+        }); // stop animating progress
 
         _this.raceProgressAnimation.stop(); // play the final animation
 
@@ -105451,10 +105451,11 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
           this.startActive = +new Date();
         }
 
+        var movement = state.speed || 0;
         var off = now - this.startActive;
         var sine = Math.sin(off * 0.0001);
         var percent = Math.abs(sine) / Math.PI;
-        var y = this.height * this.activePlayer.relativeY * percent * 0.3 + Math.cos(off * 0.002) * sine * 90;
+        var y = this.height * this.activePlayer.relativeY * percent * 0.3 + Math.cos(off * 0.002) * sine * 90 * movement;
         var x = this.width * this.activePlayer.relativeX * percent * 0.5;
         this.setFocus(x, y, 1 + percent * 1.7 * 0.7);
       } // speeding up the view

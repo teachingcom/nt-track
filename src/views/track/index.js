@@ -612,7 +612,9 @@ export default class TrackView extends BaseView {
 
 			// display the ending
 			track.showFinishLine();
-			this.setFocus(0, 0, 1);
+			setTimeout(() => { 
+				this.setFocus(0, 0, 1);
+			})
 			
 			// stop animating progress
 			this.raceProgressAnimation.stop();
@@ -667,10 +669,11 @@ export default class TrackView extends BaseView {
 				this.startActive = +new Date;
 			}
 
+			const movement = (state.speed || 0);
 			const off = now - this.startActive;
 			const sine = Math.sin(off * 0.0001)
-			const percent = Math.abs(sine) / (Math.PI);
-			const y = (((this.height * this.activePlayer.relativeY) * percent) * 0.3) + ((Math.cos(off * 0.002) * sine) * 90);
+			const percent = (Math.abs(sine) / (Math.PI))
+			const y = (((this.height * this.activePlayer.relativeY) * percent) * 0.3) + (((Math.cos(off * 0.002) * sine) * 90) * movement);
 			const x = ((this.width * this.activePlayer.relativeX) * percent) * 0.5;
 			this.setFocus(x, y, 1 + ((percent * 1.7) * 0.7));
 		}
