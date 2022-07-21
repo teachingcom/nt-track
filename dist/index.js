@@ -105191,10 +105191,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
         var victory = players.length === 1;
         track.setAmbience(victory ? 'victory' : 'finish'); // display the ending
 
-        track.showFinishLine();
-        setTimeout(function () {
-          _this.setFocus(0, 0, 1);
-        }); // stop animating progress
+        track.showFinishLine(); // stop animating progress
 
         _this.raceProgressAnimation.stop(); // play the final animation
 
@@ -105436,30 +105433,27 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
         } else if (this.view && this.view.position) {
           this.view.position.x = (diff || 0) * -FALLBACK_DISTANCE;
         }
-      } // screeeeeen shaaaaaaaaaake
-
+      }
 
       state.delta = this.getDeltaTime(now);
       this.lastUpdate = now; // gather some data
 
       var animateTrackMovement = state.animateTrackMovement,
           trackMovementAmount = state.trackMovementAmount;
-      var isRaceActive = state.isStarted && !state.isFinished;
-
-      if (isRaceActive && !state.showIntro) {
-        if (!this.startActive) {
-          this.startActive = +new Date();
-        }
-
-        var movement = state.speed || 0;
-        var off = now - this.startActive;
-        var sine = Math.sin(off * 0.0001);
-        var percent = Math.abs(sine) / Math.PI;
-        var y = this.height * this.activePlayer.relativeY * percent * 0.3 + Math.cos(off * 0.002) * sine * 90 * movement;
-        var x = this.width * this.activePlayer.relativeX * percent * 0.5;
-        this.setFocus(x, y, 1 + percent * 1.7 * 0.7);
-      } // speeding up the view
-
+      var isRaceActive = state.isStarted && !state.isFinished; // screeeeeen shaaaaaaaaaake
+      // if (isRaceActive && !state.showIntro) {
+      // 	if (!this.startActive) {
+      // 		this.startActive = +new Date;
+      // 	}
+      // 	const movement = (state.speed || 0);
+      // 	const off = now - this.startActive;
+      // 	const sine = Math.sin(off * 0.0001)
+      // 	const percent = (Math.abs(sine) / (Math.PI))
+      // 	const y = (((this.height * this.activePlayer.relativeY) * percent) * 0.3) + (((Math.cos(off * 0.002) * sine) * 90) * movement);
+      // 	const x = ((this.width * this.activePlayer.relativeX) * percent) * 0.5;
+      // 	this.setFocus(x, y, 1 + ((percent * 1.7) * 0.7));
+      // }
+      // speeding up the view
 
       state.speed = animateTrackMovement ? Math.max(0, Math.min(_config.TRACK_MAXIMUM_SPEED, state.speed + trackMovementAmount * state.delta)) : 0; // set the base speed for variables
 
