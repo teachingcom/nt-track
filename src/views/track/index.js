@@ -640,9 +640,12 @@ export default class TrackView extends BaseView {
 		} = this;
 
 
-		const FALLBACK_DISTANCE = 500
+		const FALLBACK_DISTANCE = 150
 		if (state.showIntro) {
 			const diff = Math.sin(((state.introTimeRemaining - now) / INTRO_DURATION) * Math.PI);
+
+			this.fallbackDiff = Math.max(diff, this.fallbackDiff || 0, 0);
+
 			if (diff < 0) {
 				state.showIntro = false;
 				this.view.position.x = 0

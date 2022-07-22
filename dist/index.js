@@ -105422,10 +105422,11 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
           stage = this.stage,
           raceProgressAnimation = this.raceProgressAnimation,
           raceCompletedAnimation = this.raceCompletedAnimation;
-      var FALLBACK_DISTANCE = 500;
+      var FALLBACK_DISTANCE = 150;
 
       if (state.showIntro) {
         var diff = Math.sin((state.introTimeRemaining - now) / INTRO_DURATION * Math.PI);
+        this.fallbackDiff = Math.max(diff, this.fallbackDiff || 0, 0);
 
         if (diff < 0) {
           state.showIntro = false;
