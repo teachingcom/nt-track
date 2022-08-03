@@ -74674,14 +74674,22 @@ var BaseSineExpression = function BaseSineExpression(prop, args) {
   var _this = this;
 
   (0, _classCallCheck2.default)(this, BaseSineExpression);
+  (0, _defineProperty2.default)(this, "cycle", 0);
   (0, _defineProperty2.default)(this, "offset", 0);
   (0, _defineProperty2.default)(this, "scale", 1);
   (0, _defineProperty2.default)(this, "flip", 1);
   (0, _defineProperty2.default)(this, "update", function (target, stage) {
     var ts = (Date.now() - BaseSineExpression.start + _this.offset) * _this.scale;
 
-    var sine = _this.calc(ts) * _this.modifier(target, stage);
+    var modifier = _this.modifier(target, stage); // inverses so the value so it's the reverse of
+    // the modifier value
 
+
+    if (_this.inverse) {
+      modifier = _this.inverse - modifier;
+    }
+
+    var sine = (_this.calc(ts) + _this.cycle * Math.PI * 2) * modifier;
     var percent = (sine + 1) / 2;
     var value = (percent * (_this.max - _this.min) + _this.min) * _this.flip;
 
@@ -74709,6 +74717,10 @@ var BaseSineExpression = function BaseSineExpression(prop, args) {
         this.convertToInt = true;
       } else if (arg === 'invert') {
         this.flip = -1;
+      } else if (arg === 'inverse') {
+        this.inverse = 1;
+      } else if (isObj && 'inverse' in arg) {
+        this.inverse = arg.inverse || 1;
       } else if (isObj && 'min' in arg) {
         min = arg.min;
       } else if (isObj && 'max' in arg) {
@@ -74735,6 +74747,8 @@ var BaseSineExpression = function BaseSineExpression(prop, args) {
         this.offset += 0 | (arg.stagger || 10000) * Math.random();
       } else if (arg.offset) {
         this.offset = arg.offset * 1000;
+      } else if (arg.cycle) {
+        this.cycle = arg.cycle || 0;
       }
     } // if there's no max value then
     // max the range from 0-min
@@ -89513,6 +89527,8 @@ var _ntAnimator = require("nt-animator");
 
 var _utils = require("../../utils");
 
+var _layers = require("../../views/track/layers");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
@@ -89532,21 +89548,7 @@ var Trail = /*#__PURE__*/function (_PIXI$Container) {
   (0, _createClass2.default)(Trail, [{
     key: "syncToCar",
     // syncs a trail position to a car
-    value: function syncToCar(car) {} // TODO: there's some mismatch in these behaviors (link/alignTo)
-    // links a trail to a car
-
-  }, {
-    key: "link",
-    value: function link(_ref) {
-      var car = _ref.car,
-          _ref$container = _ref.container,
-          container = _ref$container === void 0 ? car : _ref$container;
-      var action = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _utils.noop;
-      this.linkedTo = car;
-      car.addChild(this);
-      this.x = car.position.back;
-      this.zIndex = -1;
-    }
+    value: function syncToCar(car) {}
   }, {
     key: "alignTo",
     value: function alignTo(car, position) {
@@ -89620,9 +89622,24 @@ var Trail = /*#__PURE__*/function (_PIXI$Container) {
       return this.parts && this.parts.length > 0;
     }
   }], [{
-    key: "create",
+    key: "setLayer",
+    value: function setLayer(trail, car) {
+      var _trail$config;
 
+      if (trail === null || trail === void 0 ? void 0 : (_trail$config = trail.config) === null || _trail$config === void 0 ? void 0 : _trail$config.layer) {
+        if (/above_car/i.test(trail.config.layer)) {
+          trail.zIndex = car.zIndex + 1;
+        } else {
+          trail.zIndex = trail.config.layer;
+        }
+      } else {
+        trail.zIndex = _layers.LAYER_TRAIL;
+      }
+    }
     /** handles creating the new trail instance */
+
+  }, {
+    key: "create",
     value: function () {
       var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(options) {
         var type, view, path, config, instance;
@@ -89689,7 +89706,7 @@ var Trail = /*#__PURE__*/function (_PIXI$Container) {
 }(_ntAnimator.PIXI.Container);
 
 exports.default = Trail;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js"}],"utils/color.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","../../views/track/layers":"views/track/layers.js"}],"utils/color.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -90854,8 +90871,10 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                 if (trail) {
                   layers.trail = trail; // add to the player view
 
-                  this.addChild(trail);
-                  trail.zIndex = -10;
+                  this.addChild(trail); // find a layer to use
+
+                  _trail.default.setLayer(trail, car);
+
                   trail.x = car.positions.back;
                   trail.scale.x = trail.scale.y = scale.x * _config.TRAIL_SCALE;
                 } // include the nitro, if any
@@ -90969,7 +90988,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
         var screenX = 0 | (this.screenPercentX || 0) * 100;
         var percentProgress = 0 | (this.serverProgress || 0);
         var place = this.place ? "\nend : ".concat(this.place) : '';
-        this.debug.text = "up  : ".concat(this.progressUpdateCount || 0, "\nsrv : ").concat(percentProgress, "%\nx   : ").concat(screenX, "%").concat(place);
+        this.debug.text = "up  : ".concat(this.progressUpdateCount || 0, "\nsrv : ").concat(percentProgress, "%\nrx  : ").concat(this.relativeX.toFixed(4), "\nx   : ").concat(screenX, "%").concat(place);
       } // perform updates
 
 
@@ -91054,7 +91073,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
   }], [{
     key: "create",
     value: function () {
-      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(options) {
+      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(options, track) {
         var instance, car, trail, nitro, namecard, resolved;
         return _regenerator.default.wrap(function _callee7$(_context7) {
           while (1) {
@@ -91097,7 +91116,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
         }, _callee7);
       }));
 
-      function create(_x6) {
+      function create(_x6, _x7) {
         return _create.apply(this, arguments);
       }
 
@@ -102990,11 +103009,7 @@ var CarEntryAnimation = /*#__PURE__*/function (_Animation) {
 
       var entryDestination = {
         playerX: _this.track.getStartingLinePosition()
-      }; // keep track if focus is lost
-
-      var disposeViewStateWatcher = (0, _view.onViewActiveStateChanged)(function (active) {
-        if (!active) player.relativeX = entryDestination.playerX;
-      }); // update the player position
+      }; // update the player position
 
       var updateEntry = function updateEntry(props) {
         player.relativeX = Math.max(player.relativeX, props.playerX);
@@ -103005,8 +103020,12 @@ var CarEntryAnimation = /*#__PURE__*/function (_Animation) {
         updateEntry(entryDestination);
         if (_complete) _complete();
         return;
-      } // starting positions
+      } // keep track if focus is lost
 
+
+      var disposeViewStateWatcher = (0, _view.onViewActiveStateChanged)(function (active) {
+        if (!active) player.relativeX = entryDestination.playerX;
+      }); // starting positions
 
       player.relativeX = entryOrigin.playerX; // animate the player entry
 
@@ -103121,6 +103140,8 @@ var CarFinishLineAnimation = /*#__PURE__*/function (_Animation) {
   (0, _createClass2.default)(CarFinishLineAnimation, [{
     key: "play",
     value: function play(_ref2) {
+      var _this2 = this;
+
       var _ref2$isInstant = _ref2.isInstant,
           isInstant = _ref2$isInstant === void 0 ? false : _ref2$isInstant,
           _ref2$delay = _ref2.delay,
@@ -103140,7 +103161,7 @@ var CarFinishLineAnimation = /*#__PURE__*/function (_Animation) {
       if (player.hasShownFinishLineAnimation) return;
       player.hasShownFinishLineAnimation = true; // check for instant animations
 
-      isInstant = elapsed > _config.RACE_FINISH_CAR_STOPPING_TIME; // if this car is entering
+      isInstant = isInstant || elapsed > _config.RACE_FINISH_CAR_STOPPING_TIME; // if this car is entering
 
       if (!isInstant) {
         var stop = audio.create('sfx', 'car_stopping');
@@ -103162,7 +103183,13 @@ var CarFinishLineAnimation = /*#__PURE__*/function (_Animation) {
       }; // handle updating the entry animation
 
       var updateEntryProps = function updateEntryProps(props) {
-        player.relativeX = props.playerX;
+        // if the track view is not active then
+        // make sure they're placed at the end
+        if (!_this2.track.isViewActive) {
+          player.relativeX = entryDestination.playerX;
+        }
+
+        player.relativeX = Math.max(player.relativeX, props.playerX);
         player.visible = true;
       }; // set the new starting positions
 
@@ -103170,7 +103197,7 @@ var CarFinishLineAnimation = /*#__PURE__*/function (_Animation) {
       player.relativeX = entryOrigin.playerX; // if this shouldn't be animated, for example
       // the player isn't finishing in first place
 
-      if (isInstant) {
+      if (isInstant || !this.track.isViewActive) {
         updateEntryProps(entryDestination);
         if (complete) complete();
         return;
@@ -103590,6 +103617,8 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
 
       var finished = _this.getFinished();
 
+      console.log('checking for finished', finished);
+
       var _iterator2 = _createForOfIteratorHelper(finished),
           _step2;
 
@@ -103605,6 +103634,7 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
 
 
           var diff = now - player.lastUpdate;
+          console.log(diff > _config.RACE_FINISH_CAR_STOPPING_TIME, diff, _config.RACE_FINISH_CAR_STOPPING_TIME);
 
           if (diff > _config.RACE_FINISH_CAR_STOPPING_TIME) {
             var place = finished.indexOf(player);
@@ -103783,7 +103813,7 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
       _iterator4.f();
     }
 
-    requestAnimationFrame(_this.animateImmediateFinishes);
+    setTimeout(_this.animateImmediateFinishes);
     return _this;
   } // adready animated cars
 
@@ -104020,7 +104050,13 @@ var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
           players = track.players; // if the active player isn't ready yet
       // then don't fail - this shouldn't ever happen
 
-      if (!activePlayer) return; // always update the active player first
+      if (!activePlayer) return; // this player has already finished and should not
+      // be updated anymore
+
+      if (activePlayer.completedAt) {
+        return;
+      } // always update the active player first
+
 
       var progress = activePlayer.relativeX;
 
@@ -104658,36 +104694,51 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       }
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "getPlayerByLane", function (lane) {
-      var _assertThisInitialize = (0, _assertThisInitialized2.default)(_this),
-          players = _assertThisInitialize.players;
+      var id = _this.lanes[lane];
+      return _this.getPlayerById(id); // const { players } = this;
+      // for (const player of players)
+      // 	if (player.options?.lane === lane)
+      // 		return player;
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "lanes", []);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "reserveLane", function (preferredLane, id) {
+      // the lane is open
+      if (!_this.lanes[preferredLane]) {
+        _this.lanes[preferredLane] = id;
+        return preferredLane;
+      } // since it's taken, find an open lane
 
-      var _iterator2 = _createForOfIteratorHelper(players),
-          _step2;
 
-      try {
-        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-          var _player$options;
+      var MAX_LANES = 5;
 
-          var player = _step2.value;
-          if (((_player$options = player.options) === null || _player$options === void 0 ? void 0 : _player$options.lane) === lane) return player;
+      for (var lane = 1; lane <= MAX_LANES; lane++) {
+        if (!_this.lanes[lane]) {
+          _this.lanes[lane] = id;
+          return lane;
         }
-      } catch (err) {
-        _iterator2.e(err);
-      } finally {
-        _iterator2.f();
+      } // no free space?
+
+
+      return preferredLane;
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "releaseLane", function (id) {
+      for (var i = 0; i < _this.lanes.length; i++) {
+        if (_this.lanes[i] === id) {
+          _this.lanes[i] = undefined;
+        }
       }
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "addPlayer", /*#__PURE__*/function () {
       var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(data, isInstant) {
         var _track$manifest;
 
-        var _assertThisInitialize2, activePlayers, state, stage, isViewActive, animator, track, lighting, playerOptions, isPlayer, id, lane, existing, player, _car$plugin, _player, car, namecard, container, _ref2, _ref2$enterSound, enterSound, entry;
+        var _assertThisInitialize, activePlayers, state, stage, isViewActive, animator, track, lighting, playerOptions, isPlayer, id, lane, player, _car$plugin, _player, car, namecard, container, _ref2, _ref2$enterSound, enterSound, entry;
 
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                _assertThisInitialize2 = (0, _assertThisInitialized2.default)(_this), activePlayers = _assertThisInitialize2.activePlayers, state = _assertThisInitialize2.state, stage = _assertThisInitialize2.stage, isViewActive = _assertThisInitialize2.isViewActive, animator = _assertThisInitialize2.animator;
+                _assertThisInitialize = (0, _assertThisInitialized2.default)(_this), activePlayers = _assertThisInitialize.activePlayers, state = _assertThisInitialize.state, stage = _assertThisInitialize.stage, isViewActive = _assertThisInitialize.isViewActive, animator = _assertThisInitialize.animator;
                 _context.next = 3;
                 return _this.getTrackInstance();
 
@@ -104699,40 +104750,39 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 }, data), {}, {
                   lighting: lighting
                 });
-                isPlayer = playerOptions.isPlayer, id = playerOptions.id, lane = playerOptions.lane; // check if a player already occupies the lane
+                isPlayer = playerOptions.isPlayer, id = playerOptions.id, lane = playerOptions.lane; // get a lane to use
 
-                existing = _this.getPlayerByLane(lane);
-                if (existing) _this.removePlayer(existing.id); // make sure this isn't a mistake
+                playerOptions.lane = _this.reserveLane(lane, id); // make sure this isn't a mistake
 
                 if (!activePlayers[data.id]) {
-                  _context.next = 11;
+                  _context.next = 10;
                   break;
                 }
 
                 return _context.abrupt("return");
 
-              case 11:
+              case 10:
                 activePlayers[data.id] = true; // increase the expected players
 
                 state.totalPlayers++; // create the player instance
 
-                _context.prev = 13;
-                _context.next = 16;
-                return _player2.default.create(playerOptions);
+                _context.prev = 12;
+                _context.next = 15;
+                return _player2.default.create(playerOptions, (0, _assertThisInitialized2.default)(_this));
 
-              case 16:
+              case 15:
                 player = _context.sent;
                 player.track = (0, _assertThisInitialized2.default)(_this); // if this player failed to load, abandon the
                 // attempt
 
                 if (!(isPlayer && !player.hasRequiredAssets)) {
-                  _context.next = 20;
+                  _context.next = 19;
                   break;
                 }
 
                 throw new PlayerAssetError();
 
-              case 20:
+              case 19:
                 // set the active player, if needed
                 if (isPlayer) {
                   _this.activePlayerId = id;
@@ -104744,11 +104794,11 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 _player = player, car = _player.car;
 
                 if (!((_car$plugin = car.plugin) === null || _car$plugin === void 0 ? void 0 : _car$plugin.extend)) {
-                  _context.next = 25;
+                  _context.next = 24;
                   break;
                 }
 
-                _context.next = 25;
+                _context.next = 24;
                 return car.plugin.extend({
                   animator: animator,
                   car: car,
@@ -104756,7 +104806,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   track: (0, _assertThisInitialized2.default)(_this)
                 });
 
-              case 25:
+              case 24:
                 // with the player, include their namecard
                 namecard = player.layers.namecard;
 
@@ -104799,12 +104849,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   state.playerHasEntered = true;
                 }
 
-                _context.next = 43;
+                _context.next = 42;
                 break;
 
-              case 36:
-                _context.prev = 36;
-                _context.t0 = _context["catch"](13);
+              case 35:
+                _context.prev = 35;
+                _context.t0 = _context["catch"](12);
                 delete activePlayers[data.id];
                 state.totalPlayers--; // if the player was created, try and remove it
 
@@ -104812,18 +104862,18 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 // a breaking exception
 
                 if (!isPlayer) {
-                  _context.next = 43;
+                  _context.next = 42;
                   break;
                 }
 
                 throw _context.t0;
 
-              case 43:
+              case 42:
               case "end":
                 return _context.stop();
             }
           }
-        }, _callee, null, [[13, 36]]);
+        }, _callee, null, [[12, 35]]);
       }));
 
       return function (_x, _x2) {
@@ -104835,13 +104885,13 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setTrack", /*#__PURE__*/function () {
       var _ref3 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(options) {
-        var _assertThisInitialize3, stage, animator, trackOptions, track, _this$countdown;
+        var _assertThisInitialize2, stage, animator, trackOptions, track, _this$countdown;
 
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this), stage = _assertThisInitialize3.stage, animator = _assertThisInitialize3.animator;
+                _assertThisInitialize2 = (0, _assertThisInitialized2.default)(_this), stage = _assertThisInitialize2.stage, animator = _assertThisInitialize2.animator;
                 trackOptions = _objectSpread({
                   view: (0, _assertThisInitialized2.default)(_this),
                   onLoadTrackAssets: _this.onLoadTrackAssets
@@ -104957,9 +105007,9 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       };
     }());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setPlayerReady", function (player) {
-      var _assertThisInitialize4 = (0, _assertThisInitialized2.default)(_this),
-          players = _assertThisInitialize4.players,
-          state = _assertThisInitialize4.state;
+      var _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this),
+          players = _assertThisInitialize3.players,
+          state = _assertThisInitialize3.state;
 
       var totalPlayers = state.totalPlayers; // add the player to the list
 
@@ -104971,14 +105021,17 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       }
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "removePlayer", function (id) {
-      var _assertThisInitialize5 = (0, _assertThisInitialized2.default)(_this),
-          activePlayers = _assertThisInitialize5.activePlayers,
-          players = _assertThisInitialize5.players,
-          state = _assertThisInitialize5.state;
+      var _assertThisInitialize4 = (0, _assertThisInitialized2.default)(_this),
+          activePlayers = _assertThisInitialize4.activePlayers,
+          players = _assertThisInitialize4.players,
+          state = _assertThisInitialize4.state;
 
       var player = _this.getPlayerById(id);
 
-      var index = players.indexOf(player); // if the player wasn't found then there's nothing to do
+      var index = players.indexOf(player); // clear this players lane
+
+      _this.releaseLane(id); // if the player wasn't found then there's nothing to do
+
 
       if (!~index) return; // remove the entry
 
@@ -104990,8 +105043,8 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       player.dispose();
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "disqualifyPlayer", function (id) {
-      var _assertThisInitialize6 = (0, _assertThisInitialized2.default)(_this),
-          state = _assertThisInitialize6.state; // get the player
+      var _assertThisInitialize5 = (0, _assertThisInitialized2.default)(_this),
+          state = _assertThisInitialize5.state; // get the player
 
 
       var player = _this.getPlayerById(id);
@@ -105052,9 +105105,9 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
           typingSpeedModifier = _ref5.typingSpeedModifier,
           completed = _ref5.completed;
 
-      var _assertThisInitialize7 = (0, _assertThisInitialized2.default)(_this),
-          state = _assertThisInitialize7.state,
-          raceCompletedAnimation = _assertThisInitialize7.raceCompletedAnimation;
+      var _assertThisInitialize6 = (0, _assertThisInitialized2.default)(_this),
+          state = _assertThisInitialize6.state,
+          raceCompletedAnimation = _assertThisInitialize6.raceCompletedAnimation;
 
       var player = _this.getPlayerById(id); // don't crash if the player wasn't found
 
@@ -105105,10 +105158,10 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "startRace", function () {
       var _this$track;
 
-      var _assertThisInitialize8 = (0, _assertThisInitialized2.default)(_this),
-          options = _assertThisInitialize8.options,
-          state = _assertThisInitialize8.state,
-          countdown = _assertThisInitialize8.countdown; // finalize the go
+      var _assertThisInitialize7 = (0, _assertThisInitialized2.default)(_this),
+          options = _assertThisInitialize7.options,
+          state = _assertThisInitialize7.state,
+          countdown = _assertThisInitialize7.countdown; // finalize the go
 
 
       if (countdown) countdown.finish(); // change the ambience
@@ -105117,19 +105170,19 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
       (_this$track = _this.track) === null || _this$track === void 0 ? void 0 : _this$track.setAmbience('race'); // toggle all start animations
 
-      var _iterator3 = _createForOfIteratorHelper(_this.players),
-          _step3;
+      var _iterator2 = _createForOfIteratorHelper(_this.players),
+          _step2;
 
       try {
-        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
-          var player = _step3.value;
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+          var player = _step2.value;
           player.toggle.activate('moving');
         } // start movement
 
       } catch (err) {
-        _iterator3.e(err);
+        _iterator2.e(err);
       } finally {
-        _iterator3.f();
+        _iterator2.f();
       }
 
       state.animateTrackMovement = true;
@@ -105137,8 +105190,8 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       state.isStarted = true;
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "finalizeRace", function () {
-      var _assertThisInitialize9 = (0, _assertThisInitialized2.default)(_this),
-          raceCompletedAnimation = _assertThisInitialize9.raceCompletedAnimation; // if the completion animation hasn't started
+      var _assertThisInitialize8 = (0, _assertThisInitialized2.default)(_this),
+          raceCompletedAnimation = _assertThisInitialize8.raceCompletedAnimation; // if the completion animation hasn't started
 
 
       if (!raceCompletedAnimation) return _this.finishRace(); // finalize the result
@@ -105150,12 +105203,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       // until the player is marked ready
 
 
-      var _assertThisInitialize10 = (0, _assertThisInitialized2.default)(_this),
-          players = _assertThisInitialize10.players,
-          track = _assertThisInitialize10.track,
-          raceCompletedAnimation = _assertThisInitialize10.raceCompletedAnimation,
-          state = _assertThisInitialize10.state,
-          options = _assertThisInitialize10.options; // already playing (this shouldn't happen)
+      var _assertThisInitialize9 = (0, _assertThisInitialized2.default)(_this),
+          players = _assertThisInitialize9.players,
+          track = _assertThisInitialize9.track,
+          raceCompletedAnimation = _assertThisInitialize9.raceCompletedAnimation,
+          state = _assertThisInitialize9.state,
+          options = _assertThisInitialize9.options; // already playing (this shouldn't happen)
 
 
       if (raceCompletedAnimation) return; // stop the track
@@ -105262,12 +105315,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     value: function resolveWaitingTrackRequests() {
       this.isTrackReady = true;
 
-      var _iterator4 = _createForOfIteratorHelper(this._waitingForTrack),
-          _step4;
+      var _iterator3 = _createForOfIteratorHelper(this._waitingForTrack),
+          _step3;
 
       try {
-        for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-          var resolve = _step4.value;
+        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+          var resolve = _step3.value;
 
           try {
             resolve(this.track);
@@ -105276,9 +105329,9 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
           }
         }
       } catch (err) {
-        _iterator4.e(err);
+        _iterator3.e(err);
       } finally {
-        _iterator4.f();
+        _iterator3.f();
       }
     } // gets the currently loaded track instance
 
@@ -106222,9 +106275,11 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 trail = _context4.sent;
                 // add to the view
                 player.addChild(trail);
-                trail.zIndex = -10;
                 trail.scale.x = trail.scale.y = scale;
                 trail.x = car.positions.back * (car.pivot.x * (scale / configScale));
+
+                _trail.default.setLayer(trail, car);
+
                 player.sortChildren(); // mark so it knows to make
                 // additional room for the trail
 
@@ -106938,8 +106993,10 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
                 // link to a car
                 container.addChild(trail);
                 trail.scale.x = trail.scale.y = _config.TRAIL_SCALE_IN_PREVIEW * CRUISE_VIEW_BONUS_SCALING;
-                trail.zIndex = _layers.LAYER_TRAIL;
                 trail.x = car.positions.back;
+
+                _trail.default.setLayer(trail, car);
+
                 container.sortChildren();
 
               case 18:
@@ -107671,7 +107728,9 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 this.container.addChild(this.trail);
                 this.trail.x = this.car.positions.back;
                 this.trail.scale.x = this.trail.scale.y = _config.TRAIL_SCALE_IN_PREVIEW;
-                this.trail.zIndex = _layers.LAYER_TRAIL;
+
+                _trail.default.setLayer(this.trail, this.car);
+
                 this.container.sortChildren(); // also, fade in the trails
 
                 (0, _ntAnimator.animate)({

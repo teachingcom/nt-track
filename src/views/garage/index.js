@@ -236,9 +236,10 @@ export default class GarageView extends BaseView {
 
 			// add to the view
 			player.addChild(trail);
-			trail.zIndex = -10;
 			trail.scale.x = trail.scale.y = scale
 			trail.x = car.positions.back * (car.pivot.x * (scale / configScale));
+			Trail.setLayer(trail, car);
+		
 			player.sortChildren();
 
 			// mark so it knows to make

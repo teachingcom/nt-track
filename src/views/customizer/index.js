@@ -220,8 +220,10 @@ export default class CustomizerView extends BaseView {
     this.container.addChild(this.trail)
     this.trail.x = this.car.positions.back
     this.trail.scale.x = this.trail.scale.y = TRAIL_SCALE_IN_PREVIEW
-    this.trail.zIndex = LAYER_TRAIL
+    Trail.setLayer(this.trail, this.car);
+    
     this.container.sortChildren()
+
 
     // also, fade in the trails
     animate({

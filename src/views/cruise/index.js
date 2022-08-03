@@ -105,8 +105,9 @@ export default class CruiseView extends BaseView {
       // link to a car
       container.addChild(trail)
       trail.scale.x = trail.scale.y = TRAIL_SCALE_IN_PREVIEW * CRUISE_VIEW_BONUS_SCALING
-      trail.zIndex = LAYER_TRAIL
       trail.x = car.positions.back
+      Trail.setLayer(trail, car)
+      
       container.sortChildren()
     }
 

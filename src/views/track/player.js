@@ -54,7 +54,7 @@ export default class Player extends PIXI.ResponsiveContainer {
 	}
 
 	/** handles creating a new player instance */
-	static async create(options) {
+	static async create(options, track) {
 		const instance = new Player();
 		instance.options = options;
 		instance.mods = options.mods || { };
@@ -181,7 +181,10 @@ export default class Player extends PIXI.ResponsiveContainer {
 
 			// add to the player view
 			this.addChild(trail);
-			trail.zIndex = -10;
+
+			// find a layer to use
+			Trail.setLayer(trail, car);
+			
 			trail.x = car.positions.back;
 			trail.scale.x = trail.scale.y = scale.x * TRAIL_SCALE;
 		}
@@ -282,6 +285,7 @@ export default class Player extends PIXI.ResponsiveContainer {
 end : ${this.place}` : '';
 			this.debug.text = `up  : ${this.progressUpdateCount || 0}
 srv : ${percentProgress}%
+rx  : ${this.relativeX.toFixed(4)}
 x   : ${screenX}%${place}`;
 		}
 		

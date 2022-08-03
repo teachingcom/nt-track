@@ -35,7 +35,7 @@ export default class RaceCompletedAnimation extends Animation {
 		}
 
 		// animate the immediate finishes, if any
-		requestAnimationFrame(this.animateImmediateFinishes);
+		setTimeout(this.animateImmediateFinishes);
 	}
 
 	// adready animated cars
@@ -54,7 +54,7 @@ export default class RaceCompletedAnimation extends Animation {
 		onTrack[player.id] = true;
 
 		// animate the result
-		const { isInstant = false, delay = 0, elapsed = 0, place = Number.MAX_SAFE_INTEGER } = params;
+		let { isInstant = false, delay = 0, elapsed = 0, place = Number.MAX_SAFE_INTEGER } = params;
 		finishingPlaces[player.id] = place;
 		
 		// TEMP: tracking place
@@ -120,6 +120,7 @@ export default class RaceCompletedAnimation extends Animation {
 
 		// get everyone that's marked as finished
 		const finished = this.getFinished();
+		console.log('checking for finished', finished)
 		for (const player of finished) {
 
 			// never include the player character (shouldn't happen)
@@ -130,6 +131,7 @@ export default class RaceCompletedAnimation extends Animation {
 
 			// compare the time
 			const diff = now - player.lastUpdate;
+			console.log(diff > RACE_FINISH_CAR_STOPPING_TIME, diff, RACE_FINISH_CAR_STOPPING_TIME)
 			if (diff > RACE_FINISH_CAR_STOPPING_TIME) {
 				const place = finished.indexOf(player);
 				this.addPlayer(player, { isInstant: true, place })

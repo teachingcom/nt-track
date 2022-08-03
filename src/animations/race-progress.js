@@ -184,6 +184,12 @@ export default class RaceProgressAnimation extends Animation {
 		// then don't fail - this shouldn't ever happen
 		if (!activePlayer) return;
 
+		// this player has already finished and should not
+		// be updated anymore
+		if (activePlayer.completedAt) {
+			return;
+		}
+
 		// always update the active player first
 		const progress = activePlayer.relativeX;
 		this.updatePlayer(activePlayer);

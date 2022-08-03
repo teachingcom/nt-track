@@ -1,7 +1,22 @@
 import { PIXI, removeDisplayObject } from 'nt-animator';
 import { merge, noop } from '../../utils';
+import { LAYER_TRAIL } from '../../views/track/layers';
 
 export default class Trail extends PIXI.Container {
+
+  static setLayer(trail, car) {
+    if (trail?.config?.layer) {
+      if (/above_car/i.test(trail.config.layer)) {
+        trail.zIndex = car.zIndex + 1;
+      }
+      else {
+        trail.zIndex = trail.config.layer;
+      }
+    }
+    else {
+      trail.zIndex = LAYER_TRAIL;
+    }
+  }
 
   /** handles creating the new trail instance */
   static async create (options) {
@@ -32,16 +47,6 @@ export default class Trail extends PIXI.Container {
   // syncs a trail position to a car
   syncToCar(car) {
 
-  }
-
-  // TODO: there's some mismatch in these behaviors (link/alignTo)
-
-  // links a trail to a car
-  link({ car, container = car }, action = noop) {
-    this.linkedTo = car;
-    car.addChild(this);
-    this.x = car.position.back;
-    this.zIndex = -1;
   }
 
   alignTo(car, position) {

@@ -159,10 +159,45 @@ export default class TrackView extends BaseView {
 
 	/** finds a player based on the lane number */
 	getPlayerByLane = lane => {
-		const { players } = this;
-		for (const player of players)
-			if (player.options?.lane === lane)
-				return player;
+		const id = this.lanes[lane]
+		return this.getPlayerById(id);
+		// const { players } = this;
+		// for (const player of players)
+		// 	if (player.options?.lane === lane)
+		// 		return player;
+	}
+
+	lanes = [ ]
+
+	// reserve a new lane
+	reserveLane = (preferredLane, id) => {
+
+		// the lane is open
+		if (!this.lanes[preferredLane]) {
+			this.lanes[preferredLane] = id;
+			return preferredLane;
+		}
+
+		// since it's taken, find an open lane
+		const MAX_LANES = 5;
+		for (let lane = 1; lane <= MAX_LANES; lane++) {
+			if (!this.lanes[lane]) {
+				this.lanes[lane] = id;
+				return lane;
+			}
+		}
+
+		// no free space?
+		return preferredLane;
+	}
+
+	// opens a lane for use again
+	releaseLane = id => {
+		for (let i = 0; i < this.lanes.length; i++) {
+			if (this.lanes[i] === id) {
+				this.lanes[i] = undefined;
+			}
+		}
 	}
 
 	/** adds a new car to the track */
@@ -172,11 +207,10 @@ export default class TrackView extends BaseView {
 		const track = await this.getTrackInstance();
 		const lighting = track?.manifest?.lighting;
 		const playerOptions = { view: this, ...data, lighting };
-		const { isPlayer, id, lane } = playerOptions;
+		let { isPlayer, id, lane } = playerOptions;
 
-		// check if a player already occupies the lane
-		const existing = this.getPlayerByLane(lane);
-		if (existing) this.removePlayer(existing.id);
+		// get a lane to use
+		playerOptions.lane = this.reserveLane(lane, id);
 
 		// make sure this isn't a mistake
 		if (activePlayers[data.id]) return;
@@ -188,7 +222,7 @@ export default class TrackView extends BaseView {
 		// create the player instance
 		let player;
 		try {
-			player = await Player.create(playerOptions);
+			player = await Player.create(playerOptions, this);
 			player.track = this;
 
 			// if this player failed to load, abandon the
@@ -397,6 +431,9 @@ export default class TrackView extends BaseView {
 		const { activePlayers, players, state } = this;
 		const player = this.getPlayerById(id);
 		const index = players.indexOf(player);
+
+		// clear this players lane
+		this.releaseLane(id);
 
 		// if the player wasn't found then there's nothing to do
 		if (!~index) return;

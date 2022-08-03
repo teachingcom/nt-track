@@ -31,11 +31,6 @@ export default class CarEntryAnimation extends Animation {
 			playerX: this.track.getStartingLinePosition()
 		}
 
-		// keep track if focus is lost
-		const disposeViewStateWatcher = onViewActiveStateChanged(active => {
-			if (!active) player.relativeX = entryDestination.playerX
-		})
-
 		// update the player position
 		const updateEntry = props => {
 			player.relativeX = Math.max(player.relativeX, props.playerX)
@@ -47,6 +42,11 @@ export default class CarEntryAnimation extends Animation {
 			if (complete) complete()
 			return
 		}
+
+		// keep track if focus is lost
+		const disposeViewStateWatcher = onViewActiveStateChanged(active => {
+			if (!active) player.relativeX = entryDestination.playerX
+		})
 
 		// starting positions
 		player.relativeX = entryOrigin.playerX

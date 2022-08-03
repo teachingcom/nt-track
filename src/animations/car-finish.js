@@ -28,7 +28,7 @@ export default class CarFinishLineAnimation extends Animation {
     player.hasShownFinishLineAnimation = true
 
     // check for instant animations
-    isInstant = elapsed > RACE_FINISH_CAR_STOPPING_TIME
+    isInstant = isInstant || (elapsed > RACE_FINISH_CAR_STOPPING_TIME)
 
     // if this car is entering
     if (!isInstant) {
@@ -49,7 +49,14 @@ export default class CarFinishLineAnimation extends Animation {
 
     // handle updating the entry animation
     const updateEntryProps = props => {
-      player.relativeX = props.playerX
+
+      // if the track view is not active then
+      // make sure they're placed at the end
+      if (!this.track.isViewActive) {
+        player.relativeX = entryDestination.playerX;
+      }
+
+      player.relativeX = Math.max(player.relativeX, props.playerX)
       player.visible = true
     }
 
@@ -58,7 +65,7 @@ export default class CarFinishLineAnimation extends Animation {
 
     // if this shouldn't be animated, for example
     // the player isn't finishing in first place
-    if (isInstant) {
+    if (isInstant || !this.track.isViewActive) {
       updateEntryProps(entryDestination);
       if (complete) complete();
       return;
