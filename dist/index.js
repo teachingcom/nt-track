@@ -74678,10 +74678,10 @@ var BaseSineExpression = function BaseSineExpression(prop, args) {
   (0, _defineProperty2.default)(this, "offset", 0);
   (0, _defineProperty2.default)(this, "scale", 1);
   (0, _defineProperty2.default)(this, "flip", 1);
-  (0, _defineProperty2.default)(this, "update", function (target, stage) {
+  (0, _defineProperty2.default)(this, "update", function (target, stage, player) {
     var ts = (Date.now() - BaseSineExpression.start + _this.offset) * _this.scale;
 
-    var modifier = _this.modifier(target, stage); // inverses so the value so it's the reverse of
+    var modifier = _this.modifier(target, stage, player); // inverses so the value so it's the reverse of
     // the modifier value
 
 
@@ -74693,6 +74693,20 @@ var BaseSineExpression = function BaseSineExpression(prop, args) {
     var percent = (sine + 1) / 2;
     var value = (percent * (_this.max - _this.min) + _this.min) * _this.flip;
 
+    if (_this.useExact) {
+      value = value <= 0.5 ? _this.min : _this.max;
+    }
+
+    if (_this.roundNumber) {
+      value = Math.round(value);
+    } // if needed
+
+
+    if (_this.sortLayers && target.parent && _this.priorValue !== value) {
+      _this.priorValue = value;
+      target.parent.sortChildren();
+    }
+
     _this.mapping(target, _this.convertToInt ? 0 | value : value);
   });
   this.prop = prop;
@@ -74702,6 +74716,7 @@ var BaseSineExpression = function BaseSineExpression(prop, args) {
     return 1;
   };
 
+  this.sortLayers = this.prop === 'z';
   var min = 0;
   var max = 1;
 
@@ -74713,7 +74728,11 @@ var BaseSineExpression = function BaseSineExpression(prop, args) {
       var arg = _step.value;
       var isObj = (0, _utils.isObject)(arg);
 
-      if (arg === 'int') {
+      if (arg === 'round') {
+        this.roundNumber = true;
+      } else if (arg === 'exact') {
+        this.useExact = true;
+      } else if (arg === 'int') {
         this.convertToInt = true;
       } else if (arg === 'invert') {
         this.flip = -1;
@@ -74729,7 +74748,7 @@ var BaseSineExpression = function BaseSineExpression(prop, args) {
         (function () {
           var key = arg.relative_to_stage;
 
-          _this.modifier = function (target, stage) {
+          _this.modifier = function (target, stage, player) {
             return stage[key] || 0;
           };
         })();
@@ -74737,8 +74756,16 @@ var BaseSineExpression = function BaseSineExpression(prop, args) {
         (function () {
           var key = arg.relative_to_self;
 
-          _this.modifier = function (target, stage) {
+          _this.modifier = function (target, stage, player) {
             return target[key] || 0;
+          };
+        })();
+      } else if (isObj && 'relative_to_player' in arg) {
+        (function () {
+          var key = arg.relative_to_player;
+
+          _this.modifier = function (target, stage, player) {
+            return player[key] || 0;
           };
         })();
       } else if (isObj && 'scale' in arg) {
@@ -75258,8 +75285,8 @@ var RangeExpression = function RangeExpression(prop, args) {
   (0, _defineProperty2.default)(this, "offset", 0);
   (0, _defineProperty2.default)(this, "scale", 1);
   (0, _defineProperty2.default)(this, "flip", 1);
-  (0, _defineProperty2.default)(this, "update", function (target, stage) {
-    var value = _this.min + (_this.max - _this.min) * _this.modifier(target, stage);
+  (0, _defineProperty2.default)(this, "update", function (target, stage, player) {
+    var value = _this.min + (_this.max - _this.min) * _this.modifier(target, stage, player);
 
     _this.mapping(target, _this.convertToInt ? 0 | value : value);
   });
@@ -75293,7 +75320,7 @@ var RangeExpression = function RangeExpression(prop, args) {
         (function () {
           var key = arg.relative_to_stage;
 
-          _this.modifier = function (target, stage) {
+          _this.modifier = function (target, stage, player) {
             return stage[key] || 0;
           };
         })();
@@ -75301,8 +75328,16 @@ var RangeExpression = function RangeExpression(prop, args) {
         (function () {
           var key = arg.relative_to_self;
 
-          _this.modifier = function (target, stage) {
+          _this.modifier = function (target, stage, player) {
             return target[key] || 0;
+          };
+        })();
+      } else if (isObj && 'relative_to_player' in arg) {
+        (function () {
+          var key = arg.relative_to_player;
+
+          _this.modifier = function (target, stage, player) {
+            return player[key] || 0;
           };
         })();
       } else if (isObj && 'scale' in arg) {
@@ -75806,7 +75841,7 @@ var JitterExpression = function JitterExpression(prop, args) {
   (0, _defineProperty2.default)(this, "offset", 0);
   (0, _defineProperty2.default)(this, "scale", 1);
   (0, _defineProperty2.default)(this, "flip", 1);
-  (0, _defineProperty2.default)(this, "update", function (target, stage) {
+  (0, _defineProperty2.default)(this, "update", function (target, stage, player) {
     var ts = (Date.now() - JitterExpression.start + _this.offset) * _this.scale;
 
     if (ts > _this.nextUpdate) {
@@ -75819,7 +75854,7 @@ var JitterExpression = function JitterExpression(prop, args) {
         _this.nextUpdate = ts + _this.freq;
       }
     } else {
-      _this.current += (_this.target - _this.current) * _this.rate * _this.modifier(target, stage);
+      _this.current += (_this.target - _this.current) * _this.rate * _this.modifier(target, stage, player);
     }
 
     var value = _this.current * _this.flip;
@@ -75862,7 +75897,7 @@ var JitterExpression = function JitterExpression(prop, args) {
         (function () {
           var key = arg.relative_to_stage;
 
-          _this.modifier = function (target, stage) {
+          _this.modifier = function (target, stage, player) {
             return stage[key] || 0;
           };
         })();
@@ -75870,8 +75905,16 @@ var JitterExpression = function JitterExpression(prop, args) {
         (function () {
           var key = arg.relative_to_self;
 
-          _this.modifier = function (target, stage) {
+          _this.modifier = function (target, stage, player) {
             return target[key] || 0;
+          };
+        })();
+      } else if (isObj && 'relative_to_player' in arg) {
+        (function () {
+          var key = arg.relative_to_player;
+
+          _this.modifier = function (target, stage, player) {
+            return player[key] || 0;
           };
         })();
       } else if (isObj && 'scale' in arg) {
@@ -77440,6 +77483,7 @@ var MISSING_STAGE = {
   width: 0,
   height: 0
 };
+var MISSING_PLAYER = {};
 var DYNAMIC_PROPERTY_DEFAULTS = {
   x: 0,
   y: 0,
@@ -77557,7 +77601,10 @@ function applyDynamicProperties(obj, props) {
   var updateProperties = function updateProperties() {
     var stage = obj.__responsiveStage__ = obj.__responsiveStage__ || _stage.default.findResponsiveStage(obj);
 
-    update(obj, stage || MISSING_STAGE);
+    var player = obj.__player__ = obj.__player__ || findParent(obj, function (obj) {
+      return obj.isPlayer;
+    });
+    update(obj, stage || MISSING_STAGE, player || MISSING_PLAYER);
   }; // set the initial values
 
 
@@ -77588,6 +77635,18 @@ function applyDynamicProperties(obj, props) {
 
     return __renderCanvas__.apply(obj, args);
   };
+}
+
+function findParent(obj, matching) {
+  var check = obj.parent;
+
+  while (check) {
+    if (matching(check)) {
+      return check;
+    }
+
+    check = check.parent;
+  }
 }
 },{"../utils":"utils/index.js","./expressions":"animation/expressions.js","../pixi/stage":"pixi/stage.js","./mappings":"animation/mappings.js"}],"../node_modules/@babel/runtime/helpers/toArray.js":[function(require,module,exports) {
 var arrayWithHoles = require("./arrayWithHoles");
@@ -90983,7 +91042,11 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
     value: function updateTransform() {
       var _get2;
 
-      // tracking progress
+      // return 1
+      var movement = Math.abs((this.movementX || 0) - this.relativeX);
+      this.movementX = this.relativeX;
+      this.movement = Math.min(2, Math.max(movement * 100, this.track.animationVariables.base_speed, 0)); // tracking progress
+
       if (DEBUG_PLAYER_PROGRESS) {
         var screenX = 0 | (this.screenPercentX || 0) * 100;
         var percentProgress = 0 | (this.serverProgress || 0);
@@ -91081,6 +91144,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
               case 0:
                 instance = new Player();
                 instance.options = options;
+                instance.isPlayer = true;
                 instance.mods = options.mods || {}; // initialize all layers
 
                 car = instance._initCar();
@@ -91088,18 +91152,21 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                 nitro = instance._initNitro();
                 namecard = instance._initNameCard(); // wait for the result
 
-                _context7.next = 9;
+                _context7.next = 10;
                 return Promise.all([car, trail, nitro, namecard]);
 
-              case 9:
+              case 10:
                 resolved = _context7.sent;
-                _context7.next = 12;
+                _context7.next = 13;
                 return instance._assemble.apply(instance, (0, _toConsumableArray2.default)(resolved));
 
-              case 12:
+              case 13:
                 // after the instance is created, find all toggles
-                instance._assignToggles(); // put the player in the correct lane
+                instance._assignToggles(); // used for individual variables
 
+
+                instance.animationVariables = instance;
+                instance.animationVariables.movement = 0; // put the player in the correct lane
 
                 instance.relativeY = _scaling.LANES[options.lane];
                 instance.relativeX = 0;
@@ -91108,7 +91175,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                 instance.id = options.id || "player_".concat(+new Date());
                 return _context7.abrupt("return", instance);
 
-              case 18:
+              case 21:
               case "end":
                 return _context7.stop();
             }
@@ -103616,8 +103683,6 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
       var now = +new Date(); // get everyone that's marked as finished
 
       var finished = _this.getFinished();
-
-      console.log('checking for finished', finished);
 
       var _iterator2 = _createForOfIteratorHelper(finished),
           _step2;

@@ -57,6 +57,7 @@ export default class Player extends PIXI.ResponsiveContainer {
 	static async create(options, track) {
 		const instance = new Player();
 		instance.options = options;
+		instance.isPlayer = true;
 		instance.mods = options.mods || { };
 
 		// initialize all layers
@@ -71,6 +72,10 @@ export default class Player extends PIXI.ResponsiveContainer {
 
 		// after the instance is created, find all toggles
 		instance._assignToggles()
+
+		// used for individual variables
+		instance.animationVariables = instance
+		instance.animationVariables.movement = 0
 
 		// put the player in the correct lane
 		instance.relativeY = LANES[options.lane];
@@ -276,6 +281,11 @@ export default class Player extends PIXI.ResponsiveContainer {
 
 	/** handles updating the car */
 	updateTransform(...args) {
+		
+		// return 1
+		const movement = Math.abs((this.movementX || 0) - this.relativeX)
+		this.movementX = this.relativeX;
+		this.movement = Math.min(2, Math.max(movement * 100, this.track.animationVariables.base_speed, 0));
 		
 		// tracking progress
 		if (DEBUG_PLAYER_PROGRESS) {

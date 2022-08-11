@@ -120,7 +120,6 @@ export default class RaceCompletedAnimation extends Animation {
 
 		// get everyone that's marked as finished
 		const finished = this.getFinished();
-		console.log('checking for finished', finished)
 		for (const player of finished) {
 
 			// never include the player character (shouldn't happen)
