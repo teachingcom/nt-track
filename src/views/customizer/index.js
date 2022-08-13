@@ -50,6 +50,7 @@ export default class CustomizerView extends BaseView {
     // make sure the game animates relative values
     this.animationVariables.speed = 1
     this.animationVariables.base_speed = 1
+    this.animationVariables.movement = 1
     
     // begin rendering
     this.startAutoRender()
@@ -167,6 +168,10 @@ export default class CustomizerView extends BaseView {
     // add to the view
     container.addChild(car)
     this.viewport.addChild(container)
+
+    // used for certain animation effects
+    container.isPlayer = true
+    container.movement = 1
 
     this.container = container
     this.car = car

@@ -107429,12 +107429,13 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
               case 16:
                 // make sure the game animates relative values
                 this.animationVariables.speed = 1;
-                this.animationVariables.base_speed = 1; // begin rendering
+                this.animationVariables.base_speed = 1;
+                this.animationVariables.movement = 1; // begin rendering
 
                 this.startAutoRender();
                 this.ready = true;
 
-              case 20:
+              case 21:
               case "end":
                 return _context.stop();
             }
@@ -107699,7 +107700,10 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 container.isCar = true; // add to the view
 
                 container.addChild(car);
-                this.viewport.addChild(container);
+                this.viewport.addChild(container); // used for certain animation effects
+
+                container.isPlayer = true;
+                container.movement = 1;
                 this.container = container;
                 this.car = car; // set the trail to use, otherwise
                 // just dispose of the active one
@@ -107707,19 +107711,19 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 delete this.trail;
 
                 if (!trail) {
-                  _context7.next = 20;
+                  _context7.next = 22;
                   break;
                 }
 
-                _context7.next = 20;
+                _context7.next = 22;
                 return this.setTrail(trail, false);
 
-              case 20:
+              case 22:
                 // animate the new car into view
                 this.isReady = true;
                 return _context7.abrupt("return", this._animatePlayerCarIntoView(this.container));
 
-              case 22:
+              case 24:
               case "end":
                 return _context7.stop();
             }
@@ -108466,7 +108470,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '1.1.7';
+  window.NTTRACK = '1.1.8';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
