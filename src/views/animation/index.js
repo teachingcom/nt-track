@@ -99,13 +99,15 @@ export default class AnimationView extends BaseView {
 
 		// trim the view so the gradient car doesn't
 		// peek any trails underneath
-		const graphics = new PIXI.Graphics();
-		graphics.beginFill(0xFF3300);
-		graphics.drawRect(0, 0, 800, 500);
-		graphics.endFill();
-		graphics.pivot.x = 800;
-		graphics.x = trail.x
-		trail.mask = graphics;
+		if (!trail.isOverCar) {
+			const graphics = new PIXI.Graphics();
+			graphics.beginFill(0xFF3300);
+			graphics.drawRect(0, 0, 800, 500);
+			graphics.endFill();
+			graphics.pivot.x = 800;
+			graphics.x = trail.x
+			trail.mask = graphics;
+		}
 
 		// setup the main container
 		this.container.scale.x = this.container.scale.y = this.options.scale || 1
@@ -127,14 +129,19 @@ export default class AnimationView extends BaseView {
 		// the trail lines up correctly using the 
 		// attachTo function
 		const contain = new PIXI.Container()
+		contain.sortableChildren = true;
 		contain.addChild(trail)
 		contain.addChild(bumper)
-	
+		
 		// assemble all layers
 		if (bg) {
 			this.container.addChild(bg)
 		}
-		this.container.addChild(contain)
+		this.container.addChild(contain);
+
+		// adjust z-index as needed
+		Trail.setLayer(trail, bumper);
+		contain.sortChildren();
 	}
 
 	// a nitro is shown and animated from time to time

@@ -1,15 +1,15 @@
 import { PIXI, removeDisplayObject } from 'nt-animator';
-import { merge, noop } from '../../utils';
+import { isNumber, merge, noop } from '../../utils';
 import { LAYER_TRAIL } from '../../views/track/layers';
 
 export default class Trail extends PIXI.Container {
 
-  static setLayer(trail, car) {
+  static setLayer(trail, target = { zIndex: 0 }) {
     if (trail?.config?.layer) {
-      if (/above_car/i.test(trail.config.layer)) {
-        trail.zIndex = car.zIndex + 1;
+      if (trail.isOverCar) {
+        trail.zIndex = target.zIndex + 1;
       }
-      else {
+      else if (isNumber(trail.config.layer)) {
         trail.zIndex = trail.config.layer;
       }
     }
@@ -42,6 +42,10 @@ export default class Trail extends PIXI.Container {
 
     // give back the instance
     return instance
+  }
+
+  get isOverCar() {
+    return /(over|above)_car/i.test(this.config?.layer)
   }
 
   // syncs a trail position to a car

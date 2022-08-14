@@ -89676,19 +89676,30 @@ var Trail = /*#__PURE__*/function (_PIXI$Container) {
       (0, _ntAnimator.removeDisplayObject)(this);
     }
   }, {
+    key: "isOverCar",
+    get: function get() {
+      var _this$config;
+
+      return /(over|above)_car/i.test((_this$config = this.config) === null || _this$config === void 0 ? void 0 : _this$config.layer);
+    }
+  }, {
     key: "isValid",
     get: function get() {
       return this.parts && this.parts.length > 0;
     }
   }], [{
     key: "setLayer",
-    value: function setLayer(trail, car) {
+    value: function setLayer(trail) {
       var _trail$config;
 
+      var target = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
+        zIndex: 0
+      };
+
       if (trail === null || trail === void 0 ? void 0 : (_trail$config = trail.config) === null || _trail$config === void 0 ? void 0 : _trail$config.layer) {
-        if (/above_car/i.test(trail.config.layer)) {
-          trail.zIndex = car.zIndex + 1;
-        } else {
+        if (trail.isOverCar) {
+          trail.zIndex = target.zIndex + 1;
+        } else if ((0, _utils.isNumber)(trail.config.layer)) {
           trail.zIndex = trail.config.layer;
         }
       } else {
@@ -108280,41 +108291,46 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
 
               case 23:
                 trail = _context3.sent;
+
                 // trim the view so the gradient car doesn't
                 // peek any trails underneath
-                graphics = new _ntAnimator.PIXI.Graphics();
-                graphics.beginFill(0xFF3300);
-                graphics.drawRect(0, 0, 800, 500);
-                graphics.endFill();
-                graphics.pivot.x = 800;
-                graphics.x = trail.x;
-                trail.mask = graphics; // setup the main container
+                if (!trail.isOverCar) {
+                  graphics = new _ntAnimator.PIXI.Graphics();
+                  graphics.beginFill(0xFF3300);
+                  graphics.drawRect(0, 0, 800, 500);
+                  graphics.endFill();
+                  graphics.pivot.x = 800;
+                  graphics.x = trail.x;
+                  trail.mask = graphics;
+                } // setup the main container
+
 
                 this.container.scale.x = this.container.scale.y = this.options.scale || 1;
                 this.container.relativeX = 0.75; // set the position for the faded background
                 // to help the trails stand out more
 
                 if (this.options.hideBackground) {
-                  _context3.next = 41;
+                  _context3.next = 35;
                   break;
                 }
 
-                _context3.next = 36;
+                _context3.next = 30;
                 return this.animator.getSprite('extras/shop', 'asset_bg');
 
-              case 36:
+              case 30:
                 bg = _context3.sent;
                 bg.pivot.x = bg.width;
                 bg.pivot.y = bg.height * 0.5;
                 bg.alpha = 0.66;
                 bg.x = bg.width * 0.2;
 
-              case 41:
+              case 35:
                 // since we're using the trail class for the trail
                 // we need a shared container to help make sure
                 // the trail lines up correctly using the 
                 // attachTo function
                 contain = new _ntAnimator.PIXI.Container();
+                contain.sortableChildren = true;
                 contain.addChild(trail);
                 contain.addChild(bumper); // assemble all layers
 
@@ -108322,9 +108338,13 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
                   this.container.addChild(bg);
                 }
 
-                this.container.addChild(contain);
+                this.container.addChild(contain); // adjust z-index as needed
 
-              case 46:
+                _trail.default.setLayer(trail, bumper);
+
+                contain.sortChildren();
+
+              case 43:
               case "end":
                 return _context3.stop();
             }
@@ -108470,7 +108490,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '1.1.10';
+  window.NTTRACK = '1.1.11';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
