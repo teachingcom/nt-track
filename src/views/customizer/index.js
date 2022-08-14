@@ -170,7 +170,7 @@ export default class CustomizerView extends BaseView {
     this.viewport.addChild(container)
 
     // used for certain animation effects
-    container.isPlayer = true
+    container.isPlayerRoot = true
     container.movement = 1
 
     this.container = container
