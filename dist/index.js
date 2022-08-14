@@ -77602,7 +77602,7 @@ function applyDynamicProperties(obj, props) {
     var stage = obj.__responsiveStage__ = obj.__responsiveStage__ || _stage.default.findResponsiveStage(obj);
 
     var player = obj.__player__ = obj.__player__ || findParent(obj, function (obj) {
-      return obj.isPlayer;
+      return obj.isPlayerRoot;
     });
     update(obj, stage || MISSING_STAGE, player || MISSING_PLAYER);
   }; // set the initial values
@@ -91144,7 +91144,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
               case 0:
                 instance = new Player();
                 instance.options = options;
-                instance.isPlayer = true;
+                instance.isPlayerRoot = true;
                 instance.mods = options.mods || {}; // initialize all layers
 
                 car = instance._initCar();
@@ -108470,7 +108470,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '1.1.8';
+  window.NTTRACK = '1.1.9';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

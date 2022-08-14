@@ -57,7 +57,7 @@ export default class Player extends PIXI.ResponsiveContainer {
 	static async create(options, track) {
 		const instance = new Player();
 		instance.options = options;
-		instance.isPlayer = true;
+		instance.isPlayerRoot = true;
 		instance.mods = options.mods || { };
 
 		// initialize all layers
