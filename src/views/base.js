@@ -184,6 +184,11 @@ export class BaseView extends EventEmitter {
 	pause = () => this.paused = true
 	resume = () => this.paused = false
 
+	dispose() {
+		this.view.destroy({ children: true, texture: false, baseTexture: false })
+		this.freeze()
+	}
+
 	// prevents any more rendering attempts
 	freeze = () => {
 		this.stopAutoRender();
@@ -297,6 +302,8 @@ export class BaseView extends EventEmitter {
 	syncToContainer = () => {
 		this.resize();
 	}
+
+	
 
 	/** resizes to match the container element */
 	resize = () => {

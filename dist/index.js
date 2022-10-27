@@ -87450,6 +87450,17 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
     /** keeping track of progress */
 
   }, {
+    key: "dispose",
+    value: function dispose() {
+      this.view.destroy({
+        children: true,
+        texture: false,
+        baseTexture: false
+      });
+      this.freeze();
+    } // prevents any more rendering attempts
+
+  }, {
     key: "addTasks",
 
     /** includes a new task */
@@ -91369,12 +91380,18 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
 
                 instance.relativeY = _scaling.LANES[options.lane];
                 instance.relativeX = 0;
-                instance.zIndex = options.lane; // make sure there's a player ID
+                instance.zIndex = options.lane;
+
+                if (isNaN(instance.relativeY)) {
+                  console.log('had a NaN for Y');
+                  debugger;
+                } // make sure there's a player ID
+
 
                 instance.id = options.id || "player_".concat(+new Date());
                 return _context7.abrupt("return", instance);
 
-              case 21:
+              case 22:
               case "end":
                 return _context7.stop();
             }
@@ -104966,24 +104983,14 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "lanes", []);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "reserveLane", function (preferredLane, id) {
-      // the lane is open
-      if (!_this.lanes[preferredLane]) {
-        _this.lanes[preferredLane] = id;
-        return preferredLane;
-      } // since it's taken, find an open lane
-
-
       var MAX_LANES = 5;
 
-      for (var lane = 1; lane <= MAX_LANES; lane++) {
+      for (var lane = 0; lane < MAX_LANES; lane++) {
         if (!_this.lanes[lane]) {
           _this.lanes[lane] = id;
           return lane;
         }
-      } // no free space?
-
-
-      return preferredLane;
+      }
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "releaseLane", function (id) {
       for (var i = 0; i < _this.lanes.length; i++) {
@@ -105089,7 +105096,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 // won't play, so just make it instant
 
 
-                if (!isViewActive) isInstant = true; // animate onto the track
+                if (!isViewActive || _this.state.isStarted) isInstant = true; // animate onto the track
 
                 _ref2 = data.car || {}, _ref2$enterSound = _ref2.enterSound, enterSound = _ref2$enterSound === void 0 ? 'sport' : _ref2$enterSound;
                 entry = new _carEntry.default({
@@ -105113,12 +105120,13 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   state.playerHasEntered = true;
                 }
 
-                _context.next = 42;
+                _context.next = 43;
                 break;
 
               case 35:
                 _context.prev = 35;
                 _context.t0 = _context["catch"](12);
+                console.log('failed to add player', _context.t0);
                 delete activePlayers[data.id];
                 state.totalPlayers--; // if the player was created, try and remove it
 
@@ -105126,13 +105134,13 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 // a breaking exception
 
                 if (!isPlayer) {
-                  _context.next = 42;
+                  _context.next = 43;
                   break;
                 }
 
                 throw _context.t0;
 
-              case 42:
+              case 43:
               case "end":
                 return _context.stop();
             }
@@ -105254,11 +105262,20 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 track.overlay.zIndex = _layers.LAYER_TRACK_OVERLAY;
                 track.overlay.relativeX = 0.5; // sort the layers
 
-                stage.sortChildren(); // resolve waiting track requests
+                stage.sortChildren(); // kick off animations
+
+                if (options.raceInProgress) {
+                  _this.state.speed = _config.TRACK_MAXIMUM_SPEED;
+
+                  _this.startRace();
+
+                  _this.track._cycleTrack(-4000);
+                } // resolve waiting track requests
+
 
                 _this.resolveWaitingTrackRequests();
 
-              case 47:
+              case 48:
               case "end":
                 return _context2.stop();
             }

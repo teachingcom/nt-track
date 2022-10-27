@@ -82,6 +82,11 @@ export default class Player extends PIXI.ResponsiveContainer {
 		instance.relativeX = 0;
 		instance.zIndex = options.lane;
 
+		if (isNaN(instance.relativeY)) {
+			console.log('had a NaN for Y')
+			debugger
+		}
+
 		// make sure there's a player ID
 		instance.id = options.id || `player_${+new Date}`;
 

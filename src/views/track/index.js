@@ -171,24 +171,13 @@ export default class TrackView extends BaseView {
 
 	// reserve a new lane
 	reserveLane = (preferredLane, id) => {
-
-		// the lane is open
-		if (!this.lanes[preferredLane]) {
-			this.lanes[preferredLane] = id;
-			return preferredLane;
-		}
-
-		// since it's taken, find an open lane
 		const MAX_LANES = 5;
-		for (let lane = 1; lane <= MAX_LANES; lane++) {
+		for (let lane = 0; lane < MAX_LANES; lane++) {
 			if (!this.lanes[lane]) {
 				this.lanes[lane] = id;
 				return lane;
 			}
 		}
-
-		// no free space?
-		return preferredLane;
 	}
 
 	// opens a lane for use again
@@ -208,10 +197,10 @@ export default class TrackView extends BaseView {
 		const lighting = track?.manifest?.lighting;
 		const playerOptions = { view: this, ...data, lighting };
 		let { isPlayer, id, lane } = playerOptions;
-
+		
 		// get a lane to use
 		playerOptions.lane = this.reserveLane(lane, id);
-
+		
 		// make sure this isn't a mistake
 		if (activePlayers[data.id]) return;
 		activePlayers[data.id] = true;
@@ -262,7 +251,7 @@ export default class TrackView extends BaseView {
 
 			// if the screen isn't focused, then tween animations
 			// won't play, so just make it instant
-			if (!isViewActive) 
+			if (!isViewActive || this.state.isStarted) 
 				isInstant = true;
 
 			// animate onto the track
@@ -282,10 +271,10 @@ export default class TrackView extends BaseView {
 			if (data.isPlayer) {
 				state.playerHasEntered = true;
 			}
-
 		}
 		// in the event the player failed to load
 		catch (ex) {
+			console.log('failed to add player', ex)
 			delete activePlayers[data.id];
 			state.totalPlayers--;
 
@@ -406,6 +395,13 @@ export default class TrackView extends BaseView {
 
 		// sort the layers
 		stage.sortChildren();
+
+		// kick off animations
+		if (options.raceInProgress) {
+			this.state.speed = TRACK_MAXIMUM_SPEED
+			this.startRace()
+			this.track._cycleTrack(-4000)
+		}
 
 		// resolve waiting track requests
 		this.resolveWaitingTrackRequests()
