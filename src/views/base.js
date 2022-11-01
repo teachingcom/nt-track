@@ -25,8 +25,8 @@ export class BaseView extends EventEmitter {
 
 		// save some options
 		this.options = options;
-		this.scale = options.scale;
-		this.ssaa = options.ssaa !== false;
+		this.scale = 1 // options.scale;
+		this.ssaa = false // options.ssaa !== false;
 
 		// get the container the rendering surface is in
 		this.parent = options.container;

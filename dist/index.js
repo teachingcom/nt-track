@@ -87341,8 +87341,10 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
 
 
                 this.options = options;
-                this.scale = options.scale;
-                this.ssaa = options.ssaa !== false; // get the container the rendering surface is in
+                this.scale = 1; // options.scale;
+
+                this.ssaa = false; // options.ssaa !== false;
+                // get the container the rendering surface is in
 
                 this.parent = options.container; // create the animation creator
 
@@ -103895,6 +103897,28 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
       });
       return finished;
     });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "animatePlayerFinish", function () {
+      var _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this),
+          track = _assertThisInitialize3.track,
+          onTrack = _assertThisInitialize3.onTrack;
+
+      var activePlayerId = track.activePlayerId,
+          activePlayer = track.activePlayer; // has already been added to the track
+
+      if (onTrack[activePlayerId]) {
+        return;
+      } // animate the finish
+
+
+      var finished = _this.getFinished();
+
+      var place = finished.indexOf(activePlayer);
+
+      _this.addPlayer(activePlayer, {
+        delay: 0,
+        place: place
+      });
+    });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "animateImmediateFinishes", function () {
       var now = +new Date(); // get everyone that's marked as finished
 
@@ -103915,7 +103939,6 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
 
 
           var diff = now - player.lastUpdate;
-          console.log(diff > _config.RACE_FINISH_CAR_STOPPING_TIME, diff, _config.RACE_FINISH_CAR_STOPPING_TIME);
 
           if (diff > _config.RACE_FINISH_CAR_STOPPING_TIME) {
             var place = finished.indexOf(player);
@@ -103933,9 +103956,9 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
       }
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "animateRecentFinishes", function () {
-      var _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this),
-          track = _assertThisInitialize3.track,
-          onTrack = _assertThisInitialize3.onTrack; // get all current finishes
+      var _assertThisInitialize4 = (0, _assertThisInitialized2.default)(_this),
+          track = _assertThisInitialize4.track,
+          onTrack = _assertThisInitialize4.onTrack; // get all current finishes
 
 
       var finished = _this.getFinished(); // check for newly finished racers
@@ -103994,19 +104017,19 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
       }
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "update", function () {
-      var _assertThisInitialize4 = (0, _assertThisInitialized2.default)(_this),
-          confetti = _assertThisInitialize4.confetti;
+      var _assertThisInitialize5 = (0, _assertThisInitialized2.default)(_this),
+          confetti = _assertThisInitialize5.confetti;
 
       if (confetti) confetti.update();
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "activateFlash", /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
-      var _assertThisInitialize5, track, animator, flash;
+      var _assertThisInitialize6, track, animator, flash;
 
       return _regenerator.default.wrap(function _callee$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
             case 0:
-              _assertThisInitialize5 = (0, _assertThisInitialized2.default)(_this), track = _assertThisInitialize5.track;
+              _assertThisInitialize6 = (0, _assertThisInitialized2.default)(_this), track = _assertThisInitialize6.track;
               animator = track.animator; // add some confetti
 
               _context.prev = 2;
@@ -104047,7 +104070,13 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
                 duration: _config.RACE_FINISH_FLASH_FADE_TIME,
                 loop: false,
                 complete: function complete() {
-                  return _this.hasFinishedFlashAnimation = true;
+                  _this.hasFinishedFlashAnimation = true; // fall back in case the player animation
+                  // hasn't played (which can happen in some
+                  // spectator mode scenarios)
+
+                  _this.animateRecentFinishes();
+
+                  _this.animatePlayerFinish();
                 },
                 update: function update(props) {
                   // match the size in case the view changes
@@ -104117,11 +104146,7 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
 
 
       this.animateRecentFinishes();
-    } // calculate all player finishes that have been done for
-    // an extended period of time - since we don't know the actual
-    // player finish time, we just base this on an extend time since
-    // their last update
-
+    }
   }]);
   return RaceCompletedAnimation;
 }(_base.default);
@@ -104423,9 +104448,9 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
-var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
-
 var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
+
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
@@ -104523,18 +104548,52 @@ var CountdownAnimation = /*#__PURE__*/function (_Animation) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "show3", function () {
       var _assertThisInitialize2 = (0, _assertThisInitialized2.default)(_this),
-          track = _assertThisInitialize2.track,
-          stage = _assertThisInitialize2.stage,
-          container = _assertThisInitialize2.container;
+          track = _assertThisInitialize2.track;
 
-      stage.addChild(container); // start the countdown
+      _this.showCountdown(); // start the countdown
+
 
       if (track.isViewActive) {
         var announcer = audio.create('sfx', 'countdown_count');
         announcer.volume(_volume.VOLUME_COUNTDOWN_ANNOUNCER);
         announcer.play();
-      } // quick fade in
+      } // show the digit
 
+
+      _this.setDigit(3);
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "show2", function () {
+      _this.setColor(0xfff000);
+
+      _this.setDigit(2);
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "show1", function () {
+      _this.setDigit(1);
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "quickGo", /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+      return _regenerator.default.wrap(function _callee$(_context) {
+        while (1) {
+          switch (_context.prev = _context.next) {
+            case 0:
+              _this.showCountdown();
+
+              setTimeout(_this.finish, 250);
+
+            case 2:
+            case "end":
+              return _context.stop();
+          }
+        }
+      }, _callee);
+    })));
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "showCountdown", function () {
+      var _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this),
+          stage = _assertThisInitialize3.stage,
+          container = _assertThisInitialize3.container;
+
+      stage.addChild(container); // make visible
+
+      _this.countdown.alpha = 1; // quick fade in
 
       (0, _ntAnimator.animate)({
         from: {
@@ -104548,21 +104607,11 @@ var CountdownAnimation = /*#__PURE__*/function (_Animation) {
         update: function update(props) {
           return container.alpha = props.alpha;
         }
-      }); // show the digit
-
-      _this.setDigit(3);
-    });
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "show2", function () {
-      _this.setColor(0xfff000);
-
-      _this.setDigit(2);
-    });
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "show1", function () {
-      _this.setDigit(1);
+      });
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "hideCountdown", function () {
-      var _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this),
-          countdown = _assertThisInitialize3.countdown;
+      var _assertThisInitialize4 = (0, _assertThisInitialized2.default)(_this),
+          countdown = _assertThisInitialize4.countdown;
 
       (0, _ntAnimator.animate)({
         from: {
@@ -104580,13 +104629,13 @@ var CountdownAnimation = /*#__PURE__*/function (_Animation) {
       });
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "finish", function () {
-      var _assertThisInitialize4 = (0, _assertThisInitialized2.default)(_this),
-          numbers = _assertThisInitialize4.numbers,
-          go = _assertThisInitialize4.go,
-          countdown = _assertThisInitialize4.countdown,
-          flash = _assertThisInitialize4.flash,
-          countdownInterval = _assertThisInitialize4.countdownInterval,
-          onBeginRace = _assertThisInitialize4.onBeginRace; // notify this has started
+      var _assertThisInitialize5 = (0, _assertThisInitialized2.default)(_this),
+          numbers = _assertThisInitialize5.numbers,
+          go = _assertThisInitialize5.go,
+          countdown = _assertThisInitialize5.countdown,
+          flash = _assertThisInitialize5.flash,
+          countdownInterval = _assertThisInitialize5.countdownInterval,
+          onBeginRace = _assertThisInitialize5.onBeginRace; // notify this has started
 
 
       if (onBeginRace) {
@@ -104619,9 +104668,9 @@ var CountdownAnimation = /*#__PURE__*/function (_Animation) {
       setTimeout(_this.hideCountdown, 500);
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "dispose", function () {
-      var _assertThisInitialize5 = (0, _assertThisInitialized2.default)(_this),
-          stage = _assertThisInitialize5.stage,
-          container = _assertThisInitialize5.container;
+      var _assertThisInitialize6 = (0, _assertThisInitialized2.default)(_this),
+          stage = _assertThisInitialize6.stage,
+          container = _assertThisInitialize6.container;
 
       stage.removeChild(container); // extra cleanup
 
@@ -104637,27 +104686,27 @@ var CountdownAnimation = /*#__PURE__*/function (_Animation) {
   (0, _createClass2.default)(CountdownAnimation, [{
     key: "init",
     value: function () {
-      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
         var animator, countdown, _findDisplayObjectsOf, _findDisplayObjectsOf2, go, _findDisplayObjectsOf3, _findDisplayObjectsOf4, numbers, _findDisplayObjectsOf5, _findDisplayObjectsOf6, flash, colors, _findDisplayObjectsOf7, _findDisplayObjectsOf8, shadow, container;
 
-        return _regenerator.default.wrap(function _callee$(_context) {
+        return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
-            switch (_context.prev = _context.next) {
+            switch (_context2.prev = _context2.next) {
               case 0:
                 animator = this.animator; // save references
 
-                _context.next = 3;
+                _context2.next = 3;
                 return animator.create('extras/countdown');
 
               case 3:
-                countdown = _context.sent;
+                countdown = _context2.sent;
 
                 if (countdown) {
-                  _context.next = 6;
+                  _context2.next = 6;
                   break;
                 }
 
-                return _context.abrupt("return", new BackupCountdown(this));
+                return _context2.abrupt("return", new BackupCountdown(this));
 
               case 6:
                 // create the object
@@ -104688,10 +104737,10 @@ var CountdownAnimation = /*#__PURE__*/function (_Animation) {
 
               case 26:
               case "end":
-                return _context.stop();
+                return _context2.stop();
             }
           }
-        }, _callee, this);
+        }, _callee2, this);
       }));
 
       function init() {
@@ -104813,10 +104862,10 @@ var BackupCountdown = function BackupCountdown(instance) {
   }; // end the animation
 
 
-  instance.finish = /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
-    return _regenerator.default.wrap(function _callee2$(_context2) {
+  instance.finish = /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
+    return _regenerator.default.wrap(function _callee3$(_context3) {
       while (1) {
-        switch (_context2.prev = _context2.next) {
+        switch (_context3.prev = _context3.next) {
           case 0:
             _this2.setDigit('go'); // notify this has started
 
@@ -104826,7 +104875,7 @@ var BackupCountdown = function BackupCountdown(instance) {
             } // hide the digit
 
 
-            _context2.next = 4;
+            _context3.next = 4;
             return (0, _utils.wait)(1000);
 
           case 4:
@@ -104834,13 +104883,13 @@ var BackupCountdown = function BackupCountdown(instance) {
 
           case 5:
           case "end":
-            return _context2.stop();
+            return _context3.stop();
         }
       }
-    }, _callee2);
+    }, _callee3);
   }));
 };
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","./base":"animations/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../audio/volume":"audio/volume.js","../audio":"audio/index.js","../utils":"utils/index.js"}],"views/track/index.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","./base":"animations/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../audio/volume":"audio/volume.js","../audio":"audio/index.js","../utils":"utils/index.js"}],"views/track/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -105529,6 +105578,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
         _this.performance.finalize();
       }
     });
+    window.TRACK = (0, _assertThisInitialized2.default)(_this);
     return _this;
   } // global effect filter
 

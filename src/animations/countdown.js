@@ -98,24 +98,15 @@ export default class CountdownAnimation extends Animation {
 
 	// display 3
 	show3 = () => {
-		const { track, stage, container } = this;
-		stage.addChild(container);
-		
+		const { track } = this;
+		this.showCountdown();
+
 		// start the countdown
 		if (track.isViewActive) {
 			const announcer = audio.create('sfx', 'countdown_count');
 			announcer.volume(VOLUME_COUNTDOWN_ANNOUNCER);
 			announcer.play();
 		}
-
-		// quick fade in
-		animate({
-			from: { alpha: 0 },
-			to: { alpha: 1 },
-			duration: 150,
-			loop: false,
-			update: props => container.alpha = props.alpha
-		});
 
 		// show the digit
 		this.setDigit(3);
@@ -130,6 +121,28 @@ export default class CountdownAnimation extends Animation {
 	// display 1
 	show1 = () => {
 		this.setDigit(1);
+	}
+
+	quickGo = async () => {
+		this.showCountdown();
+		setTimeout(this.finish, 250);
+	}
+
+	showCountdown = () => { 
+		const { stage, container } = this;
+		stage.addChild(container);
+
+		// make visible
+		this.countdown.alpha = 1;
+
+		// quick fade in
+		animate({
+			from: { alpha: 0 },
+			to: { alpha: 1 },
+			duration: 150,
+			loop: false,
+			update: props => container.alpha = props.alpha
+		});
 	}
 
 	// hides the view

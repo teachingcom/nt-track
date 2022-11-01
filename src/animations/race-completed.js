@@ -111,6 +111,21 @@ export default class RaceCompletedAnimation extends Animation {
 		this.animateRecentFinishes();
 	}
 
+	animatePlayerFinish = () => { 
+		const { track, onTrack } = this;
+		const { activePlayerId, activePlayer } = track
+
+		// has already been added to the track
+		if (onTrack[activePlayerId]) {
+			return
+		}
+
+		// animate the finish
+		const finished = this.getFinished();
+		const place = finished.indexOf(activePlayer);
+		this.addPlayer(activePlayer, { delay: 0, place });
+	}
+
 	// calculate all player finishes that have been done for
 	// an extended period of time - since we don't know the actual
 	// player finish time, we just base this on an extend time since
@@ -130,7 +145,6 @@ export default class RaceCompletedAnimation extends Animation {
 
 			// compare the time
 			const diff = now - player.lastUpdate;
-			console.log(diff > RACE_FINISH_CAR_STOPPING_TIME, diff, RACE_FINISH_CAR_STOPPING_TIME)
 			if (diff > RACE_FINISH_CAR_STOPPING_TIME) {
 				const place = finished.indexOf(player);
 				this.addPlayer(player, { isInstant: true, place })
@@ -231,7 +245,16 @@ export default class RaceCompletedAnimation extends Animation {
 			ease: 'easeInCirc',
 			duration: RACE_FINISH_FLASH_FADE_TIME,
 			loop: false,
-			complete: () => this.hasFinishedFlashAnimation = true,
+			complete: () => {
+				this.hasFinishedFlashAnimation = true;
+		
+				// fall back in case the player animation
+				// hasn't played (which can happen in some
+				// spectator mode scenarios)
+				this.animateRecentFinishes()
+				this.animatePlayerFinish()
+			},
+
 			update: props => {
 				
 				// match the size in case the view changes
@@ -242,7 +265,6 @@ export default class RaceCompletedAnimation extends Animation {
 				flash.alpha = props.alpha;
 			}
 		});
-
 	}
 
 }

@@ -49,8 +49,9 @@ export default class TrackView extends BaseView {
 		PIXI.settings.PRECISION_FRAGMENT = PIXI.PRECISION.LOW
 		PIXI.settings.MIPMAP_TEXTURES = PIXI.MIPMAP_MODES.OFF
 		PIXI.settings.ROUND_PIXELS = true
-
+		
 		super(...args)
+		window.TRACK = this
 	}
 
 	// global effect filter
