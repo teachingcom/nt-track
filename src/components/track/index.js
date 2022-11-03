@@ -71,6 +71,11 @@ export default class Track {
 			view.setLoadingStatus('init', 'creating finish line');
 			await instance._createFinishLine();
 			
+			// create spectator watermark
+			activity = 'assembling spectator mode';
+			view.setLoadingStatus('init', 'creating spectator mode');
+			await instance._createSpectatorWatermark(options);
+			
 			// apply scripts, if any
 			activity = 'loading doodad scripts';
 			await instance.applyScripts();
@@ -313,6 +318,30 @@ export default class Track {
 		// add the finishing line
 		const comp = await view.animator.compose({ compose: finish }, path, manifest);
 		this.finishLine = new Segment(this, comp);
+	}
+
+	async _createSpectatorWatermark(options) {
+		if (!options.spectator) {
+			return
+		}
+
+		const { view } = this;
+		
+		// request the assets
+		const [watermarkAsset, followAsset] = await Promise.all([
+			view.animator.create('extras/spectator_watermark'),
+			view.animator.create('extras/spectator_follow')
+		])
+
+		// make containers
+		const watermark = new PIXI.ResponsiveContainer();
+		watermark.addChild(watermarkAsset);
+		
+		const follow = new PIXI.ResponsiveContainer();
+		follow.addChild(followAsset);
+		
+		// load the spectator assets
+		this.spectator = { watermark, follow };
 	}
 
 	// creates a background, if needed

@@ -79537,6 +79537,8 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = animate;
+exports.animateAsync = animateAsync;
+exports.animateWait = animateWait;
 
 var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
 
@@ -79549,6 +79551,10 @@ var _animeEs = _interopRequireDefault(require("animejs/lib/anime.es.js"));
 var _utils = require("../utils");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 /** handles creating a tween animator */
 function animate(params) {
@@ -79620,8 +79626,33 @@ function animate(params) {
 
   return handler;
 }
-/** helper for animation handling */
 
+function animateAsync(args) {
+  var _complete = args.complete;
+  return new Promise(function (resolve) {
+    var handler = animate(_objectSpread(_objectSpread({}, args), {}, {
+      complete: function complete() {
+        for (var _len = arguments.length, result = new Array(_len), _key = 0; _key < _len; _key++) {
+          result[_key] = arguments[_key];
+        }
+
+        _complete === null || _complete === void 0 ? void 0 : _complete.apply(void 0, result);
+        resolve(handler);
+      }
+    }));
+  });
+}
+
+function animateWait(time) {
+  return new Promise(function (resolve) {
+    return setTimeout(resolve, time);
+  });
+} // expose
+
+
+animate.async = animateAsync;
+animate.wait = animateWait;
+/** helper for animation handling */
 
 var AnimationHandler = function AnimationHandler(config, props) {
   var _this = this;
@@ -87743,7 +87774,7 @@ function _createStaticCar() {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.LAYER_TRACK_GROUND = exports.LAYER_SHADOW = exports.LAYER_TRAIL = exports.LAYER_CAR = exports.LAYER_NAMECARD = exports.LAYER_NAMECARD_OVERLAY = exports.LAYER_NITRO_BLUR = exports.LAYER_TRACK_OVERLAY = void 0;
+exports.LAYER_TRACK_GROUND = exports.LAYER_TRACK_SPECTATOR_MODE = exports.LAYER_RACE_HOST_MARKER = exports.LAYER_SHADOW = exports.LAYER_TRAIL = exports.LAYER_CAR = exports.LAYER_NAMECARD = exports.LAYER_NAMECARD_OVERLAY = exports.LAYER_NITRO_BLUR = exports.LAYER_TRACK_OVERLAY = void 0;
 var LAYER_TRACK_OVERLAY = 100;
 exports.LAYER_TRACK_OVERLAY = LAYER_TRACK_OVERLAY;
 var LAYER_NITRO_BLUR = 30;
@@ -87758,6 +87789,10 @@ var LAYER_TRAIL = -49;
 exports.LAYER_TRAIL = LAYER_TRAIL;
 var LAYER_SHADOW = -50;
 exports.LAYER_SHADOW = LAYER_SHADOW;
+var LAYER_RACE_HOST_MARKER = -51;
+exports.LAYER_RACE_HOST_MARKER = LAYER_RACE_HOST_MARKER;
+var LAYER_TRACK_SPECTATOR_MODE = -99;
+exports.LAYER_TRACK_SPECTATOR_MODE = LAYER_TRACK_SPECTATOR_MODE;
 var LAYER_TRACK_GROUND = -100;
 exports.LAYER_TRACK_GROUND = LAYER_TRACK_GROUND;
 },{}],"animations/base.js":[function(require,module,exports) {
@@ -91068,19 +91103,27 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
     key: "_initNameCard",
     value: function () {
       var _initNameCard2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
-        var options, mods, view, playerName, playerTeam, teamColor, isGold, isFriend, playerRank;
+        var options, mods, view, playerName, playerTeam, teamColor, isGold, isFriend, playerRank, _mods$card, card;
+
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
                 options = this.options, mods = this.mods;
                 view = options.view;
-                playerName = options.playerName, playerTeam = options.playerTeam, teamColor = options.teamColor, isGold = options.isGold, isFriend = options.isFriend, playerRank = options.playerRank; // load a trail, if any
+                playerName = options.playerName, playerTeam = options.playerTeam, teamColor = options.teamColor, isGold = options.isGold, isFriend = options.isFriend, playerRank = options.playerRank;
+                _mods$card = mods.card, card = _mods$card === void 0 ? 'default' : _mods$card; // prevent player namecards
+                // TODO: this may change if we support custom namecards
+
+                if (options.spectator && card === 'player') {
+                  card = isGold ? 'gold' : 'default';
+                } // load a trail, if any
+
 
                 return _context4.abrupt("return", _namecard.default.create({
                   view: view,
                   baseHeight: _scaling.SCALED_NAMECARD_HEIGHT,
-                  type: mods.card || 'default',
+                  type: card,
                   isAnimated: mods.isNamecardAnimated,
                   name: playerName,
                   team: playerTeam,
@@ -91090,7 +91133,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                   playerRank: playerRank
                 }));
 
-              case 4:
+              case 6:
               case "end":
                 return _context4.stop();
             }
@@ -102702,26 +102745,79 @@ var Track = /*#__PURE__*/function () {
       }
 
       return _createFinishLine;
+    }()
+  }, {
+    key: "_createSpectatorWatermark",
+    value: function () {
+      var _createSpectatorWatermark2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(options) {
+        var view, _yield$Promise$all, _yield$Promise$all2, watermarkAsset, followAsset, watermark, follow;
+
+        return _regenerator.default.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                if (options.spectator) {
+                  _context6.next = 2;
+                  break;
+                }
+
+                return _context6.abrupt("return");
+
+              case 2:
+                view = this.view; // request the assets
+
+                _context6.next = 5;
+                return Promise.all([view.animator.create('extras/spectator_watermark'), view.animator.create('extras/spectator_follow')]);
+
+              case 5:
+                _yield$Promise$all = _context6.sent;
+                _yield$Promise$all2 = (0, _slicedToArray2.default)(_yield$Promise$all, 2);
+                watermarkAsset = _yield$Promise$all2[0];
+                followAsset = _yield$Promise$all2[1];
+                // make containers
+                watermark = new _ntAnimator.PIXI.ResponsiveContainer();
+                watermark.addChild(watermarkAsset);
+                follow = new _ntAnimator.PIXI.ResponsiveContainer();
+                follow.addChild(followAsset); // load the spectator assets
+
+                this.spectator = {
+                  watermark: watermark,
+                  follow: follow
+                };
+
+              case 14:
+              case "end":
+                return _context6.stop();
+            }
+          }
+        }, _callee6, this);
+      }));
+
+      function _createSpectatorWatermark(_x) {
+        return _createSpectatorWatermark2.apply(this, arguments);
+      }
+
+      return _createSpectatorWatermark;
     }() // creates a background, if needed
 
   }, {
     key: "_createEffect",
     value: function () {
-      var _createEffect2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
+      var _createEffect2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7() {
         var view, manifest, path, effect, Handler, handler;
-        return _regenerator.default.wrap(function _callee6$(_context6) {
+        return _regenerator.default.wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
                 view = this.view, manifest = this.manifest, path = this.path;
                 effect = manifest.effect; // check if present
 
                 if (effect) {
-                  _context6.next = 4;
+                  _context7.next = 4;
                   break;
                 }
 
-                return _context6.abrupt("return");
+                return _context7.abrupt("return");
 
               case 4:
                 // check for any scripts that need to run
@@ -102730,42 +102826,42 @@ var Track = /*#__PURE__*/function () {
                 handler = Handler ? new Handler(view, this, view.animator) : null; // initialization
 
                 if (!handler) {
-                  _context6.next = 9;
+                  _context7.next = 9;
                   break;
                 }
 
-                _context6.next = 9;
+                _context7.next = 9;
                 return handler.init(view, this, view.animator);
 
               case 9:
                 if (!(0, _utils.isArray)(effect.compose)) {
-                  _context6.next = 15;
+                  _context7.next = 15;
                   break;
                 }
 
-                _context6.next = 12;
+                _context7.next = 12;
                 return view.animator.compose(effect, path, manifest);
 
               case 12:
-                this.effect = _context6.sent;
+                this.effect = _context7.sent;
                 this.effect.zIndex = effect.z || 0;
                 this.applyEffect();
 
               case 15:
                 if (!handler) {
-                  _context6.next = 18;
+                  _context7.next = 18;
                   break;
                 }
 
-                _context6.next = 18;
+                _context7.next = 18;
                 return handler.setup(view, this, view.animator);
 
               case 18:
               case "end":
-                return _context6.stop();
+                return _context7.stop();
             }
           }
-        }, _callee6, this);
+        }, _callee7, this);
       }));
 
       function _createEffect() {
@@ -102778,45 +102874,45 @@ var Track = /*#__PURE__*/function () {
   }, {
     key: "_createBackground",
     value: function () {
-      var _createBackground2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7() {
+      var _createBackground2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8() {
         var view, manifest, background;
-        return _regenerator.default.wrap(function _callee7$(_context7) {
+        return _regenerator.default.wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
                 view = this.view, manifest = this.manifest;
                 background = manifest.background; // check if present
 
                 if (background) {
-                  _context7.next = 4;
+                  _context8.next = 4;
                   break;
                 }
 
-                return _context7.abrupt("return");
+                return _context8.abrupt("return");
 
               case 4:
                 // check for a background color
                 if ((0, _utils.isNumber)(background.color)) view.renderer.backgroundColor = background.color; // check for a composition
 
                 if (!(0, _utils.isArray)(background.compose)) {
-                  _context7.next = 11;
+                  _context8.next = 11;
                   break;
                 }
 
-                _context7.next = 8;
+                _context8.next = 8;
                 return view.animator.compose(background, this.path);
 
               case 8:
-                this.background = _context7.sent;
+                this.background = _context8.sent;
                 this.background.zIndex = -1;
                 this.container.addChild(this.background);
 
               case 11:
               case "end":
-                return _context7.stop();
+                return _context8.stop();
             }
           }
-        }, _callee7, this);
+        }, _callee8, this);
       }));
 
       function _createBackground() {
@@ -102829,33 +102925,33 @@ var Track = /*#__PURE__*/function () {
   }, {
     key: "_createForeground",
     value: function () {
-      var _createForeground2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8() {
+      var _createForeground2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9() {
         var view, manifest, foreground, layer;
-        return _regenerator.default.wrap(function _callee8$(_context8) {
+        return _regenerator.default.wrap(function _callee9$(_context9) {
           while (1) {
-            switch (_context8.prev = _context8.next) {
+            switch (_context9.prev = _context9.next) {
               case 0:
                 view = this.view, manifest = this.manifest;
                 foreground = manifest.foreground; // check if present
 
                 if (foreground) {
-                  _context8.next = 4;
+                  _context9.next = 4;
                   break;
                 }
 
-                return _context8.abrupt("return");
+                return _context9.abrupt("return");
 
               case 4:
                 if (!(0, _utils.isArray)(foreground.compose)) {
-                  _context8.next = 12;
+                  _context9.next = 12;
                   break;
                 }
 
-                _context8.next = 7;
+                _context9.next = 7;
                 return view.animator.compose(foreground, this.path);
 
               case 7:
-                layer = _context8.sent;
+                layer = _context9.sent;
                 // create a a separate view - this will
                 // be placed over the cars layer
                 this.foreground = new _ntAnimator.PIXI.ResponsiveContainer();
@@ -102865,10 +102961,10 @@ var Track = /*#__PURE__*/function () {
 
               case 12:
               case "end":
-                return _context8.stop();
+                return _context9.stop();
             }
           }
-        }, _callee8, this);
+        }, _callee9, this);
       }));
 
       function _createForeground() {
@@ -102881,12 +102977,12 @@ var Track = /*#__PURE__*/function () {
   }, {
     key: "applyScripts",
     value: function () {
-      var _applyScripts = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9() {
+      var _applyScripts = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10() {
         var _i2, _arr2, container, objs, _iterator4, _step4, _obj$config, obj, _parseScriptArgs, _parseScriptArgs2, name, args, handler;
 
-        return _regenerator.default.wrap(function _callee9$(_context9) {
+        return _regenerator.default.wrap(function _callee10$(_context10) {
           while (1) {
-            switch (_context9.prev = _context9.next) {
+            switch (_context10.prev = _context10.next) {
               case 0:
                 _i2 = 0, _arr2 = [this.overlay, this.ground
                 /*, this.foreground, this.background */
@@ -102894,67 +102990,67 @@ var Track = /*#__PURE__*/function () {
 
               case 1:
                 if (!(_i2 < _arr2.length)) {
-                  _context9.next = 27;
+                  _context10.next = 27;
                   break;
                 }
 
                 container = _arr2[_i2];
                 objs = (0, _ntAnimator.findDisplayObjectsOfRole)(container, 'script');
                 _iterator4 = _createForOfIteratorHelper(objs);
-                _context9.prev = 5;
+                _context10.prev = 5;
 
                 _iterator4.s();
 
               case 7:
                 if ((_step4 = _iterator4.n()).done) {
-                  _context9.next = 16;
+                  _context10.next = 16;
                   break;
                 }
 
                 obj = _step4.value;
                 _parseScriptArgs = (0, _scripts.parseScriptArgs)((_obj$config = obj.config) === null || _obj$config === void 0 ? void 0 : _obj$config.script), _parseScriptArgs2 = (0, _slicedToArray2.default)(_parseScriptArgs, 2), name = _parseScriptArgs2[0], args = _parseScriptArgs2[1];
-                _context9.next = 12;
+                _context10.next = 12;
                 return (0, _scripts.loadScript)(name, args, obj, this.view, this.view.animator);
 
               case 12:
-                handler = _context9.sent;
+                handler = _context10.sent;
 
                 if (handler) {
                   this.scripts.push(handler);
                 }
 
               case 14:
-                _context9.next = 7;
+                _context10.next = 7;
                 break;
 
               case 16:
-                _context9.next = 21;
+                _context10.next = 21;
                 break;
 
               case 18:
-                _context9.prev = 18;
-                _context9.t0 = _context9["catch"](5);
+                _context10.prev = 18;
+                _context10.t0 = _context10["catch"](5);
 
-                _iterator4.e(_context9.t0);
+                _iterator4.e(_context10.t0);
 
               case 21:
-                _context9.prev = 21;
+                _context10.prev = 21;
 
                 _iterator4.f();
 
-                return _context9.finish(21);
+                return _context10.finish(21);
 
               case 24:
                 _i2++;
-                _context9.next = 1;
+                _context10.next = 1;
                 break;
 
               case 27:
               case "end":
-                return _context9.stop();
+                return _context10.stop();
             }
           }
-        }, _callee9, this, [[5, 18, 21, 24]]);
+        }, _callee10, this, [[5, 18, 21, 24]]);
       }));
 
       function applyScripts() {
@@ -103092,16 +103188,16 @@ var Track = /*#__PURE__*/function () {
 
     /** creates a new track instance */
     value: function () {
-      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10(options) {
+      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee11(options) {
         var view, seed, activity, instance, y;
-        return _regenerator.default.wrap(function _callee10$(_context10) {
+        return _regenerator.default.wrap(function _callee11$(_context11) {
           while (1) {
-            switch (_context10.prev = _context10.next) {
+            switch (_context11.prev = _context11.next) {
               case 0:
                 view = options.view, seed = options.seed;
                 // create the new track
                 instance = new Track();
-                _context10.prev = 2;
+                _context11.prev = 2;
                 instance.options = options;
                 instance.view = view;
                 instance.container = new _ntAnimator.PIXI.Container(); // include special plugins
@@ -103125,36 +103221,43 @@ var Track = /*#__PURE__*/function () {
 
                 activity = 'preloading resources';
                 view.setLoadingStatus('assets', 'preloading resources');
-                _context10.next = 21;
+                _context11.next = 21;
                 return instance._preloadResources();
 
               case 21:
                 // setup each part
                 activity = 'assembling repeating road';
                 view.setLoadingStatus('init', 'creating road');
-                _context10.next = 25;
+                _context11.next = 25;
                 return instance._createRoad();
 
               case 25:
                 activity = 'assembling starting line';
                 view.setLoadingStatus('init', 'creating starting line');
-                _context10.next = 29;
+                _context11.next = 29;
                 return instance._createStartingLine();
 
               case 29:
                 // todo? create when needed?
                 activity = 'assembling finish line';
                 view.setLoadingStatus('init', 'creating finish line');
-                _context10.next = 33;
+                _context11.next = 33;
                 return instance._createFinishLine();
 
               case 33:
+                // create spectator watermark
+                activity = 'assembling spectator mode';
+                view.setLoadingStatus('init', 'creating spectator mode');
+                _context11.next = 37;
+                return instance._createSpectatorWatermark(options);
+
+              case 37:
                 // apply scripts, if any
                 activity = 'loading doodad scripts';
-                _context10.next = 36;
+                _context11.next = 40;
                 return instance.applyScripts();
 
-              case 36:
+              case 40:
                 // ambience is nice, but not worth stalling over
                 activity = 'loading ambient sound';
                 view.setLoadingStatus('init', 'creating ambient sound');
@@ -103162,10 +103265,10 @@ var Track = /*#__PURE__*/function () {
                 instance._createAmbience(); // other extras
 
 
-                _context10.next = 41;
+                _context11.next = 45;
                 return instance._createEffect();
 
-              case 41:
+              case 45:
                 // await instance._createForeground();
                 // await instance._createBackground();
                 // set the y position
@@ -103176,27 +103279,27 @@ var Track = /*#__PURE__*/function () {
                 instance.ground.relativeY = y; // can render
 
                 instance.ready = true;
-                _context10.next = 53;
+                _context11.next = 57;
                 break;
 
-              case 49:
-                _context10.prev = 49;
-                _context10.t0 = _context10["catch"](2);
-                console.error('Error in track component:', activity, _context10.t0);
+              case 53:
+                _context11.prev = 53;
+                _context11.t0 = _context11["catch"](2);
+                console.error('Error in track component:', activity, _context11.t0);
                 throw new Error(activity);
 
-              case 53:
-                return _context10.abrupt("return", instance);
+              case 57:
+                return _context11.abrupt("return", instance);
 
-              case 54:
+              case 58:
               case "end":
-                return _context10.stop();
+                return _context11.stop();
             }
           }
-        }, _callee10, null, [[2, 49]]);
+        }, _callee11, null, [[2, 53]]);
       }));
 
-      function create(_x) {
+      function create(_x2) {
         return _create.apply(this, arguments);
       }
 
@@ -104889,7 +104992,152 @@ var BackupCountdown = function BackupCountdown(instance) {
     }, _callee3);
   }));
 };
-},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","./base":"animations/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../audio/volume":"audio/volume.js","../audio":"audio/index.js","../utils":"utils/index.js"}],"views/track/index.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","./base":"animations/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../audio/volume":"audio/volume.js","../audio":"audio/index.js","../utils":"utils/index.js"}],"animations/spectator-start.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
+
+var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
+
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
+
+var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
+
+var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var _base = _interopRequireDefault(require("./base"));
+
+var _utils = require("../utils");
+
+var _ntAnimator = require("nt-animator");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+var ENTER_TIME = 1000;
+var DISPLAY_TIME = 4000;
+var EXIT_TIME = 500;
+
+var SpectatorStartAnimation = /*#__PURE__*/function (_Animation) {
+  (0, _inherits2.default)(SpectatorStartAnimation, _Animation);
+
+  var _super = _createSuper(SpectatorStartAnimation);
+
+  function SpectatorStartAnimation(_ref) {
+    var _this;
+
+    var _follow = _ref.follow,
+        track = _ref.track;
+    (0, _classCallCheck2.default)(this, SpectatorStartAnimation);
+    _this = _super.call(this); // this.player = player
+
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "play", /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+      var _ref3,
+          _ref3$update,
+          update,
+          _ref3$complete,
+          complete,
+          _assertThisInitialize,
+          follow,
+          track,
+          _findDisplayObjectsOf,
+          _findDisplayObjectsOf2,
+          bar,
+          _findDisplayObjectsOf3,
+          _findDisplayObjectsOf4,
+          text,
+          _args = arguments;
+
+      return _regenerator.default.wrap(function _callee$(_context) {
+        while (1) {
+          switch (_context.prev = _context.next) {
+            case 0:
+              _ref3 = _args.length > 0 && _args[0] !== undefined ? _args[0] : {}, _ref3$update = _ref3.update, update = _ref3$update === void 0 ? _utils.noop : _ref3$update, _ref3$complete = _ref3.complete, complete = _ref3$complete === void 0 ? _utils.noop : _ref3$complete;
+              _assertThisInitialize = (0, _assertThisInitialized2.default)(_this), follow = _assertThisInitialize.follow, track = _assertThisInitialize.track;
+              _findDisplayObjectsOf = (0, _ntAnimator.findDisplayObjectsOfRole)(follow, 'bar'), _findDisplayObjectsOf2 = (0, _slicedToArray2.default)(_findDisplayObjectsOf, 1), bar = _findDisplayObjectsOf2[0];
+              _findDisplayObjectsOf3 = (0, _ntAnimator.findDisplayObjectsOfRole)(follow, 'text'), _findDisplayObjectsOf4 = (0, _slicedToArray2.default)(_findDisplayObjectsOf3, 1), text = _findDisplayObjectsOf4[0]; // show the marker
+
+              _context.next = 6;
+              return _ntAnimator.animate.async({
+                ease: 'easeOutQuad',
+                from: {
+                  a: 0,
+                  x: text.x + 100
+                },
+                to: {
+                  a: 1,
+                  x: text.x
+                },
+                loop: false,
+                duration: ENTER_TIME,
+                update: function update(_ref4) {
+                  var a = _ref4.a,
+                      x = _ref4.x;
+                  follow.alpha = a;
+                  text.x = x;
+                }
+              });
+
+            case 6:
+              _context.next = 8;
+              return _ntAnimator.animate.wait(DISPLAY_TIME);
+
+            case 8:
+              // remove the marker
+              (0, _ntAnimator.animate)({
+                ease: 'easeOutQuad',
+                from: {
+                  a: 1
+                },
+                to: {
+                  a: 0
+                },
+                loop: false,
+                duration: EXIT_TIME,
+                update: function update(_ref5) {
+                  var a = _ref5.a;
+                  follow.alpha = a;
+                },
+                complete: function complete() {
+                  follow.destroy();
+                }
+              });
+
+            case 9:
+            case "end":
+              return _context.stop();
+          }
+        }
+      }, _callee);
+    })));
+    _this.track = track;
+    _this.follow = _follow; // hidden by default
+
+    _this.follow.alpha = 0;
+    return _this;
+  }
+
+  return SpectatorStartAnimation;
+}(_base.default);
+
+exports.default = SpectatorStartAnimation;
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","./base":"animations/base.js","../utils":"utils/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js"}],"views/track/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -104944,6 +105192,8 @@ var _raceCompleted = _interopRequireDefault(require("../../animations/race-compl
 var _raceProgress = _interopRequireDefault(require("../../animations/race-progress"));
 
 var _countdown = _interopRequireDefault(require("../../animations/countdown"));
+
+var _spectatorStart = _interopRequireDefault(require("../../animations/spectator-start"));
 
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
@@ -105068,7 +105318,8 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 playerOptions = _objectSpread(_objectSpread({
                   view: (0, _assertThisInitialized2.default)(_this)
                 }, data), {}, {
-                  lighting: lighting
+                  lighting: lighting,
+                  spectator: _this.isSpectatorMode
                 });
                 isPlayer = playerOptions.isPlayer, id = playerOptions.id, lane = playerOptions.lane; // get a lane to use
 
@@ -105092,33 +105343,54 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
               case 15:
                 player = _context.sent;
-                player.track = (0, _assertThisInitialized2.default)(_this); // if this player failed to load, abandon the
+                player.track = (0, _assertThisInitialized2.default)(_this); // if this happens to be a race in progress
+
+                if (_this.isSpectatorMode) {
+                  _this.progress = data.progress;
+                  _this.completedAt = data.completedAt;
+                } // if this player failed to load, abandon the
                 // attempt
 
+
                 if (!(isPlayer && !player.hasRequiredAssets)) {
-                  _context.next = 19;
+                  _context.next = 20;
                   break;
                 }
 
                 throw new PlayerAssetError();
 
-              case 19:
+              case 20:
                 // set the active player, if needed
                 if (isPlayer) {
                   _this.activePlayerId = id;
                   _this.activePlayer = player;
-                  player.isPlayer = true;
+                  player.isPlayer = true; // if this is the player, it should also be the race host
+                  // in spectator mode
+
+                  if (track.spectator && isPlayer) {
+                    // add to the view
+                    track.spectator.follow.relativeX = _config.TRACK_STARTING_LINE_POSITION;
+                    track.spectator.follow.relativeY = player.relativeY;
+                    track.spectator.follow.zIndex = _layers.LAYER_RACE_HOST_MARKER;
+                    stage.addChild(track.spectator.follow); // animate the entry
+
+                    _this.spectatorStartAnimation = new _spectatorStart.default({
+                      track: track,
+                      follow: track.spectator.follow
+                    });
+                    setTimeout(_this.spectatorStartAnimation.play, 100);
+                  }
                 } // check for a plugin with special car rules
 
 
                 _player = player, car = _player.car;
 
                 if (!((_car$plugin = car.plugin) === null || _car$plugin === void 0 ? void 0 : _car$plugin.extend)) {
-                  _context.next = 24;
+                  _context.next = 25;
                   break;
                 }
 
-                _context.next = 24;
+                _context.next = 25;
                 return car.plugin.extend({
                   animator: animator,
                   car: car,
@@ -105126,7 +105398,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   track: (0, _assertThisInitialized2.default)(_this)
                 });
 
-              case 24:
+              case 25:
                 // with the player, include their namecard
                 namecard = player.layers.namecard;
 
@@ -105169,11 +105441,11 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   state.playerHasEntered = true;
                 }
 
-                _context.next = 43;
+                _context.next = 44;
                 break;
 
-              case 35:
-                _context.prev = 35;
+              case 36:
+                _context.prev = 36;
                 _context.t0 = _context["catch"](12);
                 console.log('failed to add player', _context.t0);
                 delete activePlayers[data.id];
@@ -105183,18 +105455,18 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 // a breaking exception
 
                 if (!isPlayer) {
-                  _context.next = 43;
+                  _context.next = 44;
                   break;
                 }
 
                 throw _context.t0;
 
-              case 43:
+              case 44:
               case "end":
                 return _context.stop();
             }
           }
-        }, _callee, null, [[12, 35]]);
+        }, _callee, null, [[12, 36]]);
       }));
 
       return function (_x, _x2) {
@@ -105216,30 +105488,32 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 trackOptions = _objectSpread({
                   view: (0, _assertThisInitialized2.default)(_this),
                   onLoadTrackAssets: _this.onLoadTrackAssets
-                }, options); // try and load the track instance
+                }, options); // save some state info
 
-                _context2.prev = 2;
+                _this.isSpectatorMode = !!options.spectator; // try and load the track instance
+
                 _context2.prev = 3;
+                _context2.prev = 4;
 
                 _this.setLoadingStatus('init', 'creating track instance'); // await waitWithTimeout(loading, TRACK_CREATION_TIMEOUT);
 
 
-                _context2.next = 7;
+                _context2.next = 8;
                 return _track.default.create(trackOptions);
 
-              case 7:
+              case 8:
                 track = _this.track = _context2.sent;
-                _context2.next = 14;
+                _context2.next = 15;
                 break;
 
-              case 10:
-                _context2.prev = 10;
-                _context2.t0 = _context2["catch"](3);
+              case 11:
+                _context2.prev = 11;
+                _context2.t0 = _context2["catch"](4);
                 console.log(_context2.t0);
                 throw new Error("Failed to create new track instance");
 
-              case 14:
-                _context2.prev = 14;
+              case 15:
+                _context2.prev = 15;
 
                 _this.setLoadingStatus('init', 'creating countdown');
 
@@ -105252,25 +105526,25 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
                 _this.setLoadingStatus('init', 'initializing countdown');
 
-                _context2.next = 20;
+                _context2.next = 21;
                 return _this.countdown.init();
 
-              case 20:
+              case 21:
                 _this.resolveTask('load_extras');
 
-                _context2.next = 27;
+                _context2.next = 28;
                 break;
 
-              case 23:
-                _context2.prev = 23;
-                _context2.t1 = _context2["catch"](14);
+              case 24:
+                _context2.prev = 24;
+                _context2.t1 = _context2["catch"](15);
                 // delete this.countdown;
                 console.error("Failed to load required files for countdown animation", _context2.t1);
                 throw new CountdownAssetError();
 
-              case 27:
+              case 28:
                 if ((_this$countdown = _this.countdown) === null || _this$countdown === void 0 ? void 0 : _this$countdown.isReady) {
-                  _context2.next = 31;
+                  _context2.next = 32;
                   break;
                 }
 
@@ -105279,7 +105553,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 console.error("Countdown did not load successfully");
                 throw new CountdownAssetError();
 
-              case 31:
+              case 32:
                 // ambience is optional
                 try {
                   track.setAmbience('start');
@@ -105292,16 +105566,16 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
                 _this.resolveTask('load_track');
 
-                _context2.next = 39;
+                _context2.next = 40;
                 break;
 
-              case 35:
-                _context2.prev = 35;
-                _context2.t2 = _context2["catch"](2);
+              case 36:
+                _context2.prev = 36;
+                _context2.t2 = _context2["catch"](3);
                 console.log(_context2.t2);
                 throw new TrackCreationError();
 
-              case 39:
+              case 40:
                 // add the scroling ground
                 stage.addChild(track.ground);
                 track.ground.zIndex = _layers.LAYER_TRACK_GROUND;
@@ -105309,7 +105583,15 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
                 stage.addChild(track.overlay);
                 track.overlay.zIndex = _layers.LAYER_TRACK_OVERLAY;
-                track.overlay.relativeX = 0.5; // sort the layers
+                track.overlay.relativeX = 0.5; // spectator mode assets, if any
+
+                if (track.spectator) {
+                  stage.addChild(track.spectator.watermark);
+                  track.spectator.watermark.zIndex = 0;
+                  track.spectator.watermark.relativeX = 0.75;
+                  track.spectator.watermark.relativeY = 0.565;
+                } // sort the layers
+
 
                 stage.sortChildren(); // kick off animations
 
@@ -105324,12 +105606,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
                 _this.resolveWaitingTrackRequests();
 
-              case 48:
+              case 50:
               case "end":
                 return _context2.stop();
             }
           }
-        }, _callee2, null, [[2, 35], [3, 10], [14, 23]]);
+        }, _callee2, null, [[3, 36], [4, 11], [15, 24]]);
       }));
 
       return function (_x3) {
@@ -105491,7 +105773,27 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       var _assertThisInitialize7 = (0, _assertThisInitialized2.default)(_this),
           options = _assertThisInitialize7.options,
           state = _assertThisInitialize7.state,
-          countdown = _assertThisInitialize7.countdown; // finalize the go
+          countdown = _assertThisInitialize7.countdown; // move the spectator mode, if any
+
+
+      if (_this.track.spectator) {
+        (0, _ntAnimator.animate)({
+          ease: 'easeInOutQuad',
+          from: {
+            x: _this.track.spectator.watermark.relativeX
+          },
+          to: {
+            x: 0.5
+          },
+          duration: 7000,
+          loop: false,
+          update: function update(props) {
+            if (!state.isFinished) {
+              _this.track.spectator.watermark.relativeX = props.x;
+            }
+          }
+        });
+      } // finalize the go
 
 
       if (countdown) countdown.finish(); // change the ambience
@@ -105529,6 +105831,8 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       raceCompletedAnimation.play({});
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "finishRace", function () {
+      var _track$spectator;
+
       _this.finalizePerformanceTracking(); // the race has been marked as finished, show the completion
       // until the player is marked ready
 
@@ -105541,7 +105845,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
           options = _assertThisInitialize9.options; // already playing (this shouldn't happen)
 
 
-      if (raceCompletedAnimation) return; // stop the track
+      if (raceCompletedAnimation) return; // shift the spectator mode logo, if needed
+
+      if ((_track$spectator = track.spectator) === null || _track$spectator === void 0 ? void 0 : _track$spectator.watermark) {
+        track.spectator.watermark.relativeX = 0.365;
+      } // stop the track
+
 
       state.animateTrackMovement = false;
       state.speed = 0;
@@ -105855,7 +106164,7 @@ function TrackCreationError() {}
 function AudioAssetError() {}
 
 function PlayerAssetError() {}
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","../../audio":"audio/index.js","../base":"views/base.js","./player":"views/track/player.js","../../components/track":"components/track/index.js","./scaling":"views/track/scaling.js","../../config":"config.js","./layers":"views/track/layers.js","../../audio/volume":"audio/volume.js","../../animations/car-entry":"animations/car-entry.js","../../animations/race-completed":"animations/race-completed.js","../../animations/race-progress":"animations/race-progress.js","../../animations/countdown":"animations/countdown.js"}],"views/composer.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","../../audio":"audio/index.js","../base":"views/base.js","./player":"views/track/player.js","../../components/track":"components/track/index.js","./scaling":"views/track/scaling.js","../../config":"config.js","./layers":"views/track/layers.js","../../audio/volume":"audio/volume.js","../../animations/car-entry":"animations/car-entry.js","../../animations/race-completed":"animations/race-completed.js","../../animations/race-progress":"animations/race-progress.js","../../animations/countdown":"animations/countdown.js","../../animations/spectator-start":"animations/spectator-start.js"}],"views/composer.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {

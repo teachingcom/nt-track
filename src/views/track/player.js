@@ -149,12 +149,19 @@ export default class Player extends PIXI.ResponsiveContainer {
 		const { options, mods } = this;
 		const { view } = options;
 		const { playerName, playerTeam, teamColor, isGold, isFriend, playerRank } = options;
+		let { card = 'default' } = mods;
+
+		// prevent player namecards
+		// TODO: this may change if we support custom namecards
+		if (options.spectator && card === 'player') {
+			card = isGold ? 'gold' : 'default';
+		}
 		
 		// load a trail, if any
 		return NameCard.create({
 			view,
 			baseHeight: SCALED_NAMECARD_HEIGHT,
-			type: mods.card || 'default',
+			type: card,
 			isAnimated: mods.isNamecardAnimated,
 			name: playerName,
 			team: playerTeam,

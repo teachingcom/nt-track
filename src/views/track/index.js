@@ -1,5 +1,5 @@
 
-import { PIXI } from 'nt-animator';
+import { animate, PIXI } from 'nt-animator';
 import { merge } from '../../utils';
 import * as audio from '../../audio';
 import { BaseView } from '../base';
@@ -19,8 +19,10 @@ import {
 
 import {
 	LAYER_NAMECARD,
+	LAYER_RACE_HOST_MARKER,
 	LAYER_TRACK_GROUND,
-	LAYER_TRACK_OVERLAY
+	LAYER_TRACK_OVERLAY,
+	LAYER_TRACK_SPECTATOR_MODE
 } from './layers';
 
 import {
@@ -37,6 +39,7 @@ import CarEntryAnimation from '../../animations/car-entry';
 import RaceCompletedAnimation from '../../animations/race-completed';
 import RaceProgressAnimation from '../../animations/race-progress';
 import CountdownAnimation from '../../animations/countdown';
+import SpectatorStartAnimation from '../../animations/spectator-start';
 
 /** creates a track view that supports multiple cars for racing */
 export default class TrackView extends BaseView {
@@ -196,7 +199,7 @@ export default class TrackView extends BaseView {
 
 		const track = await this.getTrackInstance();
 		const lighting = track?.manifest?.lighting;
-		const playerOptions = { view: this, ...data, lighting };
+		const playerOptions = { view: this, ...data, lighting, spectator: this.isSpectatorMode };
 		let { isPlayer, id, lane } = playerOptions;
 		
 		// get a lane to use
@@ -215,16 +218,38 @@ export default class TrackView extends BaseView {
 			player = await Player.create(playerOptions, this);
 			player.track = this;
 
+			// if this happens to be a race in progress
+			if (this.isSpectatorMode) {
+				this.progress = data.progress;
+				this.completedAt = data.completedAt;
+			}
+
 			// if this player failed to load, abandon the
 			// attempt
 			if (isPlayer && !player.hasRequiredAssets)
 				throw new PlayerAssetError();
-			
+
 			// set the active player, if needed
 			if (isPlayer) {
 				this.activePlayerId = id;
 				this.activePlayer = player;
 				player.isPlayer = true;
+
+
+				// if this is the player, it should also be the race host
+				// in spectator mode
+				if (track.spectator && isPlayer) {
+					
+					// add to the view
+					track.spectator.follow.relativeX = TRACK_STARTING_LINE_POSITION
+					track.spectator.follow.relativeY = player.relativeY
+					track.spectator.follow.zIndex = LAYER_RACE_HOST_MARKER
+					stage.addChild(track.spectator.follow)
+					
+					// animate the entry
+					this.spectatorStartAnimation = new SpectatorStartAnimation({ track, follow: track.spectator.follow })
+					setTimeout(this.spectatorStartAnimation.play, 100)
+				}
 			}
 
 			// check for a plugin with special car rules
@@ -324,6 +349,9 @@ export default class TrackView extends BaseView {
 			...options
 		};
 
+		// save some state info
+		this.isSpectatorMode = !!options.spectator;
+
 		// try and load the track instance
 		let track
 		try {
@@ -393,6 +421,14 @@ export default class TrackView extends BaseView {
 		stage.addChild(track.overlay);
 		track.overlay.zIndex = LAYER_TRACK_OVERLAY;
 		track.overlay.relativeX = 0.5;
+		
+		// spectator mode assets, if any
+		if (track.spectator) {
+			stage.addChild(track.spectator.watermark)
+			track.spectator.watermark.zIndex = 0
+			track.spectator.watermark.relativeX = 0.75;
+			track.spectator.watermark.relativeY = 0.565;
+		}
 
 		// sort the layers
 		stage.sortChildren();
@@ -566,6 +602,22 @@ export default class TrackView extends BaseView {
 	startRace = () => {
 		const { options, state, countdown } = this;
 
+		// move the spectator mode, if any
+		if (this.track.spectator) {
+			animate({
+				ease: 'easeInOutQuad',
+				from: { x: this.track.spectator.watermark.relativeX },
+				to: { x: 0.5 },
+				duration: 7000,
+				loop: false,
+				update: props => {
+					if (!state.isFinished) {
+						this.track.spectator.watermark.relativeX = props.x;
+					}
+				}
+			})
+		}
+
 		// finalize the go
 		if (countdown)
 			countdown.finish();
@@ -614,6 +666,11 @@ export default class TrackView extends BaseView {
 		
 		// already playing (this shouldn't happen)
 		if (raceCompletedAnimation) return;
+
+		// shift the spectator mode logo, if needed
+		if (track.spectator?.watermark) {
+			track.spectator.watermark.relativeX = 0.365;
+		}
 		
 		// stop the track
 		state.animateTrackMovement = false;
