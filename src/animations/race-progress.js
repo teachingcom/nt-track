@@ -54,6 +54,28 @@ export default class RaceProgressAnimation extends Animation {
 		return size / track.view.width;
 	}
 
+	calculateOverallProgress(player, percent) {
+		const { beginOutroThreshold } = this;
+		
+		// hasn't traveled yet
+		if (percent <= beginOutroThreshold) {
+			return TRACK_STARTING_LINE_POSITION;
+		}
+
+		// calculate
+		const width = this.getOffscreenScale(player);
+		const base = 1 - beginOutroThreshold;
+		const scaled = (percent - beginOutroThreshold) / base;
+		const done = (1 - TRACK_STARTING_LINE_POSITION) * scaled;
+		const offset = width * scaled;
+		const at = TRACK_STARTING_LINE_POSITION + done + offset;
+		return Math.max(player.relativeX, TRACK_STARTING_LINE_POSITION, at);
+	}
+
+	calculateRelativeProgress(progress, compareTo) {
+		return (progress - compareTo) * RACE_PLAYER_DISTANCE_MODIFIER;
+	}
+
 	/** animates everyone except for the current player */
 	updateOther = player => {
 		const { track, tweens, isQualifyingRace } = this;
@@ -68,11 +90,7 @@ export default class RaceProgressAnimation extends Animation {
 		// calculate a position relative to the player but
 		// offset by the difference in progress
 		else {
-			const progress = player.progress / 100;
-			const compareTo = activePlayer.progress / 100;
-			const diff = (progress - compareTo) * RACE_PLAYER_DISTANCE_MODIFIER;
-	
-			// save the position
+			const diff = this.calculateRelativeProgress(player.progress / 100, activePlayer.progress / 100);
 			player.raceProgressModifier = diff;
 			player.preferredX = (activePlayer.preferredX || activePlayer.relativeX) + diff;
 		}
@@ -98,13 +116,14 @@ export default class RaceProgressAnimation extends Animation {
 			this.isOutro = true;
 
 			// calculate the position
-			const width = this.getOffscreenScale(player);
-			const base = 1 - beginOutroThreshold;
-			const scaled = (percent - beginOutroThreshold) / base;
-			const done = (1 - TRACK_STARTING_LINE_POSITION) * scaled;
-			const offset = width * scaled;
-			const at = TRACK_STARTING_LINE_POSITION + done + offset;
-			player.preferredX = Math.max(player.relativeX, TRACK_STARTING_LINE_POSITION, at);
+			// const width = this.getOffscreenScale(player);
+			// const base = 1 - beginOutroThreshold;
+			// const scaled = (percent - beginOutroThreshold) / base;
+			// const done = (1 - TRACK_STARTING_LINE_POSITION) * scaled;
+			// const offset = width * scaled;
+			// const at = TRACK_STARTING_LINE_POSITION + done + offset;
+			// Math.max(player.relativeX, TRACK_STARTING_LINE_POSITION, at);
+			player.preferredX = this.calculateOverallProgress(player, percent); 
 
 			// set the new target
 			interpolator.update(player.relativeX, player.preferredX);

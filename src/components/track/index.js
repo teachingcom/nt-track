@@ -337,11 +337,11 @@ export default class Track {
 		const watermark = new PIXI.ResponsiveContainer();
 		watermark.addChild(watermarkAsset);
 		
-		const follow = new PIXI.ResponsiveContainer();
-		follow.addChild(followAsset);
+		// const follow = new PIXI.ResponsiveContainer();
+		// follow.addChild(followAsset);
 		
 		// load the spectator assets
-		this.spectator = { watermark, follow };
+		this.spectator = { watermark, follow: followAsset };
 	}
 
 	// creates a background, if needed

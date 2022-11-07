@@ -3,6 +3,7 @@ import { PIXI, findDisplayObjectsOfRole, animate } from "nt-animator";
 import { VOLUME_COUNTDOWN_ANNOUNCER, VOLUME_START_ACCELERATION } from "../audio/volume";
 import * as audio from '../audio';
 import { createSurface, wait } from "../utils";
+import { LAYER_COUNTDOWN } from "../views/track/layers";
 
 export default class CountdownAnimation extends Animation {
 
@@ -130,7 +131,9 @@ export default class CountdownAnimation extends Animation {
 
 	showCountdown = () => { 
 		const { stage, container } = this;
+		container.zIndex = LAYER_COUNTDOWN;
 		stage.addChild(container);
+		stage.sortChildren();
 
 		// make visible
 		this.countdown.alpha = 1;

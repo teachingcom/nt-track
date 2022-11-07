@@ -86316,7 +86316,7 @@ document.addEventListener('visibilitychange', updateViewActiveState);
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.DEFAULT_PERFORMANCE_MONITORING_DELAY = exports.NITRO_BLUR_REALTIVE_SIZE_SCALING = exports.NITRO_BLUR_DEFAULT_OFFSET_X = exports.NITRO_BLUR_OFFSET_Y = exports.NITRO_ACTIVATED_TRAIL_OPACITY = exports.NITRO_OFFSET_Y = exports.NITRO_OFFSET_X = exports.NITRO_SCALE = exports.TRAIL_SCALE_IN_PREVIEW = exports.TRAIL_SCALE = exports.STATIC_CAR_ROTATION_FIX = exports.CAR_DEFAULT_LIGHTING = exports.CAR_404_ENHANCED_VERSION = exports.CAR_404_STATIC_VERSION = exports.CAR_NITRO_ADVANCEMENT_DISTANCE = exports.CAR_SHAKE_SHADOW_REDUCTION = exports.CAR_SHAKE_NITRO_BONUS = exports.CAR_SHAKE_DISTANCE = exports.CAR_DEFAULT_FRONT_BACK_OFFSET_X = exports.CAR_BODY_OFFSET_Y = exports.CAR_SHADOW_OFFSET_Y = exports.CAR_SHADOW_SCALE_ADJUST = exports.CAR_SHADOW_OPACITY = exports.CAR_SHADOW_BLUR = exports.CAR_LANE_SCALE_ADJUSTMENT = exports.CAR_DEFAULT_SHAKE_LEVEL = exports.NAMECARD_TETHER_DISTANCE = exports.NAMECARD_SCALE = exports.CROWD_ANIMATION_DURATION = exports.CROWD_ANIMATION_FRAME_COUNT = exports.CROWD_ANIMATION_VARIATIONS = exports.CROWD_DEFAULT_SCALE = exports.RACE_FINISH_FLASH_FADE_TIME = exports.RACE_SOUND_ERROR_MAX_INTERVAL = exports.RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL = exports.RACE_PROGRESS_TWEEN_TIMING = exports.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT = exports.RACE_FINISH_CAR_STOPPING_TIME = exports.RACE_START_NAMECARD_DELAY_TIME = exports.RACE_START_NAMECARD_ENTRY_TIME = exports.RACE_START_CAR_ENTRY_TIME = exports.RACE_AUTO_PROGRESS_DISTANCE = exports.RACE_OFF_SCREEN_FINISH_DISTANCE = exports.RACE_PLAYER_DISTANCE_MODIFIER = exports.RACE_ENDING_ANIMATION_QUALIFYING_THRESHOLD = exports.RACE_ENDING_ANIMATION_STANDARD_THRESHOLD = exports.TRACK_OFFSCREEN_CAR_FINISH = exports.TRACK_NAMECARD_EDGE_PADDING = exports.TRACK_STARTING_LINE_POSITION = exports.TRACK_CAR_LANE_CENTER_OFFSET = exports.TRACK_CAR_SIZE_RELATIVE_TO_LANE = exports.TRACK_SHOULDER_SCALE = exports.TRACK_BOTTOM_SCALE = exports.TRACK_TOP_SCALE = exports.TRACK_ACCELERATION_RATE = exports.TRACK_MAXIMUM_TRAVEL_DISTANCE = exports.TRACK_MAXIMUM_SPEED = exports.TRACK_MAXIMUM_SPEED_DRAG_RATE = exports.TRACK_MAXIMUM_SPEED_BOOST_RATE = exports.TRACK_MAXIMUM_SCROLL_SPEED = void 0;
+exports.DEFAULT_PERFORMANCE_MONITORING_DELAY = exports.NITRO_BLUR_REALTIVE_SIZE_SCALING = exports.NITRO_BLUR_DEFAULT_OFFSET_X = exports.NITRO_BLUR_OFFSET_Y = exports.NITRO_ACTIVATED_TRAIL_OPACITY = exports.NITRO_OFFSET_Y = exports.NITRO_OFFSET_X = exports.NITRO_SCALE = exports.TRAIL_SCALE_IN_PREVIEW = exports.TRAIL_SCALE = exports.STATIC_CAR_ROTATION_FIX = exports.CAR_DEFAULT_LIGHTING = exports.CAR_404_ENHANCED_VERSION = exports.CAR_404_STATIC_VERSION = exports.CAR_NITRO_ADVANCEMENT_DISTANCE = exports.CAR_SHAKE_SHADOW_REDUCTION = exports.CAR_SHAKE_NITRO_BONUS = exports.CAR_SHAKE_DISTANCE = exports.CAR_DEFAULT_FRONT_BACK_OFFSET_X = exports.CAR_BODY_OFFSET_Y = exports.CAR_SHADOW_OFFSET_Y = exports.CAR_SHADOW_SCALE_ADJUST = exports.CAR_SHADOW_OPACITY = exports.CAR_SHADOW_BLUR = exports.CAR_LANE_SCALE_ADJUSTMENT = exports.CAR_DEFAULT_SHAKE_LEVEL = exports.NAMECARD_TETHER_DISTANCE = exports.NAMECARD_SCALE = exports.CROWD_ANIMATION_DURATION = exports.CROWD_ANIMATION_FRAME_COUNT = exports.CROWD_ANIMATION_VARIATIONS = exports.CROWD_DEFAULT_SCALE = exports.RACE_FINISH_FLASH_FADE_TIME = exports.RACE_SOUND_ERROR_MAX_INTERVAL = exports.RACE_SOUND_TIRE_SCREECH_MAX_INTERVAL = exports.RACE_PROGRESS_TWEEN_TIMING = exports.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT = exports.RACE_FINISH_CAR_STOPPING_TIME = exports.RACE_START_NAMECARD_DELAY_TIME = exports.RACE_START_NAMECARD_ENTRY_TIME = exports.RACE_START_CAR_ENTRY_TIME = exports.RACE_AUTO_PROGRESS_DISTANCE = exports.RACE_OFF_SCREEN_FINISH_DISTANCE = exports.RACE_PLAYER_DISTANCE_MODIFIER = exports.RACE_ENDING_ANIMATION_QUALIFYING_THRESHOLD = exports.RACE_ENDING_ANIMATION_STANDARD_THRESHOLD = exports.SPECTATOR_WATERMARK_FINISH_POSITION = exports.SPECTATOR_WATERMARK_START_POSITION = exports.TRACK_OFFSCREEN_CAR_FINISH = exports.TRACK_NAMECARD_EDGE_PADDING = exports.TRACK_STARTING_LINE_POSITION = exports.TRACK_CAR_LANE_CENTER_OFFSET = exports.TRACK_CAR_SIZE_RELATIVE_TO_LANE = exports.TRACK_SHOULDER_SCALE = exports.TRACK_BOTTOM_SCALE = exports.TRACK_TOP_SCALE = exports.TRACK_ACCELERATION_RATE = exports.TRACK_MAXIMUM_TRAVEL_DISTANCE = exports.TRACK_MAXIMUM_SPEED = exports.TRACK_MAXIMUM_SPEED_DRAG_RATE = exports.TRACK_MAXIMUM_SPEED_BOOST_RATE = exports.TRACK_MAXIMUM_SCROLL_SPEED = void 0;
 // tracks
 var TRACK_MAXIMUM_SCROLL_SPEED = 35;
 exports.TRACK_MAXIMUM_SCROLL_SPEED = TRACK_MAXIMUM_SCROLL_SPEED;
@@ -86344,9 +86344,14 @@ var TRACK_STARTING_LINE_POSITION = 0.35;
 exports.TRACK_STARTING_LINE_POSITION = TRACK_STARTING_LINE_POSITION;
 var TRACK_NAMECARD_EDGE_PADDING = 10;
 exports.TRACK_NAMECARD_EDGE_PADDING = TRACK_NAMECARD_EDGE_PADDING;
-var TRACK_OFFSCREEN_CAR_FINISH = 0.2; // progress
+var TRACK_OFFSCREEN_CAR_FINISH = 0.2; // spectator
 
 exports.TRACK_OFFSCREEN_CAR_FINISH = TRACK_OFFSCREEN_CAR_FINISH;
+var SPECTATOR_WATERMARK_START_POSITION = 0.75;
+exports.SPECTATOR_WATERMARK_START_POSITION = SPECTATOR_WATERMARK_START_POSITION;
+var SPECTATOR_WATERMARK_FINISH_POSITION = 0.25; // progress
+
+exports.SPECTATOR_WATERMARK_FINISH_POSITION = SPECTATOR_WATERMARK_FINISH_POSITION;
 var RACE_ENDING_ANIMATION_STANDARD_THRESHOLD = 0.66;
 exports.RACE_ENDING_ANIMATION_STANDARD_THRESHOLD = RACE_ENDING_ANIMATION_STANDARD_THRESHOLD;
 var RACE_ENDING_ANIMATION_QUALIFYING_THRESHOLD = 0.2;
@@ -87774,7 +87779,11 @@ function _createStaticCar() {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.LAYER_TRACK_GROUND = exports.LAYER_TRACK_SPECTATOR_MODE = exports.LAYER_RACE_HOST_MARKER = exports.LAYER_SHADOW = exports.LAYER_TRAIL = exports.LAYER_CAR = exports.LAYER_NAMECARD = exports.LAYER_NAMECARD_OVERLAY = exports.LAYER_NITRO_BLUR = exports.LAYER_TRACK_OVERLAY = void 0;
+exports.LAYER_TRACK_GROUND = exports.LAYER_RACE_HOST_MARKER = exports.LAYER_SHADOW = exports.LAYER_TRAIL = exports.LAYER_CAR = exports.LAYER_NAMECARD = exports.LAYER_NAMECARD_OVERLAY = exports.LAYER_NITRO_BLUR = exports.LAYER_TRACK_OVERLAY = exports.LAYER_COUNTDOWN = exports.LAYER_TRACK_SPECTATOR_MODE = void 0;
+var LAYER_TRACK_SPECTATOR_MODE = 200;
+exports.LAYER_TRACK_SPECTATOR_MODE = LAYER_TRACK_SPECTATOR_MODE;
+var LAYER_COUNTDOWN = 150;
+exports.LAYER_COUNTDOWN = LAYER_COUNTDOWN;
 var LAYER_TRACK_OVERLAY = 100;
 exports.LAYER_TRACK_OVERLAY = LAYER_TRACK_OVERLAY;
 var LAYER_NITRO_BLUR = 30;
@@ -87789,10 +87798,8 @@ var LAYER_TRAIL = -49;
 exports.LAYER_TRAIL = LAYER_TRAIL;
 var LAYER_SHADOW = -50;
 exports.LAYER_SHADOW = LAYER_SHADOW;
-var LAYER_RACE_HOST_MARKER = -51;
+var LAYER_RACE_HOST_MARKER = -99;
 exports.LAYER_RACE_HOST_MARKER = LAYER_RACE_HOST_MARKER;
-var LAYER_TRACK_SPECTATOR_MODE = -99;
-exports.LAYER_TRACK_SPECTATOR_MODE = LAYER_TRACK_SPECTATOR_MODE;
 var LAYER_TRACK_GROUND = -100;
 exports.LAYER_TRACK_GROUND = LAYER_TRACK_GROUND;
 },{}],"animations/base.js":[function(require,module,exports) {
@@ -102750,7 +102757,7 @@ var Track = /*#__PURE__*/function () {
     key: "_createSpectatorWatermark",
     value: function () {
       var _createSpectatorWatermark2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(options) {
-        var view, _yield$Promise$all, _yield$Promise$all2, watermarkAsset, followAsset, watermark, follow;
+        var view, _yield$Promise$all, _yield$Promise$all2, watermarkAsset, followAsset, watermark;
 
         return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
@@ -102776,16 +102783,16 @@ var Track = /*#__PURE__*/function () {
                 followAsset = _yield$Promise$all2[1];
                 // make containers
                 watermark = new _ntAnimator.PIXI.ResponsiveContainer();
-                watermark.addChild(watermarkAsset);
-                follow = new _ntAnimator.PIXI.ResponsiveContainer();
-                follow.addChild(followAsset); // load the spectator assets
+                watermark.addChild(watermarkAsset); // const follow = new PIXI.ResponsiveContainer();
+                // follow.addChild(followAsset);
+                // load the spectator assets
 
                 this.spectator = {
                   watermark: watermark,
-                  follow: follow
+                  follow: followAsset
                 };
 
-              case 14:
+              case 12:
               case "end":
                 return _context6.stop();
             }
@@ -103320,7 +103327,83 @@ var getRightEdge = function getRightEdge(t) {
 var byRightEdge = function byRightEdge(a, b) {
   return getRightEdge(a) - getRightEdge(b);
 };
-},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../rng":"rng.js","../../views/track/scaling":"views/track/scaling.js","../../config":"config.js","../../utils":"utils/index.js","./segment":"components/track/segment.js","../../plugins/crowd":"plugins/crowd/index.js","../../audio/ambient":"audio/ambient.js","./preload":"components/track/preload.js","../../scripts":"scripts/index.js","../../effects/rain":"effects/rain.js","../../effects/leaves":"effects/leaves.js","../../audio":"audio/index.js"}],"animations/car-entry.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../rng":"rng.js","../../views/track/scaling":"views/track/scaling.js","../../config":"config.js","../../utils":"utils/index.js","./segment":"components/track/segment.js","../../plugins/crowd":"plugins/crowd/index.js","../../audio/ambient":"audio/ambient.js","./preload":"components/track/preload.js","../../scripts":"scripts/index.js","../../effects/rain":"effects/rain.js","../../effects/leaves":"effects/leaves.js","../../audio":"audio/index.js"}],"utils/async-lock.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+var AsyncLock = /*#__PURE__*/function () {
+  function AsyncLock() {
+    var _this = this;
+
+    var lockByDefault = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+    (0, _classCallCheck2.default)(this, AsyncLock);
+    (0, _defineProperty2.default)(this, "_priorArgs", []);
+    (0, _defineProperty2.default)(this, "release", function (args) {
+      var _iterator = _createForOfIteratorHelper(_this.pending || []),
+          _step;
+
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var waiting = _step.value;
+          waiting(args);
+        }
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
+
+      _this._priorArgs = args;
+      delete _this.pending;
+    });
+
+    if (lockByDefault) {
+      this.lock();
+    }
+  }
+
+  (0, _createClass2.default)(AsyncLock, [{
+    key: "lock",
+    value: function lock() {
+      this.pending = [];
+    }
+  }, {
+    key: "wait",
+    value: function wait() {
+      var _this2 = this;
+
+      if (this.pending) {
+        return new Promise(function (resolve) {
+          return _this2.pending.push(resolve);
+        });
+      }
+
+      return this._priorArgs;
+    }
+  }]);
+  return AsyncLock;
+}();
+
+exports.default = AsyncLock;
+},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js"}],"animations/car-entry.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -104267,9 +104350,9 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
-var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
-
 var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
 
 var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
 
@@ -104353,9 +104436,7 @@ var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
       } // calculate a position relative to the player but
       // offset by the difference in progress
       else {
-          var progress = player.progress / 100;
-          var compareTo = activePlayer.progress / 100;
-          var diff = (progress - compareTo) * _config.RACE_PLAYER_DISTANCE_MODIFIER; // save the position
+          var diff = _this.calculateRelativeProgress(player.progress / 100, activePlayer.progress / 100);
 
           player.raceProgressModifier = diff;
           player.preferredX = (activePlayer.preferredX || activePlayer.relativeX) + diff;
@@ -104382,15 +104463,15 @@ var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
 
       if (percent > beginOutroThreshold) {
         _this.isOutro = true; // calculate the position
+        // const width = this.getOffscreenScale(player);
+        // const base = 1 - beginOutroThreshold;
+        // const scaled = (percent - beginOutroThreshold) / base;
+        // const done = (1 - TRACK_STARTING_LINE_POSITION) * scaled;
+        // const offset = width * scaled;
+        // const at = TRACK_STARTING_LINE_POSITION + done + offset;
+        // Math.max(player.relativeX, TRACK_STARTING_LINE_POSITION, at);
 
-        var width = _this.getOffscreenScale(player);
-
-        var base = 1 - beginOutroThreshold;
-        var scaled = (percent - beginOutroThreshold) / base;
-        var done = (1 - _config.TRACK_STARTING_LINE_POSITION) * scaled;
-        var offset = width * scaled;
-        var at = _config.TRACK_STARTING_LINE_POSITION + done + offset;
-        player.preferredX = Math.max(player.relativeX, _config.TRACK_STARTING_LINE_POSITION, at); // set the new target
+        player.preferredX = _this.calculateOverallProgress(player, percent); // set the new target
 
         interpolator.update(player.relativeX, player.preferredX);
       }
@@ -104511,6 +104592,32 @@ var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
   } // bonus distance for qualifying races
 
 
+  (0, _createClass2.default)(RaceProgressAnimation, [{
+    key: "calculateOverallProgress",
+    value: function calculateOverallProgress(player, percent) {
+      var beginOutroThreshold = this.beginOutroThreshold; // hasn't traveled yet
+
+      if (percent <= beginOutroThreshold) {
+        return _config.TRACK_STARTING_LINE_POSITION;
+      } // calculate
+
+
+      var width = this.getOffscreenScale(player);
+      var base = 1 - beginOutroThreshold;
+      var scaled = (percent - beginOutroThreshold) / base;
+      var done = (1 - _config.TRACK_STARTING_LINE_POSITION) * scaled;
+      var offset = width * scaled;
+      var at = _config.TRACK_STARTING_LINE_POSITION + done + offset;
+      return Math.max(player.relativeX, _config.TRACK_STARTING_LINE_POSITION, at);
+    }
+  }, {
+    key: "calculateRelativeProgress",
+    value: function calculateRelativeProgress(progress, compareTo) {
+      return (progress - compareTo) * _config.RACE_PLAYER_DISTANCE_MODIFIER;
+    }
+    /** animates everyone except for the current player */
+
+  }]);
   return RaceProgressAnimation;
 }(_base.default);
 
@@ -104543,7 +104650,7 @@ var ProgressInterpolator = /*#__PURE__*/function () {
   }]);
   return ProgressInterpolator;
 }();
-},{"@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","./base":"animations/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../config":"config.js"}],"animations/countdown.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","./base":"animations/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../config":"config.js"}],"animations/countdown.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -104580,6 +104687,8 @@ var _volume = require("../audio/volume");
 var audio = _interopRequireWildcard(require("../audio"));
 
 var _utils = require("../utils");
+
+var _layers = require("../views/track/layers");
 
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
@@ -104694,7 +104803,9 @@ var CountdownAnimation = /*#__PURE__*/function (_Animation) {
           stage = _assertThisInitialize3.stage,
           container = _assertThisInitialize3.container;
 
-      stage.addChild(container); // make visible
+      container.zIndex = _layers.LAYER_COUNTDOWN;
+      stage.addChild(container);
+      stage.sortChildren(); // make visible
 
       _this.countdown.alpha = 1; // quick fade in
 
@@ -104992,7 +105103,7 @@ var BackupCountdown = function BackupCountdown(instance) {
     }, _callee3);
   }));
 };
-},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","./base":"animations/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../audio/volume":"audio/volume.js","../audio":"audio/index.js","../utils":"utils/index.js"}],"animations/spectator-start.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","./base":"animations/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../audio/volume":"audio/volume.js","../audio":"audio/index.js","../utils":"utils/index.js","../views/track/layers":"views/track/layers.js"}],"animations/spectator-start.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -105030,7 +105141,7 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
-var ENTER_TIME = 1000;
+var ENTER_TIME = 3000;
 var DISPLAY_TIME = 4000;
 var EXIT_TIME = 500;
 
@@ -105073,8 +105184,7 @@ var SpectatorStartAnimation = /*#__PURE__*/function (_Animation) {
               _findDisplayObjectsOf = (0, _ntAnimator.findDisplayObjectsOfRole)(follow, 'bar'), _findDisplayObjectsOf2 = (0, _slicedToArray2.default)(_findDisplayObjectsOf, 1), bar = _findDisplayObjectsOf2[0];
               _findDisplayObjectsOf3 = (0, _ntAnimator.findDisplayObjectsOfRole)(follow, 'text'), _findDisplayObjectsOf4 = (0, _slicedToArray2.default)(_findDisplayObjectsOf3, 1), text = _findDisplayObjectsOf4[0]; // show the marker
 
-              _context.next = 6;
-              return _ntAnimator.animate.async({
+              (0, _ntAnimator.animate)({
                 ease: 'easeOutQuad',
                 from: {
                   a: 0,
@@ -105092,34 +105202,24 @@ var SpectatorStartAnimation = /*#__PURE__*/function (_Animation) {
                   follow.alpha = a;
                   text.x = x;
                 }
-              });
+              }); // // give it a moment
+              // await animate.wait(DISPLAY_TIME);
+              // // remove the marker
+              // animate({
+              // 	ease: 'easeOutQuad',
+              // 	from: { a: 1 },
+              // 	to: { a: 0 },
+              // 	loop: false,
+              // 	duration: EXIT_TIME,
+              // 	update({ a }) {
+              // 		follow.alpha = a;
+              // 	},
+              // 	complete() {
+              // 		follow.destroy()
+              // 	}
+              // });
 
-            case 6:
-              _context.next = 8;
-              return _ntAnimator.animate.wait(DISPLAY_TIME);
-
-            case 8:
-              // remove the marker
-              (0, _ntAnimator.animate)({
-                ease: 'easeOutQuad',
-                from: {
-                  a: 1
-                },
-                to: {
-                  a: 0
-                },
-                loop: false,
-                duration: EXIT_TIME,
-                update: function update(_ref5) {
-                  var a = _ref5.a;
-                  follow.alpha = a;
-                },
-                complete: function complete() {
-                  follow.destroy();
-                }
-              });
-
-            case 9:
+            case 5:
             case "end":
               return _context.stop();
           }
@@ -105176,6 +105276,8 @@ var _base = require("../base");
 var _player2 = _interopRequireDefault(require("./player"));
 
 var _track = _interopRequireDefault(require("../../components/track"));
+
+var _asyncLock = _interopRequireDefault(require("../../utils/async-lock"));
 
 var scaling = _interopRequireWildcard(require("./scaling"));
 
@@ -105369,9 +105471,8 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
                   if (track.spectator && isPlayer) {
                     // add to the view
-                    track.spectator.follow.relativeX = _config.TRACK_STARTING_LINE_POSITION;
-                    track.spectator.follow.relativeY = player.relativeY;
                     track.spectator.follow.zIndex = _layers.LAYER_RACE_HOST_MARKER;
+                    track.spectator.following = player;
                     stage.addChild(track.spectator.follow); // animate the entry
 
                     _this.spectatorStartAnimation = new _spectatorStart.default({
@@ -105419,19 +105520,24 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
                 if (!isViewActive || _this.state.isStarted) isInstant = true; // animate onto the track
 
-                _ref2 = data.car || {}, _ref2$enterSound = _ref2.enterSound, enterSound = _ref2$enterSound === void 0 ? 'sport' : _ref2$enterSound;
-                entry = new _carEntry.default({
-                  player: player,
-                  namecard: namecard,
-                  enterSound: enterSound,
-                  track: (0, _assertThisInitialized2.default)(_this)
-                });
-                entry.play({
-                  isInstant: isInstant,
-                  complete: function complete() {
-                    return _this.setPlayerReady(player);
-                  }
-                }); // add to the view
+                if (_this.isRaceAlreadyInProgress) {
+                  _this.setPlayerReady(player);
+                } else {
+                  _ref2 = data.car || {}, _ref2$enterSound = _ref2.enterSound, enterSound = _ref2$enterSound === void 0 ? 'sport' : _ref2$enterSound;
+                  entry = new _carEntry.default({
+                    player: player,
+                    namecard: namecard,
+                    enterSound: enterSound,
+                    track: (0, _assertThisInitialized2.default)(_this)
+                  });
+                  entry.play({
+                    isInstant: isInstant,
+                    complete: function complete() {
+                      return _this.setPlayerReady(player);
+                    }
+                  });
+                } // add to the view
+
 
                 stage.addChild(player);
                 stage.sortChildren(); // if this the current player then mark
@@ -105439,13 +105545,27 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
                 if (data.isPlayer) {
                   state.playerHasEntered = true;
-                }
+                } // // check for mid-race positioning
+                // if (this.isRaceAlreadyInProgress) {
+                // 	player.progress = this.startingRacerProgress[player.id];
+                // 	console.log('starting', player, player.progress)
+                // 	if (isPlayer) {
+                // 		player.lastUpdate = 0;
+                // 		console.log('wants to update', player.progress)
+                // 		this.raceProgressAnimation.updatePlayer(player, true);
+                // 		console.log(player.relativeX)
+                // 	}
+                // 	else {
+                // 		this.raceProgressAnimation.updatePlayer(player, true);
+                // 	}
+                // }
 
-                _context.next = 44;
+
+                _context.next = 42;
                 break;
 
-              case 36:
-                _context.prev = 36;
+              case 34:
+                _context.prev = 34;
                 _context.t0 = _context["catch"](12);
                 console.log('failed to add player', _context.t0);
                 delete activePlayers[data.id];
@@ -105455,18 +105575,18 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 // a breaking exception
 
                 if (!isPlayer) {
-                  _context.next = 44;
+                  _context.next = 42;
                   break;
                 }
 
                 throw _context.t0;
 
-              case 44:
+              case 42:
               case "end":
                 return _context.stop();
             }
           }
-        }, _callee, null, [[12, 36]]);
+        }, _callee, null, [[12, 34]]);
       }));
 
       return function (_x, _x2) {
@@ -105478,7 +105598,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setTrack", /*#__PURE__*/function () {
       var _ref3 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(options) {
-        var _assertThisInitialize2, stage, animator, trackOptions, track, _this$countdown;
+        var _assertThisInitialize2, stage, animator, trackOptions, track, _this$countdown, _iterator2, _step2, racer;
 
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
@@ -105585,28 +105705,49 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 track.overlay.zIndex = _layers.LAYER_TRACK_OVERLAY;
                 track.overlay.relativeX = 0.5; // spectator mode assets, if any
 
-                if (track.spectator) {
+                console.log('starting options', options);
+
+                if (options.spectator) {
                   stage.addChild(track.spectator.watermark);
-                  track.spectator.watermark.zIndex = 0;
-                  track.spectator.watermark.relativeX = 0.75;
-                  track.spectator.watermark.relativeY = 0.565;
+                  track.spectator.watermark.zIndex = _layers.LAYER_TRACK_SPECTATOR_MODE; // track.spectator.watermark.relativeX = 0.775;
+                  // track.spectator.watermark.relativeX = 1 - 0.775;
+
+                  track.spectator.watermark.relativeY = 0.575;
                 } // sort the layers
 
 
-                stage.sortChildren(); // kick off animations
+                stage.sortChildren(); // resolve waiting track requests
 
-                if (options.raceInProgress) {
+                _this.resolveWaitingTrackRequests(); // need to mark all new players as needing
+                // to use their active progresses
+
+
+                if (options.raceInProgress && options.racers) {
+                  _this.isRaceAlreadyInProgress = true; // set the track as actively animating
+
                   _this.state.speed = _config.TRACK_MAXIMUM_SPEED;
 
                   _this.startRace();
 
-                  _this.track._cycleTrack(-4000);
-                } // resolve waiting track requests
+                  _this.track._cycleTrack(-4000); // map out all starting positions
 
 
-                _this.resolveWaitingTrackRequests();
+                  _this.startingRacerProgress = {};
+                  _iterator2 = _createForOfIteratorHelper(options.racers);
 
-              case 50:
+                  try {
+                    for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+                      racer = _step2.value;
+                      _this.startingRacerProgress[racer.userID] = (racer.position || 0) * 100;
+                    }
+                  } catch (err) {
+                    _iterator2.e(err);
+                  } finally {
+                    _iterator2.f();
+                  }
+                }
+
+              case 51:
               case "end":
                 return _context2.stop();
             }
@@ -105618,20 +105759,72 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
         return _ref3.apply(this, arguments);
       };
     }());
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setPlayerReady", function (player) {
-      var _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this),
-          players = _assertThisInitialize3.players,
-          state = _assertThisInitialize3.state;
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "waitForPlayerReady", new _asyncLock.default());
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setPlayerReady", /*#__PURE__*/function () {
+      var _ref4 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(player) {
+        var _this$startingRacerPr;
 
-      var totalPlayers = state.totalPlayers; // add the player to the list
+        var _assertThisInitialize3, players, state, totalPlayers, progress, percent, _this$startingRacerPr2, activePlayer, relativeProgress, diff;
 
-      players.push(player); // game is ready to play
-      // TODO: this might change depending on how players are loaded
+        return _regenerator.default.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this), players = _assertThisInitialize3.players, state = _assertThisInitialize3.state;
+                totalPlayers = state.totalPlayers; // add the player to the list
 
-      if (players.length === totalPlayers) {
-        _this.emit('ready');
-      }
-    });
+                players.push(player); // if needed
+
+                progress = (_this$startingRacerPr = _this.startingRacerProgress) === null || _this$startingRacerPr === void 0 ? void 0 : _this$startingRacerPr[player.id];
+
+                if (isNaN(progress)) {
+                  _context3.next = 18;
+                  break;
+                }
+
+                if (!player.isPlayer) {
+                  _context3.next = 11;
+                  break;
+                }
+
+                percent = _this.raceProgressAnimation.calculateOverallProgress(player, progress / 100);
+                player.relativeX = player.preferredX = percent;
+
+                _this.waitForPlayerReady.release(player);
+
+                _context3.next = 18;
+                break;
+
+              case 11:
+                _context3.next = 13;
+                return _this.waitForPlayerReady.wait();
+
+              case 13:
+                activePlayer = _context3.sent;
+                relativeProgress = (_this$startingRacerPr2 = _this.startingRacerProgress) === null || _this$startingRacerPr2 === void 0 ? void 0 : _this$startingRacerPr2[activePlayer.id];
+                diff = _this.raceProgressAnimation.calculateRelativeProgress(progress / 100, relativeProgress / 100);
+                player.raceProgressModifier = diff;
+                player.relativeX = player.preferredX = (activePlayer.preferredX || activePlayer.relativeX) + diff;
+
+              case 18:
+                // game is ready to play
+                // TODO: this might change depending on how players are loaded
+                if (players.length === totalPlayers) {
+                  _this.emit('ready');
+                }
+
+              case 19:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3);
+      }));
+
+      return function (_x4) {
+        return _ref4.apply(this, arguments);
+      };
+    }());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "removePlayer", function (id) {
       var _assertThisInitialize4 = (0, _assertThisInitialized2.default)(_this),
           activePlayers = _assertThisInitialize4.activePlayers,
@@ -105692,30 +105885,30 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
         console.warn("Unable to play audio: error_".concat(selected), err);
       }
     });
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "startCountdown", /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
-      return _regenerator.default.wrap(function _callee3$(_context3) {
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "startCountdown", /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+      return _regenerator.default.wrap(function _callee4$(_context4) {
         while (1) {
-          switch (_context3.prev = _context3.next) {
+          switch (_context4.prev = _context4.next) {
             case 0:
               _this.emit('race:countdown');
 
-              if (_this.countdown) _this.countdown.start();
+              if (_this.countdown && !_this.isRaceAlreadyInProgress) _this.countdown.start();
 
             case 2:
             case "end":
-              return _context3.stop();
+              return _context4.stop();
           }
         }
-      }, _callee3);
+      }, _callee4);
     })));
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "configureSFX", audio.configureSFX);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "configureMusic", audio.configureMusic);
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setProgress", function (id, _ref5) {
-      var progress = _ref5.progress,
-          finished = _ref5.finished,
-          typed = _ref5.typed,
-          typingSpeedModifier = _ref5.typingSpeedModifier,
-          completed = _ref5.completed;
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setProgress", function (id, _ref6) {
+      var progress = _ref6.progress,
+          finished = _ref6.finished,
+          typed = _ref6.typed,
+          typingSpeedModifier = _ref6.typingSpeedModifier,
+          completed = _ref6.completed;
 
       var _assertThisInitialize6 = (0, _assertThisInitialized2.default)(_this),
           state = _assertThisInitialize6.state,
@@ -105768,31 +105961,17 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       }
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "startRace", function () {
-      var _this$track;
+      var _track$spectator, _this$track;
 
       var _assertThisInitialize7 = (0, _assertThisInitialized2.default)(_this),
           options = _assertThisInitialize7.options,
+          track = _assertThisInitialize7.track,
           state = _assertThisInitialize7.state,
-          countdown = _assertThisInitialize7.countdown; // move the spectator mode, if any
+          countdown = _assertThisInitialize7.countdown; // show the specator watermark
 
 
-      if (_this.track.spectator) {
-        (0, _ntAnimator.animate)({
-          ease: 'easeInOutQuad',
-          from: {
-            x: _this.track.spectator.watermark.relativeX
-          },
-          to: {
-            x: 0.5
-          },
-          duration: 7000,
-          loop: false,
-          update: function update(props) {
-            if (!state.isFinished) {
-              _this.track.spectator.watermark.relativeX = props.x;
-            }
-          }
-        });
+      if ((_track$spectator = track.spectator) === null || _track$spectator === void 0 ? void 0 : _track$spectator.watermark) {
+        track.spectator.watermark.relativeX = _config.SPECTATOR_WATERMARK_START_POSITION;
       } // finalize the go
 
 
@@ -105802,19 +105981,19 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
       (_this$track = _this.track) === null || _this$track === void 0 ? void 0 : _this$track.setAmbience('race'); // toggle all start animations
 
-      var _iterator2 = _createForOfIteratorHelper(_this.players),
-          _step2;
+      var _iterator3 = _createForOfIteratorHelper(_this.players),
+          _step3;
 
       try {
-        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-          var player = _step2.value;
+        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+          var player = _step3.value;
           player.toggle.activate('moving');
         } // start movement
 
       } catch (err) {
-        _iterator2.e(err);
+        _iterator3.e(err);
       } finally {
-        _iterator2.f();
+        _iterator3.f();
       }
 
       state.animateTrackMovement = true;
@@ -105831,7 +106010,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       raceCompletedAnimation.play({});
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "finishRace", function () {
-      var _track$spectator;
+      var _track$spectator2, _track$spectator3;
 
       _this.finalizePerformanceTracking(); // the race has been marked as finished, show the completion
       // until the player is marked ready
@@ -105845,10 +106024,15 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
           options = _assertThisInitialize9.options; // already playing (this shouldn't happen)
 
 
-      if (raceCompletedAnimation) return; // shift the spectator mode logo, if needed
+      if (raceCompletedAnimation) return; // show the specator watermark
 
-      if ((_track$spectator = track.spectator) === null || _track$spectator === void 0 ? void 0 : _track$spectator.watermark) {
-        track.spectator.watermark.relativeX = 0.365;
+      if ((_track$spectator2 = track.spectator) === null || _track$spectator2 === void 0 ? void 0 : _track$spectator2.watermark) {
+        track.spectator.watermark.relativeX = _config.SPECTATOR_WATERMARK_FINISH_POSITION;
+      } // shift the spectator mode logo, if needed
+
+
+      if ((_track$spectator3 = track.spectator) === null || _track$spectator3 === void 0 ? void 0 : _track$spectator3.follow) {
+        track.spectator.follow.alpha = 0;
       } // stop the track
 
 
@@ -105896,12 +106080,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     key: "init",
     // handle remaining setup
     value: function () {
-      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(options) {
+      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(options) {
         var _options, isQualifyingRace;
 
-        return _regenerator.default.wrap(function _callee4$(_context4) {
+        return _regenerator.default.wrap(function _callee5$(_context5) {
           while (1) {
-            switch (_context4.prev = _context4.next) {
+            switch (_context5.prev = _context5.next) {
               case 0:
                 options = (0, _utils.merge)({
                   scale: {
@@ -105910,7 +106094,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   dynamicPerformanceCacheKey: 'track'
                 }, options); // base class init
 
-                _context4.next = 3;
+                _context5.next = 3;
                 return (0, _get2.default)((0, _getPrototypeOf2.default)(TrackView.prototype), "init", this).call(this, options);
 
               case 3:
@@ -105937,13 +106121,13 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
               case 11:
               case "end":
-                return _context4.stop();
+                return _context5.stop();
             }
           }
-        }, _callee4, this);
+        }, _callee5, this);
       }));
 
-      function init(_x4) {
+      function init(_x5) {
         return _init.apply(this, arguments);
       }
 
@@ -105955,12 +106139,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     value: function resolveWaitingTrackRequests() {
       this.isTrackReady = true;
 
-      var _iterator3 = _createForOfIteratorHelper(this._waitingForTrack),
-          _step3;
+      var _iterator4 = _createForOfIteratorHelper(this._waitingForTrack),
+          _step4;
 
       try {
-        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
-          var resolve = _step3.value;
+        for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+          var resolve = _step4.value;
 
           try {
             resolve(this.track);
@@ -105969,40 +106153,40 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
           }
         }
       } catch (err) {
-        _iterator3.e(err);
+        _iterator4.e(err);
       } finally {
-        _iterator3.f();
+        _iterator4.f();
       }
     } // gets the currently loaded track instance
 
   }, {
     key: "getTrackInstance",
     value: function () {
-      var _getTrackInstance = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
+      var _getTrackInstance = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
         var _this2 = this;
 
-        return _regenerator.default.wrap(function _callee5$(_context5) {
+        return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context6.prev = _context6.next) {
               case 0:
                 if (!this.isTrackReady) {
-                  _context5.next = 2;
+                  _context6.next = 2;
                   break;
                 }
 
-                return _context5.abrupt("return", this.track);
+                return _context6.abrupt("return", this.track);
 
               case 2:
-                return _context5.abrupt("return", new Promise(function (resolve) {
+                return _context6.abrupt("return", new Promise(function (resolve) {
                   _this2._waitingForTrack.push(resolve);
                 }));
 
               case 3:
               case "end":
-                return _context5.stop();
+                return _context6.stop();
             }
           }
-        }, _callee5, this);
+        }, _callee6, this);
       }));
 
       function getTrackInstance() {
@@ -106083,6 +106267,8 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     key: "render",
     // handle rendering the track in the requested state
     value: function render(force) {
+      var _track$spectator4;
+
       // calculate the delta
       var now = Date.now(); // increment the frame counter
 
@@ -106123,6 +106309,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
         track.updateScripts(state);
         track.update(state);
         raceProgressAnimation.update();
+      } // match position for spectator mode highlights
+
+
+      if (track === null || track === void 0 ? void 0 : (_track$spectator4 = track.spectator) === null || _track$spectator4 === void 0 ? void 0 : _track$spectator4.following) {
+        track.spectator.follow.x = track.spectator.following.x;
+        track.spectator.follow.y = track.spectator.following.y;
       } // race is finished
 
 
@@ -106164,7 +106356,7 @@ function TrackCreationError() {}
 function AudioAssetError() {}
 
 function PlayerAssetError() {}
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","../../audio":"audio/index.js","../base":"views/base.js","./player":"views/track/player.js","../../components/track":"components/track/index.js","./scaling":"views/track/scaling.js","../../config":"config.js","./layers":"views/track/layers.js","../../audio/volume":"audio/volume.js","../../animations/car-entry":"animations/car-entry.js","../../animations/race-completed":"animations/race-completed.js","../../animations/race-progress":"animations/race-progress.js","../../animations/countdown":"animations/countdown.js","../../animations/spectator-start":"animations/spectator-start.js"}],"views/composer.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","../../audio":"audio/index.js","../base":"views/base.js","./player":"views/track/player.js","../../components/track":"components/track/index.js","../../utils/async-lock":"utils/async-lock.js","./scaling":"views/track/scaling.js","../../config":"config.js","./layers":"views/track/layers.js","../../audio/volume":"audio/volume.js","../../animations/car-entry":"animations/car-entry.js","../../animations/race-completed":"animations/race-completed.js","../../animations/race-progress":"animations/race-progress.js","../../animations/countdown":"animations/countdown.js","../../animations/spectator-start":"animations/spectator-start.js"}],"views/composer.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {

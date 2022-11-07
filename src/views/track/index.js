@@ -5,6 +5,7 @@ import * as audio from '../../audio';
 import { BaseView } from '../base';
 import Player from './player';
 import Track from '../../components/track';
+import AsyncLock from '../../utils/async-lock';
 
 // sizing, layers, positions
 import * as scaling from './scaling';
@@ -14,7 +15,9 @@ import {
 	CAR_DEFAULT_SHAKE_LEVEL,
 	TRACK_MAXIMUM_SPEED_BOOST_RATE,
 	TRACK_MAXIMUM_SPEED_DRAG_RATE,
-	TRACK_STARTING_LINE_POSITION
+	TRACK_STARTING_LINE_POSITION,
+	SPECTATOR_WATERMARK_START_POSITION,
+	SPECTATOR_WATERMARK_FINISH_POSITION
 } from '../../config';
 
 import {
@@ -40,6 +43,7 @@ import RaceCompletedAnimation from '../../animations/race-completed';
 import RaceProgressAnimation from '../../animations/race-progress';
 import CountdownAnimation from '../../animations/countdown';
 import SpectatorStartAnimation from '../../animations/spectator-start';
+
 
 /** creates a track view that supports multiple cars for racing */
 export default class TrackView extends BaseView {
@@ -235,15 +239,13 @@ export default class TrackView extends BaseView {
 				this.activePlayer = player;
 				player.isPlayer = true;
 
-
 				// if this is the player, it should also be the race host
 				// in spectator mode
 				if (track.spectator && isPlayer) {
 					
 					// add to the view
-					track.spectator.follow.relativeX = TRACK_STARTING_LINE_POSITION
-					track.spectator.follow.relativeY = player.relativeY
 					track.spectator.follow.zIndex = LAYER_RACE_HOST_MARKER
+					track.spectator.following = player
 					stage.addChild(track.spectator.follow)
 					
 					// animate the entry
@@ -281,12 +283,17 @@ export default class TrackView extends BaseView {
 				isInstant = true;
 
 			// animate onto the track
-			const { enterSound = 'sport' } = data.car || { };
-			const entry = new CarEntryAnimation({ player, namecard, enterSound, track: this });
-			entry.play({
-				isInstant,
-				complete: () => this.setPlayerReady(player)
-			});
+			if (this.isRaceAlreadyInProgress) {
+				this.setPlayerReady(player);
+			}
+			else {
+				const { enterSound = 'sport' } = data.car || { };
+				const entry = new CarEntryAnimation({ player, namecard, enterSound, track: this });
+				entry.play({
+					isInstant,
+					complete: () => this.setPlayerReady(player)
+				});
+			}
 			
 			// add to the view
 			stage.addChild(player);
@@ -297,6 +304,22 @@ export default class TrackView extends BaseView {
 			if (data.isPlayer) {
 				state.playerHasEntered = true;
 			}
+
+			// // check for mid-race positioning
+			// if (this.isRaceAlreadyInProgress) {
+			// 	player.progress = this.startingRacerProgress[player.id];
+			// 	console.log('starting', player, player.progress)
+
+			// 	if (isPlayer) {
+			// 		player.lastUpdate = 0;
+			// 		console.log('wants to update', player.progress)
+			// 		this.raceProgressAnimation.updatePlayer(player, true);
+			// 		console.log(player.relativeX)
+			// 	}
+			// 	else {
+			// 		this.raceProgressAnimation.updatePlayer(player, true);
+			// 	}
+			// }
 		}
 		// in the event the player failed to load
 		catch (ex) {
@@ -423,34 +446,66 @@ export default class TrackView extends BaseView {
 		track.overlay.relativeX = 0.5;
 		
 		// spectator mode assets, if any
-		if (track.spectator) {
+		console.log('starting options', options)
+		if (options.spectator) {
 			stage.addChild(track.spectator.watermark)
-			track.spectator.watermark.zIndex = 0
-			track.spectator.watermark.relativeX = 0.75;
-			track.spectator.watermark.relativeY = 0.565;
+			track.spectator.watermark.zIndex = LAYER_TRACK_SPECTATOR_MODE;
+			// track.spectator.watermark.relativeX = 0.775;
+			// track.spectator.watermark.relativeX = 1 - 0.775;
+			track.spectator.watermark.relativeY = 0.575;
 		}
 
 		// sort the layers
 		stage.sortChildren();
 
-		// kick off animations
-		if (options.raceInProgress) {
+		// resolve waiting track requests
+		this.resolveWaitingTrackRequests()
+
+		// need to mark all new players as needing
+		// to use their active progresses
+		if (options.raceInProgress && options.racers) {
+			this.isRaceAlreadyInProgress = true;
+			
+			// set the track as actively animating
 			this.state.speed = TRACK_MAXIMUM_SPEED
 			this.startRace()
 			this.track._cycleTrack(-4000)
+			
+			// map out all starting positions
+			this.startingRacerProgress = { };
+			for (const racer of options.racers) {
+				this.startingRacerProgress[racer.userID] = (racer.position || 0) * 100;
+			}
 		}
-
-		// resolve waiting track requests
-		this.resolveWaitingTrackRequests()
 	}
 
+
+	waitForPlayerReady = new AsyncLock()
+
 	/** sets a player as ready to go */
-	setPlayerReady = player => {
+	setPlayerReady = async player => {
 		const { players, state } = this;
 		const { totalPlayers } = state;
 
 		// add the player to the list
 		players.push(player);
+
+		// if needed
+		const progress = this.startingRacerProgress?.[player.id]
+		if (!isNaN(progress)) {
+			if (player.isPlayer) {
+				const percent = this.raceProgressAnimation.calculateOverallProgress(player, progress / 100)
+				player.relativeX = player.preferredX = percent
+				this.waitForPlayerReady.release(player);
+			}
+			else {
+				const activePlayer = await this.waitForPlayerReady.wait();
+				const relativeProgress = this.startingRacerProgress?.[activePlayer.id]
+				const diff = this.raceProgressAnimation.calculateRelativeProgress(progress / 100, relativeProgress / 100)
+				player.raceProgressModifier = diff;
+				player.relativeX = player.preferredX = (activePlayer.preferredX || activePlayer.relativeX) + diff
+			}
+		}
 		
 		// game is ready to play
 		// TODO: this might change depending on how players are loaded
@@ -536,7 +591,7 @@ export default class TrackView extends BaseView {
 	startCountdown = async () => {
 		this.emit('race:countdown');
 
-		if (this.countdown)
+		if (this.countdown && !this.isRaceAlreadyInProgress)
 			this.countdown.start();
 	}
 
@@ -551,7 +606,7 @@ export default class TrackView extends BaseView {
 
 		// don't crash if the player wasn't found
 		if (!player) return;
-		
+
 		// nothing to do
 		if (player?.isFinished) return;
 
@@ -600,22 +655,11 @@ export default class TrackView extends BaseView {
 
 	// begins the race
 	startRace = () => {
-		const { options, state, countdown } = this;
+		const { options, track, state, countdown } = this;
 
-		// move the spectator mode, if any
-		if (this.track.spectator) {
-			animate({
-				ease: 'easeInOutQuad',
-				from: { x: this.track.spectator.watermark.relativeX },
-				to: { x: 0.5 },
-				duration: 7000,
-				loop: false,
-				update: props => {
-					if (!state.isFinished) {
-						this.track.spectator.watermark.relativeX = props.x;
-					}
-				}
-			})
+		// show the specator watermark
+		if (track.spectator?.watermark) {
+			track.spectator.watermark.relativeX = SPECTATOR_WATERMARK_START_POSITION;
 		}
 
 		// finalize the go
@@ -666,10 +710,15 @@ export default class TrackView extends BaseView {
 		
 		// already playing (this shouldn't happen)
 		if (raceCompletedAnimation) return;
-
-		// shift the spectator mode logo, if needed
+		
+		// show the specator watermark
 		if (track.spectator?.watermark) {
-			track.spectator.watermark.relativeX = 0.365;
+			track.spectator.watermark.relativeX = SPECTATOR_WATERMARK_FINISH_POSITION;
+		}
+		
+		// shift the spectator mode logo, if needed
+		if (track.spectator?.follow) {
+			track.spectator.follow.alpha = 0;
 		}
 		
 		// stop the track
@@ -755,6 +804,12 @@ export default class TrackView extends BaseView {
 			track.updateScripts(state);
 			track.update(state);
 			raceProgressAnimation.update();
+		}
+
+		// match position for spectator mode highlights
+		if (track?.spectator?.following) {
+			track.spectator.follow.x = track.spectator.following.x;
+			track.spectator.follow.y = track.spectator.following.y;
 		}
 		
 		// race is finished
