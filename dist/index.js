@@ -86349,7 +86349,7 @@ var TRACK_OFFSCREEN_CAR_FINISH = 0.2; // spectator
 exports.TRACK_OFFSCREEN_CAR_FINISH = TRACK_OFFSCREEN_CAR_FINISH;
 var SPECTATOR_WATERMARK_START_POSITION = 0.75;
 exports.SPECTATOR_WATERMARK_START_POSITION = SPECTATOR_WATERMARK_START_POSITION;
-var SPECTATOR_WATERMARK_FINISH_POSITION = 0.25; // progress
+var SPECTATOR_WATERMARK_FINISH_POSITION = 0.35; // progress
 
 exports.SPECTATOR_WATERMARK_FINISH_POSITION = SPECTATOR_WATERMARK_FINISH_POSITION;
 var RACE_ENDING_ANIMATION_STANDARD_THRESHOLD = 0.66;
@@ -105705,13 +105705,10 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 track.overlay.zIndex = _layers.LAYER_TRACK_OVERLAY;
                 track.overlay.relativeX = 0.5; // spectator mode assets, if any
 
-                console.log('starting options', options);
-
                 if (options.spectator) {
                   stage.addChild(track.spectator.watermark);
-                  track.spectator.watermark.zIndex = _layers.LAYER_TRACK_SPECTATOR_MODE; // track.spectator.watermark.relativeX = 0.775;
-                  // track.spectator.watermark.relativeX = 1 - 0.775;
-
+                  track.spectator.watermark.zIndex = _layers.LAYER_TRACK_SPECTATOR_MODE;
+                  track.spectator.watermark.relativeX = _config.SPECTATOR_WATERMARK_START_POSITION;
                   track.spectator.watermark.relativeY = 0.575;
                 } // sort the layers
 
@@ -105747,7 +105744,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   }
                 }
 
-              case 51:
+              case 50:
               case "end":
                 return _context2.stop();
             }
@@ -105961,18 +105958,13 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       }
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "startRace", function () {
-      var _track$spectator, _this$track;
+      var _this$track;
 
       var _assertThisInitialize7 = (0, _assertThisInitialized2.default)(_this),
           options = _assertThisInitialize7.options,
           track = _assertThisInitialize7.track,
           state = _assertThisInitialize7.state,
-          countdown = _assertThisInitialize7.countdown; // show the specator watermark
-
-
-      if ((_track$spectator = track.spectator) === null || _track$spectator === void 0 ? void 0 : _track$spectator.watermark) {
-        track.spectator.watermark.relativeX = _config.SPECTATOR_WATERMARK_START_POSITION;
-      } // finalize the go
+          countdown = _assertThisInitialize7.countdown; // finalize the go
 
 
       if (countdown) countdown.finish(); // change the ambience
@@ -106010,7 +106002,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       raceCompletedAnimation.play({});
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "finishRace", function () {
-      var _track$spectator2, _track$spectator3;
+      var _track$spectator, _track$spectator2;
 
       _this.finalizePerformanceTracking(); // the race has been marked as finished, show the completion
       // until the player is marked ready
@@ -106026,12 +106018,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
       if (raceCompletedAnimation) return; // show the specator watermark
 
-      if ((_track$spectator2 = track.spectator) === null || _track$spectator2 === void 0 ? void 0 : _track$spectator2.watermark) {
+      if ((_track$spectator = track.spectator) === null || _track$spectator === void 0 ? void 0 : _track$spectator.watermark) {
         track.spectator.watermark.relativeX = _config.SPECTATOR_WATERMARK_FINISH_POSITION;
       } // shift the spectator mode logo, if needed
 
 
-      if ((_track$spectator3 = track.spectator) === null || _track$spectator3 === void 0 ? void 0 : _track$spectator3.follow) {
+      if ((_track$spectator2 = track.spectator) === null || _track$spectator2 === void 0 ? void 0 : _track$spectator2.follow) {
         track.spectator.follow.alpha = 0;
       } // stop the track
 
@@ -106267,7 +106259,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     key: "render",
     // handle rendering the track in the requested state
     value: function render(force) {
-      var _track$spectator4;
+      var _track$spectator3;
 
       // calculate the delta
       var now = Date.now(); // increment the frame counter
@@ -106312,7 +106304,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       } // match position for spectator mode highlights
 
 
-      if (track === null || track === void 0 ? void 0 : (_track$spectator4 = track.spectator) === null || _track$spectator4 === void 0 ? void 0 : _track$spectator4.following) {
+      if (track === null || track === void 0 ? void 0 : (_track$spectator3 = track.spectator) === null || _track$spectator3 === void 0 ? void 0 : _track$spectator3.following) {
         track.spectator.follow.x = track.spectator.following.x;
         track.spectator.follow.y = track.spectator.following.y;
       } // race is finished

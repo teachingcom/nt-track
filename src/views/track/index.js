@@ -446,12 +446,10 @@ export default class TrackView extends BaseView {
 		track.overlay.relativeX = 0.5;
 		
 		// spectator mode assets, if any
-		console.log('starting options', options)
 		if (options.spectator) {
 			stage.addChild(track.spectator.watermark)
 			track.spectator.watermark.zIndex = LAYER_TRACK_SPECTATOR_MODE;
-			// track.spectator.watermark.relativeX = 0.775;
-			// track.spectator.watermark.relativeX = 1 - 0.775;
+			track.spectator.watermark.relativeX = SPECTATOR_WATERMARK_START_POSITION;
 			track.spectator.watermark.relativeY = 0.575;
 		}
 
@@ -656,11 +654,6 @@ export default class TrackView extends BaseView {
 	// begins the race
 	startRace = () => {
 		const { options, track, state, countdown } = this;
-
-		// show the specator watermark
-		if (track.spectator?.watermark) {
-			track.spectator.watermark.relativeX = SPECTATOR_WATERMARK_START_POSITION;
-		}
 
 		// finalize the go
 		if (countdown)
