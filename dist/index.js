@@ -87779,9 +87779,7 @@ function _createStaticCar() {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.LAYER_TRACK_GROUND = exports.LAYER_RACE_HOST_MARKER = exports.LAYER_SHADOW = exports.LAYER_TRAIL = exports.LAYER_CAR = exports.LAYER_NAMECARD = exports.LAYER_NAMECARD_OVERLAY = exports.LAYER_NITRO_BLUR = exports.LAYER_TRACK_OVERLAY = exports.LAYER_COUNTDOWN = exports.LAYER_TRACK_SPECTATOR_MODE = void 0;
-var LAYER_TRACK_SPECTATOR_MODE = 200;
-exports.LAYER_TRACK_SPECTATOR_MODE = LAYER_TRACK_SPECTATOR_MODE;
+exports.LAYER_TRACK_GROUND = exports.LAYER_TRACK_SPECTATOR_MODE = exports.LAYER_RACE_HOST_MARKER = exports.LAYER_SHADOW = exports.LAYER_TRAIL = exports.LAYER_CAR = exports.LAYER_NAMECARD = exports.LAYER_NAMECARD_OVERLAY = exports.LAYER_NITRO_BLUR = exports.LAYER_TRACK_OVERLAY = exports.LAYER_COUNTDOWN = void 0;
 var LAYER_COUNTDOWN = 150;
 exports.LAYER_COUNTDOWN = LAYER_COUNTDOWN;
 var LAYER_TRACK_OVERLAY = 100;
@@ -87798,8 +87796,10 @@ var LAYER_TRAIL = -49;
 exports.LAYER_TRAIL = LAYER_TRAIL;
 var LAYER_SHADOW = -50;
 exports.LAYER_SHADOW = LAYER_SHADOW;
-var LAYER_RACE_HOST_MARKER = -99;
+var LAYER_RACE_HOST_MARKER = -98;
 exports.LAYER_RACE_HOST_MARKER = LAYER_RACE_HOST_MARKER;
+var LAYER_TRACK_SPECTATOR_MODE = -99;
+exports.LAYER_TRACK_SPECTATOR_MODE = LAYER_TRACK_SPECTATOR_MODE;
 var LAYER_TRACK_GROUND = -100;
 exports.LAYER_TRACK_GROUND = LAYER_TRACK_GROUND;
 },{}],"animations/base.js":[function(require,module,exports) {
@@ -109238,7 +109238,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '1.2.0';
+  window.NTTRACK = '1.2.1';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
