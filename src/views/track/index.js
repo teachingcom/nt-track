@@ -179,8 +179,9 @@ export default class TrackView extends BaseView {
 
 	// reserve a new lane
 	reserveLane = (preferredLane, id) => {
+		this.lanes[preferredLane] = id
 		return preferredLane
-		
+
 		const MAX_LANES = 5;
 		for (let lane = 0; lane < MAX_LANES; lane++) {
 			if (!this.lanes[lane]) {
