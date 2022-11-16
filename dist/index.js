@@ -105384,6 +105384,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "lanes", []);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "reserveLane", function (preferredLane, id) {
+      return preferredLane;
       var MAX_LANES = 5;
 
       for (var lane = 0; lane < MAX_LANES; lane++) {
