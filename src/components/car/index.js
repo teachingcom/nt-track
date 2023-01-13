@@ -475,6 +475,11 @@ export default class Car extends PIXI.Container {
 			nitroBlurX: bounds.width * scale * NITRO_BLUR_DEFAULT_OFFSET_X,
 		};
 
+		// check for special anchors that act as a follow point for
+		// trails
+		const [ follow ] = findDisplayObjectsOfRole(car, 'follow')
+		car.follow = follow
+
 		// check for specialized positions
 		// TODO: this could be more robust to support y axis
 		// or dynamic so it can follow along with cars that

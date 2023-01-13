@@ -71,8 +71,17 @@ export function createFakeSound() {
 
 /** includes a sound to be played */
 export async function register (src, sprites, key = src) {
+  console.log('register', src, sprites, key)
+
+  // REFACTOR: probably have a different loading process
+  // for individual sound files
+  // no sprite sheet was included
+  if (!sprites) {
+    sprites = { [key]: { [key]: [0, 10000] } }
+  }
+  
   return new Promise((resolve, reject) => {
-    sprites = sprites[key]
+    sprites = sprites?.[key]
 
     // handle sound loading errors
     const onFailed = () => {
@@ -85,7 +94,7 @@ export async function register (src, sprites, key = src) {
       for (const id in sprites) {
         AUDIO[id] = sound
       }
-
+      
       resolve(true)
     }
 
@@ -93,11 +102,9 @@ export async function register (src, sprites, key = src) {
     let src = `${baseUrl}/${key}.mp3`.replace(/\/+/g, '/')
     
     // check for a version
-    if (sprites.version) {
+    if (sprites?.version) {
       src += `?${sprites.version}`
     }
-
-    console.log('[audio]', src)
 
     // load the audio
     const sound = new Howl({
@@ -154,10 +161,14 @@ export function setVolume(amount) {
 
 // creates a new sound instance
 export function create (type, sprite) {
-  const sound = AUDIO[sprite]
+  const sound = AUDIO[sprite] || AUDIO[`${type}::${sprite}`]
 
+  console.log('wants to play', sound, type, sprite)
+
+  console.log('loading', sprite, AUDIO)
   // no sound was found
   if (!sound) {
+    debugger;
     console.warn(`Play request for ${sprite} failed: not found`)
     return FAKE_SOUND;
   }

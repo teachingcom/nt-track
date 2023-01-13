@@ -28,29 +28,38 @@ export default class CustomizerView extends BaseView {
       ...options
     })
 
-    // setup the main view
-    this.workspace = new PIXI.ResponsiveContainer()
-    this.workspace.scaleX = 1
-    this.workspace.scaleY = 1
-    this.workspace.relativeX = 0.275
-    this.workspace.relativeY = 0.5
 
-    // setup a container used for panning the view
-    this.viewport = new PIXI.Container()
+    this.namecardContainer = new PIXI.ResponsiveContainer()
+    this.namecardContainer.relativeX = 0.5
+    this.namecardContainer.relativeY = 0.375
+    const namecard = await this.animator.create('namecards/gold')
+    this.stage.addChild(this.namecardContainer)
+    this.namecardContainer.addChild(namecard)
 
-    // create containers
-    this.workspace.addChild(this.viewport)
-    this.stage.addChild(this.workspace)
 
-    // attach elements
-    await this._createTreadmill()
-    await this._createOtherDriver()
-    await this._createSprayer()
+    // // setup the main view
+    // this.workspace = new PIXI.ResponsiveContainer()
+    // this.workspace.scaleX = 1
+    // this.workspace.scaleY = 1
+    // this.workspace.relativeX = 0.275
+    // this.workspace.relativeY = 0.5
 
-    // make sure the game animates relative values
-    this.animationVariables.speed = 1
-    this.animationVariables.base_speed = 1
-    this.animationVariables.movement = 1
+    // // setup a container used for panning the view
+    // this.viewport = new PIXI.Container()
+
+    // // create containers
+    // this.workspace.addChild(this.viewport)
+    // this.stage.addChild(this.workspace)
+
+    // // attach elements
+    // await this._createTreadmill()
+    // await this._createOtherDriver()
+    // await this._createSprayer()
+
+    // // make sure the game animates relative values
+    // this.animationVariables.speed = 1
+    // this.animationVariables.base_speed = 1
+    // this.animationVariables.movement = 1
     
     // begin rendering
     this.startAutoRender()
@@ -139,6 +148,7 @@ export default class CustomizerView extends BaseView {
 
   // replaces the active car
   async setCar ({ type, hue, isAnimated, trail, tweaks }) {
+    return
     this.isReady = false
 
     // clear the existing data
@@ -347,7 +357,7 @@ export default class CustomizerView extends BaseView {
   }
 
   // renders the view
-  render (...args) {
+  _render (...args) {
     if (!this.ready) {
       return
     }

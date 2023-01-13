@@ -1,10 +1,9 @@
 import Car from '../../components/car'
 import Trail from '../../components/trail'
-import { animate, getBoundsForRole, PIXI } from 'nt-animator'
+import { animate, PIXI } from 'nt-animator'
 import { BaseView } from '../base'
 import Treadmill from '../../components/treadmill'
 import { TRAIL_SCALE_IN_PREVIEW } from '../../config'
-import { LAYER_TRAIL } from '../track/layers'
 
 // config
 const DEFAULT_MAX_HEIGHT = 250

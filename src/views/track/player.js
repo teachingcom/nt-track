@@ -8,6 +8,7 @@ import Car from '../../components/car';
 import Trail from '../../components/trail';
 import NameCard from '../../components/namecard';
 import Nitro from '../../components/nitro';
+import Fanfare from '../../components/fanfare';
 
 // debugging helper
 const DEBUG_PLAYER_PROGRESS = false;
@@ -43,6 +44,11 @@ export default class Player extends PIXI.ResponsiveContainer {
 		return this.layers.namecard;
 	}
 
+	/** the players name card layer */
+	get fanfare() {
+		return this.layers.fanfare;
+	}
+
 	/** the players car shadow */
 	get shadow() {
 		return this.layers.shadow;
@@ -65,9 +71,10 @@ export default class Player extends PIXI.ResponsiveContainer {
 		const trail = instance._initTrail();
 		const nitro = instance._initNitro();
 		const namecard = instance._initNameCard();
+		const fanfare = instance._initFanfare();
 
 		// wait for the result
-		const resolved = await Promise.all([ car, trail, nitro, namecard ]);
+		const resolved = await Promise.all([ car, trail, nitro, namecard, fanfare ]);
 		await instance._assemble(...resolved);
 
 		// after the instance is created, find all toggles
@@ -144,6 +151,24 @@ export default class Player extends PIXI.ResponsiveContainer {
 		});
 	}
 
+	// handles creating a nitro trail
+	async _initFanfare() {
+		const { options, mods } = this;
+		const { view } = options;
+
+		console.log(mods)
+
+		// no fanfare was equiped
+		if (!mods.fanfare) return;
+		
+		// load a fanfare, if any
+		return Fanfare.create({
+			view,
+			baseHeight: SCALED_CAR_HEIGHT,
+			type: mods.fanfare
+		});
+	}
+
 	// loading name cards
 	async _initNameCard() {
 		const { options, mods } = this;
@@ -173,10 +198,11 @@ export default class Player extends PIXI.ResponsiveContainer {
 	}
  
 	// handles assembling the player
-	async _assemble(car, trail, nitro, namecard) {
+	async _assemble(car, trail, nitro, namecard, fanfare) {
 		const { layers, scale } = this;
 
 		// include the car and it's shadow
+		layers.fanfare = fanfare;
 		layers.car = car;
 		layers.shadow = car.shadow;
 		car.attachTo(this);
@@ -201,7 +227,7 @@ export default class Player extends PIXI.ResponsiveContainer {
 
 			// find a layer to use
 			Trail.setLayer(trail, car);
-			
+
 			trail.x = car.positions.back;
 			trail.scale.x = trail.scale.y = scale.x * TRAIL_SCALE;
 		}
@@ -236,6 +262,16 @@ export default class Player extends PIXI.ResponsiveContainer {
 			namecard.setVisibility(true);
 		}
 
+		// save the namecard
+		if (fanfare) {
+			layers.fanfare = fanfare;
+
+			// hide the fanfare when it is first loaded
+			// since it will show up in the top left corner
+			// until it's been positioned
+			// fanfare.setVisibility(false);
+		}
+
 		// finalize order
 		this.sortChildren();
 	}
@@ -268,12 +304,13 @@ export default class Player extends PIXI.ResponsiveContainer {
 
 	/** handle removing all resources */
 	dispose = () => {
-		const { car, namecard, shadow, trail } = this;
+		const { car, namecard, shadow, trail, fanfare } = this;
 		const removals = [
 			{ type: 'car', source: car, action: removeDisplayObject },
 			{ type: 'namecard', source: namecard, action: removeDisplayObject },
 			{ type: 'shadow', source: shadow, action: removeDisplayObject },
 			{ type: 'trail', source: trail, action: removeDisplayObject },
+			{ type: 'fanfare', source: fanfare, action: removeDisplayObject },
 			{ type: 'player', source: this, action: removeDisplayObject }
 		]
 

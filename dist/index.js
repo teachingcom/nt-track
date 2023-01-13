@@ -4227,6 +4227,7 @@ var Sound = /*#__PURE__*/function () {
         _this.playCount++;
       } catch (ex) {
         var key = _this.key;
+        console.log('ex', ex);
         console.warn("Failed to play sound ".concat(key));
       }
     });
@@ -4442,8 +4443,18 @@ function _register() {
         switch (_context.prev = _context.next) {
           case 0:
             key = _args.length > 2 && _args[2] !== undefined ? _args[2] : src;
+            console.log('register', src, sprites, key); // REFACTOR: probably have a different loading process
+            // for individual sound files
+            // no sprite sheet was included
+
+            if (!sprites) {
+              sprites = (0, _defineProperty2.default)({}, key, (0, _defineProperty2.default)({}, key, [0, 10000]));
+            }
+
             return _context.abrupt("return", new Promise(function (resolve, reject) {
-              sprites = sprites[key]; // handle sound loading errors
+              var _sprites2, _sprites3;
+
+              sprites = (_sprites2 = sprites) === null || _sprites2 === void 0 ? void 0 : _sprites2[key]; // handle sound loading errors
 
               var onFailed = function onFailed() {
                 console.error("Failed to load sound: ".concat(key));
@@ -4462,11 +4473,10 @@ function _register() {
 
               var src = "".concat(baseUrl, "/").concat(key, ".mp3").replace(/\/+/g, '/'); // check for a version
 
-              if (sprites.version) {
+              if ((_sprites3 = sprites) === null || _sprites3 === void 0 ? void 0 : _sprites3.version) {
                 src += "?".concat(sprites.version);
-              }
+              } // load the audio
 
-              console.log('[audio]', src); // load the audio
 
               var sound = new _howler.Howl({
                 src: src,
@@ -4480,7 +4490,7 @@ function _register() {
               });
             }));
 
-          case 2:
+          case 4:
           case "end":
             return _context.stop();
         }
@@ -4529,9 +4539,12 @@ function setVolume(amount) {
 
 
 function create(type, sprite) {
-  var sound = AUDIO[sprite]; // no sound was found
+  var sound = AUDIO[sprite] || AUDIO["".concat(type, "::").concat(sprite)];
+  console.log('wants to play', sound, type, sprite);
+  console.log('loading', sprite, AUDIO); // no sound was found
 
   if (!sound) {
+    debugger;
     console.warn("Play request for ".concat(sprite, " failed: not found"));
     return FAKE_SOUND;
   } // start the audio
@@ -76071,1712 +76084,7 @@ var JitterExpression = function JitterExpression(prop, args) {
 
 exports.JitterExpression = JitterExpression;
 (0, _defineProperty2.default)(JitterExpression, "start", Date.now());
-},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../utils":"utils/index.js","../mappings":"animation/mappings.js"}],"animation/expressions.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.addTo = addTo;
-exports.subtractBy = subtractBy;
-exports.multiplyBy = multiplyBy;
-exports.divideBy = divideBy;
-exports.percentOf = percentOf;
-exports.chance = chance;
-exports.range = range;
-exports.expression = expression;
-exports.pick = pick;
-exports.sequence = sequence;
-exports.isExpression = isExpression;
-exports.isDynamic = isDynamic;
-exports.evaluateExpression = evaluateExpression;
-exports.createDynamicExpression = createDynamicExpression;
-
-var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
-
-var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
-
-var _typeof2 = _interopRequireDefault(require("@babel/runtime/helpers/typeof"));
-
-var _utils = require("../utils");
-
-var mappings = _interopRequireWildcard(require("./mappings"));
-
-var randomizer = _interopRequireWildcard(require("../randomizer"));
-
-var variables = _interopRequireWildcard(require("./variables"));
-
-var _getRandom = _interopRequireDefault(require("./dynamic-expressions/get-random"));
-
-var _modExpression = _interopRequireDefault(require("./dynamic-expressions/mod-expression"));
-
-var _sineExpressions = require("./dynamic-expressions/sine-expressions");
-
-var _relativeExpressions = require("./dynamic-expressions/relative-expressions");
-
-var _bezierExpression = _interopRequireDefault(require("./dynamic-expressions/bezier-expression"));
-
-var _rangeExpression = _interopRequireDefault(require("./dynamic-expressions/range-expression"));
-
-var _averageExpression = _interopRequireDefault(require("./dynamic-expressions/average-expression"));
-
-var _sumExpression = _interopRequireDefault(require("./dynamic-expressions/sum-expression"));
-
-var _cycleExpression = _interopRequireDefault(require("./dynamic-expressions/cycle-expression"));
-
-var _betweenExpression = _interopRequireDefault(require("./dynamic-expressions/between-expression"));
-
-var _JitterExpression = require("./dynamic-expressions/JitterExpression");
-
-function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-// dynamic expressions
-
-/** expression types */
-var EXPRESSIONS = {
-  ':+': {
-    func: addTo
-  },
-  ':-': {
-    func: subtractBy
-  },
-  ':*': {
-    func: multiplyBy
-  },
-  ':/': {
-    func: divideBy
-  },
-  ':%': {
-    func: percentOf
-  },
-  ':exp': {
-    func: expression
-  },
-  ':chance': {
-    func: chance
-  },
-  ':pick': {
-    func: pick
-  },
-  ':seq': {
-    func: sequence
-  },
-  ':sequence': {
-    func: sequence
-  },
-  ':range': {
-    func: range
-  },
-  ':var': {
-    func: getVariable
-  }
-};
-var DYNAMICS = {
-  ':sum': {
-    instance: _sumExpression.default
-  },
-  ':cycle': {
-    instance: _cycleExpression.default
-  },
-  ':avg': {
-    instance: _averageExpression.default
-  },
-  ':jit': {
-    instance: _JitterExpression.JitterExpression
-  },
-  ':mod': {
-    instance: _modExpression.default
-  },
-  ':percent': {
-    instance: _rangeExpression.default
-  },
-  ':between': {
-    instance: _betweenExpression.default
-  },
-  ':cos': {
-    instance: _sineExpressions.CosineExpression
-  },
-  ':sin': {
-    instance: _sineExpressions.SineExpression
-  },
-  ':bez': {
-    instance: _bezierExpression.default
-  },
-  ':rnd': {
-    instance: _getRandom.default
-  },
-  ':rx': {
-    instance: _relativeExpressions.RelativeToX
-  },
-  ':ry': {
-    instance: _relativeExpressions.RelativeToY
-  }
-};
-
-function getVariable(name) {
-  return variables.pull(name);
-}
-
-function addTo(add, relativeTo) {
-  return relativeTo + add;
-}
-
-function subtractBy(subtract, relativeTo) {
-  return relativeTo - subtract;
-}
-
-function multiplyBy(multiply, relativeTo) {
-  return relativeTo * multiply;
-}
-
-function divideBy(divide, relativeTo) {
-  return relativeTo / divide;
-}
-
-function percentOf(percent, relativeTo) {
-  return relativeTo * (percent / 100);
-}
-
-function chance() {
-  var convert = function convert(val) {
-    return val;
-  }; // collect up options and get args
-
-
-  var choices = [];
-
-  for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-    args[_key] = arguments[_key];
-  }
-
-  for (var _i = 0, _args = args; _i < _args.length; _i++) {
-    var option = _args[_i];
-
-    if (option === 'int') {
-      convert = parseInt;
-    } else if (option === 'float') {
-      convert = parseBool;
-    } else if (option === 'bool') {
-      convert = function convert(val) {
-        return !!val;
-      };
-    } else if ((0, _typeof2.default)(option) === 'object') {
-      for (var key in option) {
-        var _chance = option[key];
-        choices.push({
-          value: key,
-          chance: _chance
-        });
-      }
-    }
-  } // sort them by most likely to least likely
-
-
-  choices.sort(function (a, b) {
-    return b.chance - a.chance;
-  }); // sum up the total options
-
-  var sum = 0;
-
-  for (var _i2 = 0, _choices = choices; _i2 < _choices.length; _i2++) {
-    var choice = _choices[_i2];
-    sum += choice.chance;
-    choice.threshold = sum;
-  } // make the selection
-
-
-  var match = choices[0];
-  var selected = Math.random() * sum;
-
-  for (var _i3 = 0, _choices2 = choices; _i3 < _choices2.length; _i3++) {
-    var _option = _choices2[_i3];
-
-    if (selected < _option.threshold) {
-      match = _option;
-      break;
-    }
-  } // return the result
-
-
-  return convert(match.value);
-}
-
-function range() {
-  for (var _len2 = arguments.length, params = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-    params[_key2] = arguments[_key2];
-  }
-
-  // sort out the params
-  var toInt = !~params.indexOf('decimal'); // extract the value
-
-  var min = params[0],
-      max = params[1];
-
-  if (isNaN(max)) {
-    max = min;
-    min = 0;
-  } // randomize
-
-
-  var value = randomizer.random() * (max - min) + min;
-  return toInt ? 0 | value : value;
-}
-
-function expression() {
-  for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-    args[_key3] = arguments[_key3];
-  }
-
-  var val = args[0];
-
-  for (var i = 1; i < args.length; i += 2) {
-    var action = EXPRESSIONS[args[i]];
-    val = action(val, args[i + 1]);
-  }
-
-  return isNaN(val) ? 0 : val;
-}
-
-function pick() {
-  for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-    args[_key4] = arguments[_key4];
-  }
-
-  return args[Math.floor(args.length * randomizer.random())];
-} // TODO: this is just a temp solution -- because each
-// sequence array would be unique, there isn't actually any way
-// to keep a shared sequence without an identity - this uses
-// the array as a string for a reference
-
-
-var SEQUENCES = {};
-
-function sequence() {
-  for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-    args[_key5] = arguments[_key5];
-  }
-
-  // create a key to allow for a shared list
-  var key = args.join('::');
-  var sequence = SEQUENCES[key]; // if not shared yet, share it now
-
-  if (!sequence) {
-    SEQUENCES[key] = sequence = args; // check if shuffled
-
-    if (sequence[0] === ':shuffle') {
-      sequence.shift();
-      shuffle(sequence);
-    }
-  } // cycle the item
-
-
-  var selected = sequence.pop();
-  sequence.unshift(selected);
-  return selected;
-}
-/** checks if a node appears to be an expression */
-
-
-function isExpression(value) {
-  return (0, _utils.isArray)(value) && (0, _utils.isString)(value[0]) && !!EXPRESSIONS[value[0]];
-}
-/** checks if a node appears to be an expression */
-
-
-function isDynamic(value) {
-  return (0, _utils.isArray)(value) && (0, _utils.isString)(value[0]) && !!DYNAMICS[value[0]];
-}
-/** evaluates an expression node */
-
-
-function evaluateExpression(expression) {
-  if (!isExpression(expression)) return expression;
-
-  var _expression = (0, _slicedToArray2.default)(expression, 1),
-      token = _expression[0];
-
-  var handler = EXPRESSIONS[token];
-  var rest = expression.slice(1);
-
-  for (var _len6 = arguments.length, args = new Array(_len6 > 1 ? _len6 - 1 : 0), _key6 = 1; _key6 < _len6; _key6++) {
-    args[_key6 - 1] = arguments[_key6];
-  }
-
-  rest.push.apply(rest, args); // this expression will probably fail
-
-  if (!handler) {
-    console.error("No expression handler was found for token ".concat(token));
-    return null;
-  }
-
-  try {
-    return handler.func.apply(this, rest);
-  } catch (ex) {
-    console.error("Failed to evaluate expression ".concat(token, " with ").concat(rest.join(', ')));
-    throw ex;
-  }
-}
-/** generates a function for dynamic evaluation */
-
-
-function createDynamicExpression(prop, source) {
-  var expression = source[prop]; // not a dynamic property
-
-  if (!isDynamic(expression)) return expression;
-
-  var _expression2 = (0, _slicedToArray2.default)(expression, 1),
-      token = _expression2[0];
-
-  var handler = DYNAMICS[token];
-  var rest = expression.slice(1);
-
-  for (var _len7 = arguments.length, args = new Array(_len7 > 2 ? _len7 - 2 : 0), _key7 = 2; _key7 < _len7; _key7++) {
-    args[_key7 - 2] = arguments[_key7];
-  }
-
-  rest.push.apply(rest, args); // simple function handler
-
-  if (handler.func) {
-    // include the property name to update
-    rest.unshift(prop); // create the handler
-
-    return function () {
-      var _handler$func;
-
-      for (var _len8 = arguments.length, params = new Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
-        params[_key8] = arguments[_key8];
-      }
-
-      return (_handler$func = handler.func).call.apply(_handler$func, [null].concat(params, (0, _toConsumableArray2.default)(rest)));
-    }; // instance based updater
-  } else {
-    var instance = new handler.instance(prop, rest);
-    return instance.update;
-  }
-} // shuffle an array without changing the reference
-
-
-function shuffle(items) {
-  var shuffled = [];
-
-  for (var i = items.length; i-- > 0;) {
-    var index = Math.floor(items.length & randomizer.random());
-    shuffled.push.apply(shuffled, items.splice(index, 1));
-  } // repopulate the array
-
-
-  items.push.apply(items, shuffled);
-}
-},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/helpers/typeof":"../node_modules/@babel/runtime/helpers/typeof.js","../utils":"utils/index.js","./mappings":"animation/mappings.js","../randomizer":"randomizer.js","./variables":"animation/variables.js","./dynamic-expressions/get-random":"animation/dynamic-expressions/get-random.js","./dynamic-expressions/mod-expression":"animation/dynamic-expressions/mod-expression.js","./dynamic-expressions/sine-expressions":"animation/dynamic-expressions/sine-expressions.js","./dynamic-expressions/relative-expressions":"animation/dynamic-expressions/relative-expressions.js","./dynamic-expressions/bezier-expression":"animation/dynamic-expressions/bezier-expression.js","./dynamic-expressions/range-expression":"animation/dynamic-expressions/range-expression.js","./dynamic-expressions/average-expression":"animation/dynamic-expressions/average-expression.js","./dynamic-expressions/sum-expression":"animation/dynamic-expressions/sum-expression.js","./dynamic-expressions/cycle-expression":"animation/dynamic-expressions/cycle-expression.js","./dynamic-expressions/between-expression":"animation/dynamic-expressions/between-expression.js","./dynamic-expressions/JitterExpression":"animation/dynamic-expressions/JitterExpression.js"}],"animation/utils.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.inheritFrom = inheritFrom;
-exports.clone = clone;
-exports.toRole = toRole;
-exports.unpack = unpack;
-
-var _fastCopy = _interopRequireDefault(require("fast-copy"));
-
-var _deepDefaults = _interopRequireDefault(require("deep-defaults"));
-
-var _utils = require("../utils");
-
-var _path = require("./path");
-
-var _errors = require("./errors");
-
-var _expressions = require("./expressions");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/** inherits properties from an animation node */
-function inheritFrom(animator, composition, layer, prop) {
-  var base = layer[prop];
-  if (!base) return; // eval as needed
-
-  base = (0, _expressions.evaluateExpression)(base); // apply the inherited properties
-
-  var basedOn = clone(animator, composition, base);
-  (0, _deepDefaults.default)(layer, basedOn);
-  layer.basedOn = base;
-  return layer;
-}
-/** clones an individual data node */
-
-
-function clone(animator, data, path) {
-  if ((0, _utils.isString)(path)) {
-    path = (0, _path.parsePath)(path);
-  }
-
-  var source = path.isAbsolute ? animator.manifest : data;
-  var cloned = (0, _path.resolvePath)(source, path.parts);
-  return (0, _fastCopy.default)(cloned);
-}
-/** converts a role string to an array */
-
-
-function toRole(str) {
-  return (str || '').split(/ +/g);
-}
-/** expands out a node to clone all data refs */
-
-
-function unpack(animator, root, source, prop) {
-  var limit = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 0;
-
-  if (++limit > 10) {
-    throw new _errors.RecursiveLimitExceededException();
-  } // get the value to check
-
-
-  var obj = prop ? source[prop] : source; // check to resolve a path
-
-  if ((0, _utils.isString)(obj)) {
-    var ref = (0, _path.parsePath)(obj); // if this refers to cloning local data
-
-    if (ref.isRelative) {
-      source[prop] = clone(animator, root, ref); // recurisvely unpack looking for
-      // other cloned refs
-
-      unpack(animator, root, source, prop, limit);
-    }
-  } // if this is a collection, perform this for
-  // each of the properties
-  else if ((0, _utils.isIterable)(obj)) {
-      for (var id in obj) {
-        unpack(animator, root, obj, id, limit);
-      }
-    }
-}
-},{"fast-copy":"../node_modules/fast-copy/dist/fast-copy.js","deep-defaults":"../node_modules/deep-defaults/lib/index.js","../utils":"utils/index.js","./path":"animation/path.js","./errors":"animation/errors.js","./expressions":"animation/expressions.js"}],"../node_modules/idb-keyval/dist/idb-keyval.mjs":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.get = get;
-exports.set = set;
-exports.del = del;
-exports.clear = clear;
-exports.keys = keys;
-exports.Store = void 0;
-
-class Store {
-  constructor(dbName = 'keyval-store', storeName = 'keyval') {
-    this.storeName = storeName;
-    this._dbp = new Promise((resolve, reject) => {
-      const openreq = indexedDB.open(dbName, 1);
-
-      openreq.onerror = () => reject(openreq.error);
-
-      openreq.onsuccess = () => resolve(openreq.result); // First time setup: create an empty object store
-
-
-      openreq.onupgradeneeded = () => {
-        openreq.result.createObjectStore(storeName);
-      };
-    });
-  }
-
-  _withIDBStore(type, callback) {
-    return this._dbp.then(db => new Promise((resolve, reject) => {
-      const transaction = db.transaction(this.storeName, type);
-
-      transaction.oncomplete = () => resolve();
-
-      transaction.onabort = transaction.onerror = () => reject(transaction.error);
-
-      callback(transaction.objectStore(this.storeName));
-    }));
-  }
-
-}
-
-exports.Store = Store;
-let store;
-
-function getDefaultStore() {
-  if (!store) store = new Store();
-  return store;
-}
-
-function get(key, store = getDefaultStore()) {
-  let req;
-  return store._withIDBStore('readonly', store => {
-    req = store.get(key);
-  }).then(() => req.result);
-}
-
-function set(key, value, store = getDefaultStore()) {
-  return store._withIDBStore('readwrite', store => {
-    store.put(value, key);
-  });
-}
-
-function del(key, store = getDefaultStore()) {
-  return store._withIDBStore('readwrite', store => {
-    store.delete(key);
-  });
-}
-
-function clear(store = getDefaultStore()) {
-  return store._withIDBStore('readwrite', store => {
-    store.clear();
-  });
-}
-
-function keys(store = getDefaultStore()) {
-  const keys = [];
-  return store._withIDBStore('readonly', store => {
-    // This would be store.getAllKeys(), but it isn't supported by Edge or Safari.
-    // And openKeyCursor isn't supported by Safari.
-    (store.openKeyCursor || store.openCursor).call(store).onsuccess = function () {
-      if (!this.result) return;
-      keys.push(this.result.key);
-      this.result.continue();
-    };
-  }).then(() => keys);
-}
-},{}],"utils/assetCache.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.shared = exports.default = void 0;
-
-var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
-
-var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
-
-var _idbKeyval = require("idb-keyval");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/** creates an asset cache */
-var AssetCache =
-/** create a new cache */
-function AssetCache(db, table) {
-  var _this = this;
-
-  (0, _classCallCheck2.default)(this, AssetCache);
-  (0, _defineProperty2.default)(this, "getItem", function (key) {
-    var store = _this.store;
-    return new Promise(function (resolve) {
-      (0, _idbKeyval.get)(key, store).then(function () {
-        var record = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-        var now = +new Date();
-        var data = record.data,
-            expires = record.expires;
-        var success = !!data && !isNaN(expires) && expires > now;
-        resolve(success ? data : null);
-      }) // for errors, just resolve with
-      // no value
-      .catch(function () {
-        return resolve(null);
-      });
-    });
-  });
-  (0, _defineProperty2.default)(this, "setItem", function (key, data) {
-    var expires = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 24 * 60 * 60 * 1000;
-    var store = _this.store;
-    return new Promise(function (resolve) {
-      (0, _idbKeyval.set)(key, {
-        data: data,
-        expires: +new Date() + expires
-      }, store).then(function () {
-        return resolve(true);
-      }).catch(function () {
-        return resolve(false);
-      });
-    });
-  });
-  (0, _defineProperty2.default)(this, "purge", function () {// TODO
-  });
-  this.store = new _idbKeyval.Store(db, table);
-}
-/** saves an image resource */
-; // shared common cache
-
-
-exports.default = AssetCache;
-var shared = new AssetCache('nt:cached-assets', 'images');
-exports.shared = shared;
-},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","idb-keyval":"../node_modules/idb-keyval/dist/idb-keyval.mjs"}],"../node_modules/json-stringify-safe/stringify.js":[function(require,module,exports) {
-exports = module.exports = stringify
-exports.getSerialize = serializer
-
-function stringify(obj, replacer, spaces, cycleReplacer) {
-  return JSON.stringify(obj, serializer(replacer, cycleReplacer), spaces)
-}
-
-function serializer(replacer, cycleReplacer) {
-  var stack = [], keys = []
-
-  if (cycleReplacer == null) cycleReplacer = function(key, value) {
-    if (stack[0] === value) return "[Circular ~]"
-    return "[Circular ~." + keys.slice(0, stack.indexOf(value)).join(".") + "]"
-  }
-
-  return function(key, value) {
-    if (stack.length > 0) {
-      var thisPos = stack.indexOf(this)
-      ~thisPos ? stack.splice(thisPos + 1) : stack.push(this)
-      ~thisPos ? keys.splice(thisPos, Infinity, key) : keys.push(key)
-      if (~stack.indexOf(value)) value = cycleReplacer.call(this, key, value)
-    }
-    else stack.push(value)
-
-    return replacer == null ? value : replacer.call(this, key, value)
-  }
-}
-
-},{}],"../node_modules/random-seed/index.js":[function(require,module,exports) {
-/*
- * random-seed
- * https://github.com/skratchdot/random-seed
- *
- * This code was originally written by Steve Gibson and can be found here:
- *
- * https://www.grc.com/otg/uheprng.htm
- *
- * It was slightly modified for use in node, to pass jshint, and a few additional
- * helper functions were added.
- *
- * Copyright (c) 2013 skratchdot
- * Dual Licensed under the MIT license and the original GRC copyright/license
- * included below.
- */
-
-/*	============================================================================
-									Gibson Research Corporation
-				UHEPRNG - Ultra High Entropy Pseudo-Random Number Generator
-	============================================================================
-	LICENSE AND COPYRIGHT:  THIS CODE IS HEREBY RELEASED INTO THE PUBLIC DOMAIN
-	Gibson Research Corporation releases and disclaims ALL RIGHTS AND TITLE IN
-	THIS CODE OR ANY DERIVATIVES. Anyone may be freely use it for any purpose.
-	============================================================================
-	This is GRC's cryptographically strong PRNG (pseudo-random number generator)
-	for JavaScript. It is driven by 1536 bits of entropy, stored in an array of
-	48, 32-bit JavaScript variables.  Since many applications of this generator,
-	including ours with the "Off The Grid" Latin Square generator, may require
-	the deteriministic re-generation of a sequence of PRNs, this PRNG's initial
-	entropic state can be read and written as a static whole, and incrementally
-	evolved by pouring new source entropy into the generator's internal state.
-	----------------------------------------------------------------------------
-	ENDLESS THANKS are due Johannes Baagoe for his careful development of highly
-	robust JavaScript implementations of JS PRNGs.  This work was based upon his
-	JavaScript "Alea" PRNG which is based upon the extremely robust Multiply-
-	With-Carry (MWC) PRNG invented by George Marsaglia. MWC Algorithm References:
-	http://www.GRC.com/otg/Marsaglia_PRNGs.pdf
-	http://www.GRC.com/otg/Marsaglia_MWC_Generators.pdf
-	----------------------------------------------------------------------------
-	The quality of this algorithm's pseudo-random numbers have been verified by
-	multiple independent researchers. It handily passes the fermilab.ch tests as
-	well as the "diehard" and "dieharder" test suites.  For individuals wishing
-	to further verify the quality of this algorithm's pseudo-random numbers, a
-	256-megabyte file of this algorithm's output may be downloaded from GRC.com,
-	and a Microsoft Windows scripting host (WSH) version of this algorithm may be
-	downloaded and run from the Windows command prompt to generate unique files
-	of any size:
-	The Fermilab "ENT" tests: http://fourmilab.ch/random/
-	The 256-megabyte sample PRN file at GRC: https://www.GRC.com/otg/uheprng.bin
-	The Windows scripting host version: https://www.GRC.com/otg/wsh-uheprng.js
-	----------------------------------------------------------------------------
-	Qualifying MWC multipliers are: 187884, 686118, 898134, 1104375, 1250205,
-	1460910 and 1768863. (We use the largest one that's < 2^21)
-	============================================================================ */
-'use strict';
-
-var stringify = require('json-stringify-safe');
-/*	============================================================================
-This is based upon Johannes Baagoe's carefully designed and efficient hash
-function for use with JavaScript.  It has a proven "avalanche" effect such
-that every bit of the input affects every bit of the output 50% of the time,
-which is good.	See: http://baagoe.com/en/RandomMusings/hash/avalanche.xhtml
-============================================================================
-*/
-
-
-var Mash = function () {
-  var n = 0xefc8249d;
-
-  var mash = function (data) {
-    if (data) {
-      data = data.toString();
-
-      for (var i = 0; i < data.length; i++) {
-        n += data.charCodeAt(i);
-        var h = 0.02519603282416938 * n;
-        n = h >>> 0;
-        h -= n;
-        h *= n;
-        n = h >>> 0;
-        h -= n;
-        n += h * 0x100000000; // 2^32
-      }
-
-      return (n >>> 0) * 2.3283064365386963e-10; // 2^-32
-    } else {
-      n = 0xefc8249d;
-    }
-  };
-
-  return mash;
-};
-
-var uheprng = function (seed) {
-  return function () {
-    var o = 48; // set the 'order' number of ENTROPY-holding 32-bit values
-
-    var c = 1; // init the 'carry' used by the multiply-with-carry (MWC) algorithm
-
-    var p = o; // init the 'phase' (max-1) of the intermediate variable pointer
-
-    var s = new Array(o); // declare our intermediate variables array
-
-    var i; // general purpose local
-
-    var j; // general purpose local
-
-    var k = 0; // general purpose local
-    // when our "uheprng" is initially invoked our PRNG state is initialized from the
-    // browser's own local PRNG. This is okay since although its generator might not
-    // be wonderful, it's useful for establishing large startup entropy for our usage.
-
-    var mash = new Mash(); // get a pointer to our high-performance "Mash" hash
-    // fill the array with initial mash hash values
-
-    for (i = 0; i < o; i++) {
-      s[i] = mash(Math.random());
-    } // this PRIVATE (internal access only) function is the heart of the multiply-with-carry
-    // (MWC) PRNG algorithm. When called it returns a pseudo-random number in the form of a
-    // 32-bit JavaScript fraction (0.0 to <1.0) it is a PRIVATE function used by the default
-    // [0-1] return function, and by the random 'string(n)' function which returns 'n'
-    // characters from 33 to 126.
-
-
-    var rawprng = function () {
-      if (++p >= o) {
-        p = 0;
-      }
-
-      var t = 1768863 * s[p] + c * 2.3283064365386963e-10; // 2^-32
-
-      return s[p] = t - (c = t | 0);
-    }; // this EXPORTED function is the default function returned by this library.
-    // The values returned are integers in the range from 0 to range-1. We first
-    // obtain two 32-bit fractions (from rawprng) to synthesize a single high
-    // resolution 53-bit prng (0 to <1), then we multiply this by the caller's
-    // "range" param and take the "floor" to return a equally probable integer.
-
-
-    var random = function (range) {
-      return Math.floor(range * (rawprng() + (rawprng() * 0x200000 | 0) * 1.1102230246251565e-16)); // 2^-53
-    }; // this EXPORTED function 'string(n)' returns a pseudo-random string of
-    // 'n' printable characters ranging from chr(33) to chr(126) inclusive.
-
-
-    random.string = function (count) {
-      var i;
-      var s = '';
-
-      for (i = 0; i < count; i++) {
-        s += String.fromCharCode(33 + random(94));
-      }
-
-      return s;
-    }; // this PRIVATE "hash" function is used to evolve the generator's internal
-    // entropy state. It is also called by the EXPORTED addEntropy() function
-    // which is used to pour entropy into the PRNG.
-
-
-    var hash = function () {
-      var args = Array.prototype.slice.call(arguments);
-
-      for (i = 0; i < args.length; i++) {
-        for (j = 0; j < o; j++) {
-          s[j] -= mash(args[i]);
-
-          if (s[j] < 0) {
-            s[j] += 1;
-          }
-        }
-      }
-    }; // this EXPORTED "clean string" function removes leading and trailing spaces and non-printing
-    // control characters, including any embedded carriage-return (CR) and line-feed (LF) characters,
-    // from any string it is handed. this is also used by the 'hashstring' function (below) to help
-    // users always obtain the same EFFECTIVE uheprng seeding key.
-
-
-    random.cleanString = function (inStr) {
-      inStr = inStr.replace(/(^\s*)|(\s*$)/gi, ''); // remove any/all leading spaces
-
-      inStr = inStr.replace(/[\x00-\x1F]/gi, ''); // remove any/all control characters
-
-      inStr = inStr.replace(/\n /, '\n'); // remove any/all trailing spaces
-
-      return inStr; // return the cleaned up result
-    }; // this EXPORTED "hash string" function hashes the provided character string after first removing
-    // any leading or trailing spaces and ignoring any embedded carriage returns (CR) or Line Feeds (LF)
-
-
-    random.hashString = function (inStr) {
-      inStr = random.cleanString(inStr);
-      mash(inStr); // use the string to evolve the 'mash' state
-
-      for (i = 0; i < inStr.length; i++) {
-        // scan through the characters in our string
-        k = inStr.charCodeAt(i); // get the character code at the location
-
-        for (j = 0; j < o; j++) {
-          //	"mash" it into the UHEPRNG state
-          s[j] -= mash(k);
-
-          if (s[j] < 0) {
-            s[j] += 1;
-          }
-        }
-      }
-    }; // this EXPORTED function allows you to seed the random generator.
-
-
-    random.seed = function (seed) {
-      if (typeof seed === 'undefined' || seed === null) {
-        seed = Math.random();
-      }
-
-      if (typeof seed !== 'string') {
-        seed = stringify(seed, function (key, value) {
-          if (typeof value === 'function') {
-            return value.toString();
-          }
-
-          return value;
-        });
-      }
-
-      random.initState();
-      random.hashString(seed);
-    }; // this handy exported function is used to add entropy to our uheprng at any time
-
-
-    random.addEntropy = function ()
-    /* accept zero or more arguments */
-    {
-      var args = [];
-
-      for (i = 0; i < arguments.length; i++) {
-        args.push(arguments[i]);
-      }
-
-      hash(k++ + new Date().getTime() + args.join('') + Math.random());
-    }; // if we want to provide a deterministic startup context for our PRNG,
-    // but without directly setting the internal state variables, this allows
-    // us to initialize the mash hash and PRNG's internal state before providing
-    // some hashing input
-
-
-    random.initState = function () {
-      mash(); // pass a null arg to force mash hash to init
-
-      for (i = 0; i < o; i++) {
-        s[i] = mash(' '); // fill the array with initial mash hash values
-      }
-
-      c = 1; // init our multiply-with-carry carry
-
-      p = o; // init our phase
-    }; // we use this (optional) exported function to signal the JavaScript interpreter
-    // that we're finished using the "Mash" hash function so that it can free up the
-    // local "instance variables" is will have been maintaining.  It's not strictly
-    // necessary, of course, but it's good JavaScript citizenship.
-
-
-    random.done = function () {
-      mash = null;
-    }; // if we called "uheprng" with a seed value, then execute random.seed() before returning
-
-
-    if (typeof seed !== 'undefined') {
-      random.seed(seed);
-    } // Returns a random integer between 0 (inclusive) and range (exclusive)
-
-
-    random.range = function (range) {
-      return random(range);
-    }; // Returns a random float between 0 (inclusive) and 1 (exclusive)
-
-
-    random.random = function () {
-      return random(Number.MAX_VALUE - 1) / Number.MAX_VALUE;
-    }; // Returns a random float between min (inclusive) and max (exclusive)
-
-
-    random.floatBetween = function (min, max) {
-      return random.random() * (max - min) + min;
-    }; // Returns a random integer between min (inclusive) and max (inclusive)
-
-
-    random.intBetween = function (min, max) {
-      return Math.floor(random.random() * (max - min + 1)) + min;
-    }; // when our main outer "uheprng" function is called, after setting up our
-    // initial variables and entropic state, we return an "instance pointer"
-    // to the internal anonymous function which can then be used to access
-    // the uheprng's various exported functions.  As with the ".done" function
-    // above, we should set the returned value to 'null' once we're finished
-    // using any of these functions.
-
-
-    return random;
-  }();
-}; // Modification for use in node:
-
-
-uheprng.create = function (seed) {
-  return new uheprng(seed);
-};
-
-module.exports = uheprng;
-},{"json-stringify-safe":"../node_modules/json-stringify-safe/stringify.js"}],"animation/rng.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
-
-var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
-
-var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
-
-var _randomSeed = _interopRequireDefault(require("random-seed"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var Random = function Random(_seed) {
-  var _this = this;
-
-  (0, _classCallCheck2.default)(this, Random);
-  (0, _defineProperty2.default)(this, "activate", function (seed) {
-    _this.seed = seed;
-    _this.rng = _randomSeed.default.create(seed);
-  });
-  (0, _defineProperty2.default)(this, "random", function () {
-    return _this.rng.random();
-  });
-  (0, _defineProperty2.default)(this, "int", function () {
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-
-    var _ref = args.length === 1 ? [0, args[1]] : args,
-        _ref2 = (0, _slicedToArray2.default)(_ref, 2),
-        min = _ref2[0],
-        max = _ref2[1];
-
-    return _this.rng.intBetween(min, max);
-  });
-  this.activate(_seed);
-}
-/** sets the random seed to use */
-;
-
-exports.default = Random;
-},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","random-seed":"../node_modules/random-seed/index.js"}],"animation/generators/controller.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
-
-var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
-
-var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
-
-var _utils = require("../../utils");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
-
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-var Controller = /*#__PURE__*/function () {
-  function Controller() {
-    var _this = this;
-
-    (0, _classCallCheck2.default)(this, Controller);
-    (0, _defineProperty2.default)(this, "stopAnimations", function () {
-      var animations = _this.animations;
-
-      var _iterator = _createForOfIteratorHelper(animations),
-          _step;
-
-      try {
-        for (_iterator.s(); !(_step = _iterator.n()).done;) {
-          var animation = _step.value;
-          animation.stop();
-        }
-      } catch (err) {
-        _iterator.e(err);
-      } finally {
-        _iterator.f();
-      }
-    });
-    (0, _defineProperty2.default)(this, "stopEmitters", function () {
-      var emitters = _this.emitters;
-
-      var _iterator2 = _createForOfIteratorHelper(emitters),
-          _step2;
-
-      try {
-        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-          var instance = _step2.value;
-          var emitter = instance.emitter;
-          emitter.emit = false;
-        }
-      } catch (err) {
-        _iterator2.e(err);
-      } finally {
-        _iterator2.f();
-      }
-    });
-    (0, _defineProperty2.default)(this, "activateEmitters", function () {
-      var emitters = _this.emitters;
-
-      var _iterator3 = _createForOfIteratorHelper(emitters),
-          _step3;
-
-      try {
-        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
-          var instance = _step3.value;
-          var emitter = instance.emitter;
-          var config = emitter.config;
-          emitter.autoUpdate = true;
-          emitter.lifetime = (0, _utils.isNumber)(config.duration) ? config.duration / 1000 : undefined;
-          emitter.emit = true;
-        }
-      } catch (err) {
-        _iterator3.e(err);
-      } finally {
-        _iterator3.f();
-      }
-    });
-    (0, _defineProperty2.default)(this, "dispose", function () {
-      var objects = _this.objects;
-
-      _this.stopAnimations();
-
-      _this.stopEmitters();
-
-      var _iterator4 = _createForOfIteratorHelper(objects),
-          _step4;
-
-      try {
-        for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-          var obj = _step4.value;
-          if (obj.dispose) obj.dispose();
-        }
-      } catch (err) {
-        _iterator4.e(err);
-      } finally {
-        _iterator4.f();
-      }
-    });
-    (0, _defineProperty2.default)(this, "emitters", []);
-    (0, _defineProperty2.default)(this, "animations", []);
-    (0, _defineProperty2.default)(this, "sprites", []);
-    (0, _defineProperty2.default)(this, "masks", []);
-    (0, _defineProperty2.default)(this, "groups", []);
-    (0, _defineProperty2.default)(this, "repeaters", []);
-    (0, _defineProperty2.default)(this, "objects", []);
-  }
-
-  (0, _createClass2.default)(Controller, [{
-    key: "register",
-
-    /** registers a layer for the controller */
-    value: function register(obj) {
-      // determine types
-      if (obj.isEmitter) this.emitters.push(obj);else if (obj.isSprite) this.sprites.push(obj);else if (obj.isMask) this.masks.push(obj);else if (obj.isGroup) this.groups.push(obj);else if (obj.isRepeater) this.repeaters.push(obj); // track animations
-
-      if (obj.hasAnimation) this.animations.push(obj.animation);
-    }
-  }]);
-  return Controller;
-}();
-
-exports.default = Controller;
-},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../utils":"utils/index.js"}],"../node_modules/deep-get-set/index.js":[function(require,module,exports) {
-var hasOwnProp = Object.prototype.hasOwnProperty;
-
-module.exports = deep;
-
-function deep (obj, path, value) {
-  if (arguments.length === 3) return set.apply(null, arguments);
-  return get.apply(null, arguments);
-}
-
-function get (obj, path) {
-  var keys = Array.isArray(path) ? path : path.split('.');
-  for (var i = 0; i < keys.length; i++) {
-    var key = keys[i];
-    if (!obj || !hasOwnProp.call(obj, key)) {
-      obj = undefined;
-      break;
-    }
-    obj = obj[key];
-  }
-  return obj;
-}
-
-function set (obj, path, value) {
-  var keys = Array.isArray(path) ? path : path.split('.');
-  for (var i = 0; i < keys.length - 1; i++) {
-    var key = keys[i];
-    if (deep.p && !hasOwnProp.call(obj, key)) obj[key] = {};
-    obj = obj[key];
-  }
-  obj[keys[i]] = value;
-  return value;
-}
-
-},{}],"../node_modules/@babel/runtime/helpers/superPropBase.js":[function(require,module,exports) {
-var getPrototypeOf = require("./getPrototypeOf");
-
-function _superPropBase(object, property) {
-  while (!Object.prototype.hasOwnProperty.call(object, property)) {
-    object = getPrototypeOf(object);
-    if (object === null) break;
-  }
-
-  return object;
-}
-
-module.exports = _superPropBase;
-},{"./getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js"}],"../node_modules/@babel/runtime/helpers/get.js":[function(require,module,exports) {
-var superPropBase = require("./superPropBase");
-
-function _get(target, property, receiver) {
-  if (typeof Reflect !== "undefined" && Reflect.get) {
-    module.exports = _get = Reflect.get;
-  } else {
-    module.exports = _get = function _get(target, property, receiver) {
-      var base = superPropBase(target, property);
-      if (!base) return;
-      var desc = Object.getOwnPropertyDescriptor(base, property);
-
-      if (desc.get) {
-        return desc.get.call(receiver);
-      }
-
-      return desc.value;
-    };
-  }
-
-  return _get(target, property, receiver || target);
-}
-
-module.exports = _get;
-},{"./superPropBase":"../node_modules/@babel/runtime/helpers/superPropBase.js"}],"pixi/responsive.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
-
-var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
-
-var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
-
-var _get3 = _interopRequireDefault(require("@babel/runtime/helpers/get"));
-
-var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
-
-var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
-
-var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
-
-var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
-
-var _lib = require("../pixi/lib");
-
-var _stage = _interopRequireDefault(require("./stage"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
-
-function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
-
-/** Handles responsive scaling for a container relative to a stage */
-var ResponsiveContainer = /*#__PURE__*/function (_PIXI$Container) {
-  (0, _inherits2.default)(ResponsiveContainer, _PIXI$Container);
-
-  var _super = _createSuper(ResponsiveContainer);
-
-  function ResponsiveContainer() {
-    var _this;
-
-    (0, _classCallCheck2.default)(this, ResponsiveContainer);
-
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-
-    _this = _super.call.apply(_super, [this].concat(args));
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "_relativeX", 0);
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "_relativeY", 0);
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "scaleX", 0);
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "scaleY", 0);
-    return _this;
-  }
-
-  (0, _createClass2.default)(ResponsiveContainer, [{
-    key: "updateTransform",
-
-    /** match the scaling as required */
-    value: function updateTransform() {
-      var _get2;
-
-      // check if the stage scale has changed
-      var stage = _stage.default.findResponsiveStage(this);
-
-      if (stage.lastUpdate !== this._resizedTimestamp) {
-        this._resizedTimestamp = stage.lastUpdate; // update the scaling
-
-        var scaleX = stage.scaleX,
-            scaleY = stage.scaleY;
-        var _this$scale = this.scale,
-            x = _this$scale.x,
-            y = _this$scale.y; // update values
-
-        this.scale.x = x / Math.abs(x) * scaleX + this.scaleX;
-        this.scale.y = y / Math.abs(y) * scaleY + this.scaleY;
-      } // match their relative positions
-      // const { width, height } = stage;
-
-
-      this.x = this._relativeX * stage._definedWidth;
-      this.y = this._relativeY * stage._definedHeight; // perform the render
-
-      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        args[_key2] = arguments[_key2];
-      }
-
-      (_get2 = (0, _get3.default)((0, _getPrototypeOf2.default)(ResponsiveContainer.prototype), "updateTransform", this)).call.apply(_get2, [this].concat(args));
-    }
-  }, {
-    key: "relativeX",
-
-    /** returns the relative position for a container 
-     * @returns {number} the relative position value
-    */
-    get: function get() {
-      return this._relativeX;
-    }
-    /** changes the relative position for a container 
-     * @param {number} value The percenage value to use 0-1
-    */
-    ,
-    set: function set(value) {
-      this._relativeX = value;
-    }
-    /** returns the relative position for a container 
-     * @returns {number} the relative position value
-    */
-
-  }, {
-    key: "relativeY",
-    get: function get() {
-      return this._relativeY;
-    }
-    /** changes the relative position for a container 
-     * @param {number} value The percenage value to use 0-1
-    */
-    ,
-    set: function set(value) {
-      this._relativeY = value;
-    } // internal position tracking
-
-  }]);
-  return ResponsiveContainer;
-}(_lib.PIXI.Container);
-
-exports.default = ResponsiveContainer;
-},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../pixi/lib":"pixi/lib.js","./stage":"pixi/stage.js"}],"pixi/utils/index.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.findResponsiveStage = void 0;
-
-// This function is generated to be flat as opposed to using
-// a loop since it's performed each frame of animation by
-// many children
-// generates a function simiar to
-// function findResponsiveState(container) {
-//   if (!container.parent) return;
-//   if (container.parent.isResponsiveState) return container.parent;
-//   if (!container.parent.parent) return;
-//   if (container.parent.parent.isResponsiveState) return container.parent.parent;
-// ... and so on
-
-/** Searches PIXI ancestors looking for a ResponsiveStage */
-var findResponsiveStage = function () {
-  var MAXIMUM_LOOKUPS = 10;
-  var code = []; // create a check for the maximum number of lookups to perform
-
-  for (var i = 1; i < MAXIMUM_LOOKUPS; i++) {
-    // string together a series of .parent checks
-    var refs = [];
-
-    for (var j = 0; j < i; j++) {
-      refs.push('parent');
-    }
-
-    var ref = refs.join('.'); // create the condition to check for a parent
-    // and check if it's a ResponsiveStage
-
-    code.push("\n\t\t\tif (!container.".concat(ref, ") return;\n\t\t\tif (container.").concat(ref, ".isResponsiveStage) return container.").concat(ref, "\n\t\t"));
-  }
-  /** pre-compiled parent lookup */
-
-
-  return new Function('container', code.join(';'));
-}();
-
-exports.findResponsiveStage = findResponsiveStage;
-},{}],"pixi/stage.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
-
-var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
-
-var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
-
-var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
-
-var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
-
-var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
-
-var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
-
-var _lib = require("../pixi/lib");
-
-var _responsive = _interopRequireDefault(require("./responsive"));
-
-var _utils = require("./utils");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
-
-function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
-
-/** @typedef ResponsiveStageOptions
- * @property {number} [height] Uses the provided height as the default scaling value for the stage
- * @property {number} [width] Uses the provided width as the default scaling value for the stage
-*/
-
-/** creates a responsive stage for child elements to use */
-var ResponsiveStage = /*#__PURE__*/function (_PIXI$Container) {
-  (0, _inherits2.default)(ResponsiveStage, _PIXI$Container);
-
-  var _super = _createSuper(ResponsiveStage);
-
-  /** Creates a responsive stage that bases container sizes on a default size
-   * @param {ResponsiveStageOptions} options Options for creating a responsive stage
-   */
-  function ResponsiveStage(options) {
-    var _this;
-
-    (0, _classCallCheck2.default)(this, ResponsiveStage);
-
-    for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      args[_key - 1] = arguments[_key];
-    }
-
-    _this = _super.call.apply(_super, [this].concat(args));
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "_definedWidth", 0);
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "_definedHeight", 0);
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "isResponsiveStage", true);
-    _this.options = options;
-    return _this;
-  }
-  /** the defined width for this stage */
-
-
-  (0, _createClass2.default)(ResponsiveStage, [{
-    key: "resize",
-
-    /** resizes the stage */
-    value: function resize(width, height) {
-      var options = this.options; // track when last updated
-
-      this.lastUpdate = +new Date(); // update scaling values
-
-      this._definedWidth = width;
-      this._definedHeight = height;
-      this.scaleX = width / options.width;
-      this.scaleY = height / options.height; // if either value wasn't provided, replace it
-      // with the other value or 1
-
-      if (!('height' in options)) this.scaleY = this.scaleX || 1;
-      if (!('width' in options)) this.scaleX = this.scaleY || 1;
-    }
-    /** finds a responsive stage for a responsive container
-     * @type {ResponsiveContainer}
-     * @returns {ResponsiveStage | null} The stage, if any
-     */
-
-  }, {
-    key: "width",
-    get: function get() {
-      return this._definedWidth;
-    }
-    /** the defined size for this stage */
-
-  }, {
-    key: "height",
-    get: function get() {
-      return this._definedHeight;
-    } // defined scaling of the container
-
-  }], [{
-    key: "findResponsiveStage",
-    value: function findResponsiveStage(container) {
-      return (0, _utils.findResponsiveStage)(container);
-    }
-  }]);
-  return ResponsiveStage;
-}(_lib.PIXI.Container);
-
-exports.default = ResponsiveStage;
-},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../pixi/lib":"pixi/lib.js","./responsive":"pixi/responsive.js","./utils":"pixi/utils/index.js"}],"animation/assign.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.assignIf = assignIf;
-exports.assignDisplayObjectProps = assignDisplayObjectProps;
-exports.applyExpressions = applyExpressions;
-exports.applyDynamicProperties = applyDynamicProperties;
-
-var _utils = require("../utils");
-
-var _expressions = require("./expressions");
-
-var _stage = _interopRequireDefault(require("../pixi/stage"));
-
-var _mappings = require("./mappings");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
-
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-var MISSING_STAGE = {
-  width: 0,
-  height: 0
-};
-var MISSING_PLAYER = {};
-var DYNAMIC_PROPERTY_DEFAULTS = {
-  x: 0,
-  y: 0,
-  z: 0,
-  rotation: 0,
-  skewX: 0,
-  skewY: 0,
-  pivotX: 0,
-  pivotY: 0,
-  scaleX: 1,
-  scaleY: 1,
-  anchorX: 0.5,
-  anchorY: 0.5
-};
-/** executes an assignment function only when the condtion passes */
-
-function assignIf(value, condition, target, action) {
-  for (var _len = arguments.length, args = new Array(_len > 4 ? _len - 4 : 0), _key = 4; _key < _len; _key++) {
-    args[_key - 4] = arguments[_key];
-  }
-
-  if (condition(value)) action.apply(void 0, [target, value].concat(args));
-}
-/** assigns common properties for a display object */
-
-
-function assignDisplayObjectProps(target, props) {
-  if (!props) return; // update each property
-
-  var _iterator = _createForOfIteratorHelper(_mappings.MAPPINGS),
-      _step;
-
-  try {
-    for (_iterator.s(); !(_step = _iterator.n()).done;) {
-      var mapping = _step.value;
-
-      if (props[mapping.prop] !== undefined) {
-        mapping.apply(target, props[mapping.prop]);
-      }
-    }
-  } catch (err) {
-    _iterator.e(err);
-  } finally {
-    _iterator.f();
-  }
-}
-/** evaluates simple expressions */
-
-
-function applyExpressions(obj) {
-  if (!obj) {
-    return;
-  }
-
-  for (var prop in obj) {
-    obj[prop] = (0, _expressions.evaluateExpression)(obj[prop]);
-  }
-}
-/** handles adding dynamically rendered properties */
-
-
-function applyDynamicProperties(obj, props) {
-  if (!props) return;
-  var hasDynamicProperties = false;
-  var update = _utils.noop; // handling locked scaled?
-  // TODOL is this needed?
-
-  obj.startingScaleY = obj.height; // check and map all dynamic props
-
-  for (var id in props) {
-    if ((0, _expressions.isDynamic)(props[id])) {
-      var handler = (0, _expressions.createDynamicExpression)(id, props);
-      hasDynamicProperties = true; // append the update function
-
-      update = (0, _utils.appendFunc)(update, handler);
-      props[id] = DYNAMIC_PROPERTY_DEFAULTS[id];
-    }
-  } // check for special functions
-
-
-  if (props.lockWidth) {
-    hasDynamicProperties = true; // create the update function
-
-    update = (0, _utils.appendFunc)(update, function (obj, stage) {
-      var currentScale = obj.width / obj.getBounds().width;
-      obj.scale.x = (0, _utils.toPrecision)(Math.min(10, currentScale * (props.scaleX || 1)) * (stage.scaleX || 1), 2);
-    });
-  } // check for special functions
-
-
-  if (props.lockHeight) {
-    hasDynamicProperties = true; // locking height allows for sprites that are skewed
-    // to maintain their original height so they have the
-    // appearance of being leaned as opposed to skew/squashed
-    // this function will change the y-scale to maintain the original
-    // height for the object the entire time. This is only used in
-    // a few places (like signs)
-    // this also rounds scaling down to a smaller precision since
-    // the track uses "snap to pixel" and not rounding will cause
-    // these to bump up and down in size by 1 pixel slightly
-
-    update = (0, _utils.appendFunc)(update, function (obj, stage) {
-      var currentScale = Math.ceil(obj.height / obj.getBounds().height * 100) / 100;
-      obj.scale.y = (0, _utils.toPrecision)(Math.min(10, currentScale * (props.scaleY || 1)) * (stage.scaleY || 1), 2);
-      obj.y = Math.floor(obj.y);
-    });
-  } // if nothing was found, just skip
-
-
-  if (!hasDynamicProperties) {
-    return;
-  } // create the handler function
-
-
-  var updateProperties = function updateProperties() {
-    var stage = obj.__responsiveStage__ = obj.__responsiveStage__ || _stage.default.findResponsiveStage(obj);
-
-    var player = obj.__player__ = obj.__player__ || findParent(obj, function (obj) {
-      return obj.isPlayerRoot;
-    });
-    update(obj, stage || MISSING_STAGE, player || MISSING_PLAYER);
-  }; // set the initial values
-
-
-  updateProperties(); // override the existing render function
-  // depending on the object type, use the
-  // correct rendering function
-
-  var __render__ = obj.render;
-
-  obj.render = function () {
-    updateProperties();
-
-    for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-      args[_key2] = arguments[_key2];
-    }
-
-    return __render__.apply(obj, args);
-  };
-
-  var __renderCanvas__ = obj.renderCanvas;
-
-  obj.renderCanvas = function () {
-    updateProperties();
-
-    for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-      args[_key3] = arguments[_key3];
-    }
-
-    return __renderCanvas__.apply(obj, args);
-  };
-}
-
-function findParent(obj, matching) {
-  var check = obj.parent;
-
-  while (check) {
-    if (matching(check)) {
-      return check;
-    }
-
-    check = check.parent;
-  }
-}
-},{"../utils":"utils/index.js","./expressions":"animation/expressions.js","../pixi/stage":"pixi/stage.js","./mappings":"animation/mappings.js"}],"../node_modules/@babel/runtime/helpers/toArray.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../utils":"utils/index.js","../mappings":"animation/mappings.js"}],"../node_modules/@babel/runtime/helpers/toArray.js":[function(require,module,exports) {
 var arrayWithHoles = require("./arrayWithHoles");
 
 var iterableToArray = require("./iterableToArray");
@@ -79680,7 +77988,1850 @@ var AnimationHandler = function AnimationHandler(config, props) {
   this.animation = (0, _animeEs.default)(config);
 } // local frame tracking
 ;
-},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","@babel/runtime/helpers/toArray":"../node_modules/@babel/runtime/helpers/toArray.js","animejs/lib/anime.es.js":"../node_modules/animejs/lib/anime.es.js","../utils":"utils/index.js"}],"pixi/utils/throttled-updater.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","@babel/runtime/helpers/toArray":"../node_modules/@babel/runtime/helpers/toArray.js","animejs/lib/anime.es.js":"../node_modules/animejs/lib/anime.es.js","../utils":"utils/index.js"}],"animation/dynamic-expressions/tween-expression.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var _utils = require("../../utils");
+
+var mappings = _interopRequireWildcard(require("../mappings"));
+
+var _animate2 = _interopRequireDefault(require("../../animate"));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+var TweenExpression = function TweenExpression(prop, args) {
+  var _this = this,
+      _animate;
+
+  (0, _classCallCheck2.default)(this, TweenExpression);
+  (0, _defineProperty2.default)(this, "cycle", 0);
+  (0, _defineProperty2.default)(this, "offset", 0);
+  (0, _defineProperty2.default)(this, "scale", 1);
+  (0, _defineProperty2.default)(this, "flip", 0);
+  (0, _defineProperty2.default)(this, "update", function (target, stage, player) {
+    var value = _this.value;
+
+    if (_this.useExact) {
+      value = value <= 0.5 ? _this.min : _this.max;
+    }
+
+    if (_this.roundNumber) {
+      value = Math.round(value);
+    }
+
+    _this.mapping(target, _this.convertToInt ? 0 | value : value);
+  });
+  this.prop = prop;
+  this.mapping = mappings.lookup(prop); // this.modifier = () => 1
+  // this.sortLayers = this.prop === 'z';
+
+  var min = 0;
+  var max = 1;
+
+  var _iterator = _createForOfIteratorHelper(args),
+      _step;
+
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var arg = _step.value;
+      var isObj = (0, _utils.isObject)(arg);
+
+      if (arg === 'round') {
+        this.roundNumber = true;
+      } else if (arg === 'exact') {
+        this.useExact = true;
+      } else if (arg === 'int') {
+        this.convertToInt = true;
+      } else if (arg === 'invert') {
+        this.flip = -1;
+      } else if (arg === 'yoyo') {
+        this.yoyo = true;
+      } else if (arg === 'stagger') {
+        this.stagger = true;
+      } else if (isObj && 'duration' in arg) {
+        this.duration = arg.duration;
+      } else if (isObj && 'ms' in arg) {
+        this.duration = arg.ms;
+      } else if (isObj && 'delay' in arg) {
+        this.delay = arg.delay;
+      } else if (isObj && 'ease' in arg) {
+        this.ease = arg.ease;
+      } else if (isObj && 'loop' in arg) {
+        this.loop = arg.loop;
+      } else if (isObj && 'min' in arg) {
+        min = arg.min;
+      } else if (isObj && 'max' in arg) {
+        max = arg.max;
+      }
+    } // if there's no max value then
+    // max the range from 0-min
+
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+
+  if (isNaN(max)) {
+    max = min;
+    min = 0;
+  } // save the args
+
+
+  this.min = min;
+  this.max = max; // default value
+
+  this.value = this.flip ? this.max : this.min;
+  (0, _animate2.default)((_animate = {
+    from: {
+      t: min
+    },
+    to: {
+      t: max
+    },
+    flip: this.flip,
+    yoyo: this.yoyo,
+    duration: this.duration || 1000,
+    delay: this.delay || 0,
+    randomStart: this.stagger,
+    ease: this.ease
+  }, (0, _defineProperty2.default)(_animate, "delay", this.delay), (0, _defineProperty2.default)(_animate, "loop", this.loop || false), (0, _defineProperty2.default)(_animate, "autoplay", true), (0, _defineProperty2.default)(_animate, "update", function update(props) {
+    _this.value = props.t;
+  }), _animate));
+};
+
+exports.default = TweenExpression;
+(0, _defineProperty2.default)(TweenExpression, "start", Date.now());
+},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../utils":"utils/index.js","../mappings":"animation/mappings.js","../../animate":"animate/index.js"}],"animation/expressions.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.addTo = addTo;
+exports.subtractBy = subtractBy;
+exports.multiplyBy = multiplyBy;
+exports.divideBy = divideBy;
+exports.percentOf = percentOf;
+exports.chance = chance;
+exports.range = range;
+exports.expression = expression;
+exports.pick = pick;
+exports.sequence = sequence;
+exports.isExpression = isExpression;
+exports.isDynamic = isDynamic;
+exports.evaluateExpression = evaluateExpression;
+exports.createDynamicExpression = createDynamicExpression;
+
+var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
+
+var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
+
+var _typeof2 = _interopRequireDefault(require("@babel/runtime/helpers/typeof"));
+
+var _utils = require("../utils");
+
+var mappings = _interopRequireWildcard(require("./mappings"));
+
+var randomizer = _interopRequireWildcard(require("../randomizer"));
+
+var variables = _interopRequireWildcard(require("./variables"));
+
+var _getRandom = _interopRequireDefault(require("./dynamic-expressions/get-random"));
+
+var _modExpression = _interopRequireDefault(require("./dynamic-expressions/mod-expression"));
+
+var _sineExpressions = require("./dynamic-expressions/sine-expressions");
+
+var _relativeExpressions = require("./dynamic-expressions/relative-expressions");
+
+var _bezierExpression = _interopRequireDefault(require("./dynamic-expressions/bezier-expression"));
+
+var _rangeExpression = _interopRequireDefault(require("./dynamic-expressions/range-expression"));
+
+var _averageExpression = _interopRequireDefault(require("./dynamic-expressions/average-expression"));
+
+var _sumExpression = _interopRequireDefault(require("./dynamic-expressions/sum-expression"));
+
+var _cycleExpression = _interopRequireDefault(require("./dynamic-expressions/cycle-expression"));
+
+var _betweenExpression = _interopRequireDefault(require("./dynamic-expressions/between-expression"));
+
+var _JitterExpression = require("./dynamic-expressions/JitterExpression");
+
+var _tweenExpression = _interopRequireDefault(require("./dynamic-expressions/tween-expression"));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+// dynamic expressions
+
+/** expression types */
+var EXPRESSIONS = {
+  ':+': {
+    func: addTo
+  },
+  ':-': {
+    func: subtractBy
+  },
+  ':*': {
+    func: multiplyBy
+  },
+  ':/': {
+    func: divideBy
+  },
+  ':%': {
+    func: percentOf
+  },
+  ':exp': {
+    func: expression
+  },
+  ':chance': {
+    func: chance
+  },
+  ':pick': {
+    func: pick
+  },
+  ':seq': {
+    func: sequence
+  },
+  ':sequence': {
+    func: sequence
+  },
+  ':range': {
+    func: range
+  },
+  ':var': {
+    func: getVariable
+  }
+};
+var DYNAMICS = {
+  ':sum': {
+    instance: _sumExpression.default
+  },
+  ':cycle': {
+    instance: _cycleExpression.default
+  },
+  ':avg': {
+    instance: _averageExpression.default
+  },
+  ':jit': {
+    instance: _JitterExpression.JitterExpression
+  },
+  ':mod': {
+    instance: _modExpression.default
+  },
+  ':percent': {
+    instance: _rangeExpression.default
+  },
+  ':between': {
+    instance: _betweenExpression.default
+  },
+  ':tween': {
+    instance: _tweenExpression.default
+  },
+  ':cos': {
+    instance: _sineExpressions.CosineExpression
+  },
+  ':sin': {
+    instance: _sineExpressions.SineExpression
+  },
+  ':bez': {
+    instance: _bezierExpression.default
+  },
+  ':rnd': {
+    instance: _getRandom.default
+  },
+  ':rx': {
+    instance: _relativeExpressions.RelativeToX
+  },
+  ':ry': {
+    instance: _relativeExpressions.RelativeToY
+  }
+};
+
+function getVariable(name) {
+  return variables.pull(name);
+}
+
+function addTo(add, relativeTo) {
+  return relativeTo + add;
+}
+
+function subtractBy(subtract, relativeTo) {
+  return relativeTo - subtract;
+}
+
+function multiplyBy(multiply, relativeTo) {
+  return relativeTo * multiply;
+}
+
+function divideBy(divide, relativeTo) {
+  return relativeTo / divide;
+}
+
+function percentOf(percent, relativeTo) {
+  return relativeTo * (percent / 100);
+}
+
+function chance() {
+  var convert = function convert(val) {
+    return val;
+  }; // collect up options and get args
+
+
+  var choices = [];
+
+  for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+    args[_key] = arguments[_key];
+  }
+
+  for (var _i = 0, _args = args; _i < _args.length; _i++) {
+    var option = _args[_i];
+
+    if (option === 'int') {
+      convert = parseInt;
+    } else if (option === 'float') {
+      convert = parseBool;
+    } else if (option === 'bool') {
+      convert = function convert(val) {
+        return !!val;
+      };
+    } else if ((0, _typeof2.default)(option) === 'object') {
+      for (var key in option) {
+        var _chance = option[key];
+        choices.push({
+          value: key,
+          chance: _chance
+        });
+      }
+    }
+  } // sort them by most likely to least likely
+
+
+  choices.sort(function (a, b) {
+    return b.chance - a.chance;
+  }); // sum up the total options
+
+  var sum = 0;
+
+  for (var _i2 = 0, _choices = choices; _i2 < _choices.length; _i2++) {
+    var choice = _choices[_i2];
+    sum += choice.chance;
+    choice.threshold = sum;
+  } // make the selection
+
+
+  var match = choices[0];
+  var selected = Math.random() * sum;
+
+  for (var _i3 = 0, _choices2 = choices; _i3 < _choices2.length; _i3++) {
+    var _option = _choices2[_i3];
+
+    if (selected < _option.threshold) {
+      match = _option;
+      break;
+    }
+  } // return the result
+
+
+  return convert(match.value);
+}
+
+function range() {
+  for (var _len2 = arguments.length, params = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+    params[_key2] = arguments[_key2];
+  }
+
+  // sort out the params
+  var toInt = !~params.indexOf('decimal'); // extract the value
+
+  var min = params[0],
+      max = params[1];
+
+  if (isNaN(max)) {
+    max = min;
+    min = 0;
+  } // randomize
+
+
+  var value = randomizer.random() * (max - min) + min;
+  return toInt ? 0 | value : value;
+}
+
+function expression() {
+  for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+    args[_key3] = arguments[_key3];
+  }
+
+  var val = args[0];
+
+  for (var i = 1; i < args.length; i += 2) {
+    var action = EXPRESSIONS[args[i]];
+    val = action(val, args[i + 1]);
+  }
+
+  return isNaN(val) ? 0 : val;
+}
+
+function pick() {
+  for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+    args[_key4] = arguments[_key4];
+  }
+
+  return args[Math.floor(args.length * randomizer.random())];
+} // TODO: this is just a temp solution -- because each
+// sequence array would be unique, there isn't actually any way
+// to keep a shared sequence without an identity - this uses
+// the array as a string for a reference
+
+
+var SEQUENCES = {};
+
+function sequence() {
+  for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+    args[_key5] = arguments[_key5];
+  }
+
+  // create a key to allow for a shared list
+  var key = args.join('::');
+  var sequence = SEQUENCES[key]; // if not shared yet, share it now
+
+  if (!sequence) {
+    SEQUENCES[key] = sequence = args; // check if shuffled
+
+    if (sequence[0] === ':shuffle') {
+      sequence.shift();
+      shuffle(sequence);
+    }
+  } // cycle the item
+
+
+  var selected = sequence.pop();
+  sequence.unshift(selected);
+  return selected;
+}
+/** checks if a node appears to be an expression */
+
+
+function isExpression(value) {
+  return (0, _utils.isArray)(value) && (0, _utils.isString)(value[0]) && !!EXPRESSIONS[value[0]];
+}
+/** checks if a node appears to be an expression */
+
+
+function isDynamic(value) {
+  return (0, _utils.isArray)(value) && (0, _utils.isString)(value[0]) && !!DYNAMICS[value[0]];
+}
+/** evaluates an expression node */
+
+
+function evaluateExpression(expression) {
+  if (!isExpression(expression)) return expression;
+
+  var _expression = (0, _slicedToArray2.default)(expression, 1),
+      token = _expression[0];
+
+  var handler = EXPRESSIONS[token];
+  var rest = expression.slice(1);
+
+  for (var _len6 = arguments.length, args = new Array(_len6 > 1 ? _len6 - 1 : 0), _key6 = 1; _key6 < _len6; _key6++) {
+    args[_key6 - 1] = arguments[_key6];
+  }
+
+  rest.push.apply(rest, args); // this expression will probably fail
+
+  if (!handler) {
+    console.error("No expression handler was found for token ".concat(token));
+    return null;
+  }
+
+  try {
+    return handler.func.apply(this, rest);
+  } catch (ex) {
+    console.error("Failed to evaluate expression ".concat(token, " with ").concat(rest.join(', ')));
+    throw ex;
+  }
+}
+/** generates a function for dynamic evaluation */
+
+
+function createDynamicExpression(prop, source) {
+  var expression = source[prop]; // not a dynamic property
+
+  if (!isDynamic(expression)) return expression;
+
+  var _expression2 = (0, _slicedToArray2.default)(expression, 1),
+      token = _expression2[0];
+
+  var handler = DYNAMICS[token];
+  var rest = expression.slice(1);
+
+  for (var _len7 = arguments.length, args = new Array(_len7 > 2 ? _len7 - 2 : 0), _key7 = 2; _key7 < _len7; _key7++) {
+    args[_key7 - 2] = arguments[_key7];
+  }
+
+  rest.push.apply(rest, args); // simple function handler
+
+  if (handler.func) {
+    // include the property name to update
+    rest.unshift(prop); // create the handler
+
+    return function () {
+      var _handler$func;
+
+      for (var _len8 = arguments.length, params = new Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
+        params[_key8] = arguments[_key8];
+      }
+
+      return (_handler$func = handler.func).call.apply(_handler$func, [null].concat(params, (0, _toConsumableArray2.default)(rest)));
+    }; // instance based updater
+  } else {
+    var instance = new handler.instance(prop, rest);
+    return instance.update;
+  }
+} // shuffle an array without changing the reference
+
+
+function shuffle(items) {
+  var shuffled = [];
+
+  for (var i = items.length; i-- > 0;) {
+    var index = Math.floor(items.length & randomizer.random());
+    shuffled.push.apply(shuffled, items.splice(index, 1));
+  } // repopulate the array
+
+
+  items.push.apply(items, shuffled);
+}
+},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/helpers/typeof":"../node_modules/@babel/runtime/helpers/typeof.js","../utils":"utils/index.js","./mappings":"animation/mappings.js","../randomizer":"randomizer.js","./variables":"animation/variables.js","./dynamic-expressions/get-random":"animation/dynamic-expressions/get-random.js","./dynamic-expressions/mod-expression":"animation/dynamic-expressions/mod-expression.js","./dynamic-expressions/sine-expressions":"animation/dynamic-expressions/sine-expressions.js","./dynamic-expressions/relative-expressions":"animation/dynamic-expressions/relative-expressions.js","./dynamic-expressions/bezier-expression":"animation/dynamic-expressions/bezier-expression.js","./dynamic-expressions/range-expression":"animation/dynamic-expressions/range-expression.js","./dynamic-expressions/average-expression":"animation/dynamic-expressions/average-expression.js","./dynamic-expressions/sum-expression":"animation/dynamic-expressions/sum-expression.js","./dynamic-expressions/cycle-expression":"animation/dynamic-expressions/cycle-expression.js","./dynamic-expressions/between-expression":"animation/dynamic-expressions/between-expression.js","./dynamic-expressions/JitterExpression":"animation/dynamic-expressions/JitterExpression.js","./dynamic-expressions/tween-expression":"animation/dynamic-expressions/tween-expression.js"}],"animation/utils.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.inheritFrom = inheritFrom;
+exports.clone = clone;
+exports.toRole = toRole;
+exports.unpack = unpack;
+
+var _fastCopy = _interopRequireDefault(require("fast-copy"));
+
+var _deepDefaults = _interopRequireDefault(require("deep-defaults"));
+
+var _utils = require("../utils");
+
+var _path = require("./path");
+
+var _errors = require("./errors");
+
+var _expressions = require("./expressions");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/** inherits properties from an animation node */
+function inheritFrom(animator, composition, layer, prop) {
+  var base = layer[prop];
+  if (!base) return; // eval as needed
+
+  base = (0, _expressions.evaluateExpression)(base); // apply the inherited properties
+
+  var basedOn = clone(animator, composition, base);
+  (0, _deepDefaults.default)(layer, basedOn);
+  layer.basedOn = base;
+  return layer;
+}
+/** clones an individual data node */
+
+
+function clone(animator, data, path) {
+  if ((0, _utils.isString)(path)) {
+    path = (0, _path.parsePath)(path);
+  }
+
+  var source = path.isAbsolute ? animator.manifest : data;
+  var cloned = (0, _path.resolvePath)(source, path.parts);
+  return (0, _fastCopy.default)(cloned);
+}
+/** converts a role string to an array */
+
+
+function toRole(str) {
+  return (str || '').split(/ +/g);
+}
+/** expands out a node to clone all data refs */
+
+
+function unpack(animator, root, source, prop) {
+  var limit = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 0;
+
+  if (++limit > 10) {
+    throw new _errors.RecursiveLimitExceededException();
+  } // get the value to check
+
+
+  var obj = prop ? source[prop] : source; // check to resolve a path
+
+  if ((0, _utils.isString)(obj)) {
+    var ref = (0, _path.parsePath)(obj); // if this refers to cloning local data
+
+    if (ref.isRelative) {
+      source[prop] = clone(animator, root, ref); // recurisvely unpack looking for
+      // other cloned refs
+
+      unpack(animator, root, source, prop, limit);
+    }
+  } // if this is a collection, perform this for
+  // each of the properties
+  else if ((0, _utils.isIterable)(obj)) {
+      for (var id in obj) {
+        unpack(animator, root, obj, id, limit);
+      }
+    }
+}
+},{"fast-copy":"../node_modules/fast-copy/dist/fast-copy.js","deep-defaults":"../node_modules/deep-defaults/lib/index.js","../utils":"utils/index.js","./path":"animation/path.js","./errors":"animation/errors.js","./expressions":"animation/expressions.js"}],"../node_modules/idb-keyval/dist/idb-keyval.mjs":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.get = get;
+exports.set = set;
+exports.del = del;
+exports.clear = clear;
+exports.keys = keys;
+exports.Store = void 0;
+
+class Store {
+  constructor(dbName = 'keyval-store', storeName = 'keyval') {
+    this.storeName = storeName;
+    this._dbp = new Promise((resolve, reject) => {
+      const openreq = indexedDB.open(dbName, 1);
+
+      openreq.onerror = () => reject(openreq.error);
+
+      openreq.onsuccess = () => resolve(openreq.result); // First time setup: create an empty object store
+
+
+      openreq.onupgradeneeded = () => {
+        openreq.result.createObjectStore(storeName);
+      };
+    });
+  }
+
+  _withIDBStore(type, callback) {
+    return this._dbp.then(db => new Promise((resolve, reject) => {
+      const transaction = db.transaction(this.storeName, type);
+
+      transaction.oncomplete = () => resolve();
+
+      transaction.onabort = transaction.onerror = () => reject(transaction.error);
+
+      callback(transaction.objectStore(this.storeName));
+    }));
+  }
+
+}
+
+exports.Store = Store;
+let store;
+
+function getDefaultStore() {
+  if (!store) store = new Store();
+  return store;
+}
+
+function get(key, store = getDefaultStore()) {
+  let req;
+  return store._withIDBStore('readonly', store => {
+    req = store.get(key);
+  }).then(() => req.result);
+}
+
+function set(key, value, store = getDefaultStore()) {
+  return store._withIDBStore('readwrite', store => {
+    store.put(value, key);
+  });
+}
+
+function del(key, store = getDefaultStore()) {
+  return store._withIDBStore('readwrite', store => {
+    store.delete(key);
+  });
+}
+
+function clear(store = getDefaultStore()) {
+  return store._withIDBStore('readwrite', store => {
+    store.clear();
+  });
+}
+
+function keys(store = getDefaultStore()) {
+  const keys = [];
+  return store._withIDBStore('readonly', store => {
+    // This would be store.getAllKeys(), but it isn't supported by Edge or Safari.
+    // And openKeyCursor isn't supported by Safari.
+    (store.openKeyCursor || store.openCursor).call(store).onsuccess = function () {
+      if (!this.result) return;
+      keys.push(this.result.key);
+      this.result.continue();
+    };
+  }).then(() => keys);
+}
+},{}],"utils/assetCache.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.shared = exports.default = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var _idbKeyval = require("idb-keyval");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/** creates an asset cache */
+var AssetCache =
+/** create a new cache */
+function AssetCache(db, table) {
+  var _this = this;
+
+  (0, _classCallCheck2.default)(this, AssetCache);
+  (0, _defineProperty2.default)(this, "getItem", function (key) {
+    var store = _this.store;
+    return new Promise(function (resolve) {
+      (0, _idbKeyval.get)(key, store).then(function () {
+        var record = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+        var now = +new Date();
+        var data = record.data,
+            expires = record.expires;
+        var success = !!data && !isNaN(expires) && expires > now;
+        resolve(success ? data : null);
+      }) // for errors, just resolve with
+      // no value
+      .catch(function () {
+        return resolve(null);
+      });
+    });
+  });
+  (0, _defineProperty2.default)(this, "setItem", function (key, data) {
+    var expires = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 24 * 60 * 60 * 1000;
+    var store = _this.store;
+    return new Promise(function (resolve) {
+      (0, _idbKeyval.set)(key, {
+        data: data,
+        expires: +new Date() + expires
+      }, store).then(function () {
+        return resolve(true);
+      }).catch(function () {
+        return resolve(false);
+      });
+    });
+  });
+  (0, _defineProperty2.default)(this, "purge", function () {// TODO
+  });
+  this.store = new _idbKeyval.Store(db, table);
+}
+/** saves an image resource */
+; // shared common cache
+
+
+exports.default = AssetCache;
+var shared = new AssetCache('nt:cached-assets', 'images');
+exports.shared = shared;
+},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","idb-keyval":"../node_modules/idb-keyval/dist/idb-keyval.mjs"}],"../node_modules/json-stringify-safe/stringify.js":[function(require,module,exports) {
+exports = module.exports = stringify
+exports.getSerialize = serializer
+
+function stringify(obj, replacer, spaces, cycleReplacer) {
+  return JSON.stringify(obj, serializer(replacer, cycleReplacer), spaces)
+}
+
+function serializer(replacer, cycleReplacer) {
+  var stack = [], keys = []
+
+  if (cycleReplacer == null) cycleReplacer = function(key, value) {
+    if (stack[0] === value) return "[Circular ~]"
+    return "[Circular ~." + keys.slice(0, stack.indexOf(value)).join(".") + "]"
+  }
+
+  return function(key, value) {
+    if (stack.length > 0) {
+      var thisPos = stack.indexOf(this)
+      ~thisPos ? stack.splice(thisPos + 1) : stack.push(this)
+      ~thisPos ? keys.splice(thisPos, Infinity, key) : keys.push(key)
+      if (~stack.indexOf(value)) value = cycleReplacer.call(this, key, value)
+    }
+    else stack.push(value)
+
+    return replacer == null ? value : replacer.call(this, key, value)
+  }
+}
+
+},{}],"../node_modules/random-seed/index.js":[function(require,module,exports) {
+/*
+ * random-seed
+ * https://github.com/skratchdot/random-seed
+ *
+ * This code was originally written by Steve Gibson and can be found here:
+ *
+ * https://www.grc.com/otg/uheprng.htm
+ *
+ * It was slightly modified for use in node, to pass jshint, and a few additional
+ * helper functions were added.
+ *
+ * Copyright (c) 2013 skratchdot
+ * Dual Licensed under the MIT license and the original GRC copyright/license
+ * included below.
+ */
+
+/*	============================================================================
+									Gibson Research Corporation
+				UHEPRNG - Ultra High Entropy Pseudo-Random Number Generator
+	============================================================================
+	LICENSE AND COPYRIGHT:  THIS CODE IS HEREBY RELEASED INTO THE PUBLIC DOMAIN
+	Gibson Research Corporation releases and disclaims ALL RIGHTS AND TITLE IN
+	THIS CODE OR ANY DERIVATIVES. Anyone may be freely use it for any purpose.
+	============================================================================
+	This is GRC's cryptographically strong PRNG (pseudo-random number generator)
+	for JavaScript. It is driven by 1536 bits of entropy, stored in an array of
+	48, 32-bit JavaScript variables.  Since many applications of this generator,
+	including ours with the "Off The Grid" Latin Square generator, may require
+	the deteriministic re-generation of a sequence of PRNs, this PRNG's initial
+	entropic state can be read and written as a static whole, and incrementally
+	evolved by pouring new source entropy into the generator's internal state.
+	----------------------------------------------------------------------------
+	ENDLESS THANKS are due Johannes Baagoe for his careful development of highly
+	robust JavaScript implementations of JS PRNGs.  This work was based upon his
+	JavaScript "Alea" PRNG which is based upon the extremely robust Multiply-
+	With-Carry (MWC) PRNG invented by George Marsaglia. MWC Algorithm References:
+	http://www.GRC.com/otg/Marsaglia_PRNGs.pdf
+	http://www.GRC.com/otg/Marsaglia_MWC_Generators.pdf
+	----------------------------------------------------------------------------
+	The quality of this algorithm's pseudo-random numbers have been verified by
+	multiple independent researchers. It handily passes the fermilab.ch tests as
+	well as the "diehard" and "dieharder" test suites.  For individuals wishing
+	to further verify the quality of this algorithm's pseudo-random numbers, a
+	256-megabyte file of this algorithm's output may be downloaded from GRC.com,
+	and a Microsoft Windows scripting host (WSH) version of this algorithm may be
+	downloaded and run from the Windows command prompt to generate unique files
+	of any size:
+	The Fermilab "ENT" tests: http://fourmilab.ch/random/
+	The 256-megabyte sample PRN file at GRC: https://www.GRC.com/otg/uheprng.bin
+	The Windows scripting host version: https://www.GRC.com/otg/wsh-uheprng.js
+	----------------------------------------------------------------------------
+	Qualifying MWC multipliers are: 187884, 686118, 898134, 1104375, 1250205,
+	1460910 and 1768863. (We use the largest one that's < 2^21)
+	============================================================================ */
+'use strict';
+
+var stringify = require('json-stringify-safe');
+/*	============================================================================
+This is based upon Johannes Baagoe's carefully designed and efficient hash
+function for use with JavaScript.  It has a proven "avalanche" effect such
+that every bit of the input affects every bit of the output 50% of the time,
+which is good.	See: http://baagoe.com/en/RandomMusings/hash/avalanche.xhtml
+============================================================================
+*/
+
+
+var Mash = function () {
+  var n = 0xefc8249d;
+
+  var mash = function (data) {
+    if (data) {
+      data = data.toString();
+
+      for (var i = 0; i < data.length; i++) {
+        n += data.charCodeAt(i);
+        var h = 0.02519603282416938 * n;
+        n = h >>> 0;
+        h -= n;
+        h *= n;
+        n = h >>> 0;
+        h -= n;
+        n += h * 0x100000000; // 2^32
+      }
+
+      return (n >>> 0) * 2.3283064365386963e-10; // 2^-32
+    } else {
+      n = 0xefc8249d;
+    }
+  };
+
+  return mash;
+};
+
+var uheprng = function (seed) {
+  return function () {
+    var o = 48; // set the 'order' number of ENTROPY-holding 32-bit values
+
+    var c = 1; // init the 'carry' used by the multiply-with-carry (MWC) algorithm
+
+    var p = o; // init the 'phase' (max-1) of the intermediate variable pointer
+
+    var s = new Array(o); // declare our intermediate variables array
+
+    var i; // general purpose local
+
+    var j; // general purpose local
+
+    var k = 0; // general purpose local
+    // when our "uheprng" is initially invoked our PRNG state is initialized from the
+    // browser's own local PRNG. This is okay since although its generator might not
+    // be wonderful, it's useful for establishing large startup entropy for our usage.
+
+    var mash = new Mash(); // get a pointer to our high-performance "Mash" hash
+    // fill the array with initial mash hash values
+
+    for (i = 0; i < o; i++) {
+      s[i] = mash(Math.random());
+    } // this PRIVATE (internal access only) function is the heart of the multiply-with-carry
+    // (MWC) PRNG algorithm. When called it returns a pseudo-random number in the form of a
+    // 32-bit JavaScript fraction (0.0 to <1.0) it is a PRIVATE function used by the default
+    // [0-1] return function, and by the random 'string(n)' function which returns 'n'
+    // characters from 33 to 126.
+
+
+    var rawprng = function () {
+      if (++p >= o) {
+        p = 0;
+      }
+
+      var t = 1768863 * s[p] + c * 2.3283064365386963e-10; // 2^-32
+
+      return s[p] = t - (c = t | 0);
+    }; // this EXPORTED function is the default function returned by this library.
+    // The values returned are integers in the range from 0 to range-1. We first
+    // obtain two 32-bit fractions (from rawprng) to synthesize a single high
+    // resolution 53-bit prng (0 to <1), then we multiply this by the caller's
+    // "range" param and take the "floor" to return a equally probable integer.
+
+
+    var random = function (range) {
+      return Math.floor(range * (rawprng() + (rawprng() * 0x200000 | 0) * 1.1102230246251565e-16)); // 2^-53
+    }; // this EXPORTED function 'string(n)' returns a pseudo-random string of
+    // 'n' printable characters ranging from chr(33) to chr(126) inclusive.
+
+
+    random.string = function (count) {
+      var i;
+      var s = '';
+
+      for (i = 0; i < count; i++) {
+        s += String.fromCharCode(33 + random(94));
+      }
+
+      return s;
+    }; // this PRIVATE "hash" function is used to evolve the generator's internal
+    // entropy state. It is also called by the EXPORTED addEntropy() function
+    // which is used to pour entropy into the PRNG.
+
+
+    var hash = function () {
+      var args = Array.prototype.slice.call(arguments);
+
+      for (i = 0; i < args.length; i++) {
+        for (j = 0; j < o; j++) {
+          s[j] -= mash(args[i]);
+
+          if (s[j] < 0) {
+            s[j] += 1;
+          }
+        }
+      }
+    }; // this EXPORTED "clean string" function removes leading and trailing spaces and non-printing
+    // control characters, including any embedded carriage-return (CR) and line-feed (LF) characters,
+    // from any string it is handed. this is also used by the 'hashstring' function (below) to help
+    // users always obtain the same EFFECTIVE uheprng seeding key.
+
+
+    random.cleanString = function (inStr) {
+      inStr = inStr.replace(/(^\s*)|(\s*$)/gi, ''); // remove any/all leading spaces
+
+      inStr = inStr.replace(/[\x00-\x1F]/gi, ''); // remove any/all control characters
+
+      inStr = inStr.replace(/\n /, '\n'); // remove any/all trailing spaces
+
+      return inStr; // return the cleaned up result
+    }; // this EXPORTED "hash string" function hashes the provided character string after first removing
+    // any leading or trailing spaces and ignoring any embedded carriage returns (CR) or Line Feeds (LF)
+
+
+    random.hashString = function (inStr) {
+      inStr = random.cleanString(inStr);
+      mash(inStr); // use the string to evolve the 'mash' state
+
+      for (i = 0; i < inStr.length; i++) {
+        // scan through the characters in our string
+        k = inStr.charCodeAt(i); // get the character code at the location
+
+        for (j = 0; j < o; j++) {
+          //	"mash" it into the UHEPRNG state
+          s[j] -= mash(k);
+
+          if (s[j] < 0) {
+            s[j] += 1;
+          }
+        }
+      }
+    }; // this EXPORTED function allows you to seed the random generator.
+
+
+    random.seed = function (seed) {
+      if (typeof seed === 'undefined' || seed === null) {
+        seed = Math.random();
+      }
+
+      if (typeof seed !== 'string') {
+        seed = stringify(seed, function (key, value) {
+          if (typeof value === 'function') {
+            return value.toString();
+          }
+
+          return value;
+        });
+      }
+
+      random.initState();
+      random.hashString(seed);
+    }; // this handy exported function is used to add entropy to our uheprng at any time
+
+
+    random.addEntropy = function ()
+    /* accept zero or more arguments */
+    {
+      var args = [];
+
+      for (i = 0; i < arguments.length; i++) {
+        args.push(arguments[i]);
+      }
+
+      hash(k++ + new Date().getTime() + args.join('') + Math.random());
+    }; // if we want to provide a deterministic startup context for our PRNG,
+    // but without directly setting the internal state variables, this allows
+    // us to initialize the mash hash and PRNG's internal state before providing
+    // some hashing input
+
+
+    random.initState = function () {
+      mash(); // pass a null arg to force mash hash to init
+
+      for (i = 0; i < o; i++) {
+        s[i] = mash(' '); // fill the array with initial mash hash values
+      }
+
+      c = 1; // init our multiply-with-carry carry
+
+      p = o; // init our phase
+    }; // we use this (optional) exported function to signal the JavaScript interpreter
+    // that we're finished using the "Mash" hash function so that it can free up the
+    // local "instance variables" is will have been maintaining.  It's not strictly
+    // necessary, of course, but it's good JavaScript citizenship.
+
+
+    random.done = function () {
+      mash = null;
+    }; // if we called "uheprng" with a seed value, then execute random.seed() before returning
+
+
+    if (typeof seed !== 'undefined') {
+      random.seed(seed);
+    } // Returns a random integer between 0 (inclusive) and range (exclusive)
+
+
+    random.range = function (range) {
+      return random(range);
+    }; // Returns a random float between 0 (inclusive) and 1 (exclusive)
+
+
+    random.random = function () {
+      return random(Number.MAX_VALUE - 1) / Number.MAX_VALUE;
+    }; // Returns a random float between min (inclusive) and max (exclusive)
+
+
+    random.floatBetween = function (min, max) {
+      return random.random() * (max - min) + min;
+    }; // Returns a random integer between min (inclusive) and max (inclusive)
+
+
+    random.intBetween = function (min, max) {
+      return Math.floor(random.random() * (max - min + 1)) + min;
+    }; // when our main outer "uheprng" function is called, after setting up our
+    // initial variables and entropic state, we return an "instance pointer"
+    // to the internal anonymous function which can then be used to access
+    // the uheprng's various exported functions.  As with the ".done" function
+    // above, we should set the returned value to 'null' once we're finished
+    // using any of these functions.
+
+
+    return random;
+  }();
+}; // Modification for use in node:
+
+
+uheprng.create = function (seed) {
+  return new uheprng(seed);
+};
+
+module.exports = uheprng;
+},{"json-stringify-safe":"../node_modules/json-stringify-safe/stringify.js"}],"animation/rng.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var _randomSeed = _interopRequireDefault(require("random-seed"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var Random = function Random(_seed) {
+  var _this = this;
+
+  (0, _classCallCheck2.default)(this, Random);
+  (0, _defineProperty2.default)(this, "activate", function (seed) {
+    _this.seed = seed;
+    _this.rng = _randomSeed.default.create(seed);
+  });
+  (0, _defineProperty2.default)(this, "random", function () {
+    return _this.rng.random();
+  });
+  (0, _defineProperty2.default)(this, "int", function () {
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    var _ref = args.length === 1 ? [0, args[1]] : args,
+        _ref2 = (0, _slicedToArray2.default)(_ref, 2),
+        min = _ref2[0],
+        max = _ref2[1];
+
+    return _this.rng.intBetween(min, max);
+  });
+  this.activate(_seed);
+}
+/** sets the random seed to use */
+;
+
+exports.default = Random;
+},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","random-seed":"../node_modules/random-seed/index.js"}],"animation/generators/controller.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var _utils = require("../../utils");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+var Controller = /*#__PURE__*/function () {
+  function Controller() {
+    var _this = this;
+
+    (0, _classCallCheck2.default)(this, Controller);
+    (0, _defineProperty2.default)(this, "stopAnimations", function () {
+      var animations = _this.animations;
+
+      var _iterator = _createForOfIteratorHelper(animations),
+          _step;
+
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var animation = _step.value;
+          animation.stop();
+        }
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
+    });
+    (0, _defineProperty2.default)(this, "stopEmitters", function () {
+      var emitters = _this.emitters;
+
+      var _iterator2 = _createForOfIteratorHelper(emitters),
+          _step2;
+
+      try {
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+          var instance = _step2.value;
+          var emitter = instance.emitter;
+          emitter.emit = false;
+        }
+      } catch (err) {
+        _iterator2.e(err);
+      } finally {
+        _iterator2.f();
+      }
+    });
+    (0, _defineProperty2.default)(this, "activateEmitters", function () {
+      var emitters = _this.emitters;
+
+      var _iterator3 = _createForOfIteratorHelper(emitters),
+          _step3;
+
+      try {
+        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+          var instance = _step3.value;
+          var emitter = instance.emitter;
+          var config = emitter.config;
+          emitter.autoUpdate = true;
+          emitter.lifetime = (0, _utils.isNumber)(config.duration) ? config.duration / 1000 : undefined;
+          emitter.emit = true;
+        }
+      } catch (err) {
+        _iterator3.e(err);
+      } finally {
+        _iterator3.f();
+      }
+    });
+    (0, _defineProperty2.default)(this, "dispose", function () {
+      var objects = _this.objects;
+
+      _this.stopAnimations();
+
+      _this.stopEmitters();
+
+      var _iterator4 = _createForOfIteratorHelper(objects),
+          _step4;
+
+      try {
+        for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+          var obj = _step4.value;
+          if (obj.dispose) obj.dispose();
+        }
+      } catch (err) {
+        _iterator4.e(err);
+      } finally {
+        _iterator4.f();
+      }
+    });
+    (0, _defineProperty2.default)(this, "emitters", []);
+    (0, _defineProperty2.default)(this, "animations", []);
+    (0, _defineProperty2.default)(this, "sprites", []);
+    (0, _defineProperty2.default)(this, "masks", []);
+    (0, _defineProperty2.default)(this, "groups", []);
+    (0, _defineProperty2.default)(this, "repeaters", []);
+    (0, _defineProperty2.default)(this, "objects", []);
+  }
+
+  (0, _createClass2.default)(Controller, [{
+    key: "register",
+
+    /** registers a layer for the controller */
+    value: function register(obj) {
+      // determine types
+      if (obj.isEmitter) this.emitters.push(obj);else if (obj.isSprite) this.sprites.push(obj);else if (obj.isMask) this.masks.push(obj);else if (obj.isGroup) this.groups.push(obj);else if (obj.isRepeater) this.repeaters.push(obj); // track animations
+
+      if (obj.hasAnimation) this.animations.push(obj.animation);
+    }
+  }]);
+  return Controller;
+}();
+
+exports.default = Controller;
+},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../utils":"utils/index.js"}],"../node_modules/deep-get-set/index.js":[function(require,module,exports) {
+var hasOwnProp = Object.prototype.hasOwnProperty;
+
+module.exports = deep;
+
+function deep (obj, path, value) {
+  if (arguments.length === 3) return set.apply(null, arguments);
+  return get.apply(null, arguments);
+}
+
+function get (obj, path) {
+  var keys = Array.isArray(path) ? path : path.split('.');
+  for (var i = 0; i < keys.length; i++) {
+    var key = keys[i];
+    if (!obj || !hasOwnProp.call(obj, key)) {
+      obj = undefined;
+      break;
+    }
+    obj = obj[key];
+  }
+  return obj;
+}
+
+function set (obj, path, value) {
+  var keys = Array.isArray(path) ? path : path.split('.');
+  for (var i = 0; i < keys.length - 1; i++) {
+    var key = keys[i];
+    if (deep.p && !hasOwnProp.call(obj, key)) obj[key] = {};
+    obj = obj[key];
+  }
+  obj[keys[i]] = value;
+  return value;
+}
+
+},{}],"../node_modules/@babel/runtime/helpers/superPropBase.js":[function(require,module,exports) {
+var getPrototypeOf = require("./getPrototypeOf");
+
+function _superPropBase(object, property) {
+  while (!Object.prototype.hasOwnProperty.call(object, property)) {
+    object = getPrototypeOf(object);
+    if (object === null) break;
+  }
+
+  return object;
+}
+
+module.exports = _superPropBase;
+},{"./getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js"}],"../node_modules/@babel/runtime/helpers/get.js":[function(require,module,exports) {
+var superPropBase = require("./superPropBase");
+
+function _get(target, property, receiver) {
+  if (typeof Reflect !== "undefined" && Reflect.get) {
+    module.exports = _get = Reflect.get;
+  } else {
+    module.exports = _get = function _get(target, property, receiver) {
+      var base = superPropBase(target, property);
+      if (!base) return;
+      var desc = Object.getOwnPropertyDescriptor(base, property);
+
+      if (desc.get) {
+        return desc.get.call(receiver);
+      }
+
+      return desc.value;
+    };
+  }
+
+  return _get(target, property, receiver || target);
+}
+
+module.exports = _get;
+},{"./superPropBase":"../node_modules/@babel/runtime/helpers/superPropBase.js"}],"pixi/responsive.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
+
+var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
+
+var _get3 = _interopRequireDefault(require("@babel/runtime/helpers/get"));
+
+var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
+
+var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var _lib = require("../pixi/lib");
+
+var _stage = _interopRequireDefault(require("./stage"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+/** Handles responsive scaling for a container relative to a stage */
+var ResponsiveContainer = /*#__PURE__*/function (_PIXI$Container) {
+  (0, _inherits2.default)(ResponsiveContainer, _PIXI$Container);
+
+  var _super = _createSuper(ResponsiveContainer);
+
+  function ResponsiveContainer() {
+    var _this;
+
+    (0, _classCallCheck2.default)(this, ResponsiveContainer);
+
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    _this = _super.call.apply(_super, [this].concat(args));
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "_relativeX", 0);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "_relativeY", 0);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "scaleX", 0);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "scaleY", 0);
+    return _this;
+  }
+
+  (0, _createClass2.default)(ResponsiveContainer, [{
+    key: "updateTransform",
+
+    /** match the scaling as required */
+    value: function updateTransform() {
+      var _get2;
+
+      // check if the stage scale has changed
+      var stage = _stage.default.findResponsiveStage(this);
+
+      if (stage.lastUpdate !== this._resizedTimestamp) {
+        this._resizedTimestamp = stage.lastUpdate; // update the scaling
+
+        var scaleX = stage.scaleX,
+            scaleY = stage.scaleY;
+        var _this$scale = this.scale,
+            x = _this$scale.x,
+            y = _this$scale.y; // update values
+
+        this.scale.x = x / Math.abs(x) * scaleX + this.scaleX;
+        this.scale.y = y / Math.abs(y) * scaleY + this.scaleY;
+      } // match their relative positions
+      // const { width, height } = stage;
+
+
+      this.x = this._relativeX * stage._definedWidth;
+      this.y = this._relativeY * stage._definedHeight; // perform the render
+
+      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+
+      (_get2 = (0, _get3.default)((0, _getPrototypeOf2.default)(ResponsiveContainer.prototype), "updateTransform", this)).call.apply(_get2, [this].concat(args));
+    }
+  }, {
+    key: "relativeX",
+
+    /** returns the relative position for a container 
+     * @returns {number} the relative position value
+    */
+    get: function get() {
+      return this._relativeX;
+    }
+    /** changes the relative position for a container 
+     * @param {number} value The percenage value to use 0-1
+    */
+    ,
+    set: function set(value) {
+      this._relativeX = value;
+    }
+    /** returns the relative position for a container 
+     * @returns {number} the relative position value
+    */
+
+  }, {
+    key: "relativeY",
+    get: function get() {
+      return this._relativeY;
+    }
+    /** changes the relative position for a container 
+     * @param {number} value The percenage value to use 0-1
+    */
+    ,
+    set: function set(value) {
+      this._relativeY = value;
+    } // internal position tracking
+
+  }]);
+  return ResponsiveContainer;
+}(_lib.PIXI.Container);
+
+exports.default = ResponsiveContainer;
+},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../pixi/lib":"pixi/lib.js","./stage":"pixi/stage.js"}],"pixi/utils/index.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.findResponsiveStage = void 0;
+
+// This function is generated to be flat as opposed to using
+// a loop since it's performed each frame of animation by
+// many children
+// generates a function simiar to
+// function findResponsiveState(container) {
+//   if (!container.parent) return;
+//   if (container.parent.isResponsiveState) return container.parent;
+//   if (!container.parent.parent) return;
+//   if (container.parent.parent.isResponsiveState) return container.parent.parent;
+// ... and so on
+
+/** Searches PIXI ancestors looking for a ResponsiveStage */
+var findResponsiveStage = function () {
+  var MAXIMUM_LOOKUPS = 10;
+  var code = []; // create a check for the maximum number of lookups to perform
+
+  for (var i = 1; i < MAXIMUM_LOOKUPS; i++) {
+    // string together a series of .parent checks
+    var refs = [];
+
+    for (var j = 0; j < i; j++) {
+      refs.push('parent');
+    }
+
+    var ref = refs.join('.'); // create the condition to check for a parent
+    // and check if it's a ResponsiveStage
+
+    code.push("\n\t\t\tif (!container.".concat(ref, ") return;\n\t\t\tif (container.").concat(ref, ".isResponsiveStage) return container.").concat(ref, "\n\t\t"));
+  }
+  /** pre-compiled parent lookup */
+
+
+  return new Function('container', code.join(';'));
+}();
+
+exports.findResponsiveStage = findResponsiveStage;
+},{}],"pixi/stage.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
+
+var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
+
+var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
+
+var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var _lib = require("../pixi/lib");
+
+var _responsive = _interopRequireDefault(require("./responsive"));
+
+var _utils = require("./utils");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+/** @typedef ResponsiveStageOptions
+ * @property {number} [height] Uses the provided height as the default scaling value for the stage
+ * @property {number} [width] Uses the provided width as the default scaling value for the stage
+*/
+
+/** creates a responsive stage for child elements to use */
+var ResponsiveStage = /*#__PURE__*/function (_PIXI$Container) {
+  (0, _inherits2.default)(ResponsiveStage, _PIXI$Container);
+
+  var _super = _createSuper(ResponsiveStage);
+
+  /** Creates a responsive stage that bases container sizes on a default size
+   * @param {ResponsiveStageOptions} options Options for creating a responsive stage
+   */
+  function ResponsiveStage(options) {
+    var _this;
+
+    (0, _classCallCheck2.default)(this, ResponsiveStage);
+
+    for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+      args[_key - 1] = arguments[_key];
+    }
+
+    _this = _super.call.apply(_super, [this].concat(args));
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "_definedWidth", 0);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "_definedHeight", 0);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "isResponsiveStage", true);
+    _this.options = options;
+    return _this;
+  }
+  /** the defined width for this stage */
+
+
+  (0, _createClass2.default)(ResponsiveStage, [{
+    key: "resize",
+
+    /** resizes the stage */
+    value: function resize(width, height) {
+      var options = this.options; // track when last updated
+
+      this.lastUpdate = +new Date(); // update scaling values
+
+      this._definedWidth = width;
+      this._definedHeight = height;
+      this.scaleX = width / options.width;
+      this.scaleY = height / options.height; // if either value wasn't provided, replace it
+      // with the other value or 1
+
+      if (!('height' in options)) this.scaleY = this.scaleX || 1;
+      if (!('width' in options)) this.scaleX = this.scaleY || 1;
+    }
+    /** finds a responsive stage for a responsive container
+     * @type {ResponsiveContainer}
+     * @returns {ResponsiveStage | null} The stage, if any
+     */
+
+  }, {
+    key: "width",
+    get: function get() {
+      return this._definedWidth;
+    }
+    /** the defined size for this stage */
+
+  }, {
+    key: "height",
+    get: function get() {
+      return this._definedHeight;
+    } // defined scaling of the container
+
+  }], [{
+    key: "findResponsiveStage",
+    value: function findResponsiveStage(container) {
+      return (0, _utils.findResponsiveStage)(container);
+    }
+  }]);
+  return ResponsiveStage;
+}(_lib.PIXI.Container);
+
+exports.default = ResponsiveStage;
+},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../pixi/lib":"pixi/lib.js","./responsive":"pixi/responsive.js","./utils":"pixi/utils/index.js"}],"animation/assign.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.assignIf = assignIf;
+exports.assignDisplayObjectProps = assignDisplayObjectProps;
+exports.applyExpressions = applyExpressions;
+exports.applyDynamicProperties = applyDynamicProperties;
+
+var _utils = require("../utils");
+
+var _expressions = require("./expressions");
+
+var _stage = _interopRequireDefault(require("../pixi/stage"));
+
+var _mappings = require("./mappings");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+var MISSING_STAGE = {
+  width: 0,
+  height: 0
+};
+var MISSING_PLAYER = {};
+var DYNAMIC_PROPERTY_DEFAULTS = {
+  x: 0,
+  y: 0,
+  z: 0,
+  rotation: 0,
+  skewX: 0,
+  skewY: 0,
+  pivotX: 0,
+  pivotY: 0,
+  scaleX: 1,
+  scaleY: 1,
+  anchorX: 0.5,
+  anchorY: 0.5
+};
+/** executes an assignment function only when the condtion passes */
+
+function assignIf(value, condition, target, action) {
+  for (var _len = arguments.length, args = new Array(_len > 4 ? _len - 4 : 0), _key = 4; _key < _len; _key++) {
+    args[_key - 4] = arguments[_key];
+  }
+
+  if (condition(value)) action.apply(void 0, [target, value].concat(args));
+}
+/** assigns common properties for a display object */
+
+
+function assignDisplayObjectProps(target, props) {
+  if (!props) return; // update each property
+
+  var _iterator = _createForOfIteratorHelper(_mappings.MAPPINGS),
+      _step;
+
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var mapping = _step.value;
+
+      if (props[mapping.prop] !== undefined) {
+        mapping.apply(target, props[mapping.prop]);
+      }
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+}
+/** evaluates simple expressions */
+
+
+function applyExpressions(obj) {
+  if (!obj) {
+    return;
+  }
+
+  for (var prop in obj) {
+    obj[prop] = (0, _expressions.evaluateExpression)(obj[prop]);
+  }
+}
+/** handles adding dynamically rendered properties */
+
+
+function applyDynamicProperties(obj, props) {
+  if (!props) return;
+  var hasDynamicProperties = false;
+  var update = _utils.noop; // handling locked scaled?
+  // TODOL is this needed?
+
+  obj.startingScaleY = obj.height; // check and map all dynamic props
+
+  for (var id in props) {
+    if ((0, _expressions.isDynamic)(props[id])) {
+      var handler = (0, _expressions.createDynamicExpression)(id, props);
+      hasDynamicProperties = true; // append the update function
+
+      update = (0, _utils.appendFunc)(update, handler);
+      props[id] = DYNAMIC_PROPERTY_DEFAULTS[id];
+    }
+  } // check for special functions
+
+
+  if (props.lockWidth) {
+    hasDynamicProperties = true; // create the update function
+
+    update = (0, _utils.appendFunc)(update, function (obj, stage) {
+      var currentScale = obj.width / obj.getBounds().width;
+      obj.scale.x = (0, _utils.toPrecision)(Math.min(10, currentScale * (props.scaleX || 1)) * (stage.scaleX || 1), 2);
+    });
+  } // check for special functions
+
+
+  if (props.lockHeight) {
+    hasDynamicProperties = true; // locking height allows for sprites that are skewed
+    // to maintain their original height so they have the
+    // appearance of being leaned as opposed to skew/squashed
+    // this function will change the y-scale to maintain the original
+    // height for the object the entire time. This is only used in
+    // a few places (like signs)
+    // this also rounds scaling down to a smaller precision since
+    // the track uses "snap to pixel" and not rounding will cause
+    // these to bump up and down in size by 1 pixel slightly
+
+    update = (0, _utils.appendFunc)(update, function (obj, stage) {
+      var currentScale = Math.ceil(obj.height / obj.getBounds().height * 100) / 100;
+      obj.scale.y = (0, _utils.toPrecision)(Math.min(10, currentScale * (props.scaleY || 1)) * (stage.scaleY || 1), 2);
+      obj.y = Math.floor(obj.y);
+    });
+  } // if nothing was found, just skip
+
+
+  if (!hasDynamicProperties) {
+    return;
+  } // create the handler function
+
+
+  var updateProperties = function updateProperties() {
+    var stage = obj.__responsiveStage__ = obj.__responsiveStage__ || _stage.default.findResponsiveStage(obj);
+
+    var player = obj.__player__ = obj.__player__ || findParent(obj, function (obj) {
+      return obj.isPlayerRoot;
+    });
+    update(obj, stage || MISSING_STAGE, player || MISSING_PLAYER);
+  }; // set the initial values
+
+
+  updateProperties(); // override the existing render function
+  // depending on the object type, use the
+  // correct rendering function
+
+  var __render__ = obj.render;
+
+  obj.render = function () {
+    updateProperties();
+
+    for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+      args[_key2] = arguments[_key2];
+    }
+
+    return __render__.apply(obj, args);
+  };
+
+  var __renderCanvas__ = obj.renderCanvas;
+
+  obj.renderCanvas = function () {
+    updateProperties();
+
+    for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+      args[_key3] = arguments[_key3];
+    }
+
+    return __renderCanvas__.apply(obj, args);
+  };
+}
+
+function findParent(obj, matching) {
+  var check = obj.parent;
+
+  while (check) {
+    if (matching(check)) {
+      return check;
+    }
+
+    check = check.parent;
+  }
+}
+},{"../utils":"utils/index.js","./expressions":"animation/expressions.js","../pixi/stage":"pixi/stage.js","./mappings":"animation/mappings.js"}],"pixi/utils/throttled-updater.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -87721,7 +87872,62 @@ var SCALED_LANE_HEIGHT = LANE_HEIGHT * BASE_HEIGHT;
 exports.SCALED_LANE_HEIGHT = SCALED_LANE_HEIGHT;
 var SCALED_NAMECARD_HEIGHT = NAMECARD_HEIGHT * BASE_HEIGHT;
 exports.SCALED_NAMECARD_HEIGHT = SCALED_NAMECARD_HEIGHT;
-},{"../../config":"config.js"}],"components/car/create-static-car.js":[function(require,module,exports) {
+},{"../../config":"config.js"}],"../node_modules/@babel/runtime/helpers/arrayWithHoles.js":[function(require,module,exports) {
+function _arrayWithHoles(arr) {
+  if (Array.isArray(arr)) return arr;
+}
+
+module.exports = _arrayWithHoles;
+},{}],"../node_modules/@babel/runtime/helpers/iterableToArrayLimit.js":[function(require,module,exports) {
+function _iterableToArrayLimit(arr, i) {
+  if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return;
+  var _arr = [];
+  var _n = true;
+  var _d = false;
+  var _e = undefined;
+
+  try {
+    for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
+      _arr.push(_s.value);
+
+      if (i && _arr.length === i) break;
+    }
+  } catch (err) {
+    _d = true;
+    _e = err;
+  } finally {
+    try {
+      if (!_n && _i["return"] != null) _i["return"]();
+    } finally {
+      if (_d) throw _e;
+    }
+  }
+
+  return _arr;
+}
+
+module.exports = _iterableToArrayLimit;
+},{}],"../node_modules/@babel/runtime/helpers/nonIterableRest.js":[function(require,module,exports) {
+function _nonIterableRest() {
+  throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+}
+
+module.exports = _nonIterableRest;
+},{}],"../node_modules/@babel/runtime/helpers/slicedToArray.js":[function(require,module,exports) {
+var arrayWithHoles = require("./arrayWithHoles");
+
+var iterableToArrayLimit = require("./iterableToArrayLimit");
+
+var unsupportedIterableToArray = require("./unsupportedIterableToArray");
+
+var nonIterableRest = require("./nonIterableRest");
+
+function _slicedToArray(arr, i) {
+  return arrayWithHoles(arr) || iterableToArrayLimit(arr, i) || unsupportedIterableToArray(arr, i) || nonIterableRest();
+}
+
+module.exports = _slicedToArray;
+},{"./arrayWithHoles":"../node_modules/@babel/runtime/helpers/arrayWithHoles.js","./iterableToArrayLimit":"../node_modules/@babel/runtime/helpers/iterableToArrayLimit.js","./unsupportedIterableToArray":"../node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js","./nonIterableRest":"../node_modules/@babel/runtime/helpers/nonIterableRest.js"}],"components/car/create-static-car.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -87779,17 +87985,19 @@ function _createStaticCar() {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.LAYER_TRACK_GROUND = exports.LAYER_TRACK_SPECTATOR_MODE = exports.LAYER_RACE_HOST_MARKER = exports.LAYER_SHADOW = exports.LAYER_TRAIL = exports.LAYER_CAR = exports.LAYER_NAMECARD = exports.LAYER_NAMECARD_OVERLAY = exports.LAYER_NITRO_BLUR = exports.LAYER_TRACK_OVERLAY = exports.LAYER_COUNTDOWN = void 0;
+exports.LAYER_TRACK_GROUND = exports.LAYER_TRACK_SPECTATOR_MODE = exports.LAYER_RACE_HOST_MARKER = exports.LAYER_SHADOW = exports.LAYER_TRAIL = exports.LAYER_CAR = exports.LAYER_NITRO_BLUR = exports.LAYER_FANFARE = exports.LAYER_NAMECARD = exports.LAYER_NAMECARD_OVERLAY = exports.LAYER_TRACK_OVERLAY = exports.LAYER_COUNTDOWN = void 0;
 var LAYER_COUNTDOWN = 150;
 exports.LAYER_COUNTDOWN = LAYER_COUNTDOWN;
 var LAYER_TRACK_OVERLAY = 100;
 exports.LAYER_TRACK_OVERLAY = LAYER_TRACK_OVERLAY;
+var LAYER_NAMECARD_OVERLAY = 91;
+exports.LAYER_NAMECARD_OVERLAY = LAYER_NAMECARD_OVERLAY;
+var LAYER_NAMECARD = 90;
+exports.LAYER_NAMECARD = LAYER_NAMECARD;
+var LAYER_FANFARE = 80;
+exports.LAYER_FANFARE = LAYER_FANFARE;
 var LAYER_NITRO_BLUR = 30;
 exports.LAYER_NITRO_BLUR = LAYER_NITRO_BLUR;
-var LAYER_NAMECARD_OVERLAY = 81;
-exports.LAYER_NAMECARD_OVERLAY = LAYER_NAMECARD_OVERLAY;
-var LAYER_NAMECARD = 80;
-exports.LAYER_NAMECARD = LAYER_NAMECARD;
 var LAYER_CAR = 0;
 exports.LAYER_CAR = LAYER_CAR;
 var LAYER_TRAIL = -49;
@@ -88271,62 +88479,7 @@ exports.default = ActivateNitroAnimation;
 // // }
 // // // give back the generated textures
 // // return { shadowImage, normalMapImage };
-},{}],"../node_modules/@babel/runtime/helpers/arrayWithHoles.js":[function(require,module,exports) {
-function _arrayWithHoles(arr) {
-  if (Array.isArray(arr)) return arr;
-}
-
-module.exports = _arrayWithHoles;
-},{}],"../node_modules/@babel/runtime/helpers/iterableToArrayLimit.js":[function(require,module,exports) {
-function _iterableToArrayLimit(arr, i) {
-  if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return;
-  var _arr = [];
-  var _n = true;
-  var _d = false;
-  var _e = undefined;
-
-  try {
-    for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
-      _arr.push(_s.value);
-
-      if (i && _arr.length === i) break;
-    }
-  } catch (err) {
-    _d = true;
-    _e = err;
-  } finally {
-    try {
-      if (!_n && _i["return"] != null) _i["return"]();
-    } finally {
-      if (_d) throw _e;
-    }
-  }
-
-  return _arr;
-}
-
-module.exports = _iterableToArrayLimit;
-},{}],"../node_modules/@babel/runtime/helpers/nonIterableRest.js":[function(require,module,exports) {
-function _nonIterableRest() {
-  throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-}
-
-module.exports = _nonIterableRest;
-},{}],"../node_modules/@babel/runtime/helpers/slicedToArray.js":[function(require,module,exports) {
-var arrayWithHoles = require("./arrayWithHoles");
-
-var iterableToArrayLimit = require("./iterableToArrayLimit");
-
-var unsupportedIterableToArray = require("./unsupportedIterableToArray");
-
-var nonIterableRest = require("./nonIterableRest");
-
-function _slicedToArray(arr, i) {
-  return arrayWithHoles(arr) || iterableToArrayLimit(arr, i) || unsupportedIterableToArray(arr, i) || nonIterableRest();
-}
-
-module.exports = _slicedToArray;
-},{"./arrayWithHoles":"../node_modules/@babel/runtime/helpers/arrayWithHoles.js","./iterableToArrayLimit":"../node_modules/@babel/runtime/helpers/iterableToArrayLimit.js","./unsupportedIterableToArray":"../node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js","./nonIterableRest":"../node_modules/@babel/runtime/helpers/nonIterableRest.js"}],"components/car/hue-shift.js":[function(require,module,exports) {
+},{}],"components/car/hue-shift.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -88702,7 +88855,7 @@ function shiftRgbColor(color, hue) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.VOLUME_ERROR_4 = exports.VOLUME_ERROR_3 = exports.VOLUME_ERROR_2 = exports.VOLUME_ERROR_1 = exports.VOLUME_ERROR_DEFAULT = exports.VOLUME_AMBIENT_AUDIO = exports.VOLUME_FINISH_LINE_STOP = exports.VOLUME_FINISH_LINE_CROWD = exports.VOLUME_NITRO = exports.VOLUME_COUNTDOWN_ANNOUNCER = exports.VOLUME_START_ACCELERATION = exports.VOLUME_COUNTDOWN = exports.VOLUME_DISQUALIFY = exports.VOLUME_WAMPUS_LAUGH = exports.VOLUME_CAR_ENTRY = void 0;
+exports.VOLUME_ERROR_4 = exports.VOLUME_ERROR_3 = exports.VOLUME_ERROR_2 = exports.VOLUME_ERROR_1 = exports.VOLUME_ERROR_DEFAULT = exports.VOLUME_AMBIENT_AUDIO = exports.VOLUME_FINISH_LINE_STOP = exports.VOLUME_FINISH_LINE_CROWD = exports.VOLUME_FANFARE = exports.VOLUME_NITRO = exports.VOLUME_COUNTDOWN_ANNOUNCER = exports.VOLUME_START_ACCELERATION = exports.VOLUME_COUNTDOWN = exports.VOLUME_DISQUALIFY = exports.VOLUME_WAMPUS_LAUGH = exports.VOLUME_CAR_ENTRY = void 0;
 var VOLUME_CAR_ENTRY = 0.5;
 exports.VOLUME_CAR_ENTRY = VOLUME_CAR_ENTRY;
 var VOLUME_WAMPUS_LAUGH = 0.8;
@@ -88717,11 +88870,14 @@ var VOLUME_COUNTDOWN_ANNOUNCER = 0.8;
 exports.VOLUME_COUNTDOWN_ANNOUNCER = VOLUME_COUNTDOWN_ANNOUNCER;
 var VOLUME_NITRO = 0.5;
 exports.VOLUME_NITRO = VOLUME_NITRO;
+var VOLUME_FANFARE = 0.5;
+exports.VOLUME_FANFARE = VOLUME_FANFARE;
 var VOLUME_FINISH_LINE_CROWD = 0.8;
 exports.VOLUME_FINISH_LINE_CROWD = VOLUME_FINISH_LINE_CROWD;
 var VOLUME_FINISH_LINE_STOP = 1;
 exports.VOLUME_FINISH_LINE_STOP = VOLUME_FINISH_LINE_STOP;
-var VOLUME_AMBIENT_AUDIO = 0.33;
+var VOLUME_AMBIENT_AUDIO = 0; // 0.33
+
 exports.VOLUME_AMBIENT_AUDIO = VOLUME_AMBIENT_AUDIO;
 var VOLUME_ERROR_DEFAULT = 0.2;
 exports.VOLUME_ERROR_DEFAULT = VOLUME_ERROR_DEFAULT;
@@ -88920,6 +89076,8 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = void 0;
+
+var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
 
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
@@ -89312,7 +89470,14 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
         back: bounds.width * scale * -_config.CAR_DEFAULT_FRONT_BACK_OFFSET_X,
         front: bounds.width * scale * _config.CAR_DEFAULT_FRONT_BACK_OFFSET_X,
         nitroBlurX: bounds.width * scale * _config.NITRO_BLUR_DEFAULT_OFFSET_X
-      }; // check for specialized positions
+      }; // check for special anchors that act as a follow point for
+      // trails
+
+      var _findDisplayObjectsOf = (0, _ntAnimator.findDisplayObjectsOfRole)(car, 'follow'),
+          _findDisplayObjectsOf2 = (0, _slicedToArray2.default)(_findDisplayObjectsOf, 1),
+          follow = _findDisplayObjectsOf2[0];
+
+      car.follow = follow; // check for specialized positions
       // TODO: this could be more robust to support y axis
       // or dynamic so it can follow along with cars that
       // are not 100% stationary while idle
@@ -89803,7 +89968,7 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
 }(_ntAnimator.PIXI.Container);
 
 exports.default = Car;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","./create-static-car":"components/car/create-static-car.js","../../views/track/layers":"views/track/layers.js","../../config":"config.js","../../animations/activate-nitro":"animations/activate-nitro.js","./texture-generator":"components/car/texture-generator.js","./hue-shift":"components/car/hue-shift.js","../../car-mappings":"car-mappings.js"}],"components/trail/index.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","./create-static-car":"components/car/create-static-car.js","../../views/track/layers":"views/track/layers.js","../../config":"config.js","../../animations/activate-nitro":"animations/activate-nitro.js","./texture-generator":"components/car/texture-generator.js","./hue-shift":"components/car/hue-shift.js","../../car-mappings":"car-mappings.js"}],"components/trail/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -89826,6 +89991,8 @@ var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime
 var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
 
 var _ntAnimator = require("nt-animator");
+
+var _config = require("../../config");
 
 var _utils = require("../../utils");
 
@@ -89932,21 +90099,43 @@ var Trail = /*#__PURE__*/function (_PIXI$Container) {
     }
   }], [{
     key: "setLayer",
-    value: function setLayer(trail) {
-      var _trail$config;
-
-      var target = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
-        zIndex: 0
-      };
+    value: function setLayer(trail, car) {
+      var _trail$config, _trail$config2, _car$car;
 
       if (trail === null || trail === void 0 ? void 0 : (_trail$config = trail.config) === null || _trail$config === void 0 ? void 0 : _trail$config.layer) {
         if (trail.isOverCar) {
-          trail.zIndex = target.zIndex + 1;
+          var zIndex = car.zIndex;
+          trail.zIndex = zIndex + 1;
         } else if ((0, _utils.isNumber)(trail.config.layer)) {
           trail.zIndex = trail.config.layer;
         }
       } else {
         trail.zIndex = _layers.LAYER_TRAIL;
+      } // if the trail is marked as linked, then
+      // the x and y position need to sync to 
+      // the car provided
+
+
+      if (((_trail$config2 = trail.config) === null || _trail$config2 === void 0 ? void 0 : _trail$config2.attached) && ((_car$car = car.car) === null || _car$car === void 0 ? void 0 : _car$car.follow)) {
+        var _car$car$follow;
+
+        var follow = ((_car$car$follow = car.car.follow) === null || _car$car$follow === void 0 ? void 0 : _car$car$follow.children[0]) || {
+          x: 0,
+          y: 0
+        };
+
+        trail.updateTransform = function () {
+          // this is not 100% correct, but given the ranges the
+          // x/y distance will ever be, it's close enough for now
+          trail.trail.y = follow.y * _config.TRAIL_SCALE * trail.scale.y;
+          trail.trail.x = follow.x * _config.TRAIL_SCALE * trail.scale.x;
+
+          for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+            args[_key] = arguments[_key];
+          }
+
+          return _ntAnimator.PIXI.Container.prototype.updateTransform.apply(trail, args);
+        };
       }
     }
     /** handles creating the new trail instance */
@@ -90019,7 +90208,7 @@ var Trail = /*#__PURE__*/function (_PIXI$Container) {
 }(_ntAnimator.PIXI.Container);
 
 exports.default = Trail;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","../../views/track/layers":"views/track/layers.js"}],"utils/color.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../config":"config.js","../../utils":"utils/index.js","../../views/track/layers":"views/track/layers.js"}],"utils/color.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -90847,7 +91036,335 @@ var Nitro = /*#__PURE__*/function (_PIXI$DetatchedContai) {
 }(_ntAnimator.PIXI.DetatchedContainer);
 
 exports.default = Nitro;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","../../audio":"audio/index.js","../../audio/volume":"audio/volume.js"}],"views/track/player.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","../../audio":"audio/index.js","../../audio/volume":"audio/volume.js"}],"components/fanfare/index.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
+
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
+
+var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
+
+var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
+
+var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var _utils = require("../../utils");
+
+var _ntAnimator = require("nt-animator");
+
+var _volume = require("../../audio/volume");
+
+var audio = _interopRequireWildcard(require("../../audio"));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+// preferred font for fanfares
+var TARGET_NAMECARD_WIDTH = 650;
+var DEFAULT_FANFARE_DURATION = 4000; // trailing fanfare for a player
+
+var Fanfare = /*#__PURE__*/function (_PIXI$Container) {
+  (0, _inherits2.default)(Fanfare, _PIXI$Container);
+
+  var _super = _createSuper(Fanfare);
+
+  function Fanfare() {
+    var _this;
+
+    (0, _classCallCheck2.default)(this, Fanfare);
+
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    _this = _super.call.apply(_super, [this].concat(args));
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "activate", function () {
+      var _assertThisInitialize = (0, _assertThisInitialized2.default)(_this),
+          sound = _assertThisInitialize.sound,
+          instance = _assertThisInitialize.instance,
+          config = _assertThisInitialize.config; // show particle emitters
+
+
+      _this.setVisibility(true);
+
+      _this.fanfare.controller.activateEmitters(); // check for a sound to play
+
+
+      if (sound) {
+        sound.volume(_volume.VOLUME_FANFARE);
+        sound.play();
+      }
+
+      console.log(config);
+      setTimeout(function () {
+        // animate the player entry
+        (0, _ntAnimator.animate)({
+          from: {
+            a: 1
+          },
+          to: {
+            a: 0
+          },
+          ease: 'easeOutQuad',
+          duration: 250,
+          loop: false,
+          update: function update(props) {
+            return _this.alpha = props.a;
+          },
+          complete: function complete() {
+            _this.destroy();
+          }
+        });
+      }, config.duration || DEFAULT_FANFARE_DURATION);
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setVisibility", function (visible) {
+      return _this.visible = visible;
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setPosition", function (x) {
+      _this.x = 0 | x; // this.y = 0 | this.y;
+    });
+    return _this;
+  }
+
+  (0, _createClass2.default)(Fanfare, [{
+    key: "_initFanfare",
+    // creates the fanfare instance
+    value: function () {
+      var _initFanfare2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+        var path, view, options, config, container, baseHeight, fanfare;
+        return _regenerator.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                path = this.path, view = this.view, options = this.options, config = this.config, container = this.container;
+                baseHeight = options.baseHeight; // create the instance
+
+                console.log('to create', path, baseHeight);
+                _context.next = 5;
+                return view.animator.create(path);
+
+              case 5:
+                fanfare = this.fanfare = _context.sent;
+                // scale correctly
+                // this.bounds = getBoundsForRole(fanfare, 'base');
+                // if (config.height) this.bounds.height = config.height;
+                // if (config.width) this.bounds.width = config.width;
+                // save scaling values
+                // const scale = baseHeight / this.bounds.height
+                // container.scale.x = container.scale.y = scale;
+                // // calculate nudging values used to position this layer correctly
+                // const { nudgeX = 0, nudgeY = 0 } = config
+                // const bounding = fanfare.getBounds()
+                // this.nudgeX = (((bounding.width - TARGET_NAMECARD_WIDTH) * -0.5) + nudgeX) * scale
+                // this.nudgeY = nudgeY * scale
+                // this.bounds.height = 300
+                // this.bounds.width = 500
+                container.scale.x = container.scale.y = config.scale || 1; // add to the view
+
+                container.addChild(fanfare);
+
+              case 8:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function _initFanfare() {
+        return _initFanfare2.apply(this, arguments);
+      }
+
+      return _initFanfare;
+    }() // loads the sound for this car
+
+  }, {
+    key: "_initSound",
+    value: function () {
+      var _initSound2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+        var options, config, sfx, type, key, sound;
+        return _regenerator.default.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                options = this.options, config = this.config;
+                console.log(options, config, this);
+                sfx = config.sfx;
+                type = options.type; // if this uses a standard library sound
+                // load the sound, if any
+
+                key = "fanfare/".concat(type);
+                _context2.next = 7;
+                return audio.register(key);
+
+              case 7:
+                // save the sound effect
+                sound = audio.create('sfx', key); // let sound;
+                // if (sfx) {
+                // 	sound = audio.create('sfx', sfx)
+                // }
+                // // use sound name convention
+                // else {
+                // 	// load the sound, if any
+                // 	const key = `fanfare/${type}`;
+                // 	await audio.register(key);
+                // 	// save the sound effect
+                // 	sound = audio.create('sfx', key);
+                // }
+                // no sound was found?
+
+                if (sound) {
+                  _context2.next = 10;
+                  break;
+                }
+
+                return _context2.abrupt("return");
+
+              case 10:
+                // prepare the sound
+                this.sound = sound;
+                sound.loop(false);
+                sound.volume(_volume.VOLUME_FANFARE);
+                sound.volume(1);
+
+              case 14:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function _initSound() {
+        return _initSound2.apply(this, arguments);
+      }
+
+      return _initSound;
+    }()
+    /** activates the sound for this */
+
+  }], [{
+    key: "create",
+
+    /** handles creating a new fanfare */
+    value: function () {
+      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(options) {
+        var instance, type, view, path, config;
+        return _regenerator.default.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                instance = new Fanfare();
+                instance.visible = false; // determine the type to create
+
+                type = options.type, view = options.view; // try and load
+
+                path = "fanfare/".concat(type);
+                config = view.animator.lookup(path); // maybe needs to load
+
+                if (config) {
+                  _context3.next = 9;
+                  break;
+                }
+
+                _context3.next = 8;
+                return view.animator.importManifest(path);
+
+              case 8:
+                config = view.animator.lookup(path);
+
+              case 9:
+                if (config) {
+                  _context3.next = 11;
+                  break;
+                }
+
+                return _context3.abrupt("return", null);
+
+              case 11:
+                if (config) {
+                  _context3.next = 13;
+                  break;
+                }
+
+                return _context3.abrupt("return");
+
+              case 13:
+                // save the properties
+                (0, _utils.merge)(instance, {
+                  options: options,
+                  view: view,
+                  path: path,
+                  config: config
+                }); // attempt to add a fanfare
+
+                _context3.prev = 14;
+                // create a container for all parts
+                instance.container = new _ntAnimator.PIXI.Container();
+                instance.addChild(instance.container); // initialize all fanfare parts
+
+                _context3.next = 19;
+                return instance._initFanfare();
+
+              case 19:
+                _context3.next = 21;
+                return instance._initSound();
+
+              case 21:
+                _context3.next = 28;
+                break;
+
+              case 23:
+                _context3.prev = 23;
+                _context3.t0 = _context3["catch"](14);
+                console.error(_context3.t0);
+                this.failedToLoadFanfare = true;
+                return _context3.abrupt("return", null);
+
+              case 28:
+                return _context3.abrupt("return", instance);
+
+              case 29:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this, [[14, 23]]);
+      }));
+
+      function create(_x) {
+        return _create.apply(this, arguments);
+      }
+
+      return create;
+    }()
+  }]);
+  return Fanfare;
+}(_ntAnimator.PIXI.Container);
+
+exports.default = Fanfare;
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../utils":"utils/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../audio/volume":"audio/volume.js","../../audio":"audio/index.js"}],"views/track/player.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -90890,6 +91407,8 @@ var _trail = _interopRequireDefault(require("../../components/trail"));
 var _namecard = _interopRequireDefault(require("../../components/namecard"));
 
 var _nitro = _interopRequireDefault(require("../../components/nitro"));
+
+var _fanfare = _interopRequireDefault(require("../../components/fanfare"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -90940,7 +91459,8 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
           car = _assertThisInitialize.car,
           namecard = _assertThisInitialize.namecard,
           shadow = _assertThisInitialize.shadow,
-          trail = _assertThisInitialize.trail;
+          trail = _assertThisInitialize.trail,
+          fanfare = _assertThisInitialize.fanfare;
 
       var removals = [{
         type: 'car',
@@ -90957,6 +91477,10 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
       }, {
         type: 'trail',
         source: trail,
+        action: _ntAnimator.removeDisplayObject
+      }, {
+        type: 'fanfare',
+        source: fanfare,
         action: _ntAnimator.removeDisplayObject
       }, {
         type: 'player',
@@ -91104,17 +91628,59 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
       }
 
       return _initNitro;
+    }() // handles creating a nitro trail
+
+  }, {
+    key: "_initFanfare",
+    value: function () {
+      var _initFanfare2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+        var options, mods, view;
+        return _regenerator.default.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                options = this.options, mods = this.mods;
+                view = options.view;
+                console.log(mods); // no fanfare was equiped
+
+                if (mods.fanfare) {
+                  _context4.next = 5;
+                  break;
+                }
+
+                return _context4.abrupt("return");
+
+              case 5:
+                return _context4.abrupt("return", _fanfare.default.create({
+                  view: view,
+                  baseHeight: _scaling.SCALED_CAR_HEIGHT,
+                  type: mods.fanfare
+                }));
+
+              case 6:
+              case "end":
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+
+      function _initFanfare() {
+        return _initFanfare2.apply(this, arguments);
+      }
+
+      return _initFanfare;
     }() // loading name cards
 
   }, {
     key: "_initNameCard",
     value: function () {
-      var _initNameCard2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+      var _initNameCard2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
         var options, mods, view, playerName, playerTeam, teamColor, isGold, isFriend, playerRank, _mods$card, card;
 
-        return _regenerator.default.wrap(function _callee4$(_context4) {
+        return _regenerator.default.wrap(function _callee5$(_context5) {
           while (1) {
-            switch (_context4.prev = _context4.next) {
+            switch (_context5.prev = _context5.next) {
               case 0:
                 options = this.options, mods = this.mods;
                 view = options.view;
@@ -91127,7 +91693,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                 } // load a trail, if any
 
 
-                return _context4.abrupt("return", _namecard.default.create({
+                return _context5.abrupt("return", _namecard.default.create({
                   view: view,
                   baseHeight: _scaling.SCALED_NAMECARD_HEIGHT,
                   type: card,
@@ -91142,10 +91708,10 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
 
               case 6:
               case "end":
-                return _context4.stop();
+                return _context5.stop();
             }
           }
-        }, _callee4, this);
+        }, _callee5, this);
       }));
 
       function _initNameCard() {
@@ -91158,14 +91724,15 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
   }, {
     key: "_assemble",
     value: function () {
-      var _assemble2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(car, trail, nitro, namecard) {
+      var _assemble2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(car, trail, nitro, namecard, fanfare) {
         var layers, scale;
-        return _regenerator.default.wrap(function _callee5$(_context5) {
+        return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context6.prev = _context6.next) {
               case 0:
                 layers = this.layers, scale = this.scale; // include the car and it's shadow
 
+                layers.fanfare = fanfare;
                 layers.car = car;
                 layers.shadow = car.shadow;
                 car.attachTo(this); // include extra components
@@ -91224,20 +91791,28 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
 
                   namecard.setPosition(-1000);
                   namecard.setVisibility(true);
+                } // save the namecard
+
+
+                if (fanfare) {
+                  layers.fanfare = fanfare; // hide the fanfare when it is first loaded
+                  // since it will show up in the top left corner
+                  // until it's been positioned
+                  // fanfare.setVisibility(false);
                 } // finalize order
 
 
                 this.sortChildren();
 
-              case 10:
+              case 12:
               case "end":
-                return _context5.stop();
+                return _context6.stop();
             }
           }
-        }, _callee5, this);
+        }, _callee6, this);
       }));
 
-      function _assemble(_x, _x2, _x3, _x4) {
+      function _assemble(_x, _x2, _x3, _x4, _x5) {
         return _assemble2.apply(this, arguments);
       }
 
@@ -91274,23 +91849,23 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
   }, {
     key: "repaintCar",
     value: function () {
-      var _repaintCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(hue) {
-        return _regenerator.default.wrap(function _callee6$(_context6) {
+      var _repaintCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(hue) {
+        return _regenerator.default.wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
-                _context6.next = 2;
+                _context7.next = 2;
                 return this.car.repaintCar(hue);
 
               case 2:
               case "end":
-                return _context6.stop();
+                return _context7.stop();
             }
           }
-        }, _callee6, this);
+        }, _callee7, this);
       }));
 
-      function repaintCar(_x5) {
+      function repaintCar(_x6) {
         return _repaintCar.apply(this, arguments);
       }
 
@@ -91377,6 +91952,13 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
     get: function get() {
       return this.layers.namecard;
     }
+    /** the players name card layer */
+
+  }, {
+    key: "fanfare",
+    get: function get() {
+      return this.layers.fanfare;
+    }
     /** the players car shadow */
 
   }, {
@@ -91398,11 +91980,11 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
   }], [{
     key: "create",
     value: function () {
-      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(options, track) {
-        var instance, car, trail, nitro, namecard, resolved;
-        return _regenerator.default.wrap(function _callee7$(_context7) {
+      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(options, track) {
+        var instance, car, trail, nitro, namecard, fanfare, resolved;
+        return _regenerator.default.wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
                 instance = new Player();
                 instance.options = options;
@@ -91412,17 +91994,18 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                 car = instance._initCar();
                 trail = instance._initTrail();
                 nitro = instance._initNitro();
-                namecard = instance._initNameCard(); // wait for the result
+                namecard = instance._initNameCard();
+                fanfare = instance._initFanfare(); // wait for the result
 
-                _context7.next = 10;
-                return Promise.all([car, trail, nitro, namecard]);
+                _context8.next = 11;
+                return Promise.all([car, trail, nitro, namecard, fanfare]);
 
-              case 10:
-                resolved = _context7.sent;
-                _context7.next = 13;
+              case 11:
+                resolved = _context8.sent;
+                _context8.next = 14;
                 return instance._assemble.apply(instance, (0, _toConsumableArray2.default)(resolved));
 
-              case 13:
+              case 14:
                 // after the instance is created, find all toggles
                 instance._assignToggles(); // used for individual variables
 
@@ -91441,17 +92024,17 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
 
 
                 instance.id = options.id || "player_".concat(+new Date());
-                return _context7.abrupt("return", instance);
+                return _context8.abrupt("return", instance);
 
-              case 22:
+              case 23:
               case "end":
-                return _context7.stop();
+                return _context8.stop();
             }
           }
-        }, _callee7);
+        }, _callee8);
       }));
 
-      function create(_x6, _x7) {
+      function create(_x7, _x8) {
         return _create.apply(this, arguments);
       }
 
@@ -91462,7 +92045,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
 }(_ntAnimator.PIXI.ResponsiveContainer);
 
 exports.default = Player;
-},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","./scaling":"views/track/scaling.js","../../config":"config.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","../../components/namecard":"components/namecard/index.js","../../components/nitro":"components/nitro/index.js"}],"../node_modules/json-stringify-safe/stringify.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","./scaling":"views/track/scaling.js","../../config":"config.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","../../components/namecard":"components/namecard/index.js","../../components/nitro":"components/nitro/index.js","../../components/fanfare":"components/fanfare/index.js"}],"../node_modules/json-stringify-safe/stringify.js":[function(require,module,exports) {
 exports = module.exports = stringify
 exports.getSerialize = serializer
 
@@ -103458,7 +104041,8 @@ var CarEntryAnimation = /*#__PURE__*/function (_Animation) {
     var _player = _ref.player,
         _enterSound = _ref.enterSound,
         namecard = _ref.namecard,
-        track = _ref.track;
+        track = _ref.track,
+        _fanfare = _ref.fanfare;
     (0, _classCallCheck2.default)(this, CarEntryAnimation);
     _this = _super.call(this);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "play", function (_ref2) {
@@ -103471,7 +104055,8 @@ var CarEntryAnimation = /*#__PURE__*/function (_Animation) {
 
       var _assertThisInitialize = (0, _assertThisInitialized2.default)(_this),
           player = _assertThisInitialize.player,
-          enterSound = _assertThisInitialize.enterSound; // offscreen starting position
+          enterSound = _assertThisInitialize.enterSound,
+          fanfare = _assertThisInitialize.fanfare; // offscreen starting position
 
 
       var entryOrigin = {
@@ -103491,6 +104076,11 @@ var CarEntryAnimation = /*#__PURE__*/function (_Animation) {
         updateEntry(entryDestination);
         if (_complete) _complete();
         return;
+      } // if there's a fanfare, use it
+
+
+      if (fanfare) {
+        fanfare.activate();
       } // keep track if focus is lost
 
 
@@ -103519,27 +104109,30 @@ var CarEntryAnimation = /*#__PURE__*/function (_Animation) {
       }); // play the entry sound, if possible
       // don't play duplicate sounds too close together
 
-      try {
-        var rev = audio.create('sfx', "entry_".concat(enterSound)); // play at lower volumes for subsequent cars
+      if (!fanfare) {
+        try {
+          var rev = audio.create('sfx', "entry_".concat(enterSound)); // play at lower volumes for subsequent cars
 
-        var now = Date.now();
-        var diff = now - rev.lastInstancePlay;
-        var volumeLimiter = Math.min(1, diff / _config.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT);
-        var rate = [1, 1.3, 0.85, 1.2, 0.925][rev.playCount % 5];
-        var carCountLimiter = 1 - rev.playCount * 0.1; // play the sound
+          var now = Date.now();
+          var diff = now - rev.lastInstancePlay;
+          var volumeLimiter = Math.min(1, diff / _config.RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT);
+          var rate = [1, 1.3, 0.85, 1.2, 0.925][rev.playCount % 5];
+          var carCountLimiter = 1 - rev.playCount * 0.1; // play the sound
 
-        rev.volume(_volume.VOLUME_CAR_ENTRY * volumeLimiter * carCountLimiter);
-        rev.rate(rate);
-        rev.loop(false);
-        rev.play();
-      } catch (ex) {
-        console.warn('unable to play entry sound');
+          rev.volume(_volume.VOLUME_CAR_ENTRY * volumeLimiter * carCountLimiter);
+          rev.rate(rate);
+          rev.loop(false);
+          rev.play();
+        } catch (ex) {
+          console.warn('unable to play entry sound');
+        }
       }
     });
     _this.player = _player;
     _this.track = track;
     _this.namecard = namecard;
     _this.enterSound = _enterSound;
+    _this.fanfare = _fanfare;
     return _this;
   }
 
@@ -105406,7 +105999,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(data, isInstant) {
         var _track$manifest;
 
-        var _assertThisInitialize, activePlayers, state, stage, isViewActive, animator, track, lighting, playerOptions, isPlayer, id, lane, player, _car$plugin, _player, car, namecard, container, _ref2, _ref2$enterSound, enterSound, entry;
+        var _assertThisInitialize, activePlayers, state, stage, isViewActive, animator, track, lighting, playerOptions, isPlayer, id, lane, player, _car$plugin, _player, car, _player$layers, namecard, fanfare, container, _container, _ref2, _ref2$enterSound, enterSound, entry;
 
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
@@ -105503,7 +106096,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
               case 25:
                 // with the player, include their namecard
-                namecard = player.layers.namecard;
+                _player$layers = player.layers, namecard = _player$layers.namecard, fanfare = _player$layers.fanfare;
 
                 if (namecard) {
                   // wrap the container with a responsive container
@@ -105516,6 +106109,20 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   container.relativeY = player.relativeY;
                   container.relativeX = 0;
                   container.pivot.x = namecard.width * -0.5;
+                }
+
+                if (fanfare && !isInstant) {
+                  // wrap the container with a responsive container
+                  _container = new _ntAnimator.PIXI.ResponsiveContainer();
+
+                  _container.addChild(fanfare); // add to the view
+
+
+                  stage.addChild(_container); // set layering
+
+                  _container.zIndex = _layers.LAYER_FANFARE;
+                  _container.relativeX = 0;
+                  _container.relativeY = player.relativeY;
                 } // if the screen isn't focused, then tween animations
                 // won't play, so just make it instant
 
@@ -105530,6 +106137,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                     player: player,
                     namecard: namecard,
                     enterSound: enterSound,
+                    fanfare: fanfare,
                     track: (0, _assertThisInitialized2.default)(_this)
                   });
                   entry.play({
@@ -105563,11 +106171,11 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 // }
 
 
-                _context.next = 42;
+                _context.next = 43;
                 break;
 
-              case 34:
-                _context.prev = 34;
+              case 35:
+                _context.prev = 35;
                 _context.t0 = _context["catch"](12);
                 console.log('failed to add player', _context.t0);
                 delete activePlayers[data.id];
@@ -105577,18 +106185,18 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 // a breaking exception
 
                 if (!isPlayer) {
-                  _context.next = 42;
+                  _context.next = 43;
                   break;
                 }
 
                 throw _context.t0;
 
-              case 42:
+              case 43:
               case "end":
                 return _context.stop();
             }
           }
-        }, _callee, null, [[12, 34]]);
+        }, _callee, null, [[12, 35]]);
       }));
 
       return function (_x, _x2) {
@@ -107613,8 +108221,6 @@ var _treadmill = _interopRequireDefault(require("../../components/treadmill"));
 
 var _config = require("../../config");
 
-var _layers = require("../track/layers");
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
@@ -107938,7 +108544,7 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
 }(_base.BaseView);
 
 exports.default = CruiseView;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../components/treadmill":"components/treadmill.js","../../config":"config.js","../track/layers":"views/track/layers.js"}],"utils/wait.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../components/treadmill":"components/treadmill.js","../../config":"config.js"}],"utils/wait.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -108150,6 +108756,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
     // initializes the view
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(options) {
+        var namecard;
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
@@ -108164,39 +108771,40 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 }, options));
 
               case 2:
-                // setup the main view
-                this.workspace = new _ntAnimator.PIXI.ResponsiveContainer();
-                this.workspace.scaleX = 1;
-                this.workspace.scaleY = 1;
-                this.workspace.relativeX = 0.275;
-                this.workspace.relativeY = 0.5; // setup a container used for panning the view
+                this.namecardContainer = new _ntAnimator.PIXI.ResponsiveContainer();
+                this.namecardContainer.relativeX = 0.5;
+                this.namecardContainer.relativeY = 0.375;
+                _context.next = 7;
+                return this.animator.create('namecards/gold');
 
-                this.viewport = new _ntAnimator.PIXI.Container(); // create containers
-
-                this.workspace.addChild(this.viewport);
-                this.stage.addChild(this.workspace); // attach elements
-
-                _context.next = 12;
-                return this._createTreadmill();
-
-              case 12:
-                _context.next = 14;
-                return this._createOtherDriver();
-
-              case 14:
-                _context.next = 16;
-                return this._createSprayer();
-
-              case 16:
-                // make sure the game animates relative values
-                this.animationVariables.speed = 1;
-                this.animationVariables.base_speed = 1;
-                this.animationVariables.movement = 1; // begin rendering
+              case 7:
+                namecard = _context.sent;
+                this.stage.addChild(this.namecardContainer);
+                this.namecardContainer.addChild(namecard); // // setup the main view
+                // this.workspace = new PIXI.ResponsiveContainer()
+                // this.workspace.scaleX = 1
+                // this.workspace.scaleY = 1
+                // this.workspace.relativeX = 0.275
+                // this.workspace.relativeY = 0.5
+                // // setup a container used for panning the view
+                // this.viewport = new PIXI.Container()
+                // // create containers
+                // this.workspace.addChild(this.viewport)
+                // this.stage.addChild(this.workspace)
+                // // attach elements
+                // await this._createTreadmill()
+                // await this._createOtherDriver()
+                // await this._createSprayer()
+                // // make sure the game animates relative values
+                // this.animationVariables.speed = 1
+                // this.animationVariables.base_speed = 1
+                // this.animationVariables.movement = 1
+                // begin rendering
 
                 this.startAutoRender();
                 this.ready = true;
 
-              case 21:
+              case 12:
               case "end":
                 return _context.stop();
             }
@@ -108429,26 +109037,9 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
             switch (_context7.prev = _context7.next) {
               case 0:
                 type = _ref.type, hue = _ref.hue, isAnimated = _ref.isAnimated, trail = _ref.trail, tweaks = _ref.tweaks;
-                this.isReady = false; // clear the existing data
+                return _context7.abrupt("return");
 
-                this._removeExistingCars(); // create the new car instance
-
-
-                _context7.next = 5;
-                return _car.default.create({
-                  view: this,
-                  baseHeight: 150,
-                  type: type,
-                  isAnimated: isAnimated,
-                  hue: hue,
-                  tweaks: tweaks,
-                  lighting: {
-                    x: -5,
-                    y: 7
-                  }
-                });
-
-              case 5:
+              case 6:
                 car = _context7.sent;
                 // put the car inside of a container that
                 // can be used to attach trails and 
@@ -108472,19 +109063,19 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 delete this.trail;
 
                 if (!trail) {
-                  _context7.next = 22;
+                  _context7.next = 23;
                   break;
                 }
 
-                _context7.next = 22;
+                _context7.next = 23;
                 return this.setTrail(trail, false);
 
-              case 22:
+              case 23:
                 // animate the new car into view
                 this.isReady = true;
                 return _context7.abrupt("return", this._animatePlayerCarIntoView(this.container));
 
-              case 24:
+              case 25:
               case "end":
                 return _context7.stop();
             }
@@ -108757,8 +109348,8 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
     } // renders the view
 
   }, {
-    key: "render",
-    value: function render() {
+    key: "_render",
+    value: function _render() {
       var _this$container, _get2;
 
       if (!this.ready) {

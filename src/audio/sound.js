@@ -156,6 +156,7 @@ export class Sound {
 		}
 		catch (ex) {
 			const { key } = this;
+			console.log('ex', ex)
 			console.warn(`Failed to play sound ${key}`);
 		}
 

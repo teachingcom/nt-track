@@ -21,6 +21,7 @@ import {
 } from '../../config';
 
 import {
+	LAYER_FANFARE,
 	LAYER_NAMECARD,
 	LAYER_RACE_HOST_MARKER,
 	LAYER_TRACK_GROUND,
@@ -263,7 +264,7 @@ export default class TrackView extends BaseView {
 				await car.plugin.extend({ animator, car, player, track: this });
 			
 			// with the player, include their namecard
-			const { namecard } = player.layers;
+			const { namecard, fanfare } = player.layers;
 			if (namecard) {
 
 				// wrap the container with a responsive container
@@ -280,6 +281,20 @@ export default class TrackView extends BaseView {
 				container.pivot.x = namecard.width * -0.5;
 			}
 
+			if (fanfare && !isInstant) {
+				// wrap the container with a responsive container
+				const container = new PIXI.ResponsiveContainer();
+				container.addChild(fanfare);
+
+				// add to the view
+				stage.addChild(container)
+
+				// set layering
+				container.zIndex = LAYER_FANFARE
+				container.relativeX = 0
+				container.relativeY = player.relativeY
+			}
+
 			// if the screen isn't focused, then tween animations
 			// won't play, so just make it instant
 			if (!isViewActive || this.state.isStarted) 
@@ -291,7 +306,7 @@ export default class TrackView extends BaseView {
 			}
 			else {
 				const { enterSound = 'sport' } = data.car || { };
-				const entry = new CarEntryAnimation({ player, namecard, enterSound, track: this });
+				const entry = new CarEntryAnimation({ player, namecard, enterSound, fanfare, track: this });
 				entry.play({
 					isInstant,
 					complete: () => this.setPlayerReady(player)

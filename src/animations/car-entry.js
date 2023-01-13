@@ -9,18 +9,19 @@ import { onViewActiveStateChanged } from '../utils/view'
 
 export default class CarEntryAnimation extends Animation {
 
-	constructor({ player, enterSound, namecard, track }) {
+	constructor({ player, enterSound, namecard, track, fanfare }) {
 		super()
 		
 		this.player = player
 		this.track = track
 		this.namecard = namecard
 		this.enterSound = enterSound
+		this.fanfare = fanfare
 	}
 
 	play = ({ isInstant = false, update = noop, complete = noop }) => {
-		const { player, enterSound } = this
-		
+		const { player, enterSound, fanfare } = this
+
 		// offscreen starting position
 		const entryOrigin = {
 			playerX: -0.1
@@ -41,6 +42,11 @@ export default class CarEntryAnimation extends Animation {
 			updateEntry(entryDestination)
 			if (complete) complete()
 			return
+		}
+
+		// if there's a fanfare, use it
+		if (fanfare) {
+			fanfare.activate()
 		}
 
 		// keep track if focus is lost
@@ -72,24 +78,27 @@ export default class CarEntryAnimation extends Animation {
 		
 		// play the entry sound, if possible
 		// don't play duplicate sounds too close together
-		try {
-			const rev = audio.create('sfx', `entry_${enterSound}`)
-			
-			// play at lower volumes for subsequent cars
-			const now = Date.now()
-			const diff = now - rev.lastInstancePlay
-			const volumeLimiter = Math.min(1, diff / RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT)
-			const rate = [1, 1.3, 0.85, 1.2, 0.925][rev.playCount % 5]
-			const carCountLimiter = 1 - (rev.playCount * 0.1)
+		if (!fanfare) {	
+			try {
+				const rev = audio.create('sfx', `entry_${enterSound}`)
+				
+				// play at lower volumes for subsequent cars
+				const now = Date.now()
+				const diff = now - rev.lastInstancePlay
+				const volumeLimiter = Math.min(1, diff / RACE_ENTRY_SOUND_REPEAT_TIME_LIMIT)
+				const rate = [1, 1.3, 0.85, 1.2, 0.925][rev.playCount % 5]
+				const carCountLimiter = 1 - (rev.playCount * 0.1)
 
-			// play the sound
-			rev.volume(VOLUME_CAR_ENTRY * volumeLimiter * carCountLimiter)
-			rev.rate(rate)
-			rev.loop(false)
-			rev.play()
-		}
-		catch (ex) {
-			console.warn('unable to play entry sound')
+				// play the sound
+				rev.volume(VOLUME_CAR_ENTRY * volumeLimiter * carCountLimiter)
+				rev.rate(rate)
+				rev.loop(false)
+				rev.play()
+			}
+			catch (ex) {
+				console.warn('unable to play entry sound')
+			}
+				
 		}
 
 	}
