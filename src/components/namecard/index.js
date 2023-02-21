@@ -37,6 +37,7 @@ export default class NameCard extends PIXI.Container {
 		// try and load
 		// const isDefault = /default/.test(type);
 		let path = `namecards/${type}`
+		console.log(path, view)
 		let config = view.animator.lookup(path)
 		
 		// maybe needs to load
