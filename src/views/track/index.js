@@ -169,26 +169,33 @@ export default class TrackView extends BaseView {
 	getPlayerByLane = lane => {
 		const id = this.lanes[lane]
 		return this.getPlayerById(id);
-		// const { players } = this;
-		// for (const player of players)
-		// 	if (player.options?.lane === lane)
-		// 		return player;
 	}
 
 	lanes = [ ]
 
 	// reserve a new lane
 	reserveLane = (preferredLane, id) => {
+		// check if someone is already in this lane
+		const existing = this.lanes[preferredLane]
+
+		// always ignore if this is the active player
+		// ideally the code that selected the lane
+		// will have already made sure of this
+		if (this.activePlayerId && this.activePlayerId === existing) {
+			return -1
+		}
+
+		// if there is an existing player in the lane
+		// just remove them. This could lead to a 
+		// confusing race track, but ideally the lane
+		// selection code has already avoided this
+		if (existing) {
+			this.removePlayer(existing, true)
+		}
+
+		// save the lane
 		this.lanes[preferredLane] = id
 		return preferredLane
-
-		const MAX_LANES = 5;
-		for (let lane = 0; lane < MAX_LANES; lane++) {
-			if (!this.lanes[lane]) {
-				this.lanes[lane] = id;
-				return lane;
-			}
-		}
 	}
 
 	// opens a lane for use again
@@ -211,6 +218,12 @@ export default class TrackView extends BaseView {
 		
 		// get a lane to use
 		playerOptions.lane = this.reserveLane(lane, id);
+
+		// if a lane was not found, do not try and add
+		// this player
+		if (playerOptions.lane < 0) {
+			return
+		}
 		
 		// make sure this isn't a mistake
 		if (activePlayers[data.id]) return;
@@ -516,7 +529,7 @@ export default class TrackView extends BaseView {
 	}
 
 	/** removes a player */
-	removePlayer = id => {
+	removePlayer = (id, fadeOut) => {
 		const { activePlayers, players, state } = this;
 		const player = this.getPlayerById(id);
 		const index = players.indexOf(player);
@@ -534,8 +547,8 @@ export default class TrackView extends BaseView {
 		// remove from total players
 		state.totalPlayers--;
 
-		// hide then remove
-		player.dispose();
+		// fade away
+		player.dispose(fadeOut)
 	}
 
 	/** performs the disqualified effect */

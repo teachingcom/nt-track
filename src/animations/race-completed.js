@@ -123,7 +123,7 @@ export default class RaceCompletedAnimation extends Animation {
 		// animate the finish
 		const finished = this.getFinished();
 		const place = finished.indexOf(activePlayer);
-		this.addPlayer(activePlayer, { delay: 0, place });
+		this.addPlayer(activePlayer, { delay: 2000, place });
 	}
 
 	// calculate all player finishes that have been done for
@@ -144,7 +144,7 @@ export default class RaceCompletedAnimation extends Animation {
 			}
 
 			// compare the time
-			const diff = now - player.lastUpdate;
+			const diff = now - player.completedAt;
 			if (diff > RACE_FINISH_CAR_STOPPING_TIME) {
 				const place = finished.indexOf(player);
 				this.addPlayer(player, { isInstant: true, place })
@@ -155,7 +155,9 @@ export default class RaceCompletedAnimation extends Animation {
 
 	// display the animation for the player to finish
 	animateRecentFinishes = () => {
+		const now = +new Date;
 		const { track, onTrack } = this;
+		const { activePlayer, activePlayerID } = track;
 
 		// get all current finishes
 		const finished = this.getFinished();
@@ -170,36 +172,23 @@ export default class RaceCompletedAnimation extends Animation {
 		// if there are no recent finished, just skip
 		if (!recent.length) return;
 
-		// find the first finisher
-		let firstTimestamp = Number.MAX_SAFE_INTEGER;
-		let lastTimestamp = -Number.MAX_SAFE_INTEGER;
-		for (const player of recent) {
-			firstTimestamp = Math.min(firstTimestamp, player.completedAt);
-			lastTimestamp = Math.max(lastTimestamp, player.completedAt);
-		}
-	
-		// calculate the modifier to to use based on the diff
-		const mod = getModifier(lastTimestamp - firstTimestamp);
+		// determine finished relative to one another
+		for (let i = 0; i < recent.length; i++) {
+			const player = recent[i]
+			const previous = recent[0]
 
-		// queue up each animation
-		for (const player of recent) {
-			const diff = Math.min(player.completedAt - firstTimestamp, 2000);
-			const place = finished.indexOf(player) + 1;
-			
-			// calculate the delay
-			let delay = diff * mod;
+			// start with a default delay of zero and try
+			// to calculate a visible delay between racers
+			let delay = 0
+			if (previous) {
+				delay = player.completedAt - previous.completedAt
+				const mod = getModifier(delay)
+				delay *= mod
+				delay = Math.min(delay, 2000)
+			}
 
-			// if the time is greater than a second, reduce the time
-			// a bit to avoid the player crossing the line after
-			// the results have been posted - this will be a guaranteed
-			// 1 second + 25% of the time over a second they would have
-			// finished, which should ensure they finish after faster, but
-			// before the stats appear
-			if (delay > 1000)
-				delay = 1000 + ((delay - 1000) * 0.25);
-
-			// add to the ending
-			this.addPlayer(player, { delay, place });
+			const place = finished.indexOf(player) + 1
+			this.addPlayer(player, { delay, place })
 		}
 	}
 
@@ -252,7 +241,6 @@ export default class RaceCompletedAnimation extends Animation {
 				// hasn't played (which can happen in some
 				// spectator mode scenarios)
 				this.animateRecentFinishes()
-				this.animatePlayerFinish()
 			},
 
 			update: props => {
