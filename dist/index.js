@@ -103795,8 +103795,7 @@ var CarFinishLineAnimation = /*#__PURE__*/function (_Animation) {
           update = _ref2$update === void 0 ? _utils.noop : _ref2$update,
           _ref2$complete = _ref2.complete,
           complete = _ref2$complete === void 0 ? _utils.noop : _ref2$complete;
-      var player = this.player;
-      console.log('using', player.options.playerName, delay, elapsed); // if this animation has already been activated, then
+      var player = this.player; // if this animation has already been activated, then
       // don't do it again
       // TODO: there was a scenario where the finish line
       // animation played twice - This is to prevent it from happening
@@ -104256,28 +104255,6 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
       });
       return finished;
     });
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "animatePlayerFinish", function () {
-      var _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this),
-          track = _assertThisInitialize3.track,
-          onTrack = _assertThisInitialize3.onTrack;
-
-      var activePlayerId = track.activePlayerId,
-          activePlayer = track.activePlayer; // has already been added to the track
-
-      if (onTrack[activePlayerId]) {
-        return;
-      } // animate the finish
-
-
-      var finished = _this.getFinished();
-
-      var place = finished.indexOf(activePlayer);
-
-      _this.addPlayer(activePlayer, {
-        delay: 2000,
-        place: place
-      });
-    });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "animateImmediateFinishes", function () {
       var now = +new Date(); // get everyone that's marked as finished
 
@@ -104315,14 +104292,9 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
       }
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "animateRecentFinishes", function () {
-      var now = +new Date();
+      var _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this),
+          onTrack = _assertThisInitialize3.onTrack; // get all current finishes
 
-      var _assertThisInitialize4 = (0, _assertThisInitialized2.default)(_this),
-          track = _assertThisInitialize4.track,
-          onTrack = _assertThisInitialize4.onTrack;
-
-      var activePlayer = track.activePlayer,
-          activePlayerID = track.activePlayerID; // get all current finishes
 
       var finished = _this.getFinished(); // check for newly finished racers
 
@@ -104335,7 +104307,11 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
       try {
         for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
           var _player = _step3.value;
-          if (onTrack[_player.id]) continue;
+
+          if (onTrack[_player.id]) {
+            continue;
+          }
+
           recent.push(_player);
         } // if there are no recent finished, just skip
 
@@ -104345,20 +104321,28 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
         _iterator3.f();
       }
 
-      if (!recent.length) return; // determine finished relative to one another
+      if (!recent.length) return; // ensure the order?
+
+      recent.sort(function (a, b) {
+        return a.completedAt - b.completedAt;
+      }); // if no ending time has been marked, do it now
+
+      if (!_this.relativeEndingTime) {
+        var _recent$;
+
+        _this.relativeEndingTime = (_recent$ = recent[0]) === null || _recent$ === void 0 ? void 0 : _recent$.completedAt;
+      } // determine finished relative to one another
+
 
       for (var i = 0; i < recent.length; i++) {
-        var player = recent[i];
-        var previous = recent[0]; // start with a default delay of zero and try
+        var player = recent[i]; // start with a default delay of zero and try
         // to calculate a visible delay between racers
 
-        var delay = 0;
+        var delay = player.completedAt - _this.relativeEndingTime; // include a bonus delay to keep cars separated
 
-        if (previous) {
-          delay = player.completedAt - previous.completedAt;
+        if (delay > 0) {
           var mod = getModifier(delay);
-          delay *= mod;
-          delay = Math.min(delay, 2000);
+          delay = Math.min(delay + delay * mod, 2000);
         }
 
         var place = finished.indexOf(player) + 1;
@@ -104370,19 +104354,19 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
       }
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "update", function () {
-      var _assertThisInitialize5 = (0, _assertThisInitialized2.default)(_this),
-          confetti = _assertThisInitialize5.confetti;
+      var _assertThisInitialize4 = (0, _assertThisInitialized2.default)(_this),
+          confetti = _assertThisInitialize4.confetti;
 
       if (confetti) confetti.update();
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "activateFlash", /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
-      var _assertThisInitialize6, track, animator, flash;
+      var _assertThisInitialize5, track, animator, flash;
 
       return _regenerator.default.wrap(function _callee$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
             case 0:
-              _assertThisInitialize6 = (0, _assertThisInitialized2.default)(_this), track = _assertThisInitialize6.track;
+              _assertThisInitialize5 = (0, _assertThisInitialized2.default)(_this), track = _assertThisInitialize5.track;
               animator = track.animator; // add some confetti
 
               _context.prev = 2;
@@ -104497,7 +104481,11 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
 
 
       this.animateRecentFinishes();
-    }
+    } // calculate all player finishes that have been done for
+    // an extended period of time - since we don't know the actual
+    // player finish time, we just base this on an extend time since
+    // their last update
+
   }]);
   return RaceCompletedAnimation;
 }(_base.default);
@@ -104505,7 +104493,7 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
 exports.default = RaceCompletedAnimation;
 
 function getModifier(diff) {
-  return diff <= 15 ? 10 : diff <= 50 ? 5 : diff <= 100 ? 2 : 1;
+  return (1 - Math.cos(diff / 1000) / Math.PI) * 0.25;
 }
 },{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../audio":"audio/index.js","./base":"animations/base.js","./car-finish":"animations/car-finish.js","../utils":"utils/index.js","../config":"config.js","../audio/volume":"audio/volume.js","../plugins/confetti":"plugins/confetti/index.js"}],"animations/race-progress.js":[function(require,module,exports) {
 "use strict";
@@ -109427,7 +109415,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '1.2.2';
+  window.NTTRACK = '1.2.4';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

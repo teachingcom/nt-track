@@ -19,8 +19,6 @@ export default class CarFinishLineAnimation extends Animation {
   play ({ isInstant = false, delay = 0, elapsed = 0, update = noop, complete = noop }) {
     const { player } = this
 
-    console.log('using', player.options.playerName, delay, elapsed)
-
     // if this animation has already been activated, then
     // don't do it again
     // TODO: there was a scenario where the finish line
