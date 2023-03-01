@@ -91077,46 +91077,38 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
 
       _this._progress = undefined;
     });
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "dispose", function () {
-      var _assertThisInitialize = (0, _assertThisInitialized2.default)(_this),
-          car = _assertThisInitialize.car,
-          namecard = _assertThisInitialize.namecard,
-          shadow = _assertThisInitialize.shadow,
-          trail = _assertThisInitialize.trail;
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "dispose", function (fadeOut) {
+      // hide then remove
+      if (fadeOut) {
+        (0, _ntAnimator.animate)({
+          from: {
+            t: 1
+          },
+          to: {
+            t: 0
+          },
+          ease: 'easeOutQuad',
+          duration: 300,
+          loop: false,
+          update: function update(props) {
+            if (_this.layers.namecard) {
+              _this.layers.namecard.alpha = props.t;
+            }
 
-      var removals = [{
-        type: 'car',
-        source: car,
-        action: _ntAnimator.removeDisplayObject
-      }, {
-        type: 'namecard',
-        source: namecard,
-        action: _ntAnimator.removeDisplayObject
-      }, {
-        type: 'shadow',
-        source: shadow,
-        action: _ntAnimator.removeDisplayObject
-      }, {
-        type: 'trail',
-        source: trail,
-        action: _ntAnimator.removeDisplayObject
-      }, {
-        type: 'player',
-        source: (0, _assertThisInitialized2.default)(_this),
-        action: _ntAnimator.removeDisplayObject
-      }]; // perform the removal for each category
+            if (_this.layers.trail) {
+              _this.layers.trail.alpha = props.t;
+            }
 
-      for (var _i = 0, _removals = removals; _i < _removals.length; _i++) {
-        var remove = _removals[_i];
-
-        try {
-          if (remove.source) {
-            remove.action(remove.source);
+            if (_this.layers.car) {
+              _this.layers.car.alpha = props.t;
+            }
+          },
+          complete: function complete() {
+            _this.removeAssets();
           }
-        } catch (ex) {
-          console.error("Failed to remove ".concat(remove.type));
-          console.error(ex);
-        }
+        });
+      } else {
+        _this.removeAssets();
       }
     });
     return _this;
@@ -91440,9 +91432,51 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
     }() // cancels animating progress
 
   }, {
-    key: "updateTransform",
+    key: "removeAssets",
+    value: function removeAssets() {
+      var car = this.car,
+          namecard = this.namecard,
+          shadow = this.shadow,
+          trail = this.trail;
+      var removals = [{
+        type: 'car',
+        source: car,
+        action: _ntAnimator.removeDisplayObject
+      }, {
+        type: 'namecard',
+        source: namecard,
+        action: _ntAnimator.removeDisplayObject
+      }, {
+        type: 'shadow',
+        source: shadow,
+        action: _ntAnimator.removeDisplayObject
+      }, {
+        type: 'trail',
+        source: trail,
+        action: _ntAnimator.removeDisplayObject
+      }, {
+        type: 'player',
+        source: this,
+        action: _ntAnimator.removeDisplayObject
+      }]; // perform the removal for each category
 
+      for (var _i = 0, _removals = removals; _i < _removals.length; _i++) {
+        var remove = _removals[_i];
+
+        try {
+          if (remove.source) {
+            remove.action(remove.source);
+          }
+        } catch (ex) {
+          console.error("Failed to remove ".concat(remove.type));
+          console.error(ex);
+        }
+      }
+    }
     /** handles updating the car */
+
+  }, {
+    key: "updateTransform",
     value: function updateTransform() {
       var _get2;
 
@@ -91577,8 +91611,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                 instance.zIndex = options.lane;
 
                 if (isNaN(instance.relativeY)) {
-                  console.log('had a NaN for Y');
-                  debugger;
+                  console.log('Unable to find Y position for player'); // debugger
                 } // make sure there's a player ID
 
 
@@ -104225,28 +104258,6 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
       });
       return finished;
     });
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "animatePlayerFinish", function () {
-      var _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this),
-          track = _assertThisInitialize3.track,
-          onTrack = _assertThisInitialize3.onTrack;
-
-      var activePlayerId = track.activePlayerId,
-          activePlayer = track.activePlayer; // has already been added to the track
-
-      if (onTrack[activePlayerId]) {
-        return;
-      } // animate the finish
-
-
-      var finished = _this.getFinished();
-
-      var place = finished.indexOf(activePlayer);
-
-      _this.addPlayer(activePlayer, {
-        delay: 0,
-        place: place
-      });
-    });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "animateImmediateFinishes", function () {
       var now = +new Date(); // get everyone that's marked as finished
 
@@ -104266,7 +104277,7 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
           } // compare the time
 
 
-          var diff = now - player.lastUpdate;
+          var diff = now - player.completedAt;
 
           if (diff > _config.RACE_FINISH_CAR_STOPPING_TIME) {
             var place = finished.indexOf(player);
@@ -104284,9 +104295,8 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
       }
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "animateRecentFinishes", function () {
-      var _assertThisInitialize4 = (0, _assertThisInitialized2.default)(_this),
-          track = _assertThisInitialize4.track,
-          onTrack = _assertThisInitialize4.onTrack; // get all current finishes
+      var _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this),
+          onTrack = _assertThisInitialize3.onTrack; // get all current finishes
 
 
       var finished = _this.getFinished(); // check for newly finished racers
@@ -104299,9 +104309,13 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
 
       try {
         for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
-          var _player2 = _step3.value;
-          if (onTrack[_player2.id]) continue;
-          recent.push(_player2);
+          var _player = _step3.value;
+
+          if (onTrack[_player.id]) {
+            continue;
+          }
+
+          recent.push(_player);
         } // if there are no recent finished, just skip
 
       } catch (err) {
@@ -104310,54 +104324,52 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
         _iterator3.f();
       }
 
-      if (!recent.length) return; // find the first finisher
+      if (!recent.length) return; // ensure the order?
 
-      var firstTimestamp = Number.MAX_SAFE_INTEGER;
-      var lastTimestamp = -Number.MAX_SAFE_INTEGER;
+      recent.sort(function (a, b) {
+        return a.completedAt - b.completedAt;
+      }); // if no ending time has been marked, do it now
 
-      for (var _i = 0, _recent = recent; _i < _recent.length; _i++) {
-        var player = _recent[_i];
-        firstTimestamp = Math.min(firstTimestamp, player.completedAt);
-        lastTimestamp = Math.max(lastTimestamp, player.completedAt);
-      } // calculate the modifier to to use based on the diff
+      if (!_this.relativeEndingTime) {
+        var _recent$;
+
+        _this.relativeEndingTime = (_recent$ = recent[0]) === null || _recent$ === void 0 ? void 0 : _recent$.completedAt;
+      } // determine finished relative to one another
 
 
-      var mod = getModifier(lastTimestamp - firstTimestamp); // queue up each animation
+      for (var i = 0; i < recent.length; i++) {
+        var player = recent[i]; // start with a default delay of zero and try
+        // to calculate a visible delay between racers
 
-      for (var _i2 = 0, _recent2 = recent; _i2 < _recent2.length; _i2++) {
-        var _player = _recent2[_i2];
-        var diff = Math.min(_player.completedAt - firstTimestamp, 2000);
-        var place = finished.indexOf(_player) + 1; // calculate the delay
+        var delay = player.completedAt - _this.relativeEndingTime; // include a bonus delay to keep cars separated
 
-        var delay = diff * mod; // if the time is greater than a second, reduce the time
-        // a bit to avoid the player crossing the line after
-        // the results have been posted - this will be a guaranteed
-        // 1 second + 25% of the time over a second they would have
-        // finished, which should ensure they finish after faster, but
-        // before the stats appear
+        if (delay > 0) {
+          var mod = getModifier(delay);
+          delay = Math.min(delay + delay * mod, 2000);
+        }
 
-        if (delay > 1000) delay = 1000 + (delay - 1000) * 0.25; // add to the ending
+        var place = finished.indexOf(player) + 1;
 
-        _this.addPlayer(_player, {
+        _this.addPlayer(player, {
           delay: delay,
           place: place
         });
       }
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "update", function () {
-      var _assertThisInitialize5 = (0, _assertThisInitialized2.default)(_this),
-          confetti = _assertThisInitialize5.confetti;
+      var _assertThisInitialize4 = (0, _assertThisInitialized2.default)(_this),
+          confetti = _assertThisInitialize4.confetti;
 
       if (confetti) confetti.update();
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "activateFlash", /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
-      var _assertThisInitialize6, track, animator, flash;
+      var _assertThisInitialize5, track, animator, flash;
 
       return _regenerator.default.wrap(function _callee$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
             case 0:
-              _assertThisInitialize6 = (0, _assertThisInitialized2.default)(_this), track = _assertThisInitialize6.track;
+              _assertThisInitialize5 = (0, _assertThisInitialized2.default)(_this), track = _assertThisInitialize5.track;
               animator = track.animator; // add some confetti
 
               _context.prev = 2;
@@ -104403,8 +104415,6 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
                   // spectator mode scenarios)
 
                   _this.animateRecentFinishes();
-
-                  _this.animatePlayerFinish();
                 },
                 update: function update(props) {
                   // match the size in case the view changes
@@ -104474,7 +104484,11 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
 
 
       this.animateRecentFinishes();
-    }
+    } // calculate all player finishes that have been done for
+    // an extended period of time - since we don't know the actual
+    // player finish time, we just base this on an extend time since
+    // their last update
+
   }]);
   return RaceCompletedAnimation;
 }(_base.default);
@@ -104482,7 +104496,7 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
 exports.default = RaceCompletedAnimation;
 
 function getModifier(diff) {
-  return diff <= 15 ? 10 : diff <= 50 ? 5 : diff <= 100 ? 2 : 1;
+  return (1 - Math.cos(diff / 1000) / Math.PI) * 0.25;
 }
 },{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../audio":"audio/index.js","./base":"animations/base.js","./car-finish":"animations/car-finish.js","../utils":"utils/index.js","../config":"config.js","../audio/volume":"audio/volume.js","../plugins/confetti":"plugins/confetti/index.js"}],"animations/race-progress.js":[function(require,module,exports) {
 "use strict";
@@ -104676,7 +104690,8 @@ var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
       _this.now = +new Date();
 
       var _assertThisInitialize5 = (0, _assertThisInitialized2.default)(_this),
-          track = _assertThisInitialize5.track;
+          track = _assertThisInitialize5.track,
+          minimumPosition = _assertThisInitialize5.minimumPosition;
 
       var activePlayer = track.activePlayer,
           players = track.players; // if the active player isn't ready yet
@@ -104696,7 +104711,8 @@ var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
 
 
       if (isNaN(activePlayer.relativeX)) {
-        activePlayer.relativeX = progress;
+        activePlayer.relativeX = progress || minimumPosition;
+        activePlayer.preferredX = progress || minimumPosition;
       } // update remaining players
 
 
@@ -104714,14 +104730,18 @@ var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
 
 
           if (isNaN(player.relativeX)) {
-            console.log('is correcting number');
-            player.relativeX = before;
+            player.relativeX = before || minimumPosition;
+            player.preferredX = before || minimumPosition;
           }
         }
       } catch (err) {
         _iterator.e(err);
       } finally {
         _iterator.f();
+      }
+
+      if (!isNaN(activePlayer.relativeX)) {
+        _this.minimumPosition = Math.max(activePlayer.relativeX, _this.minimumPosition || 0);
       }
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "stop", function () {
@@ -105519,23 +105539,30 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "getPlayerByLane", function (lane) {
       var id = _this.lanes[lane];
-      return _this.getPlayerById(id); // const { players } = this;
-      // for (const player of players)
-      // 	if (player.options?.lane === lane)
-      // 		return player;
+      return _this.getPlayerById(id);
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "lanes", []);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "reserveLane", function (preferredLane, id) {
+      // check if someone is already in this lane
+      var existing = _this.lanes[preferredLane]; // always ignore if this is the active player
+      // ideally the code that selected the lane
+      // will have already made sure of this
+
+      if (_this.activePlayerId && _this.activePlayerId === existing) {
+        return -1;
+      } // if there is an existing player in the lane
+      // just remove them. This could lead to a 
+      // confusing race track, but ideally the lane
+      // selection code has already avoided this
+
+
+      if (existing) {
+        _this.removePlayer(existing, true);
+      } // save the lane
+
+
       _this.lanes[preferredLane] = id;
       return preferredLane;
-      var MAX_LANES = 5;
-
-      for (var lane = 0; lane < MAX_LANES; lane++) {
-        if (!_this.lanes[lane]) {
-          _this.lanes[lane] = id;
-          return lane;
-        }
-      }
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "releaseLane", function (id) {
       for (var i = 0; i < _this.lanes.length; i++) {
@@ -105569,9 +105596,10 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 });
                 isPlayer = playerOptions.isPlayer, id = playerOptions.id, lane = playerOptions.lane; // get a lane to use
 
-                playerOptions.lane = _this.reserveLane(lane, id); // make sure this isn't a mistake
+                playerOptions.lane = _this.reserveLane(lane, id); // if a lane was not found, do not try and add
+                // this player
 
-                if (!activePlayers[data.id]) {
+                if (!(playerOptions.lane < 0)) {
                   _context.next = 10;
                   break;
                 }
@@ -105579,15 +105607,23 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 return _context.abrupt("return");
 
               case 10:
+                if (!activePlayers[data.id]) {
+                  _context.next = 12;
+                  break;
+                }
+
+                return _context.abrupt("return");
+
+              case 12:
                 activePlayers[data.id] = true; // increase the expected players
 
                 state.totalPlayers++; // create the player instance
 
-                _context.prev = 12;
-                _context.next = 15;
+                _context.prev = 14;
+                _context.next = 17;
                 return _player2.default.create(playerOptions, (0, _assertThisInitialized2.default)(_this));
 
-              case 15:
+              case 17:
                 player = _context.sent;
                 player.track = (0, _assertThisInitialized2.default)(_this); // if this happens to be a race in progress
 
@@ -105599,13 +105635,13 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
 
                 if (!(isPlayer && !player.hasRequiredAssets)) {
-                  _context.next = 20;
+                  _context.next = 22;
                   break;
                 }
 
                 throw new PlayerAssetError();
 
-              case 20:
+              case 22:
                 // set the active player, if needed
                 if (isPlayer) {
                   _this.activePlayerId = id;
@@ -105631,11 +105667,11 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 _player = player, car = _player.car;
 
                 if (!((_car$plugin = car.plugin) === null || _car$plugin === void 0 ? void 0 : _car$plugin.extend)) {
-                  _context.next = 25;
+                  _context.next = 27;
                   break;
                 }
 
-                _context.next = 25;
+                _context.next = 27;
                 return car.plugin.extend({
                   animator: animator,
                   car: car,
@@ -105643,7 +105679,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   track: (0, _assertThisInitialized2.default)(_this)
                 });
 
-              case 25:
+              case 27:
                 // with the player, include their namecard
                 namecard = player.layers.namecard;
 
@@ -105705,12 +105741,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 // }
 
 
-                _context.next = 42;
+                _context.next = 44;
                 break;
 
-              case 34:
-                _context.prev = 34;
-                _context.t0 = _context["catch"](12);
+              case 36:
+                _context.prev = 36;
+                _context.t0 = _context["catch"](14);
                 console.log('failed to add player', _context.t0);
                 delete activePlayers[data.id];
                 state.totalPlayers--; // if the player was created, try and remove it
@@ -105719,18 +105755,18 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 // a breaking exception
 
                 if (!isPlayer) {
-                  _context.next = 42;
+                  _context.next = 44;
                   break;
                 }
 
                 throw _context.t0;
 
-              case 42:
+              case 44:
               case "end":
                 return _context.stop();
             }
           }
-        }, _callee, null, [[12, 34]]);
+        }, _callee, null, [[14, 36]]);
       }));
 
       return function (_x, _x2) {
@@ -105966,7 +106002,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
         return _ref4.apply(this, arguments);
       };
     }());
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "removePlayer", function (id) {
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "removePlayer", function (id, fadeOut) {
       var _assertThisInitialize4 = (0, _assertThisInitialized2.default)(_this),
           activePlayers = _assertThisInitialize4.activePlayers,
           players = _assertThisInitialize4.players,
@@ -105984,9 +106020,9 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       players.splice(index, 1);
       delete activePlayers[id]; // remove from total players
 
-      state.totalPlayers--; // hide then remove
+      state.totalPlayers--; // fade away
 
-      player.dispose();
+      player.dispose(fadeOut);
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "disqualifyPlayer", function (id) {
       var _assertThisInitialize5 = (0, _assertThisInitialized2.default)(_this),
@@ -109334,25 +109370,13 @@ var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/ge
 
 var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
 
-var _car = _interopRequireDefault(require("../../components/car"));
-
 var _namecard = _interopRequireDefault(require("../../components/namecard"));
 
 var _ntAnimator = require("nt-animator");
 
 var _base = require("../base");
 
-var _utils = require("../../utils");
-
 var _activity = _interopRequireDefault(require("../../components/activity"));
-
-var _trail = _interopRequireDefault(require("../../components/trail"));
-
-var _color = require("../../utils/color");
-
-var _config = require("../../config");
-
-var _scaling = require("../track/scaling");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -109360,15 +109384,18 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
 var DEFAULT_MAX_HEIGHT = 250;
-var EFFECTS_PADDING_SCALING = 0.7;
 var TRANSITION_TIME = 350;
-var TARGET_X_WITHOUT_TRAIL = 0.5;
-var TARGET_X_WITH_TRAIL = TARGET_X_WITHOUT_TRAIL + 0.075;
 
 var NameCardView = /*#__PURE__*/function (_BaseView) {
   (0, _inherits2.default)(NameCardView, _BaseView);
@@ -109394,27 +109421,33 @@ var NameCardView = /*#__PURE__*/function (_BaseView) {
     }));
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setNameCard", /*#__PURE__*/function () {
       var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(config) {
-        var view, tweaks, player, container, namecard;
+        var _iterator, _step, child, view, container, namecard;
+
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                if (_this.namecard) {
-                  fadeOut(_this.namecard, false);
+                _iterator = _createForOfIteratorHelper(_this.stage.children);
+
+                try {
+                  for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                    child = _step.value;
+                    fadeOut(child, false);
+                  }
+                } catch (err) {
+                  _iterator.e(err);
+                } finally {
+                  _iterator.f();
                 }
 
                 view = (0, _assertThisInitialized2.default)(_this);
-                tweaks = _objectSpread(_objectSpread({}, _this.options.tweaks || {}), config.tweaks || {}); // create the new car
-
-                player = new _ntAnimator.PIXI.Container();
                 container = new _ntAnimator.PIXI.ResponsiveContainer();
-                _context.next = 7;
+                _context.next = 6;
                 return _namecard.default.create({
                   view: view,
                   baseHeight: _this.options.height || 200,
                   type: config.type,
                   isAnimated: true,
-                  // mods.isNamecardAnimated,
                   name: config.name,
                   team: config.tag,
                   color: config.tagColor,
@@ -109423,75 +109456,20 @@ var NameCardView = /*#__PURE__*/function (_BaseView) {
                   playerRank: config.rank
                 });
 
-              case 7:
+              case 6:
                 namecard = _context.sent;
-                // const car = await Car.create({
-                // 	view, 
-                // 	...config,
-                // 	baseHeight: DEFAULT_MAX_HEIGHT,
-                // 	tweaks,
-                // 	// lighting is flipped because the container
-                // 	// is rotated in the view
-                // 	lighting: { x: -3, y: 5, alpha: 0.33, ...tweaks.lighting }
-                // });
-                // finds the bounds for a car - if nothing was
-                // found then it's most likely a simple car. 
-                // use the sprite height of the car
-                // const bounds = getBoundsForRole(car, 'base') || car;
-                // calculate scale - include some extra
-                // padding to make sure effects (if any) are visible
-                // const display = this.getDisplaySize();
-                // // const target = display.height;
-                // const scale =  1.25 // (target / bounds.height) * EFFECTS_PADDING_SCALING;
-                // // setup the car
-                // car.pivot.x = 0.5;
-                // car.pivot.y = 0.5;
-                // car.scale.x = scale;
-                // car.scale.y = scale;
-                // // check for a bonus scale modifier
-                // const configScale = !isNaN(config.scale) ? config.scale : 1
-                // // shared scaling
-                // player.scale.x *= configScale;
-                // player.scale.y *= configScale;
-                // player.addChild(car);
-                // // include the trail, if any
-                // if (config.trail) {
-                // 	const trail = await Trail.create({
-                // 		view,
-                // 		...config,
-                // 		baseHeight: DEFAULT_MAX_HEIGHT,
-                // 		type: config.trail
-                // 	})
-                // 	// add to the view
-                // 	player.addChild(trail);
-                // 	trail.scale.x = trail.scale.y = scale
-                // 	trail.x = car.positions.back * (car.pivot.x * (scale / configScale));
-                // 	Trail.setLayer(trail, car);
-                // 	player.sortChildren();
-                // 	// mark so it knows to make
-                // 	// additional room for the trail
-                // 	container.hasTrail = true
-                // }
-                // // set the inner container
-                // player.x = config.offsetX || 0;
-                // player.y = config.offsetY || 0;
-                // setup the container
+                _this.namecard = namecard; // setup the container
+
                 container.addChild(namecard);
                 container.relativeY = 0.5;
-                container.relativeX = 0.5; // // car shadow fixes
-                // if (isNumber(tweaks.rotation)) {
-                // 	container.rotation += (Math.PI * 2) * tweaks.rotation;
-                // }
-
+                container.relativeX = 0.5;
                 fadeOut(_this.loader);
                 fadeIn(container);
-                _this.namecard = namecard;
                 namecard.visible = true;
 
-                _this.stage.addChild(container); // return container;
+                _this.stage.addChild(container);
 
-
-              case 16:
+              case 15:
               case "end":
                 return _context.stop();
             }
@@ -109546,125 +109524,7 @@ var NameCardView = /*#__PURE__*/function (_BaseView) {
       }
 
       return init;
-    }() // // shows an animated car entrance
-    // get useDrivingEffect() {
-    // 	return this.options.useDrivingEffect !== false;
-    // }
-    // // checks if a car has been assigned
-    // get hasActiveCar() {
-    // 	return !!this.car;
-    // }
-    // setupInspectionMode = (options) => {
-    // 	const { container } = options
-    // 	// create the trail backdrop, if needed
-    // 	const display = this.getDisplaySize();
-    // 	const backdrop = createBackdrop(display);
-    // 	this.view.addChild(backdrop);
-    // 	// align the backdrop to the middle and place in the back
-    // 	backdrop.y = display.height / 2;
-    // 	backdrop.zIndex = -1
-    // 	this.view.sortChildren()
-    // 	// when not moused over, try and focus the
-    // 	// view on the normal center
-    // 	container.addEventListener('mouseleave', () => {
-    // 		this.preferredFocusX = 0.5
-    // 	});
-    // 	container.addEventListener('mousemove', event => this.setFocus(event.layerX));
-    // 	container.addEventListener('touchmove', event => this.setFocus(container.offsetWidth - event.layerX));
-    // }
-    // // refocuses the view to the point provided
-    // setFocus = x => {
-    // 	const { container } = this.options
-    // 	// if this car doesn't have a trail, then there's
-    // 	// no reason to adjust the view
-    // 	if (!this.car?.hasTrail) {
-    // 		this.preferredFocusX = 0.5
-    // 		return
-    // 	}
-    // 	// Focus on the hovered portion of the screen. Don't use
-    // 	// exactly 50% since the front is not as important
-    // 	// be able to look at
-    // 	const width = container.offsetWidth * 1.2
-    // 	const percent = 1 - ((x / (width / 2)) - 0.4)
-    // 	this.preferredFocusX = 1 - ((percent * width) * 0.3)
-    // }
-    // // updates the view
-    // updateCar = async (config) => {
-    // 	const previous = this.config;
-    // 	this.config = config;
-    // 	// check for reasons to reload the car
-    // 	if (previous?.type !== config.type || previous?.trail !== config.trail) {
-    // 		this.setCar(this.config);
-    // 	}
-    // 	// repaint the view
-    // 	else if (previous?.hue !== config.hue) {
-    // 		await this.repaintCar(config);
-    // 	}
-    // }
-    // // repaints a car
-    // repaintCar = async (config) => {
-    // 	const { hasActiveCar } = this;
-    // 	// already has a car
-    // 	if (hasActiveCar) {
-    // 		fadeIn(this.loader);
-    // 		await fadeOut(this.car);
-    // 	}
-    // 	// show the new paint
-    // 	this.car = await this.createCar(config);
-    // 	this.stage.addChild(this.car);
-    // 	fadeIn(this.car);
-    // 	fadeOut(this.loader, true);
-    // }
-    // // shows a different car
-    // setCar = async (config) => {
-    // 	const { hasActiveCar, useDrivingEffect } = this;
-    // 	this.active = config;
-    // 	// drive awai
-    // 	if (hasActiveCar) {
-    // 		let exitAction = useDrivingEffect ? driveOut : fadeOut;
-    // 		exitAction(this.car);
-    // 	}
-    // 	// create the new car, but put it off screen
-    // 	await wait(100);
-    // 	fadeIn(this.loader);
-    // 	const car = await this.createCar(config);
-    // 	// check if this is still the active car
-    // 	if (config !== this.active) {
-    // 		return;
-    // 	}
-    // 	// set the new car
-    // 	let remove = this.car;
-    // 	this.car = car;
-    // 	// choose the animation
-    // 	let entryAction
-    // 	if (hasActiveCar) {
-    // 		entryAction = driveIn
-    // 	} else {
-    // 		entryAction = fadeIn
-    // 		// set starting position
-    // 		car.relativeX = car.hasTrail
-    // 			? TARGET_X_WITH_TRAIL
-    // 			: TARGET_X_WITHOUT_TRAIL
-    // 	}
-    // 	// display the car
-    // 	this.stage.addChild(car);
-    // 	fadeOut(this.loader, true);
-    // 	entryAction(car);
-    // 	// if for some reason, the old car is
-    // 	// still lingering, remove it
-    // 	await wait(TRANSITION_TIME);
-    // 	if (remove?.parent) { 
-    // 		removeFromStage(remove);
-    // 	}
-    // }
-    // creates a new car instance
-    // // align the stage as required
-    // render(...args) {
-    // 	if (this.isInspectMode) {
-    // 		this.stage.pivot.x += (this.preferredFocusX - this.stage.pivot.x) * 0.1
-    // 	}
-    // 	super.render(...args);
-    // }
+    }() // creates a new car instance
 
   }]);
   return NameCardView;
@@ -109676,42 +109536,7 @@ function removeFromStage(target) {
   if (target.parent) {
     target.parent.removeChild(target);
   }
-} // function driveOut(car) {
-// 	// cancel animations
-// 	if (car.__transition) {
-// 		car.__transition.stop();
-// 	}
-// 	return new Promise(resolve => {
-// 		animate({
-// 			duration: TRANSITION_TIME,
-// 			ease: 'linear',
-// 			from: { x: car.relativeX, alpha: car.alpha },
-// 			to: { x: car.relativeX + 1, alpha: 0 },
-// 			loop: false,
-// 			update: props => {
-// 				car.alpha = props.alpha;
-// 				car.relativeX = props.x;
-// 			},
-// 			complete: () => {
-// 				removeFromStage(car)
-// 				resolve();
-// 			},
-// 		});
-// 	});
-// }
-// function driveIn(car) {
-// 	car.relativeX = 1.5;
-// 	const x = car.hasTrail ? TARGET_X_WITH_TRAIL : TARGET_X_WITHOUT_TRAIL
-// 	car.__transition = animate({
-// 		duration: TRANSITION_TIME,
-// 		ease: 'linear',
-// 		from: { x: -1.5 },
-// 		to: { x },
-// 		loop: false,
-// 		update: props => car.relativeX = props.x
-// 	});
-// }
-
+}
 
 function fadeOut(target, skipRemove) {
   // cancel animations
@@ -109735,9 +109560,7 @@ function fadeOut(target, skipRemove) {
         return target.alpha = props.alpha;
       },
       complete: function complete() {
-        // if (!skipRemove) { 
-        // 	removeFromStage(target);
-        // }
+        removeFromStage(target);
         setTimeout(resolve, 100);
       }
     });
@@ -109760,27 +109583,8 @@ function fadeIn(target) {
       return target.alpha = props.alpha;
     }
   });
-} // function createBackdrop(display) {
-// 	const { width, height } = display
-// 	// create the rendering area
-// 	const backdrop = createContext()
-// 	backdrop.resize(width, height)
-// 	// add some bonus contrast
-// 	const gradient = backdrop.ctx.createLinearGradient(0, 0, 0, height);
-// 	gradient.addColorStop(0, 'rgba(0,0,0,0)')
-// 	gradient.addColorStop(0.5, 'rgba(0,0,0,0.3)')
-// 	gradient.addColorStop(1, 'rgba(0,0,0,0)')
-// 	backdrop.ctx.fillStyle = gradient
-// 	backdrop.ctx.fillRect(0, 0, width, height)
-// 	// create the PIXi object
-// 	const texture = PIXI.Texture.from(backdrop.canvas)
-// 	const sprite = new PIXI.Sprite(texture)
-// 	sprite.anchor.x = 0.5
-// 	sprite.anchor.y = 0.5
-// 	sprite.width *= 2
-// 	return sprite
-// }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/car":"components/car/index.js","../../components/namecard":"components/namecard/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../utils":"utils/index.js","../../components/activity":"components/activity.js","../../components/trail":"components/trail/index.js","../../utils/color":"utils/color.js","../../config":"config.js","../track/scaling":"views/track/scaling.js"}],"index.js":[function(require,module,exports) {
+}
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/namecard":"components/namecard/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../components/activity":"components/activity.js"}],"index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -109864,7 +109668,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '1.2.2';
+  window.NTTRACK = '1.2.4';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

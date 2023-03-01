@@ -191,12 +191,11 @@ export default class RaceProgressAnimation extends Animation {
 	// not updated using typical means
 	/** activate the animation */
 	update = () => {
-
 		// stopped animating
 		if (this.isStopped) return;
 
 		this.now = +new Date;
-		const { track } = this;
+		const { track, minimumPosition } = this;
 		const { activePlayer, players } = track;
 
 		// if the active player isn't ready yet
@@ -215,7 +214,8 @@ export default class RaceProgressAnimation extends Animation {
 
 		// revert, if needed
 		if (isNaN(activePlayer.relativeX)) {
-			activePlayer.relativeX = progress;
+			activePlayer.relativeX = progress || minimumPosition;
+			activePlayer.preferredX = progress || minimumPosition;
 		}
 
 		// update remaining players
@@ -227,9 +227,13 @@ export default class RaceProgressAnimation extends Animation {
 			// in case of an error, just revert to the
 			// prior value
 			if (isNaN(player.relativeX)) {
-				console.log('is correcting number');
-				player.relativeX = before;
+				player.relativeX = before || minimumPosition;
+				player.preferredX = before || minimumPosition;
 			}
+		}
+
+		if (!isNaN(activePlayer.relativeX)) {
+			this.minimumPosition = Math.max(activePlayer.relativeX, this.minimumPosition || 0)
 		}
 
 	}

@@ -111,21 +111,6 @@ export default class RaceCompletedAnimation extends Animation {
 		this.animateRecentFinishes();
 	}
 
-	animatePlayerFinish = () => { 
-		const { track, onTrack } = this;
-		const { activePlayerId, activePlayer } = track
-
-		// has already been added to the track
-		if (onTrack[activePlayerId]) {
-			return
-		}
-
-		// animate the finish
-		const finished = this.getFinished();
-		const place = finished.indexOf(activePlayer);
-		this.addPlayer(activePlayer, { delay: 0, place });
-	}
-
 	// calculate all player finishes that have been done for
 	// an extended period of time - since we don't know the actual
 	// player finish time, we just base this on an extend time since
@@ -144,7 +129,7 @@ export default class RaceCompletedAnimation extends Animation {
 			}
 
 			// compare the time
-			const diff = now - player.lastUpdate;
+			const diff = now - player.completedAt;
 			if (diff > RACE_FINISH_CAR_STOPPING_TIME) {
 				const place = finished.indexOf(player);
 				this.addPlayer(player, { isInstant: true, place })
@@ -155,7 +140,7 @@ export default class RaceCompletedAnimation extends Animation {
 
 	// display the animation for the player to finish
 	animateRecentFinishes = () => {
-		const { track, onTrack } = this;
+		const { onTrack } = this;
 
 		// get all current finishes
 		const finished = this.getFinished();
@@ -163,43 +148,39 @@ export default class RaceCompletedAnimation extends Animation {
 		// check for newly finished racers
 		const recent = [ ];
 		for (const player of finished) {
-			if (onTrack[player.id]) continue;
+			if (onTrack[player.id]) {
+				continue;
+			}
 			recent.push(player);
 		}
 
 		// if there are no recent finished, just skip
 		if (!recent.length) return;
 
-		// find the first finisher
-		let firstTimestamp = Number.MAX_SAFE_INTEGER;
-		let lastTimestamp = -Number.MAX_SAFE_INTEGER;
-		for (const player of recent) {
-			firstTimestamp = Math.min(firstTimestamp, player.completedAt);
-			lastTimestamp = Math.max(lastTimestamp, player.completedAt);
+		// ensure the order?
+		recent.sort((a, b) => a.completedAt - b.completedAt)
+
+		// if no ending time has been marked, do it now
+		if (!this.relativeEndingTime) {
+			this.relativeEndingTime = recent[0]?.completedAt
 		}
-	
-		// calculate the modifier to to use based on the diff
-		const mod = getModifier(lastTimestamp - firstTimestamp);
 
-		// queue up each animation
-		for (const player of recent) {
-			const diff = Math.min(player.completedAt - firstTimestamp, 2000);
-			const place = finished.indexOf(player) + 1;
+		// determine finished relative to one another
+		for (let i = 0; i < recent.length; i++) {
+			const player = recent[i]
+
+			// start with a default delay of zero and try
+			// to calculate a visible delay between racers
+			let delay = player.completedAt - this.relativeEndingTime
 			
-			// calculate the delay
-			let delay = diff * mod;
+			// include a bonus delay to keep cars separated
+			if (delay > 0) {
+				const mod = getModifier(delay)
+				delay = Math.min(delay + (delay * mod), 2000)
+			}
 
-			// if the time is greater than a second, reduce the time
-			// a bit to avoid the player crossing the line after
-			// the results have been posted - this will be a guaranteed
-			// 1 second + 25% of the time over a second they would have
-			// finished, which should ensure they finish after faster, but
-			// before the stats appear
-			if (delay > 1000)
-				delay = 1000 + ((delay - 1000) * 0.25);
-
-			// add to the ending
-			this.addPlayer(player, { delay, place });
+			const place = finished.indexOf(player) + 1
+			this.addPlayer(player, { delay, place })
 		}
 	}
 
@@ -252,7 +233,6 @@ export default class RaceCompletedAnimation extends Animation {
 				// hasn't played (which can happen in some
 				// spectator mode scenarios)
 				this.animateRecentFinishes()
-				this.animatePlayerFinish()
 			},
 
 			update: props => {
@@ -270,8 +250,5 @@ export default class RaceCompletedAnimation extends Animation {
 }
 
 function getModifier(diff) {
-	return diff <= 15 ? 10
-		: diff <= 50 ?  5
-		: diff <= 100 ? 2
-		: 1
+	return (1 - (Math.cos(diff / 1000) / Math.PI)) * 0.25
 }

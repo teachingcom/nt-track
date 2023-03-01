@@ -1,5 +1,5 @@
 
-import { findDisplayObjectsOfRole, PIXI, removeDisplayObject, ToggleHelper } from 'nt-animator';
+import { animate, findDisplayObjectsOfRole, PIXI, removeDisplayObject, ToggleHelper } from 'nt-animator';
 
 import { LANES, SCALED_CAR_HEIGHT, SCALED_NAMECARD_HEIGHT } from './scaling';
 import { NITRO_SCALE, NITRO_OFFSET_Y, TRAIL_SCALE, NAMECARD_TETHER_DISTANCE } from '../../config';
@@ -83,8 +83,8 @@ export default class Player extends PIXI.ResponsiveContainer {
 		instance.zIndex = options.lane;
 
 		if (isNaN(instance.relativeY)) {
-			console.log('had a NaN for Y')
-			debugger
+			console.log('Unable to find Y position for player')
+			// debugger
 		}
 
 		// make sure there's a player ID
@@ -267,7 +267,38 @@ export default class Player extends PIXI.ResponsiveContainer {
 	}
 
 	/** handle removing all resources */
-	dispose = () => {
+	dispose = (fadeOut) => {
+
+		// hide then remove
+		if (fadeOut) {
+			animate({
+				from: { t: 1 },
+				to: { t: 0 },
+				ease: 'easeOutQuad',
+				duration: 300,
+				loop: false,
+				update: props => {
+					if (this.layers.namecard) {
+						this.layers.namecard.alpha = props.t
+					}
+					if (this.layers.trail) {
+						this.layers.trail.alpha = props.t
+					}
+					if (this.layers.car) {
+						this.layers.car.alpha = props.t
+					}
+				},
+				complete: () => {
+					this.removeAssets()
+				}
+			});
+		}
+		else {
+			this.removeAssets()
+		}
+	}
+
+	removeAssets() {
 		const { car, namecard, shadow, trail } = this;
 		const removals = [
 			{ type: 'car', source: car, action: removeDisplayObject },
