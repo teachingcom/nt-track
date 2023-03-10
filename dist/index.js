@@ -83815,6 +83815,9 @@ function _createEmitter() {
             });
             (0, _assign2.assignIf)(emit.duration, _utils.isNumber, config, function (t, v) {
               return t.emitterLifetime = v / 1000;
+            });
+            (0, _assign2.assignIf)(emit.delay, _utils.isNumber, config, function (t, v) {
+              return t.delay = v;
             }); // this is established using shorthands for bounds
             // assignIf(emit.type, isString, config, (t, v) => t.spawnType = v);
             // as it turns out, the library will look up the correct enum on its own
@@ -83949,17 +83952,18 @@ function _createEmitter() {
               (0, _throttledUpdater.createThrottledUpdater)('emitterUpdateFrequency', animator, 0.001, function (delta) {
                 emitter.update(delta * animator.options.emitterUpdateFrequency);
               });
-            }; // manual start
+            };
 
+            console.log('wants to use', config.delay); // manual start
 
-            if (manualStart) {
+            if (manualStart || config.delay) {
               emitter.autoUpdate = false;
               emitter.activate = create;
               emitter.emit = false;
             } // delayed start
-            else if ((config.delay || 0) > 0) setTimeout(create, config.delay); // auto start
-              else create(); // create dynamically rendered properties
 
+
+            setTimeout(create, config.delay); // create dynamically rendered properties
 
             phase = 'creating dynamic properties';
             (0, _assign2.applyDynamicProperties)(generator, layer.props); // set container defaults
@@ -83982,18 +83986,18 @@ function _createEmitter() {
               dispose: dispose
             }]);
 
-          case 73:
-            _context.prev = 73;
+          case 76:
+            _context.prev = 76;
             _context.t2 = _context["catch"](7);
             console.error("Failed to create emitter ".concat(path, " while ").concat(phase));
             throw _context.t2;
 
-          case 77:
+          case 80:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[7, 73]]);
+    }, _callee, null, [[7, 76]]);
   }));
   return _createEmitter.apply(this, arguments);
 }
@@ -109415,7 +109419,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '1.2.4';
+  window.NTTRACK = '1.3.0';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
