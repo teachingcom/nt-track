@@ -83952,9 +83952,8 @@ function _createEmitter() {
               (0, _throttledUpdater.createThrottledUpdater)('emitterUpdateFrequency', animator, 0.001, function (delta) {
                 emitter.update(delta * animator.options.emitterUpdateFrequency);
               });
-            };
+            }; // manual start
 
-            console.log('wants to use', config.delay); // manual start
 
             if (manualStart || config.delay) {
               emitter.autoUpdate = false;
@@ -83963,7 +83962,13 @@ function _createEmitter() {
             } // delayed start
 
 
-            setTimeout(create, config.delay); // create dynamically rendered properties
+            if (!isNaN(config.delay) && config.delay > 0) {
+              setTimeout(create, config.delay);
+            } // create immediately
+            else {
+                create();
+              } // create dynamically rendered properties
+
 
             phase = 'creating dynamic properties';
             (0, _assign2.applyDynamicProperties)(generator, layer.props); // set container defaults
@@ -83986,18 +83991,18 @@ function _createEmitter() {
               dispose: dispose
             }]);
 
-          case 76:
-            _context.prev = 76;
+          case 75:
+            _context.prev = 75;
             _context.t2 = _context["catch"](7);
             console.error("Failed to create emitter ".concat(path, " while ").concat(phase));
             throw _context.t2;
 
-          case 80:
+          case 79:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[7, 76]]);
+    }, _callee, null, [[7, 75]]);
   }));
   return _createEmitter.apply(this, arguments);
 }
@@ -109419,7 +109424,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '1.3.0';
+  window.NTTRACK = '1.3.1';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
