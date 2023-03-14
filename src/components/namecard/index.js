@@ -2,7 +2,7 @@
 
 import { isNumber, merge } from '../../utils';
 import { toRGBA } from '../../utils/color';
-import { PIXI, createContext, getBoundsForRole } from 'nt-animator';
+import { PIXI, createContext, getBoundsForRole, removeDisplayObject } from 'nt-animator';
 
 // preferred font for namecards
 const TARGET_NAMECARD_WIDTH = 650
@@ -37,7 +37,6 @@ export default class NameCard extends PIXI.Container {
 		// try and load
 		// const isDefault = /default/.test(type);
 		let path = `namecards/${type}`
-		console.log(path, view)
 		let config = view.animator.lookup(path)
 		
 		// maybe needs to load
@@ -278,6 +277,15 @@ export default class NameCard extends PIXI.Container {
 		// render the view
 		this._renderOverlay();
 	}
+
+	// stop () {
+  //   this.controller.stopEmitters()
+  // }
+
+  dispose() {
+    // this.stop()
+    removeDisplayObject(this)
+  }
 
 }
 

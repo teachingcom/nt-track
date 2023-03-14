@@ -1,4 +1,5 @@
 import { createContext, loadImage, PIXI, removeDisplayObject } from 'nt-animator'
+import NameCard from '../../components/namecard'
 import Trail from '../../components/trail'
 import { BaseView } from '../base'
 import { LAYER_TRAIL } from '../track/layers'
@@ -31,6 +32,12 @@ export default class AnimationView extends BaseView {
 			case 'trail-preview':
 				this._initTrailPreview()
 				break
+
+			// create a nametag preview 
+			case 'namecard-preview':
+			case 'nametag-preview':
+				this._initNametagPreview()
+				break
 			
 			// load an animated nitro
 			case 'nitro-preview':
@@ -58,13 +65,10 @@ export default class AnimationView extends BaseView {
 		this.container.addChild(animation)
   }
 
-	// trails are shifted over and a fake car
-	// bumper is shown behind it
-	async _initTrailPreview() {
+	async _initCarBumper() {
 		const { getCarUrl, playerCar } = this.options
-
-		// load the user car
 		let bumper
+
 		if (playerCar) {
 			const url = getCarUrl(playerCar.id, true, playerCar.hue)
 			const img = await loadImage(url)
@@ -89,6 +93,15 @@ export default class AnimationView extends BaseView {
 			bumper.pivot.y = bumper.height * 0.5
 			bumper.scale.x = bumper.scale.y = 0.7
 		}
+
+		return bumper
+	}
+
+	// trails are shifted over and a fake car
+	// bumper is shown behind it
+	async _initTrailPreview() {
+		// load the user car
+		const bumper = await this._initCarBumper()	
 
 		// create the trail
 		const trail = await Trail.create({
@@ -142,6 +155,38 @@ export default class AnimationView extends BaseView {
 		// adjust z-index as needed
 		Trail.setLayer(trail, bumper);
 		contain.sortChildren();
+	}
+
+	async _initNametagPreview() {
+		// load the user car
+		const bumper = await this._initCarBumper()	
+		const namecard = await NameCard.create({
+			view: this,
+			baseHeight: this.preferredHeight,
+			...this.options,
+			...this.options.nametag,
+			type: this.options.path
+		})
+
+		// set positions
+		bumper.x = (namecard.width * 0.5)
+		bumper.scale.x = bumper.scale.y = 1.85
+		namecard.x = namecard.width * -0.075
+		bumper.x += (namecard.x * 0.5)
+
+		// since we're using the trail class for the trail
+		// we need a shared container to help make sure
+		// the trail lines up correctly using the 
+		// attachTo function
+		const contain = new PIXI.Container()
+		contain.sortableChildren = true
+		contain.addChild(namecard)
+		contain.addChild(bumper)
+		contain.sortChildren()
+		
+		namecard.visible = true
+
+		this.container.addChild(contain);
 	}
 
 	// a nitro is shown and animated from time to time

@@ -5,6 +5,7 @@ import { BaseView } from '../base'
 import Treadmill from '../../components/treadmill'
 import { TRAIL_SCALE_IN_PREVIEW } from '../../config'
 import { LAYER_TRAIL } from '../track/layers'
+import NameCard from '../../components/namecard'
 
 // config
 const DEFAULT_MAX_HEIGHT = 250
@@ -21,6 +22,10 @@ export default class CruiseView extends BaseView {
   // preferred target locations
   originX = 660
   originY = 350
+
+  // animated sway rotation scaling
+  swayScaling = 1
+  swayOffset = 0
 
   async init (options) {
     // initialize the view
@@ -67,6 +72,13 @@ export default class CruiseView extends BaseView {
       this.container.pivot.x -= 250
     }
 
+    // if this is a trail preview, focus differently
+    if (this.options.focus === 'nametag') {
+      this.container.scale.x = this.container.scale.y = 1;
+      this.container.pivot.x -= 250
+      this.swayScaling = 0.2
+    }
+
     // assemble the view
     this.container.addChild(this.treadmill)
     this.container.addChild(this.car)
@@ -111,6 +123,27 @@ export default class CruiseView extends BaseView {
       container.sortChildren()
     }
 
+    if (options.nametag) {
+      const namecard = await NameCard.create({
+        view: this,
+        baseHeight: baseHeight * CRUISE_VIEW_BONUS_SCALING,
+        ...options.nametag
+      })
+
+      // link to a car
+      container.addChild(namecard)
+
+      // shift the view over to fit the nametag
+      this.originX += 620
+
+      namecard.x = car.positions.back
+      namecard.x -= namecard.width * 0.75
+      namecard.visible = true
+      namecard.scale.x = namecard.scale.y = 0.8
+      
+      container.sortChildren()
+    }
+
     // add the car
     this.car = container
   }
@@ -141,23 +174,23 @@ export default class CruiseView extends BaseView {
     
 		// animate the player entry
 		this.__animate_backForth = animate({
-			from: { x: this.originX - 100 },
-			to: { x: this.originX + 150 },
+			from: { x: -100 },
+			to: { x: 150 },
 			ease: 'easeInOutQuad',
       duration: 3000,
       direction: 'alternate',
 			loop: true,
-			update: props => car.x = props.x
+			update: props => car.x = this.originX + (props.x * this.swayScaling)
 		});
     
 		this.__animate_upDown = animate({
-      from: { y: this.originY - 100 },
-			to: { y: this.originY + 100 },
+      from: { y: -100 },
+			to: { y: 100 },
 			ease: 'easeInOutQuad',
 			duration: 6000,
       direction: 'alternate',
 			loop: true,
-			update: props => car.y = props.y
+			update: props => car.y = this.originY + (props.y * this.swayScaling)
 		});
   }
 
@@ -177,7 +210,8 @@ export default class CruiseView extends BaseView {
     if (this.treadmill && this.isViewActive) {
       const now = Date.now();
       const delta = Math.min(2, this.getDeltaTime(now));
-      this.container.rotation = (Math.sin(this.step++ / 300) / 5) + (Math.PI * -0.2)
+      this.container.rotation = ((Math.sin(this.step++ / 300) / 5) + (Math.PI * -0.2)) * this.swayScaling
+      this.container.rotation += this.swayOffset
       this.treadmill.update({ diff: -25 * delta, horizontalWrap: -1500 })
     }
     super.render(...args)

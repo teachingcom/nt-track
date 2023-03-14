@@ -83815,6 +83815,9 @@ function _createEmitter() {
             });
             (0, _assign2.assignIf)(emit.duration, _utils.isNumber, config, function (t, v) {
               return t.emitterLifetime = v / 1000;
+            });
+            (0, _assign2.assignIf)(emit.delay, _utils.isNumber, config, function (t, v) {
+              return t.delay = v;
             }); // this is established using shorthands for bounds
             // assignIf(emit.type, isString, config, (t, v) => t.spawnType = v);
             // as it turns out, the library will look up the correct enum on its own
@@ -83952,13 +83955,19 @@ function _createEmitter() {
             }; // manual start
 
 
-            if (manualStart) {
+            if (manualStart || config.delay) {
               emitter.autoUpdate = false;
               emitter.activate = create;
               emitter.emit = false;
             } // delayed start
-            else if ((config.delay || 0) > 0) setTimeout(create, config.delay); // auto start
-              else create(); // create dynamically rendered properties
+
+
+            if (!isNaN(config.delay) && config.delay > 0) {
+              setTimeout(create, config.delay);
+            } // create immediately
+            else {
+                create();
+              } // create dynamically rendered properties
 
 
             phase = 'creating dynamic properties';
@@ -83982,18 +83991,18 @@ function _createEmitter() {
               dispose: dispose
             }]);
 
-          case 73:
-            _context.prev = 73;
+          case 75:
+            _context.prev = 75;
             _context.t2 = _context["catch"](7);
             console.error("Failed to create emitter ".concat(path, " while ").concat(phase));
             throw _context.t2;
 
-          case 77:
+          case 79:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[7, 73]]);
+    }, _callee, null, [[7, 75]]);
   }));
   return _createEmitter.apply(this, arguments);
 }
@@ -90552,6 +90561,15 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
         }; // render the view
 
       this._renderOverlay();
+    } // stop () {
+    //   this.controller.stopEmitters()
+    // }
+
+  }, {
+    key: "dispose",
+    value: function dispose() {
+      // this.stop()
+      (0, _ntAnimator.removeDisplayObject)(this);
     }
   }], [{
     key: "create",
@@ -90571,21 +90589,20 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                 // const isDefault = /default/.test(type);
 
                 path = "namecards/".concat(type);
-                console.log(path, view);
                 config = view.animator.lookup(path); // maybe needs to load
 
                 if (config) {
-                  _context3.next = 10;
+                  _context3.next = 9;
                   break;
                 }
 
-                _context3.next = 9;
+                _context3.next = 8;
                 return view.animator.importManifest(path);
 
-              case 9:
+              case 8:
                 config = view.animator.lookup(path);
 
-              case 10:
+              case 9:
                 // if missing, use the default
                 if (!config) {
                   path = 'namecards/default';
@@ -90595,13 +90612,13 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
 
 
                 if (config) {
-                  _context3.next = 13;
+                  _context3.next = 12;
                   break;
                 }
 
                 return _context3.abrupt("return");
 
-              case 13:
+              case 12:
                 // save the properties
                 isGoldNamecard = /gold/i.test(type);
                 isPlayerNamecard = /player/i.test(type);
@@ -90616,42 +90633,42 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                   hasOverlay: hasOverlay
                 }); // attempt to add a namecard
 
-                _context3.prev = 17;
+                _context3.prev = 16;
                 // create a container for all parts
                 instance.container = new _ntAnimator.PIXI.Container();
                 instance.addChild(instance.container); // initialize all namecard parts
 
-                _context3.next = 22;
+                _context3.next = 21;
                 return instance._initNameCard();
 
-              case 22:
-                _context3.next = 24;
+              case 21:
+                _context3.next = 23;
                 return instance._initIcons();
 
-              case 24:
+              case 23:
                 // check for an overlay to render
                 if (hasOverlay) instance._initOverlay();
-                _context3.next = 32;
+                _context3.next = 31;
                 break;
 
-              case 27:
-                _context3.prev = 27;
-                _context3.t0 = _context3["catch"](17);
+              case 26:
+                _context3.prev = 26;
+                _context3.t0 = _context3["catch"](16);
                 console.error(_context3.t0);
                 this.failedToLoadNamecard = true;
                 return _context3.abrupt("return", null);
 
-              case 32:
+              case 31:
                 // return the created namecard
                 instance.pivot.x = -instance.nudgeX;
                 return _context3.abrupt("return", instance);
 
-              case 34:
+              case 33:
               case "end":
                 return _context3.stop();
             }
           }
-        }, _callee3, this, [[17, 27]]);
+        }, _callee3, this, [[16, 26]]);
       }));
 
       function create(_x) {
@@ -107793,6 +107810,8 @@ var _config = require("../../config");
 
 var _layers = require("../track/layers");
 
+var _namecard = _interopRequireDefault(require("../../components/namecard"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
@@ -107827,6 +107846,8 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "container", new _ntAnimator.PIXI.Container());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "originX", 660);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "originY", 350);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "swayScaling", 1);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "swayOffset", 0);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "dispose", function () {
       // cancel rendering
       _this.stopAutoRender(); // stop animations
@@ -107924,6 +107945,13 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
                 if (this.options.focus === 'trail') {
                   this.container.scale.x = this.container.scale.y = 1.5;
                   this.container.pivot.x -= 250;
+                } // if this is a trail preview, focus differently
+
+
+                if (this.options.focus === 'nametag') {
+                  this.container.scale.x = this.container.scale.y = 1;
+                  this.container.pivot.x -= 250;
+                  this.swayScaling = 0.2;
                 } // assemble the view
 
 
@@ -107931,7 +107959,7 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
                 this.container.addChild(this.car);
                 this.view.addChild(this.container);
 
-              case 14:
+              case 15:
               case "end":
                 return _context2.stop();
             }
@@ -107950,7 +107978,7 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
     key: "_initCar",
     value: function () {
       var _initCar2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(options) {
-        var baseHeight, car, container, trail;
+        var baseHeight, car, container, trail, namecard;
         return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
@@ -108004,10 +108032,34 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
                 container.sortChildren();
 
               case 18:
+                if (!options.nametag) {
+                  _context3.next = 29;
+                  break;
+                }
+
+                _context3.next = 21;
+                return _namecard.default.create(_objectSpread({
+                  view: this,
+                  baseHeight: baseHeight * CRUISE_VIEW_BONUS_SCALING
+                }, options.nametag));
+
+              case 21:
+                namecard = _context3.sent;
+                // link to a car
+                container.addChild(namecard); // shift the view over to fit the nametag
+
+                this.originX += 620;
+                namecard.x = car.positions.back;
+                namecard.x -= namecard.width * 0.75;
+                namecard.visible = true;
+                namecard.scale.x = namecard.scale.y = 0.8;
+                container.sortChildren();
+
+              case 29:
                 // add the car
                 this.car = container;
 
-              case 19:
+              case 30:
               case "end":
                 return _context3.stop();
             }
@@ -108024,6 +108076,8 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "_initAnimations",
     value: function _initAnimations() {
+      var _this3 = this;
+
       var car = this.car,
           view = this.view,
           container = this.container; // fade in the car
@@ -108060,32 +108114,32 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
 
       this.__animate_backForth = (0, _ntAnimator.animate)({
         from: {
-          x: this.originX - 100
+          x: -100
         },
         to: {
-          x: this.originX + 150
+          x: 150
         },
         ease: 'easeInOutQuad',
         duration: 3000,
         direction: 'alternate',
         loop: true,
         update: function update(props) {
-          return car.x = props.x;
+          return car.x = _this3.originX + props.x * _this3.swayScaling;
         }
       });
       this.__animate_upDown = (0, _ntAnimator.animate)({
         from: {
-          y: this.originY - 100
+          y: -100
         },
         to: {
-          y: this.originY + 100
+          y: 100
         },
         ease: 'easeInOutQuad',
         duration: 6000,
         direction: 'alternate',
         loop: true,
         update: function update(props) {
-          return car.y = props.y;
+          return car.y = _this3.originY + props.y * _this3.swayScaling;
         }
       });
     } // cleanup
@@ -108098,7 +108152,8 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
       if (this.treadmill && this.isViewActive) {
         var now = Date.now();
         var delta = Math.min(2, this.getDeltaTime(now));
-        this.container.rotation = Math.sin(this.step++ / 300) / 5 + Math.PI * -0.2;
+        this.container.rotation = (Math.sin(this.step++ / 300) / 5 + Math.PI * -0.2) * this.swayScaling;
+        this.container.rotation += this.swayOffset;
         this.treadmill.update({
           diff: -25 * delta,
           horizontalWrap: -1500
@@ -108116,7 +108171,7 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
 }(_base.BaseView);
 
 exports.default = CruiseView;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../components/treadmill":"components/treadmill.js","../../config":"config.js","../track/layers":"views/track/layers.js"}],"utils/wait.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../components/treadmill":"components/treadmill.js","../../config":"config.js","../track/layers":"views/track/layers.js","../../components/namecard":"components/namecard/index.js"}],"utils/wait.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -108274,6 +108329,8 @@ var _car = _interopRequireDefault(require("../../components/car"));
 
 var _trail = _interopRequireDefault(require("../../components/trail"));
 
+var _namecard = _interopRequireDefault(require("../../components/namecard"));
+
 var _config = require("../../config");
 
 var _layers = require("../track/layers");
@@ -108297,7 +108354,7 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
 var DEFAULT_MAX_HEIGHT = 250;
-var OTHER_DRIVER_OFFSCREEN_DISTANCE = -1200;
+var OTHER_DRIVER_OFFSCREEN_DISTANCE = -1600;
 var CONTENT_Y = -25;
 var CONTENT_X = 125;
 
@@ -108342,7 +108399,8 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 }, options));
 
               case 2:
-                // setup the main view
+                window.CUSTOMIZER = this; // setup the main view
+
                 this.workspace = new _ntAnimator.PIXI.ResponsiveContainer();
                 this.workspace.scaleX = 1;
                 this.workspace.scaleY = 1;
@@ -108354,18 +108412,18 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 this.workspace.addChild(this.viewport);
                 this.stage.addChild(this.workspace); // attach elements
 
-                _context.next = 12;
+                _context.next = 13;
                 return this._createTreadmill();
 
-              case 12:
-                _context.next = 14;
+              case 13:
+                _context.next = 15;
                 return this._createOtherDriver();
 
-              case 14:
-                _context.next = 16;
+              case 15:
+                _context.next = 17;
                 return this._createSprayer();
 
-              case 16:
+              case 17:
                 // make sure the game animates relative values
                 this.animationVariables.speed = 1;
                 this.animationVariables.base_speed = 1;
@@ -108374,7 +108432,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 this.startAutoRender();
                 this.ready = true;
 
-              case 21:
+              case 22:
               case "end":
                 return _context.stop();
             }
@@ -108595,24 +108653,153 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
       }
 
       return setPaint;
+    }() // for clarity sake -- internally these are known as
+    // namecards, but externally they are known as nametags
+
+  }, {
+    key: "setNametag",
+    value: function () {
+      var _setNametag = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(config) {
+        var waitForReady,
+            _args7 = arguments;
+        return _regenerator.default.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                waitForReady = _args7.length > 1 && _args7[1] !== undefined ? _args7[1] : true;
+                return _context7.abrupt("return", this.setNamecard(config, waitForReady = true));
+
+              case 2:
+              case "end":
+                return _context7.stop();
+            }
+          }
+        }, _callee7, this);
+      }));
+
+      function setNametag(_x4) {
+        return _setNametag.apply(this, arguments);
+      }
+
+      return setNametag;
+    }()
+  }, {
+    key: "setNamecard",
+    value: function () {
+      var _setNamecard = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(config) {
+        var _this$namecard;
+
+        var waitForReady,
+            type,
+            namecard,
+            _args8 = arguments;
+        return _regenerator.default.wrap(function _callee8$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                waitForReady = _args8.length > 1 && _args8[1] !== undefined ? _args8[1] : true;
+
+                if (!waitForReady) {
+                  _context8.next = 4;
+                  break;
+                }
+
+                _context8.next = 4;
+                return this.waitForActivity('namecard');
+
+              case 4:
+                (_this$namecard = this.namecard) === null || _this$namecard === void 0 ? void 0 : _this$namecard.dispose(); // if there's not a trail, they probably set
+                // it to none
+
+                type = config.type;
+
+                if (!type) {
+                  type = 'player';
+                } // set the trail
+
+
+                _context8.next = 9;
+                return _namecard.default.create({
+                  view: this,
+                  baseHeight: 100,
+                  type: config.type,
+                  isAnimated: true,
+                  name: config.name,
+                  team: config.tag,
+                  color: config.tagColor,
+                  isGold: config.isGold,
+                  isFriend: false,
+                  playerRank: config.rank
+                });
+
+              case 9:
+                namecard = _context8.sent;
+
+                // in case of an unusual scenario where
+                // a namecard might not be disposed, go ahead and target
+                // each namecard part and remove it individually
+                try {
+                  if (this.namecard) {
+                    (0, _ntAnimator.removeDisplayObject)(this.namecard);
+                  }
+                } // nothing to do here
+                catch (ex) {} // configure the namecard
+
+
+                this.namecard = namecard;
+                namecard.visible = true;
+                namecard.x = -850;
+                namecard.zIndex = 999;
+                namecard.alpha = 0; // add to the view
+
+                this.container.addChild(namecard);
+                this.container.sortChildren(); // also, fade in the namecards
+
+                (0, _ntAnimator.animate)({
+                  duration: 500,
+                  from: {
+                    t: 0
+                  },
+                  to: {
+                    t: 1
+                  },
+                  loop: false,
+                  update: function update(_update) {
+                    namecard.alpha = _update.t;
+                  }
+                });
+
+              case 19:
+              case "end":
+                return _context8.stop();
+            }
+          }
+        }, _callee8, this);
+      }));
+
+      function setNamecard(_x5) {
+        return _setNamecard.apply(this, arguments);
+      }
+
+      return setNamecard;
     }() // replaces the active car
 
   }, {
     key: "setCar",
     value: function () {
-      var _setCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(_ref) {
-        var type, hue, isAnimated, trail, tweaks, car, container;
-        return _regenerator.default.wrap(function _callee7$(_context7) {
+      var _setCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9(_ref) {
+        var type, hue, isAnimated, trail, tweaks, nametag, car, container;
+        return _regenerator.default.wrap(function _callee9$(_context9) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context9.prev = _context9.next) {
               case 0:
-                type = _ref.type, hue = _ref.hue, isAnimated = _ref.isAnimated, trail = _ref.trail, tweaks = _ref.tweaks;
+                type = _ref.type, hue = _ref.hue, isAnimated = _ref.isAnimated, trail = _ref.trail, tweaks = _ref.tweaks, nametag = _ref.nametag;
                 this.isReady = false; // clear the existing data
 
                 this._removeExistingCars(); // create the new car instance
 
 
-                _context7.next = 5;
+                _context9.next = 5;
                 return _car.default.create({
                   view: this,
                   baseHeight: 150,
@@ -108627,7 +108814,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 });
 
               case 5:
-                car = _context7.sent;
+                car = _context9.sent;
                 // put the car inside of a container that
                 // can be used to attach trails and 
                 // other effects to
@@ -108650,27 +108837,38 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 delete this.trail;
 
                 if (!trail) {
-                  _context7.next = 22;
+                  _context9.next = 22;
                   break;
                 }
 
-                _context7.next = 22;
+                _context9.next = 22;
                 return this.setTrail(trail, false);
 
               case 22:
+                delete this.namecard;
+
+                if (!nametag) {
+                  _context9.next = 26;
+                  break;
+                }
+
+                _context9.next = 26;
+                return this.setNamecard(nametag, false);
+
+              case 26:
                 // animate the new car into view
                 this.isReady = true;
-                return _context7.abrupt("return", this._animatePlayerCarIntoView(this.container));
+                return _context9.abrupt("return", this._animatePlayerCarIntoView(this.container));
 
-              case 24:
+              case 28:
               case "end":
-                return _context7.stop();
+                return _context9.stop();
             }
           }
-        }, _callee7, this);
+        }, _callee9, this);
       }));
 
-      function setCar(_x4) {
+      function setCar(_x6) {
         return _setCar.apply(this, arguments);
       }
 
@@ -108679,24 +108877,24 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "setTrail",
     value: function () {
-      var _setTrail = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(type) {
+      var _setTrail = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10(type) {
         var _this$trail;
 
         var waitForReady,
             trail,
-            _args8 = arguments;
-        return _regenerator.default.wrap(function _callee8$(_context8) {
+            _args10 = arguments;
+        return _regenerator.default.wrap(function _callee10$(_context10) {
           while (1) {
-            switch (_context8.prev = _context8.next) {
+            switch (_context10.prev = _context10.next) {
               case 0:
-                waitForReady = _args8.length > 1 && _args8[1] !== undefined ? _args8[1] : true;
+                waitForReady = _args10.length > 1 && _args10[1] !== undefined ? _args10[1] : true;
 
                 if (!waitForReady) {
-                  _context8.next = 4;
+                  _context10.next = 4;
                   break;
                 }
 
-                _context8.next = 4;
+                _context10.next = 4;
                 return this.waitForActivity('trail');
 
               case 4:
@@ -108704,14 +108902,14 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 // it to none
 
                 if (type) {
-                  _context8.next = 7;
+                  _context10.next = 7;
                   break;
                 }
 
-                return _context8.abrupt("return");
+                return _context10.abrupt("return");
 
               case 7:
-                _context8.next = 9;
+                _context10.next = 9;
                 return _trail.default.create({
                   view: this,
                   baseHeight: 130,
@@ -108719,7 +108917,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 });
 
               case 9:
-                trail = _context8.sent;
+                trail = _context10.sent;
 
                 // in case of an unusual scenario where
                 // a trail might not be disposed, go ahead and target
@@ -108750,20 +108948,20 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                     t: 1
                   },
                   loop: false,
-                  update: function update(_update) {
-                    trail.alpha = _update.t;
+                  update: function update(_update2) {
+                    trail.alpha = _update2.t;
                   }
                 });
 
               case 18:
               case "end":
-                return _context8.stop();
+                return _context10.stop();
             }
           }
-        }, _callee8, this);
+        }, _callee10, this);
       }));
 
-      function setTrail(_x5) {
+      function setTrail(_x7) {
         return _setTrail.apply(this, arguments);
       }
 
@@ -108836,6 +109034,29 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "_removeExistingCars",
     value: function _removeExistingCars() {
+      var _this7 = this;
+
+      // fade out assets
+      (0, _ntAnimator.animate)({
+        loop: false,
+        duration: 200,
+        from: {
+          t: 1
+        },
+        to: {
+          t: 0
+        },
+        update: function update(props) {
+          if (_this7.namecard) {
+            _this7.namecard.alpha = props.t;
+          }
+
+          if (_this7.trail) {
+            _this7.trail.alpha = props.t;
+          }
+        }
+      });
+
       var _iterator2 = _createForOfIteratorHelper(this.viewport.children),
           _step2;
 
@@ -108888,15 +109109,25 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "getFocusForZone",
     value: function getFocusForZone(zone) {
-      var _this$car;
-
       switch (zone) {
         case 'trail':
-          var center = (((_this$car = this.car) === null || _this$car === void 0 ? void 0 : _this$car.width) || 240) / 2;
-          return {
-            x: CONTENT_X + 200 + center,
-            y: 0
-          };
+          {
+            var _this$car;
+
+            var center = (((_this$car = this.car) === null || _this$car === void 0 ? void 0 : _this$car.width) || 240) / 2;
+            return {
+              x: CONTENT_X + 200 + center,
+              y: 0
+            };
+          }
+
+        case 'nametag':
+          {
+            return {
+              x: CONTENT_X + 725,
+              y: 0
+            };
+          }
 
         default:
           return {
@@ -108910,7 +109141,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
     key: "setFocus",
     value: function setFocus(zone) {
       var _this$__panViewport,
-          _this7 = this;
+          _this8 = this;
 
       // cancel prior animations
       (_this$__panViewport = this.__panViewport) === null || _this$__panViewport === void 0 ? void 0 : _this$__panViewport.stop(); // animate the next view
@@ -108929,7 +109160,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
         easing: 'easeInOutQuad',
         loop: false,
         update: function update(t) {
-          return _this7.focus = t;
+          return _this8.focus = t;
         }
       });
     } // renders the view
@@ -108957,19 +109188,22 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
         if (this.otherDriver.x < OTHER_DRIVER_OFFSCREEN_DISTANCE) {
           this._queuePassing();
         }
-      } // check for the currently previewed car
-      // animates the car shifting back and forth
+      } // reduces the sway on the screen when the view is shifted
+      // far to the left (since we want a level view of the nametag)
 
+
+      var angleScaling = 1 - (this.focus.x - 280) / 600; // check for the currently previewed car
+      // animates the car shifting back and forth
 
       if ((_this$container = this.container) === null || _this$container === void 0 ? void 0 : _this$container.ready) {
         this.container.offsetScale = Math.min(1, (this.container.offsetScale || 0) + 0.01);
-        this.container.y = CONTENT_Y + Math.cos(now * 0.0007) * 11 * this.container.offsetScale;
-        this.container.x = Math.sin(now * 0.001) * 20 * this.container.offsetScale;
+        this.container.y = (CONTENT_Y + Math.cos(now * 0.0007) * 11 * this.container.offsetScale) * angleScaling;
+        this.container.x = Math.sin(now * 0.001) * 20 * this.container.offsetScale * angleScaling;
       } // cause the view to shift left and right  
 
 
       var viewportTurnAngle = Math.min(0, Math.cos(now * 0.00015)) * (Math.cos(now * 0.0005) * -(Math.PI * 0.05));
-      this.viewport.rotation = viewportTurnAngle; // scroll the track
+      this.viewport.rotation = viewportTurnAngle * angleScaling; // scroll the track
 
       this.treadmill.update({
         diff: (-45 + Math.abs(viewportTurnAngle * 90)) * delta,
@@ -108987,7 +109221,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
 }(_base.BaseView);
 
 exports.default = CustomizerView;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../base":"views/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../components/treadmill":"components/treadmill.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","../../config":"config.js","../track/layers":"views/track/layers.js","../../utils/wait":"utils/wait.js"}],"views/animation/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../base":"views/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../components/treadmill":"components/treadmill.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","../../components/namecard":"components/namecard/index.js","../../config":"config.js","../track/layers":"views/track/layers.js","../../utils/wait":"utils/wait.js"}],"views/animation/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -109016,6 +109250,8 @@ var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/ge
 var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
 
 var _ntAnimator = require("nt-animator");
+
+var _namecard = _interopRequireDefault(require("../../components/namecard"));
 
 var _trail = _interopRequireDefault(require("../../components/trail"));
 
@@ -109087,28 +109323,33 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
                 this.view.addChild(this.container); // check for special modes
 
                 _context.t0 = options.mode;
-                _context.next = _context.t0 === 'trail-preview' ? 10 : _context.t0 === 'nitro-preview' ? 12 : 14;
+                _context.next = _context.t0 === 'trail-preview' ? 10 : _context.t0 === 'namecard-preview' ? 12 : _context.t0 === 'nametag-preview' ? 12 : _context.t0 === 'nitro-preview' ? 14 : 16;
                 break;
 
               case 10:
                 this._initTrailPreview();
 
-                return _context.abrupt("break", 16);
+                return _context.abrupt("break", 18);
 
               case 12:
-                this._initNitroPreview();
+                this._initNametagPreview();
 
-                return _context.abrupt("break", 16);
+                return _context.abrupt("break", 18);
 
               case 14:
-                _context.next = 16;
-                return this._initResource();
+                this._initNitroPreview();
+
+                return _context.abrupt("break", 18);
 
               case 16:
+                _context.next = 18;
+                return this._initResource();
+
+              case 18:
                 // automatically render
                 this.startAutoRender();
 
-              case 17:
+              case 19:
               case "end":
                 return _context.stop();
             }
@@ -109160,20 +109401,18 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
       }
 
       return _initResource;
-    }() // trails are shifted over and a fake car
-    // bumper is shown behind it
-
+    }()
   }, {
-    key: "_initTrailPreview",
+    key: "_initCarBumper",
     value: function () {
-      var _initTrailPreview2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
-        var _this$options, getCarUrl, playerCar, bumper, url, img, back, texture, trail, graphics, bg, contain;
+      var _initCarBumper2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
+        var _this$options, getCarUrl, playerCar, bumper, url, img, back, texture;
 
         return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
-                _this$options = this.options, getCarUrl = _this$options.getCarUrl, playerCar = _this$options.playerCar; // load the user car
+                _this$options = this.options, getCarUrl = _this$options.getCarUrl, playerCar = _this$options.playerCar;
 
                 if (!playerCar) {
                   _context3.next = 15;
@@ -109210,15 +109449,47 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
                 bumper.scale.x = bumper.scale.y = 0.7;
 
               case 21:
-                _context3.next = 23;
+                return _context3.abrupt("return", bumper);
+
+              case 22:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function _initCarBumper() {
+        return _initCarBumper2.apply(this, arguments);
+      }
+
+      return _initCarBumper;
+    }() // trails are shifted over and a fake car
+    // bumper is shown behind it
+
+  }, {
+    key: "_initTrailPreview",
+    value: function () {
+      var _initTrailPreview2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+        var bumper, trail, graphics, bg, contain;
+        return _regenerator.default.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                _context4.next = 2;
+                return this._initCarBumper();
+
+              case 2:
+                bumper = _context4.sent;
+                _context4.next = 5;
                 return _trail.default.create({
                   view: this,
                   baseHeight: this.preferredHeight,
                   type: this.options.path
                 });
 
-              case 23:
-                trail = _context3.sent;
+              case 5:
+                trail = _context4.sent;
 
                 // trim the view so the gradient car doesn't
                 // peek any trails underneath
@@ -109238,21 +109509,21 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
                 // to help the trails stand out more
 
                 if (this.options.hideBackground) {
-                  _context3.next = 35;
+                  _context4.next = 17;
                   break;
                 }
 
-                _context3.next = 30;
+                _context4.next = 12;
                 return this.animator.getSprite('extras/shop', 'asset_bg');
 
-              case 30:
-                bg = _context3.sent;
+              case 12:
+                bg = _context4.sent;
                 bg.pivot.x = bg.width;
                 bg.pivot.y = bg.height * 0.5;
                 bg.alpha = 0.66;
                 bg.x = bg.width * 0.2;
 
-              case 35:
+              case 17:
                 // since we're using the trail class for the trail
                 // we need a shared container to help make sure
                 // the trail lines up correctly using the 
@@ -109272,12 +109543,12 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
 
                 contain.sortChildren();
 
-              case 43:
+              case 25:
               case "end":
-                return _context3.stop();
+                return _context4.stop();
             }
           }
-        }, _callee3, this);
+        }, _callee4, this);
       }));
 
       function _initTrailPreview() {
@@ -109285,21 +109556,76 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
       }
 
       return _initTrailPreview;
+    }()
+  }, {
+    key: "_initNametagPreview",
+    value: function () {
+      var _initNametagPreview2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
+        var bumper, namecard, contain;
+        return _regenerator.default.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                _context5.next = 2;
+                return this._initCarBumper();
+
+              case 2:
+                bumper = _context5.sent;
+                _context5.next = 5;
+                return _namecard.default.create(_objectSpread(_objectSpread(_objectSpread({
+                  view: this,
+                  baseHeight: this.preferredHeight
+                }, this.options), this.options.nametag), {}, {
+                  type: this.options.path
+                }));
+
+              case 5:
+                namecard = _context5.sent;
+                // set positions
+                bumper.x = namecard.width * 0.5;
+                bumper.scale.x = bumper.scale.y = 1.85;
+                namecard.x = namecard.width * -0.075;
+                bumper.x += namecard.x * 0.5; // since we're using the trail class for the trail
+                // we need a shared container to help make sure
+                // the trail lines up correctly using the 
+                // attachTo function
+
+                contain = new _ntAnimator.PIXI.Container();
+                contain.sortableChildren = true;
+                contain.addChild(namecard);
+                contain.addChild(bumper);
+                contain.sortChildren();
+                namecard.visible = true;
+                this.container.addChild(contain);
+
+              case 17:
+              case "end":
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function _initNametagPreview() {
+        return _initNametagPreview2.apply(this, arguments);
+      }
+
+      return _initNametagPreview;
     }() // a nitro is shown and animated from time to time
 
   }, {
     key: "_initNitroPreview",
     value: function () {
-      var _initNitroPreview2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
-        return _regenerator.default.wrap(function _callee4$(_context4) {
+      var _initNitroPreview2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
+        return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
-            switch (_context4.prev = _context4.next) {
+            switch (_context6.prev = _context6.next) {
               case 0:
               case "end":
-                return _context4.stop();
+                return _context6.stop();
             }
           }
-        }, _callee4);
+        }, _callee6);
       }));
 
       function _initNitroPreview() {
@@ -109342,7 +109668,7 @@ function createBumper(img) {
   cache[img.src] = fade.canvas;
   return fade.canvas;
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../components/trail":"components/trail/index.js","../base":"views/base.js","../track/layers":"views/track/layers.js"}],"views/namecard/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../components/namecard":"components/namecard/index.js","../../components/trail":"components/trail/index.js","../base":"views/base.js","../track/layers":"views/track/layers.js"}],"views/namecard/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
