@@ -227,7 +227,12 @@ export default class NameCard extends PIXI.Container {
 
 		// get info to show
 		const { options, isGoldNamecard, config } = this;
-		const { isTop3, isGold, isFriend, isAdmin } = options;
+		const {
+			isTop3,
+			isGold,
+			isFriend,
+			isAdmin = ['nt', 'NT'].includes(options.team)
+		} = options;
 		
 		// TODO: support for old style -- remove later and
 		// only use the playerRank

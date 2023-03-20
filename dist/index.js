@@ -90556,7 +90556,8 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
       var isTop3 = options.isTop3,
           isGold = options.isGold,
           isFriend = options.isFriend,
-          isAdmin = options.isAdmin; // TODO: support for old style -- remove later and
+          _options$isAdmin = options.isAdmin,
+          isAdmin = _options$isAdmin === void 0 ? ['nt', 'NT'].includes(options.team) : _options$isAdmin; // TODO: support for old style -- remove later and
       // only use the playerRank
 
       var playerRank = isTop3 ? 3 : options.playerRank;
