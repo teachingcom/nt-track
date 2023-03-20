@@ -106,11 +106,26 @@ export class BaseView extends EventEmitter {
 		this.stage = new PIXI.Container();
 		this.view.addChild(this.stage);
 
+		const calculateCursor = (x, y) => {
+			const hw = window.innerWidth / 2
+			const hh = window.innerWidth / 2
+			this.animationVariables.current_pointer_x = Math.floor(x)
+			this.animationVariables.current_pointer_y = Math.floor(y)
+			this.animationVariables.normalized_pointer_x = x / window.innerWidth
+			this.animationVariables.normalized_pointer_y = y / window.innerHeight
+			this.animationVariables.center_normalized_pointer_x = (x - hw) / hw
+			this.animationVariables.center_normalized_pointer_y = (y - hh) / hh
+		};
+
 		// for naming clarity
 		// this is accessed by the animation engine
 		// to make animations that are relative
 		// to the game view
 		this.animationVariables = this.view
+
+		// for some special effects
+		window.addEventListener('mousemove', (event) => calculateCursor(event.pageX, event.pageY))
+		calculateCursor(window.innerWidth / 2, window.innerHeight / 2)
 		
 		// set the correct renderer
 		this.setRenderer(renderer);

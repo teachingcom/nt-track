@@ -75862,10 +75862,13 @@ var BetweenExpression = function BetweenExpression(prop, args) {
 
     // calculate the current mod value
     var mod = ((_this$modifier = _this.modifier) === null || _this$modifier === void 0 ? void 0 : _this$modifier.call(_this, target, stage, player)) || 0;
-    var value = _this.min + _this.max * mod; // inverting
+    var range = _this.max - _this.min;
+    var value = range * mod + _this.min; // this.min + (this.max * mod)
+    // inverting
 
     if (_this.flip) {
-      value = _this.max - value;
+      // value = this.max - value
+      value = range - value;
     }
 
     value *= _this.scale; // apply the value
@@ -85528,9 +85531,10 @@ var Animator = /*#__PURE__*/function (_EventEmitter) {
                 instance.type = data.type;
                 instance.path = resource;
                 instance.controller = controller;
+                instance.config = data;
                 return _context5.abrupt("return", instance);
 
-              case 8:
+              case 9:
               case "end":
                 return _context5.stop();
             }
@@ -87509,7 +87513,9 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
     /** handles initial setup of the rendering area */
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(options) {
-        var scale, forceCanvas, baseUrl, seed, manifest, DEFAULT_BACKGROUND_COLOR, transparent, hasBackgroundColor, clearBeforeRender, backgroundColor, renderer, gl, axes;
+        var _this2 = this;
+
+        var scale, forceCanvas, baseUrl, seed, manifest, DEFAULT_BACKGROUND_COLOR, transparent, hasBackgroundColor, clearBeforeRender, backgroundColor, renderer, gl, axes, calculateCursor;
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
@@ -87595,12 +87601,29 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
 
                 this.view = new _ntAnimator.PIXI.ResponsiveStage(axes);
                 this.stage = new _ntAnimator.PIXI.Container();
-                this.view.addChild(this.stage); // for naming clarity
+                this.view.addChild(this.stage);
+
+                calculateCursor = function calculateCursor(x, y) {
+                  var hw = window.innerWidth / 2;
+                  var hh = window.innerWidth / 2;
+                  _this2.animationVariables.current_pointer_x = Math.floor(x);
+                  _this2.animationVariables.current_pointer_y = Math.floor(y);
+                  _this2.animationVariables.normalized_pointer_x = x / window.innerWidth;
+                  _this2.animationVariables.normalized_pointer_y = y / window.innerHeight;
+                  _this2.animationVariables.center_normalized_pointer_x = (x - hw) / hw;
+                  _this2.animationVariables.center_normalized_pointer_y = (y - hh) / hh;
+                }; // for naming clarity
                 // this is accessed by the animation engine
                 // to make animations that are relative
                 // to the game view
 
-                this.animationVariables = this.view; // set the correct renderer
+
+                this.animationVariables = this.view; // for some special effects
+
+                window.addEventListener('mousemove', function (event) {
+                  return calculateCursor(event.pageX, event.pageY);
+                });
+                calculateCursor(window.innerWidth / 2, window.innerHeight / 2); // set the correct renderer
 
                 this.setRenderer(renderer); // monitor visibility changes
 
@@ -87619,7 +87642,7 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
                   });
                 }
 
-              case 33:
+              case 36:
               case "end":
                 return _context.stop();
             }
@@ -90258,7 +90281,7 @@ var DEFAULT_CENTER_PADDING = 8;
 var DEFAULT_LEFT_MARGIN = 25;
 var DEFAULT_TOP_MARGIN = 10;
 var NAMECARD_ICON_GAP = 10;
-var NAMECARD_MAXIMUM_WIDTH = 550;
+var NAMECARD_MAXIMUM_WIDTH = 575;
 var DEFAULT_NAMECARD_FONT_SIZE = 52;
 var DEFAULT_NAMECARD_FONT_NAME = 'montserrat';
 var DEFAULT_NAMECARD_FONT_WEIGHT = 600;
@@ -90319,7 +90342,7 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
 
       if (config.text) {
         textColor = 'color' in config.text ? (0, _color.toRGBA)(config.text.color, 1) : textColor;
-        shadowColor = 'shadow' in config.text ? (0, _color.toRGBA)(config.text.shadow, 1) : shadowColor;
+        shadowColor = 'shadow' in config.text ? (0, _color.toRGBA)(config.text.shadow, config.text.shadowOpacity || 1) : shadowColor;
         if (!isNaN(config.text.left)) left = config.text.left;
         if (!isNaN(config.text.top)) top = config.text.top;
       } // prepare to draw text
@@ -90333,14 +90356,28 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
 
       for (var _i = 0, _arr = [{
         color: shadowColor,
-        y: 4
+        y: ('shadowY' in (config.text || {})) ? config.text.shadowY || 0 : 4,
+        blur: ((_config$text = config.text) === null || _config$text === void 0 ? void 0 : _config$text.shadowBlur) || 0,
+        isShadow: true
       }, {
         color: textColor,
-        y: 0
+        y: 0,
+        blur: 0
       }]; _i < _arr.length; _i++) {
+        var _config$text;
+
         var style = _arr[_i];
-        // render each part
-        ctx.fillStyle = style.color;
+
+        // render each part			
+        if (style.blur) {
+          ctx.shadowBlur = style.blur;
+          ctx.shadowColor = style.color;
+        } else {
+          ctx.shadowBlur = 0;
+          ctx.shadowColor = '';
+          ctx.fillStyle = style.color;
+        }
+
         ctx.fillText(displayName, 0, style.y);
       } // check for icons to render
 
@@ -90469,6 +90506,16 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
 
               case 23:
                 _context2.t6 = _context2.sent;
+                _context2.next = 26;
+                return view.animator.getImage('images', 'icon_admin');
+
+              case 26:
+                _context2.t7 = _context2.sent;
+                _context2.next = 29;
+                return view.animator.getImage('images', 'icon_admin_invert');
+
+              case 29:
+                _context2.t8 = _context2.sent;
                 NameCard.ICONS = {
                   top3: _context2.t0,
                   top10: _context2.t1,
@@ -90476,10 +90523,12 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                   top100: _context2.t3,
                   top300: _context2.t4,
                   gold: _context2.t5,
-                  friend: _context2.t6
+                  friend: _context2.t6,
+                  admin: _context2.t7,
+                  admin_invert: _context2.t8
                 };
 
-              case 25:
+              case 31:
               case "end":
                 return _context2.stop();
             }
@@ -90502,17 +90551,19 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
       var ICONS = NameCard.ICONS; // get info to show
 
       var options = this.options,
-          isGoldNamecard = this.isGoldNamecard;
+          isGoldNamecard = this.isGoldNamecard,
+          config = this.config;
       var isTop3 = options.isTop3,
           isGold = options.isGold,
-          isFriend = options.isFriend; // TODO: support for old style -- remove later and
+          isFriend = options.isFriend,
+          isAdmin = options.isAdmin; // TODO: support for old style -- remove later and
       // only use the playerRank
 
       var playerRank = isTop3 ? 3 : options.playerRank;
       var playerRankIconId = "top".concat(playerRank);
       var playerRankIcon = ICONS[playerRankIconId];
       var hasPlayerRank = !!playerRankIcon; // debug
-      // options.name = '|||||||ssssflskdfjlskdfj';
+      // options.name = '|||||.|||||.|||||.|||||.|||||';
       // options.team = ' TALK ';
       // create the full name
 
@@ -90521,12 +90572,15 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
       var full = [team && "[".concat(team, "]"), name].join(' '); // measure to fit
 
       if (full.length > NAMECARD_MAX_NAME_LENGTH) {
-        var safety = 10;
+        var _config$text2;
+
+        var maxWidth = ((_config$text2 = config.text) === null || _config$text2 === void 0 ? void 0 : _config$text2.maxWidth) || NAMECARD_MAXIMUM_WIDTH;
+        var safety = full.length;
 
         while (--safety > 0) {
           var size = _ntAnimator.PIXI.TextMetrics.measureText(full, NAMECARD_TEXT_STYLE);
 
-          if (size.width < NAMECARD_MAXIMUM_WIDTH) break;
+          if (size.width < maxWidth) break;
           full = full.substr(0, full.length - 1);
         }
       } // set the display name
@@ -90537,9 +90591,14 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
       var tallest = 0;
       var ids = [];
 
-      if (isGold && !isGoldNamecard) {
+      if (!isAdmin && isGold && !isGoldNamecard && !config.hideGold) {
         tallest = Math.max(tallest, ICONS.gold.height);
         ids.push('gold');
+      }
+
+      if (isAdmin && !config.hideAdmin) {
+        tallest = Math.max(tallest, ICONS.admin.height);
+        ids.push(config.invertAdmin ? 'admin_invert' : 'admin');
       }
 
       if (hasPlayerRank) {
@@ -90588,7 +90647,7 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                 type = options.type, view = options.view; // try and load
                 // const isDefault = /default/.test(type);
 
-                path = "namecards/".concat(type);
+                path = "nametags/".concat(type).replace(/\/+/, '/');
                 config = view.animator.lookup(path); // maybe needs to load
 
                 if (config) {
@@ -90605,7 +90664,7 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
               case 9:
                 // if missing, use the default
                 if (!config) {
-                  path = 'namecards/default';
+                  path = 'nametags/default';
                   config = view.animator.lookup(path);
                 } // if still missing then there's not
                 // a name card that can be used
@@ -91304,18 +91363,97 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
       }
 
       return _initNameCard;
+    }()
+  }, {
+    key: "_initPlayerIndicator",
+    value: function () {
+      var _initPlayerIndicator2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
+        var options, view;
+        return _regenerator.default.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                if (this.options.isPlayer) {
+                  _context5.next = 2;
+                  break;
+                }
+
+                return _context5.abrupt("return");
+
+              case 2:
+                // create the instance
+                options = this.options;
+                view = options.view;
+                return _context5.abrupt("return", view.animator.create('extras/player_indicator'));
+
+              case 5:
+              case "end":
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function _initPlayerIndicator() {
+        return _initPlayerIndicator2.apply(this, arguments);
+      }
+
+      return _initPlayerIndicator;
     }() // handles assembling the player
 
   }, {
     key: "_assemble",
     value: function () {
-      var _assemble2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(car, trail, nitro, namecard) {
-        var layers, scale;
-        return _regenerator.default.wrap(function _callee5$(_context5) {
+      var _assemble2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(car, trail, nitro, namecard, playerIndicator) {
+        var layers, scale, _playerIndicator$chil, _playerIndicator$chil2, _playerIndicator$chil3, container;
+
+        return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context6.prev = _context6.next) {
               case 0:
-                layers = this.layers, scale = this.scale; // include the car and it's shadow
+                layers = this.layers, scale = this.scale; // if this is a player
+
+                if (playerIndicator) {
+                  this.addChild(playerIndicator); // SUPER HACK
+                  // TODO: this is to solve an issue where newly added
+                  // objects have not had a chance to run any of their
+                  // animation code and are briefly visible. This can be
+                  // fixed in the animation engine, but probably not
+                  // something to bother do at the moment since it'll require
+                  // some refactoring and thinking about how to know when 
+                  // and when not to hide a child until it's 100% ready
+                  // worth mentioning, this happens with all game objects
+                  // but is handled in other scenarios, but since this is 
+                  // a one off animation, it's handled here
+
+                  container = (_playerIndicator$chil = playerIndicator.children) === null || _playerIndicator$chil === void 0 ? void 0 : (_playerIndicator$chil2 = _playerIndicator$chil[0]) === null || _playerIndicator$chil2 === void 0 ? void 0 : (_playerIndicator$chil3 = _playerIndicator$chil2.children) === null || _playerIndicator$chil3 === void 0 ? void 0 : _playerIndicator$chil3[0];
+
+                  if (container) {
+                    container.alpha = 0;
+                  } // the player indicator should be disposed after some time
+
+
+                  setTimeout(function () {
+                    (0, _ntAnimator.animate)({
+                      from: {
+                        t: 1
+                      },
+                      to: {
+                        t: 0
+                      },
+                      duration: playerIndicator.config.fadeDuration,
+                      loop: false,
+                      update: function update(_ref) {
+                        var t = _ref.t;
+                        playerIndicator.alpha = t;
+                      },
+                      complete: function complete() {
+                        (0, _ntAnimator.removeDisplayObject)(playerIndicator);
+                      }
+                    });
+                  }, playerIndicator.config.fadeAfter);
+                } // include the car and it's shadow
+
 
                 layers.car = car;
                 layers.shadow = car.shadow;
@@ -91380,15 +91518,15 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
 
                 this.sortChildren();
 
-              case 10:
+              case 11:
               case "end":
-                return _context5.stop();
+                return _context6.stop();
             }
           }
-        }, _callee5, this);
+        }, _callee6, this);
       }));
 
-      function _assemble(_x, _x2, _x3, _x4) {
+      function _assemble(_x, _x2, _x3, _x4, _x5) {
         return _assemble2.apply(this, arguments);
       }
 
@@ -91425,23 +91563,23 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
   }, {
     key: "repaintCar",
     value: function () {
-      var _repaintCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(hue) {
-        return _regenerator.default.wrap(function _callee6$(_context6) {
+      var _repaintCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(hue) {
+        return _regenerator.default.wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
-                _context6.next = 2;
+                _context7.next = 2;
                 return this.car.repaintCar(hue);
 
               case 2:
               case "end":
-                return _context6.stop();
+                return _context7.stop();
             }
           }
-        }, _callee6, this);
+        }, _callee7, this);
       }));
 
-      function repaintCar(_x5) {
+      function repaintCar(_x6) {
         return _repaintCar.apply(this, arguments);
       }
 
@@ -91461,6 +91599,10 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
         action: _ntAnimator.removeDisplayObject
       }, {
         type: 'namecard',
+        source: namecard,
+        action: _ntAnimator.removeDisplayObject
+      }, {
+        type: 'nametag',
         source: namecard,
         action: _ntAnimator.removeDisplayObject
       }, {
@@ -91591,11 +91733,11 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
   }], [{
     key: "create",
     value: function () {
-      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(options, track) {
-        var instance, car, trail, nitro, namecard, resolved;
-        return _regenerator.default.wrap(function _callee7$(_context7) {
+      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(options, track) {
+        var instance, car, trail, nitro, namecard, playerIndicator, resolved;
+        return _regenerator.default.wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
                 instance = new Player();
                 instance.options = options;
@@ -91605,17 +91747,18 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                 car = instance._initCar();
                 trail = instance._initTrail();
                 nitro = instance._initNitro();
-                namecard = instance._initNameCard(); // wait for the result
+                namecard = instance._initNameCard();
+                playerIndicator = instance._initPlayerIndicator(); // wait for the result
 
-                _context7.next = 10;
-                return Promise.all([car, trail, nitro, namecard]);
+                _context8.next = 11;
+                return Promise.all([car, trail, nitro, namecard, playerIndicator]);
 
-              case 10:
-                resolved = _context7.sent;
-                _context7.next = 13;
+              case 11:
+                resolved = _context8.sent;
+                _context8.next = 14;
                 return instance._assemble.apply(instance, (0, _toConsumableArray2.default)(resolved));
 
-              case 13:
+              case 14:
                 // after the instance is created, find all toggles
                 instance._assignToggles(); // used for individual variables
 
@@ -91633,17 +91776,17 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
 
 
                 instance.id = options.id || "player_".concat(+new Date());
-                return _context7.abrupt("return", instance);
+                return _context8.abrupt("return", instance);
 
-              case 22:
+              case 23:
               case "end":
-                return _context7.stop();
+                return _context8.stop();
             }
           }
-        }, _callee7);
+        }, _callee8);
       }));
 
-      function create(_x6, _x7) {
+      function create(_x7, _x8) {
         return _create.apply(this, arguments);
       }
 

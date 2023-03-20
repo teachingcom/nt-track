@@ -65,9 +65,10 @@ export default class Player extends PIXI.ResponsiveContainer {
 		const trail = instance._initTrail();
 		const nitro = instance._initNitro();
 		const namecard = instance._initNameCard();
+		const playerIndicator = instance._initPlayerIndicator();
 
 		// wait for the result
-		const resolved = await Promise.all([ car, trail, nitro, namecard ]);
+		const resolved = await Promise.all([ car, trail, nitro, namecard, playerIndicator ]);
 		await instance._assemble(...resolved);
 
 		// after the instance is created, find all toggles
@@ -171,10 +172,58 @@ export default class Player extends PIXI.ResponsiveContainer {
 			playerRank,
 		});
 	}
+
+	async _initPlayerIndicator() {
+		if (!this.options.isPlayer) {
+			return
+		}
+
+		// create the instance
+		const { options } = this;
+		const { view } = options;
+		return view.animator.create('extras/player_indicator');
+	}
  
 	// handles assembling the player
-	async _assemble(car, trail, nitro, namecard) {
+	async _assemble(car, trail, nitro, namecard, playerIndicator) {
 		const { layers, scale } = this;
+
+		// if this is a player
+		if (playerIndicator) {
+			this.addChild(playerIndicator);
+
+			// SUPER HACK
+			// TODO: this is to solve an issue where newly added
+			// objects have not had a chance to run any of their
+			// animation code and are briefly visible. This can be
+			// fixed in the animation engine, but probably not
+			// something to bother do at the moment since it'll require
+			// some refactoring and thinking about how to know when 
+			// and when not to hide a child until it's 100% ready
+			// worth mentioning, this happens with all game objects
+			// but is handled in other scenarios, but since this is 
+			// a one off animation, it's handled here
+			const container = playerIndicator.children?.[0]?.children?.[0]
+			if (container) {
+				container.alpha = 0;
+			}
+
+			// the player indicator should be disposed after some time
+			setTimeout(() => {
+				animate({
+					from: { t: 1 },
+					to: { t: 0 },
+					duration: playerIndicator.config.fadeDuration,
+					loop: false,
+					update({ t }) {
+						playerIndicator.alpha = t;
+					},
+					complete() {
+						removeDisplayObject(playerIndicator);
+					}
+				})
+			}, playerIndicator.config.fadeAfter);
+		}
 
 		// include the car and it's shadow
 		layers.car = car;
@@ -303,6 +352,7 @@ export default class Player extends PIXI.ResponsiveContainer {
 		const removals = [
 			{ type: 'car', source: car, action: removeDisplayObject },
 			{ type: 'namecard', source: namecard, action: removeDisplayObject },
+			{ type: 'nametag', source: namecard, action: removeDisplayObject },
 			{ type: 'shadow', source: shadow, action: removeDisplayObject },
 			{ type: 'trail', source: trail, action: removeDisplayObject },
 			{ type: 'player', source: this, action: removeDisplayObject }

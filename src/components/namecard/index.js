@@ -11,7 +11,7 @@ const DEFAULT_CENTER_PADDING = 8;
 const DEFAULT_LEFT_MARGIN = 25;
 const DEFAULT_TOP_MARGIN = 10;
 const NAMECARD_ICON_GAP = 10;
-const NAMECARD_MAXIMUM_WIDTH = 550;
+const NAMECARD_MAXIMUM_WIDTH = 575;
 const DEFAULT_NAMECARD_FONT_SIZE = 52;
 const DEFAULT_NAMECARD_FONT_NAME = 'montserrat';
 const DEFAULT_NAMECARD_FONT_WEIGHT = 600;
@@ -36,7 +36,7 @@ export default class NameCard extends PIXI.Container {
 
 		// try and load
 		// const isDefault = /default/.test(type);
-		let path = `namecards/${type}`
+		let path = `nametags/${type}`.replace(/\/+/, '/')
 		let config = view.animator.lookup(path)
 		
 		// maybe needs to load
@@ -47,7 +47,7 @@ export default class NameCard extends PIXI.Container {
 
 		// if missing, use the default
 		if (!config) {
-			path = 'namecards/default'
+			path = 'nametags/default'
 			config = view.animator.lookup(path)
 		}
 
@@ -126,7 +126,9 @@ export default class NameCard extends PIXI.Container {
 			top100: await view.animator.getImage('images', 'icon_top_100'),
 			top300: await view.animator.getImage('images', 'icon_top_300'),
 			gold: await view.animator.getImage('images', 'icon_gold'),
-			friend: await view.animator.getImage('images', 'icon_friend')
+			friend: await view.animator.getImage('images', 'icon_friend'),
+			admin: await view.animator.getImage('images', 'icon_admin'),
+			admin_invert: await view.animator.getImage('images', 'icon_admin_invert'),
 		};
 	}
 
@@ -165,7 +167,7 @@ export default class NameCard extends PIXI.Container {
 		// check for display text config
 		if (config.text) {
 			textColor = 'color' in config.text ? toRGBA(config.text.color, 1) : textColor;
-			shadowColor = 'shadow' in config.text ? toRGBA(config.text.shadow, 1) : shadowColor;
+			shadowColor = 'shadow' in config.text ? toRGBA(config.text.shadow, config.text.shadowOpacity || 1) : shadowColor;
 			if (!isNaN(config.text.left)) left = config.text.left;
 			if (!isNaN(config.text.top)) top = config.text.top;
 		}
@@ -177,13 +179,23 @@ export default class NameCard extends PIXI.Container {
 
 		// render the text
 		ctx.translate(0, cy + DEFAULT_CENTER_PADDING);
+
 		for (const style of [
-			{ color: shadowColor, y: 4 },
-			{ color: textColor, y: 0 }
+			{ color: shadowColor, y: 'shadowY' in (config.text || { }) ? (config.text.shadowY || 0) : 4, blur: config.text?.shadowBlur || 0, isShadow: true },
+			{ color: textColor, y: 0, blur: 0 }
 		]) {
 
-			// render each part
-			ctx.fillStyle = style.color;
+			// render each part			
+			if (style.blur) {
+				ctx.shadowBlur = style.blur
+				ctx.shadowColor = style.color;
+			}
+			else {
+				ctx.shadowBlur = 0
+				ctx.shadowColor = '';
+				ctx.fillStyle = style.color;
+			}
+
 			ctx.fillText(displayName, 0, style.y);
 		}
 
@@ -214,8 +226,8 @@ export default class NameCard extends PIXI.Container {
 		const { ICONS } = NameCard;
 
 		// get info to show
-		const { options, isGoldNamecard } = this;
-		const { isTop3, isGold, isFriend } = options;
+		const { options, isGoldNamecard, config } = this;
+		const { isTop3, isGold, isFriend, isAdmin } = options;
 		
 		// TODO: support for old style -- remove later and
 		// only use the playerRank
@@ -225,7 +237,7 @@ export default class NameCard extends PIXI.Container {
 		const hasPlayerRank = !!playerRankIcon;
 		
 		// debug
-		// options.name = '|||||||ssssflskdfjlskdfj';
+		// options.name = '|||||.|||||.|||||.|||||.|||||';
 		// options.team = ' TALK ';
 
 		// create the full name
@@ -235,10 +247,11 @@ export default class NameCard extends PIXI.Container {
 
 		// measure to fit
 		if (full.length > NAMECARD_MAX_NAME_LENGTH) {
-			let safety = 10;
+			const maxWidth = config.text?.maxWidth || NAMECARD_MAXIMUM_WIDTH;
+			let safety = full.length;
 			while (--safety > 0) {
 				const size = PIXI.TextMetrics.measureText(full, NAMECARD_TEXT_STYLE);
-				if (size.width < NAMECARD_MAXIMUM_WIDTH) break;
+				if (size.width < maxWidth) break;
 				full = full.substr(0, full.length - 1);
 			}
 		}
@@ -249,9 +262,14 @@ export default class NameCard extends PIXI.Container {
 		// check for icons
 		let tallest = 0;
 		const ids = [ ];
-		if (isGold && !isGoldNamecard) {
+		if (!isAdmin && isGold && !isGoldNamecard && !config.hideGold) {
 			tallest = Math.max(tallest, ICONS.gold.height);
 			ids.push('gold');
+		}
+		
+		if (isAdmin && !config.hideAdmin) {
+			tallest = Math.max(tallest, ICONS.admin.height);
+			ids.push(config.invertAdmin ? 'admin_invert' : 'admin');
 		}
 		
 		if (hasPlayerRank) {
