@@ -56,6 +56,7 @@ export default class Player extends PIXI.ResponsiveContainer {
 	/** handles creating a new player instance */
 	static async create(options, track) {
 		const instance = new Player();
+		instance.track = track;
 		instance.options = options;
 		instance.isPlayerRoot = true;
 		instance.mods = options.mods || { };
@@ -149,7 +150,7 @@ export default class Player extends PIXI.ResponsiveContainer {
 	async _initNameCard() {
 		const { options, mods } = this;
 		const { view } = options;
-		const { playerName, playerTeam, teamColor, isGold, isFriend, playerRank } = options;
+		const { playerName, playerTeam, teamColor, isGold, isFriend, playerRank, isAdmin } = options;
 		let { card = 'default' } = mods;
 
 		// prevent player namecards
@@ -169,6 +170,7 @@ export default class Player extends PIXI.ResponsiveContainer {
 			color: teamColor,
 			isGold,
 			isFriend,
+			isAdmin,
 			playerRank,
 		});
 	}
@@ -188,41 +190,40 @@ export default class Player extends PIXI.ResponsiveContainer {
 	async _assemble(car, trail, nitro, namecard, playerIndicator) {
 		const { layers, scale } = this;
 
-		// if this is a player
+		// if this is a player, we show a special lane indicator
+		// TODO: consider making this a separate file
 		if (playerIndicator) {
 			this.addChild(playerIndicator);
 
+			// gather nodes
+			const [ indicatorLabel ] = findDisplayObjectsOfRole(playerIndicator, 'player_label')
+			const [ indicatorRoot ] = findDisplayObjectsOfRole(playerIndicator, 'root_container')
+			
 			// SUPER HACK
-			// TODO: this is to solve an issue where newly added
-			// objects have not had a chance to run any of their
-			// animation code and are briefly visible. This can be
-			// fixed in the animation engine, but probably not
-			// something to bother do at the moment since it'll require
-			// some refactoring and thinking about how to know when 
-			// and when not to hide a child until it's 100% ready
-			// worth mentioning, this happens with all game objects
-			// but is handled in other scenarios, but since this is 
-			// a one off animation, it's handled here
-			const container = playerIndicator.children?.[0]?.children?.[0]
-			if (container) {
-				container.alpha = 0;
-			}
+			// unfortunately, since we need to toggle some internal
+			// props on layers we have to reach into the created object
+			// and make some changes
+			const [ indicatorContainer ] = indicatorRoot.children
+			const startingX = indicatorContainer.x
+			indicatorContainer.alpha = 0
 
-			// the player indicator should be disposed after some time
-			setTimeout(() => {
+			// make changes when the race begins
+			this.track.on('race:start', () => {
 				animate({
 					from: { t: 1 },
 					to: { t: 0 },
 					duration: playerIndicator.config.fadeDuration,
 					loop: false,
 					update({ t }) {
-						playerIndicator.alpha = t;
+						indicatorLabel.alpha = t;
+						indicatorRoot.x = -(startingX * 0.5) * (1 - t);
 					},
 					complete() {
-						removeDisplayObject(playerIndicator);
+						removeDisplayObject(indicatorLabel);
 					}
 				})
-			}, playerIndicator.config.fadeAfter);
+			});
+
 		}
 
 		// include the car and it's shadow

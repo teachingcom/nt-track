@@ -52,6 +52,7 @@ export default class NameCardView extends BaseView {
 			team: config.tag,
 			color: config.tagColor,
 			isGold: config.isGold,
+			isAdmin: config.isAdmin,
 			isFriend: false,
 			playerRank: config.rank,
 		});

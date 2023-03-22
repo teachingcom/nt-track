@@ -59,7 +59,8 @@ export default class NameCard extends PIXI.Container {
 		const isGoldNamecard = /gold/i.test(type)
 		const isPlayerNamecard = /player/i.test(type)
 		const hasOverlay = config.overlay !== false
-		merge(instance, { options, view, path, config, isGoldNamecard, isPlayerNamecard, hasOverlay })
+		const { isAdmin } = config
+		merge(instance, { options, view, path, config, isGoldNamecard, isPlayerNamecard, isAdmin, hasOverlay })
 
 		// attempt to add a namecard
 		try {			
@@ -231,7 +232,7 @@ export default class NameCard extends PIXI.Container {
 			isTop3,
 			isGold,
 			isFriend,
-			isAdmin = ['nt', 'NT'].includes(options.team)
+			isAdmin
 		} = options;
 		
 		// TODO: support for old style -- remove later and

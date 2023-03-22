@@ -87839,7 +87839,62 @@ function _toConsumableArray(arr) {
 }
 
 module.exports = _toConsumableArray;
-},{"./arrayWithoutHoles":"../node_modules/@babel/runtime/helpers/arrayWithoutHoles.js","./iterableToArray":"../node_modules/@babel/runtime/helpers/iterableToArray.js","./unsupportedIterableToArray":"../node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js","./nonIterableSpread":"../node_modules/@babel/runtime/helpers/nonIterableSpread.js"}],"views/track/scaling.js":[function(require,module,exports) {
+},{"./arrayWithoutHoles":"../node_modules/@babel/runtime/helpers/arrayWithoutHoles.js","./iterableToArray":"../node_modules/@babel/runtime/helpers/iterableToArray.js","./unsupportedIterableToArray":"../node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js","./nonIterableSpread":"../node_modules/@babel/runtime/helpers/nonIterableSpread.js"}],"../node_modules/@babel/runtime/helpers/arrayWithHoles.js":[function(require,module,exports) {
+function _arrayWithHoles(arr) {
+  if (Array.isArray(arr)) return arr;
+}
+
+module.exports = _arrayWithHoles;
+},{}],"../node_modules/@babel/runtime/helpers/iterableToArrayLimit.js":[function(require,module,exports) {
+function _iterableToArrayLimit(arr, i) {
+  if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return;
+  var _arr = [];
+  var _n = true;
+  var _d = false;
+  var _e = undefined;
+
+  try {
+    for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
+      _arr.push(_s.value);
+
+      if (i && _arr.length === i) break;
+    }
+  } catch (err) {
+    _d = true;
+    _e = err;
+  } finally {
+    try {
+      if (!_n && _i["return"] != null) _i["return"]();
+    } finally {
+      if (_d) throw _e;
+    }
+  }
+
+  return _arr;
+}
+
+module.exports = _iterableToArrayLimit;
+},{}],"../node_modules/@babel/runtime/helpers/nonIterableRest.js":[function(require,module,exports) {
+function _nonIterableRest() {
+  throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+}
+
+module.exports = _nonIterableRest;
+},{}],"../node_modules/@babel/runtime/helpers/slicedToArray.js":[function(require,module,exports) {
+var arrayWithHoles = require("./arrayWithHoles");
+
+var iterableToArrayLimit = require("./iterableToArrayLimit");
+
+var unsupportedIterableToArray = require("./unsupportedIterableToArray");
+
+var nonIterableRest = require("./nonIterableRest");
+
+function _slicedToArray(arr, i) {
+  return arrayWithHoles(arr) || iterableToArrayLimit(arr, i) || unsupportedIterableToArray(arr, i) || nonIterableRest();
+}
+
+module.exports = _slicedToArray;
+},{"./arrayWithHoles":"../node_modules/@babel/runtime/helpers/arrayWithHoles.js","./iterableToArrayLimit":"../node_modules/@babel/runtime/helpers/iterableToArrayLimit.js","./unsupportedIterableToArray":"../node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js","./nonIterableRest":"../node_modules/@babel/runtime/helpers/nonIterableRest.js"}],"views/track/scaling.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -88442,62 +88497,7 @@ exports.default = ActivateNitroAnimation;
 // // }
 // // // give back the generated textures
 // // return { shadowImage, normalMapImage };
-},{}],"../node_modules/@babel/runtime/helpers/arrayWithHoles.js":[function(require,module,exports) {
-function _arrayWithHoles(arr) {
-  if (Array.isArray(arr)) return arr;
-}
-
-module.exports = _arrayWithHoles;
-},{}],"../node_modules/@babel/runtime/helpers/iterableToArrayLimit.js":[function(require,module,exports) {
-function _iterableToArrayLimit(arr, i) {
-  if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return;
-  var _arr = [];
-  var _n = true;
-  var _d = false;
-  var _e = undefined;
-
-  try {
-    for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
-      _arr.push(_s.value);
-
-      if (i && _arr.length === i) break;
-    }
-  } catch (err) {
-    _d = true;
-    _e = err;
-  } finally {
-    try {
-      if (!_n && _i["return"] != null) _i["return"]();
-    } finally {
-      if (_d) throw _e;
-    }
-  }
-
-  return _arr;
-}
-
-module.exports = _iterableToArrayLimit;
-},{}],"../node_modules/@babel/runtime/helpers/nonIterableRest.js":[function(require,module,exports) {
-function _nonIterableRest() {
-  throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-}
-
-module.exports = _nonIterableRest;
-},{}],"../node_modules/@babel/runtime/helpers/slicedToArray.js":[function(require,module,exports) {
-var arrayWithHoles = require("./arrayWithHoles");
-
-var iterableToArrayLimit = require("./iterableToArrayLimit");
-
-var unsupportedIterableToArray = require("./unsupportedIterableToArray");
-
-var nonIterableRest = require("./nonIterableRest");
-
-function _slicedToArray(arr, i) {
-  return arrayWithHoles(arr) || iterableToArrayLimit(arr, i) || unsupportedIterableToArray(arr, i) || nonIterableRest();
-}
-
-module.exports = _slicedToArray;
-},{"./arrayWithHoles":"../node_modules/@babel/runtime/helpers/arrayWithHoles.js","./iterableToArrayLimit":"../node_modules/@babel/runtime/helpers/iterableToArrayLimit.js","./unsupportedIterableToArray":"../node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js","./nonIterableRest":"../node_modules/@babel/runtime/helpers/nonIterableRest.js"}],"components/car/hue-shift.js":[function(require,module,exports) {
+},{}],"components/car/hue-shift.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -90556,8 +90556,7 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
       var isTop3 = options.isTop3,
           isGold = options.isGold,
           isFriend = options.isFriend,
-          _options$isAdmin = options.isAdmin,
-          isAdmin = _options$isAdmin === void 0 ? ['nt', 'NT'].includes(options.team) : _options$isAdmin; // TODO: support for old style -- remove later and
+          isAdmin = options.isAdmin; // TODO: support for old style -- remove later and
       // only use the playerRank
 
       var playerRank = isTop3 ? 3 : options.playerRank;
@@ -90637,7 +90636,8 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
     /** handles creating a new namecard */
     value: function () {
       var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(options) {
-        var instance, type, view, path, config, isGoldNamecard, isPlayerNamecard, hasOverlay;
+        var instance, type, view, path, config, isGoldNamecard, isPlayerNamecard, hasOverlay, _config, isAdmin;
+
         return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
@@ -90683,6 +90683,7 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                 isGoldNamecard = /gold/i.test(type);
                 isPlayerNamecard = /player/i.test(type);
                 hasOverlay = config.overlay !== false;
+                _config = config, isAdmin = _config.isAdmin;
                 (0, _utils.merge)(instance, {
                   options: options,
                   view: view,
@@ -90690,45 +90691,46 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                   config: config,
                   isGoldNamecard: isGoldNamecard,
                   isPlayerNamecard: isPlayerNamecard,
+                  isAdmin: isAdmin,
                   hasOverlay: hasOverlay
                 }); // attempt to add a namecard
 
-                _context3.prev = 16;
+                _context3.prev = 17;
                 // create a container for all parts
                 instance.container = new _ntAnimator.PIXI.Container();
                 instance.addChild(instance.container); // initialize all namecard parts
 
-                _context3.next = 21;
+                _context3.next = 22;
                 return instance._initNameCard();
 
-              case 21:
-                _context3.next = 23;
+              case 22:
+                _context3.next = 24;
                 return instance._initIcons();
 
-              case 23:
+              case 24:
                 // check for an overlay to render
                 if (hasOverlay) instance._initOverlay();
-                _context3.next = 31;
+                _context3.next = 32;
                 break;
 
-              case 26:
-                _context3.prev = 26;
-                _context3.t0 = _context3["catch"](16);
+              case 27:
+                _context3.prev = 27;
+                _context3.t0 = _context3["catch"](17);
                 console.error(_context3.t0);
                 this.failedToLoadNamecard = true;
                 return _context3.abrupt("return", null);
 
-              case 31:
+              case 32:
                 // return the created namecard
                 instance.pivot.x = -instance.nudgeX;
                 return _context3.abrupt("return", instance);
 
-              case 33:
+              case 34:
               case "end":
                 return _context3.stop();
             }
           }
-        }, _callee3, this, [[16, 26]]);
+        }, _callee3, this, [[17, 27]]);
       }));
 
       function create(_x) {
@@ -91076,6 +91078,8 @@ exports.default = void 0;
 
 var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
 
+var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
+
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
@@ -91321,7 +91325,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
     key: "_initNameCard",
     value: function () {
       var _initNameCard2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
-        var options, mods, view, playerName, playerTeam, teamColor, isGold, isFriend, playerRank, _mods$card, card;
+        var options, mods, view, playerName, playerTeam, teamColor, isGold, isFriend, playerRank, isAdmin, _mods$card, card;
 
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
@@ -91329,7 +91333,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
               case 0:
                 options = this.options, mods = this.mods;
                 view = options.view;
-                playerName = options.playerName, playerTeam = options.playerTeam, teamColor = options.teamColor, isGold = options.isGold, isFriend = options.isFriend, playerRank = options.playerRank;
+                playerName = options.playerName, playerTeam = options.playerTeam, teamColor = options.teamColor, isGold = options.isGold, isFriend = options.isFriend, playerRank = options.playerRank, isAdmin = options.isAdmin;
                 _mods$card = mods.card, card = _mods$card === void 0 ? 'default' : _mods$card; // prevent player namecards
                 // TODO: this may change if we support custom namecards
 
@@ -91348,6 +91352,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                   color: teamColor,
                   isGold: isGold,
                   isFriend: isFriend,
+                  isAdmin: isAdmin,
                   playerRank: playerRank
                 }));
 
@@ -91406,35 +91411,29 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
     key: "_assemble",
     value: function () {
       var _assemble2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(car, trail, nitro, namecard, playerIndicator) {
-        var layers, scale, _playerIndicator$chil, _playerIndicator$chil2, _playerIndicator$chil3, container;
+        var layers, scale, _findDisplayObjectsOf, _findDisplayObjectsOf2, indicatorLabel, _findDisplayObjectsOf3, _findDisplayObjectsOf4, indicatorRoot, _indicatorRoot$childr, indicatorContainer, startingX;
 
         return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
             switch (_context6.prev = _context6.next) {
               case 0:
-                layers = this.layers, scale = this.scale; // if this is a player
+                layers = this.layers, scale = this.scale; // if this is a player, we show a special lane indicator
+                // TODO: consider making this a separate file
 
                 if (playerIndicator) {
-                  this.addChild(playerIndicator); // SUPER HACK
-                  // TODO: this is to solve an issue where newly added
-                  // objects have not had a chance to run any of their
-                  // animation code and are briefly visible. This can be
-                  // fixed in the animation engine, but probably not
-                  // something to bother do at the moment since it'll require
-                  // some refactoring and thinking about how to know when 
-                  // and when not to hide a child until it's 100% ready
-                  // worth mentioning, this happens with all game objects
-                  // but is handled in other scenarios, but since this is 
-                  // a one off animation, it's handled here
+                  this.addChild(playerIndicator); // gather nodes
 
-                  container = (_playerIndicator$chil = playerIndicator.children) === null || _playerIndicator$chil === void 0 ? void 0 : (_playerIndicator$chil2 = _playerIndicator$chil[0]) === null || _playerIndicator$chil2 === void 0 ? void 0 : (_playerIndicator$chil3 = _playerIndicator$chil2.children) === null || _playerIndicator$chil3 === void 0 ? void 0 : _playerIndicator$chil3[0];
+                  _findDisplayObjectsOf = (0, _ntAnimator.findDisplayObjectsOfRole)(playerIndicator, 'player_label'), _findDisplayObjectsOf2 = (0, _slicedToArray2.default)(_findDisplayObjectsOf, 1), indicatorLabel = _findDisplayObjectsOf2[0];
+                  _findDisplayObjectsOf3 = (0, _ntAnimator.findDisplayObjectsOfRole)(playerIndicator, 'root_container'), _findDisplayObjectsOf4 = (0, _slicedToArray2.default)(_findDisplayObjectsOf3, 1), indicatorRoot = _findDisplayObjectsOf4[0]; // SUPER HACK
+                  // unfortunately, since we need to toggle some internal
+                  // props on layers we have to reach into the created object
+                  // and make some changes
 
-                  if (container) {
-                    container.alpha = 0;
-                  } // the player indicator should be disposed after some time
+                  _indicatorRoot$childr = (0, _slicedToArray2.default)(indicatorRoot.children, 1), indicatorContainer = _indicatorRoot$childr[0];
+                  startingX = indicatorContainer.x;
+                  indicatorContainer.alpha = 0; // make changes when the race begins
 
-
-                  setTimeout(function () {
+                  this.track.on('race:start', function () {
                     (0, _ntAnimator.animate)({
                       from: {
                         t: 1
@@ -91446,13 +91445,14 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                       loop: false,
                       update: function update(_ref) {
                         var t = _ref.t;
-                        playerIndicator.alpha = t;
+                        indicatorLabel.alpha = t;
+                        indicatorRoot.x = -(startingX * 0.5) * (1 - t);
                       },
                       complete: function complete() {
-                        (0, _ntAnimator.removeDisplayObject)(playerIndicator);
+                        (0, _ntAnimator.removeDisplayObject)(indicatorLabel);
                       }
                     });
-                  }, playerIndicator.config.fadeAfter);
+                  });
                 } // include the car and it's shadow
 
 
@@ -91741,6 +91741,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
             switch (_context8.prev = _context8.next) {
               case 0:
                 instance = new Player();
+                instance.track = track;
                 instance.options = options;
                 instance.isPlayerRoot = true;
                 instance.mods = options.mods || {}; // initialize all layers
@@ -91751,15 +91752,15 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                 namecard = instance._initNameCard();
                 playerIndicator = instance._initPlayerIndicator(); // wait for the result
 
-                _context8.next = 11;
+                _context8.next = 12;
                 return Promise.all([car, trail, nitro, namecard, playerIndicator]);
 
-              case 11:
+              case 12:
                 resolved = _context8.sent;
-                _context8.next = 14;
+                _context8.next = 15;
                 return instance._assemble.apply(instance, (0, _toConsumableArray2.default)(resolved));
 
-              case 14:
+              case 15:
                 // after the instance is created, find all toggles
                 instance._assignToggles(); // used for individual variables
 
@@ -91779,7 +91780,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                 instance.id = options.id || "player_".concat(+new Date());
                 return _context8.abrupt("return", instance);
 
-              case 23:
+              case 24:
               case "end":
                 return _context8.stop();
             }
@@ -91798,7 +91799,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
 }(_ntAnimator.PIXI.ResponsiveContainer);
 
 exports.default = Player;
-},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","./scaling":"views/track/scaling.js","../../config":"config.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","../../components/namecard":"components/namecard/index.js","../../components/nitro":"components/nitro/index.js"}],"../node_modules/json-stringify-safe/stringify.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","./scaling":"views/track/scaling.js","../../config":"config.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","../../components/namecard":"components/namecard/index.js","../../components/nitro":"components/nitro/index.js"}],"../node_modules/json-stringify-safe/stringify.js":[function(require,module,exports) {
 exports = module.exports = stringify
 exports.getSerialize = serializer
 
@@ -108872,6 +108873,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                   team: config.tag,
                   color: config.tagColor,
                   isGold: config.isGold,
+                  isAdmin: config.isAdmin,
                   isFriend: false,
                   playerRank: config.rank
                 });
@@ -109922,6 +109924,7 @@ var NameCardView = /*#__PURE__*/function (_BaseView) {
                   team: config.tag,
                   color: config.tagColor,
                   isGold: config.isGold,
+                  isAdmin: config.isAdmin,
                   isFriend: false,
                   playerRank: config.rank
                 });
