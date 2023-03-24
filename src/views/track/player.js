@@ -56,6 +56,7 @@ export default class Player extends PIXI.ResponsiveContainer {
 	/** handles creating a new player instance */
 	static async create(options, track) {
 		const instance = new Player();
+		instance.track = track;
 		instance.options = options;
 		instance.isPlayerRoot = true;
 		instance.mods = options.mods || { };
@@ -65,9 +66,10 @@ export default class Player extends PIXI.ResponsiveContainer {
 		const trail = instance._initTrail();
 		const nitro = instance._initNitro();
 		const namecard = instance._initNameCard();
+		const playerIndicator = instance._initPlayerIndicator();
 
 		// wait for the result
-		const resolved = await Promise.all([ car, trail, nitro, namecard ]);
+		const resolved = await Promise.all([ car, trail, nitro, namecard, playerIndicator ]);
 		await instance._assemble(...resolved);
 
 		// after the instance is created, find all toggles
@@ -148,7 +150,7 @@ export default class Player extends PIXI.ResponsiveContainer {
 	async _initNameCard() {
 		const { options, mods } = this;
 		const { view } = options;
-		const { playerName, playerTeam, teamColor, isGold, isFriend, playerRank } = options;
+		const { playerName, playerTeam, teamColor, isGold, isFriend, playerRank, isAdmin } = options;
 		let { card = 'default' } = mods;
 
 		// prevent player namecards
@@ -168,13 +170,61 @@ export default class Player extends PIXI.ResponsiveContainer {
 			color: teamColor,
 			isGold,
 			isFriend,
+			isAdmin,
 			playerRank,
 		});
 	}
+
+	async _initPlayerIndicator() {
+		if (!this.options.isPlayer) {
+			return
+		}
+
+		// create the instance
+		const { options } = this;
+		const { view } = options;
+		return view.animator.create('extras/player_indicator');
+	}
  
 	// handles assembling the player
-	async _assemble(car, trail, nitro, namecard) {
+	async _assemble(car, trail, nitro, namecard, playerIndicator) {
 		const { layers, scale } = this;
+
+		// if this is a player, we show a special lane indicator
+		// TODO: consider making this a separate file
+		if (playerIndicator) {
+			this.addChild(playerIndicator);
+
+			// gather nodes
+			const [ indicatorLabel ] = findDisplayObjectsOfRole(playerIndicator, 'player_label')
+			const [ indicatorRoot ] = findDisplayObjectsOfRole(playerIndicator, 'root_container')
+			
+			// SUPER HACK
+			// unfortunately, since we need to toggle some internal
+			// props on layers we have to reach into the created object
+			// and make some changes
+			const [ indicatorContainer ] = indicatorRoot.children
+			const startingX = indicatorContainer.x
+			indicatorContainer.alpha = 0
+
+			// make changes when the race begins
+			this.track.on('race:start', () => {
+				animate({
+					from: { t: 1 },
+					to: { t: 0 },
+					duration: playerIndicator.config.fadeDuration,
+					loop: false,
+					update({ t }) {
+						indicatorLabel.alpha = t;
+						indicatorRoot.x = -(startingX * 0.5) * (1 - t);
+					},
+					complete() {
+						removeDisplayObject(indicatorLabel);
+					}
+				})
+			});
+
+		}
 
 		// include the car and it's shadow
 		layers.car = car;
@@ -303,6 +353,7 @@ export default class Player extends PIXI.ResponsiveContainer {
 		const removals = [
 			{ type: 'car', source: car, action: removeDisplayObject },
 			{ type: 'namecard', source: namecard, action: removeDisplayObject },
+			{ type: 'nametag', source: namecard, action: removeDisplayObject },
 			{ type: 'shadow', source: shadow, action: removeDisplayObject },
 			{ type: 'trail', source: trail, action: removeDisplayObject },
 			{ type: 'player', source: this, action: removeDisplayObject }

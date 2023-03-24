@@ -75862,10 +75862,13 @@ var BetweenExpression = function BetweenExpression(prop, args) {
 
     // calculate the current mod value
     var mod = ((_this$modifier = _this.modifier) === null || _this$modifier === void 0 ? void 0 : _this$modifier.call(_this, target, stage, player)) || 0;
-    var value = _this.min + _this.max * mod; // inverting
+    var range = _this.max - _this.min;
+    var value = range * mod + _this.min; // this.min + (this.max * mod)
+    // inverting
 
     if (_this.flip) {
-      value = _this.max - value;
+      // value = this.max - value
+      value = range - value;
     }
 
     value *= _this.scale; // apply the value
@@ -83957,15 +83960,16 @@ function _createEmitter() {
 
             if (manualStart || config.delay) {
               emitter.autoUpdate = false;
+              emitter.emit = false; // create activation function
+
               emitter.activate = create;
-              emitter.emit = false;
             } // delayed start
 
 
-            if (!isNaN(config.delay) && config.delay > 0) {
+            if (!manualStart && !isNaN(config.delay) && config.delay > 0) {
               setTimeout(create, config.delay);
             } // create immediately
-            else {
+            else if (!manualStart) {
                 create();
               } // create dynamically rendered properties
 
@@ -85528,9 +85532,10 @@ var Animator = /*#__PURE__*/function (_EventEmitter) {
                 instance.type = data.type;
                 instance.path = resource;
                 instance.controller = controller;
+                instance.config = data;
                 return _context5.abrupt("return", instance);
 
-              case 8:
+              case 9:
               case "end":
                 return _context5.stop();
             }
@@ -87509,7 +87514,9 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
     /** handles initial setup of the rendering area */
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(options) {
-        var scale, forceCanvas, baseUrl, seed, manifest, DEFAULT_BACKGROUND_COLOR, transparent, hasBackgroundColor, clearBeforeRender, backgroundColor, renderer, gl, axes;
+        var _this2 = this;
+
+        var scale, forceCanvas, baseUrl, seed, manifest, DEFAULT_BACKGROUND_COLOR, transparent, hasBackgroundColor, clearBeforeRender, backgroundColor, renderer, gl, axes, calculateCursor;
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
@@ -87595,12 +87602,29 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
 
                 this.view = new _ntAnimator.PIXI.ResponsiveStage(axes);
                 this.stage = new _ntAnimator.PIXI.Container();
-                this.view.addChild(this.stage); // for naming clarity
+                this.view.addChild(this.stage);
+
+                calculateCursor = function calculateCursor(x, y) {
+                  var hw = window.innerWidth / 2;
+                  var hh = window.innerWidth / 2;
+                  _this2.animationVariables.current_pointer_x = Math.floor(x);
+                  _this2.animationVariables.current_pointer_y = Math.floor(y);
+                  _this2.animationVariables.normalized_pointer_x = x / window.innerWidth;
+                  _this2.animationVariables.normalized_pointer_y = y / window.innerHeight;
+                  _this2.animationVariables.center_normalized_pointer_x = (x - hw) / hw;
+                  _this2.animationVariables.center_normalized_pointer_y = (y - hh) / hh;
+                }; // for naming clarity
                 // this is accessed by the animation engine
                 // to make animations that are relative
                 // to the game view
 
-                this.animationVariables = this.view; // set the correct renderer
+
+                this.animationVariables = this.view; // for some special effects
+
+                window.addEventListener('mousemove', function (event) {
+                  return calculateCursor(event.pageX, event.pageY);
+                });
+                calculateCursor(window.innerWidth / 2, window.innerHeight / 2); // set the correct renderer
 
                 this.setRenderer(renderer); // monitor visibility changes
 
@@ -87619,7 +87643,7 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
                   });
                 }
 
-              case 33:
+              case 36:
               case "end":
                 return _context.stop();
             }
@@ -87816,7 +87840,62 @@ function _toConsumableArray(arr) {
 }
 
 module.exports = _toConsumableArray;
-},{"./arrayWithoutHoles":"../node_modules/@babel/runtime/helpers/arrayWithoutHoles.js","./iterableToArray":"../node_modules/@babel/runtime/helpers/iterableToArray.js","./unsupportedIterableToArray":"../node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js","./nonIterableSpread":"../node_modules/@babel/runtime/helpers/nonIterableSpread.js"}],"views/track/scaling.js":[function(require,module,exports) {
+},{"./arrayWithoutHoles":"../node_modules/@babel/runtime/helpers/arrayWithoutHoles.js","./iterableToArray":"../node_modules/@babel/runtime/helpers/iterableToArray.js","./unsupportedIterableToArray":"../node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js","./nonIterableSpread":"../node_modules/@babel/runtime/helpers/nonIterableSpread.js"}],"../node_modules/@babel/runtime/helpers/arrayWithHoles.js":[function(require,module,exports) {
+function _arrayWithHoles(arr) {
+  if (Array.isArray(arr)) return arr;
+}
+
+module.exports = _arrayWithHoles;
+},{}],"../node_modules/@babel/runtime/helpers/iterableToArrayLimit.js":[function(require,module,exports) {
+function _iterableToArrayLimit(arr, i) {
+  if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return;
+  var _arr = [];
+  var _n = true;
+  var _d = false;
+  var _e = undefined;
+
+  try {
+    for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
+      _arr.push(_s.value);
+
+      if (i && _arr.length === i) break;
+    }
+  } catch (err) {
+    _d = true;
+    _e = err;
+  } finally {
+    try {
+      if (!_n && _i["return"] != null) _i["return"]();
+    } finally {
+      if (_d) throw _e;
+    }
+  }
+
+  return _arr;
+}
+
+module.exports = _iterableToArrayLimit;
+},{}],"../node_modules/@babel/runtime/helpers/nonIterableRest.js":[function(require,module,exports) {
+function _nonIterableRest() {
+  throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+}
+
+module.exports = _nonIterableRest;
+},{}],"../node_modules/@babel/runtime/helpers/slicedToArray.js":[function(require,module,exports) {
+var arrayWithHoles = require("./arrayWithHoles");
+
+var iterableToArrayLimit = require("./iterableToArrayLimit");
+
+var unsupportedIterableToArray = require("./unsupportedIterableToArray");
+
+var nonIterableRest = require("./nonIterableRest");
+
+function _slicedToArray(arr, i) {
+  return arrayWithHoles(arr) || iterableToArrayLimit(arr, i) || unsupportedIterableToArray(arr, i) || nonIterableRest();
+}
+
+module.exports = _slicedToArray;
+},{"./arrayWithHoles":"../node_modules/@babel/runtime/helpers/arrayWithHoles.js","./iterableToArrayLimit":"../node_modules/@babel/runtime/helpers/iterableToArrayLimit.js","./unsupportedIterableToArray":"../node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js","./nonIterableRest":"../node_modules/@babel/runtime/helpers/nonIterableRest.js"}],"views/track/scaling.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -88419,62 +88498,7 @@ exports.default = ActivateNitroAnimation;
 // // }
 // // // give back the generated textures
 // // return { shadowImage, normalMapImage };
-},{}],"../node_modules/@babel/runtime/helpers/arrayWithHoles.js":[function(require,module,exports) {
-function _arrayWithHoles(arr) {
-  if (Array.isArray(arr)) return arr;
-}
-
-module.exports = _arrayWithHoles;
-},{}],"../node_modules/@babel/runtime/helpers/iterableToArrayLimit.js":[function(require,module,exports) {
-function _iterableToArrayLimit(arr, i) {
-  if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return;
-  var _arr = [];
-  var _n = true;
-  var _d = false;
-  var _e = undefined;
-
-  try {
-    for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
-      _arr.push(_s.value);
-
-      if (i && _arr.length === i) break;
-    }
-  } catch (err) {
-    _d = true;
-    _e = err;
-  } finally {
-    try {
-      if (!_n && _i["return"] != null) _i["return"]();
-    } finally {
-      if (_d) throw _e;
-    }
-  }
-
-  return _arr;
-}
-
-module.exports = _iterableToArrayLimit;
-},{}],"../node_modules/@babel/runtime/helpers/nonIterableRest.js":[function(require,module,exports) {
-function _nonIterableRest() {
-  throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-}
-
-module.exports = _nonIterableRest;
-},{}],"../node_modules/@babel/runtime/helpers/slicedToArray.js":[function(require,module,exports) {
-var arrayWithHoles = require("./arrayWithHoles");
-
-var iterableToArrayLimit = require("./iterableToArrayLimit");
-
-var unsupportedIterableToArray = require("./unsupportedIterableToArray");
-
-var nonIterableRest = require("./nonIterableRest");
-
-function _slicedToArray(arr, i) {
-  return arrayWithHoles(arr) || iterableToArrayLimit(arr, i) || unsupportedIterableToArray(arr, i) || nonIterableRest();
-}
-
-module.exports = _slicedToArray;
-},{"./arrayWithHoles":"../node_modules/@babel/runtime/helpers/arrayWithHoles.js","./iterableToArrayLimit":"../node_modules/@babel/runtime/helpers/iterableToArrayLimit.js","./unsupportedIterableToArray":"../node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js","./nonIterableRest":"../node_modules/@babel/runtime/helpers/nonIterableRest.js"}],"components/car/hue-shift.js":[function(require,module,exports) {
+},{}],"components/car/hue-shift.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -89350,7 +89374,8 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
 
 
                 base = layers[0] || car;
-                bounds = bounds || base.getBounds(); // save the size and layer to use
+                bounds = bounds || base.getBounds();
+                console.log('loaded', car, height, bounds, imageSource); // save the size and layer to use
 
                 height = bounds.height;
                 imageSource = base;
@@ -89361,7 +89386,7 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
                   imageSource: imageSource
                 });
 
-              case 25:
+              case 26:
               case "end":
                 return _context3.stop();
             }
@@ -89890,28 +89915,29 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
           while (1) {
             switch (_context8.prev = _context8.next) {
               case 0:
+                console.log('create cara', options);
                 instance = new Car();
                 view = options.view, type = options.type, isAnimated = options.isAnimated; // attempt to link external manifest files
 
                 if (!isAnimated) {
-                  _context8.next = 11;
+                  _context8.next = 12;
                   break;
                 }
 
-                _context8.prev = 3;
-                _context8.next = 6;
+                _context8.prev = 4;
+                _context8.next = 7;
                 return view.animator.importManifest("cars/".concat(type));
 
-              case 6:
-                _context8.next = 11;
+              case 7:
+                _context8.next = 12;
                 break;
 
-              case 8:
-                _context8.prev = 8;
-                _context8.t0 = _context8["catch"](3);
+              case 9:
+                _context8.prev = 9;
+                _context8.t0 = _context8["catch"](4);
                 console.error('failed to load animation files for', type);
 
-              case 11:
+              case 12:
                 // determine the type to create
                 path = "cars/".concat(type);
                 config = view.animator.lookup(path);
@@ -89922,22 +89948,22 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
                   config: config
                 }); // initialize the car
 
-                _context8.next = 16;
+                _context8.next = 17;
                 return instance._initCar();
 
-              case 16:
-                _context8.next = 18;
+              case 17:
+                _context8.next = 19;
                 return instance._initFilters();
 
-              case 18:
+              case 19:
                 return _context8.abrupt("return", instance);
 
-              case 19:
+              case 20:
               case "end":
                 return _context8.stop();
             }
           }
-        }, _callee8, null, [[3, 8]]);
+        }, _callee8, null, [[4, 9]]);
       }));
 
       function create(_x3) {
@@ -90256,7 +90282,7 @@ var DEFAULT_CENTER_PADDING = 8;
 var DEFAULT_LEFT_MARGIN = 25;
 var DEFAULT_TOP_MARGIN = 10;
 var NAMECARD_ICON_GAP = 10;
-var NAMECARD_MAXIMUM_WIDTH = 550;
+var NAMECARD_MAXIMUM_WIDTH = 575;
 var DEFAULT_NAMECARD_FONT_SIZE = 52;
 var DEFAULT_NAMECARD_FONT_NAME = 'montserrat';
 var DEFAULT_NAMECARD_FONT_WEIGHT = 600;
@@ -90317,7 +90343,7 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
 
       if (config.text) {
         textColor = 'color' in config.text ? (0, _color.toRGBA)(config.text.color, 1) : textColor;
-        shadowColor = 'shadow' in config.text ? (0, _color.toRGBA)(config.text.shadow, 1) : shadowColor;
+        shadowColor = 'shadow' in config.text ? (0, _color.toRGBA)(config.text.shadow, config.text.shadowOpacity || 1) : shadowColor;
         if (!isNaN(config.text.left)) left = config.text.left;
         if (!isNaN(config.text.top)) top = config.text.top;
       } // prepare to draw text
@@ -90331,14 +90357,28 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
 
       for (var _i = 0, _arr = [{
         color: shadowColor,
-        y: 4
+        y: ('shadowY' in (config.text || {})) ? config.text.shadowY || 0 : 4,
+        blur: ((_config$text = config.text) === null || _config$text === void 0 ? void 0 : _config$text.shadowBlur) || 0,
+        isShadow: true
       }, {
         color: textColor,
-        y: 0
+        y: 0,
+        blur: 0
       }]; _i < _arr.length; _i++) {
+        var _config$text;
+
         var style = _arr[_i];
-        // render each part
-        ctx.fillStyle = style.color;
+
+        // render each part			
+        if (style.blur) {
+          ctx.shadowBlur = style.blur;
+          ctx.shadowColor = style.color;
+        } else {
+          ctx.shadowBlur = 0;
+          ctx.shadowColor = '';
+          ctx.fillStyle = style.color;
+        }
+
         ctx.fillText(displayName, 0, style.y);
       } // check for icons to render
 
@@ -90467,6 +90507,16 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
 
               case 23:
                 _context2.t6 = _context2.sent;
+                _context2.next = 26;
+                return view.animator.getImage('images', 'icon_admin');
+
+              case 26:
+                _context2.t7 = _context2.sent;
+                _context2.next = 29;
+                return view.animator.getImage('images', 'icon_admin_invert');
+
+              case 29:
+                _context2.t8 = _context2.sent;
                 NameCard.ICONS = {
                   top3: _context2.t0,
                   top10: _context2.t1,
@@ -90474,10 +90524,12 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                   top100: _context2.t3,
                   top300: _context2.t4,
                   gold: _context2.t5,
-                  friend: _context2.t6
+                  friend: _context2.t6,
+                  admin: _context2.t7,
+                  admin_invert: _context2.t8
                 };
 
-              case 25:
+              case 31:
               case "end":
                 return _context2.stop();
             }
@@ -90500,17 +90552,19 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
       var ICONS = NameCard.ICONS; // get info to show
 
       var options = this.options,
-          isGoldNamecard = this.isGoldNamecard;
+          isGoldNamecard = this.isGoldNamecard,
+          config = this.config;
       var isTop3 = options.isTop3,
           isGold = options.isGold,
-          isFriend = options.isFriend; // TODO: support for old style -- remove later and
+          isFriend = options.isFriend,
+          isAdmin = options.isAdmin; // TODO: support for old style -- remove later and
       // only use the playerRank
 
       var playerRank = isTop3 ? 3 : options.playerRank;
       var playerRankIconId = "top".concat(playerRank);
       var playerRankIcon = ICONS[playerRankIconId];
       var hasPlayerRank = !!playerRankIcon; // debug
-      // options.name = '|||||||ssssflskdfjlskdfj';
+      // options.name = '|||||.|||||.|||||.|||||.|||||';
       // options.team = ' TALK ';
       // create the full name
 
@@ -90519,12 +90573,15 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
       var full = [team && "[".concat(team, "]"), name].join(' '); // measure to fit
 
       if (full.length > NAMECARD_MAX_NAME_LENGTH) {
-        var safety = 10;
+        var _config$text2;
+
+        var maxWidth = ((_config$text2 = config.text) === null || _config$text2 === void 0 ? void 0 : _config$text2.maxWidth) || NAMECARD_MAXIMUM_WIDTH;
+        var safety = full.length;
 
         while (--safety > 0) {
           var size = _ntAnimator.PIXI.TextMetrics.measureText(full, NAMECARD_TEXT_STYLE);
 
-          if (size.width < NAMECARD_MAXIMUM_WIDTH) break;
+          if (size.width < maxWidth) break;
           full = full.substr(0, full.length - 1);
         }
       } // set the display name
@@ -90535,9 +90592,14 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
       var tallest = 0;
       var ids = [];
 
-      if (isGold && !isGoldNamecard) {
+      if (!isAdmin && isGold && !isGoldNamecard && !config.hideGold) {
         tallest = Math.max(tallest, ICONS.gold.height);
         ids.push('gold');
+      }
+
+      if (isAdmin && !config.hideAdmin) {
+        tallest = Math.max(tallest, ICONS.admin.height);
+        ids.push(config.invertAdmin ? 'admin_invert' : 'admin');
       }
 
       if (hasPlayerRank) {
@@ -90559,6 +90621,15 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
         }; // render the view
 
       this._renderOverlay();
+    } // stop () {
+    //   this.controller.stopEmitters()
+    // }
+
+  }, {
+    key: "dispose",
+    value: function dispose() {
+      // this.stop()
+      (0, _ntAnimator.removeDisplayObject)(this);
     }
   }], [{
     key: "create",
@@ -90566,7 +90637,8 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
     /** handles creating a new namecard */
     value: function () {
       var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(options) {
-        var instance, type, view, path, config, isGoldNamecard, isPlayerNamecard, hasOverlay;
+        var instance, type, view, path, config, isGoldNamecard, isPlayerNamecard, hasOverlay, _config, isAdmin;
+
         return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
@@ -90577,7 +90649,7 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                 type = options.type, view = options.view; // try and load
                 // const isDefault = /default/.test(type);
 
-                path = "namecards/".concat(type);
+                path = "nametags/".concat(type).replace(/\/+/, '/');
                 config = view.animator.lookup(path); // maybe needs to load
 
                 if (config) {
@@ -90594,7 +90666,7 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
               case 9:
                 // if missing, use the default
                 if (!config) {
-                  path = 'namecards/default';
+                  path = 'nametags/default';
                   config = view.animator.lookup(path);
                 } // if still missing then there's not
                 // a name card that can be used
@@ -90612,6 +90684,7 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                 isGoldNamecard = /gold/i.test(type);
                 isPlayerNamecard = /player/i.test(type);
                 hasOverlay = config.overlay !== false;
+                _config = config, isAdmin = _config.isAdmin;
                 (0, _utils.merge)(instance, {
                   options: options,
                   view: view,
@@ -90619,45 +90692,46 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                   config: config,
                   isGoldNamecard: isGoldNamecard,
                   isPlayerNamecard: isPlayerNamecard,
+                  isAdmin: isAdmin,
                   hasOverlay: hasOverlay
                 }); // attempt to add a namecard
 
-                _context3.prev = 16;
+                _context3.prev = 17;
                 // create a container for all parts
                 instance.container = new _ntAnimator.PIXI.Container();
                 instance.addChild(instance.container); // initialize all namecard parts
 
-                _context3.next = 21;
+                _context3.next = 22;
                 return instance._initNameCard();
 
-              case 21:
-                _context3.next = 23;
+              case 22:
+                _context3.next = 24;
                 return instance._initIcons();
 
-              case 23:
+              case 24:
                 // check for an overlay to render
                 if (hasOverlay) instance._initOverlay();
-                _context3.next = 31;
+                _context3.next = 32;
                 break;
 
-              case 26:
-                _context3.prev = 26;
-                _context3.t0 = _context3["catch"](16);
+              case 27:
+                _context3.prev = 27;
+                _context3.t0 = _context3["catch"](17);
                 console.error(_context3.t0);
                 this.failedToLoadNamecard = true;
                 return _context3.abrupt("return", null);
 
-              case 31:
+              case 32:
                 // return the created namecard
                 instance.pivot.x = -instance.nudgeX;
                 return _context3.abrupt("return", instance);
 
-              case 33:
+              case 34:
               case "end":
                 return _context3.stop();
             }
           }
-        }, _callee3, this, [[16, 26]]);
+        }, _callee3, this, [[17, 27]]);
       }));
 
       function create(_x) {
@@ -91005,6 +91079,8 @@ exports.default = void 0;
 
 var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
 
+var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
+
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
@@ -91250,7 +91326,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
     key: "_initNameCard",
     value: function () {
       var _initNameCard2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
-        var options, mods, view, playerName, playerTeam, teamColor, isGold, isFriend, playerRank, _mods$card, card;
+        var options, mods, view, playerName, playerTeam, teamColor, isGold, isFriend, playerRank, isAdmin, _mods$card, card;
 
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
@@ -91258,7 +91334,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
               case 0:
                 options = this.options, mods = this.mods;
                 view = options.view;
-                playerName = options.playerName, playerTeam = options.playerTeam, teamColor = options.teamColor, isGold = options.isGold, isFriend = options.isFriend, playerRank = options.playerRank;
+                playerName = options.playerName, playerTeam = options.playerTeam, teamColor = options.teamColor, isGold = options.isGold, isFriend = options.isFriend, playerRank = options.playerRank, isAdmin = options.isAdmin;
                 _mods$card = mods.card, card = _mods$card === void 0 ? 'default' : _mods$card; // prevent player namecards
                 // TODO: this may change if we support custom namecards
 
@@ -91277,6 +91353,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                   color: teamColor,
                   isGold: isGold,
                   isFriend: isFriend,
+                  isAdmin: isAdmin,
                   playerRank: playerRank
                 }));
 
@@ -91293,18 +91370,92 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
       }
 
       return _initNameCard;
+    }()
+  }, {
+    key: "_initPlayerIndicator",
+    value: function () {
+      var _initPlayerIndicator2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
+        var options, view;
+        return _regenerator.default.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                if (this.options.isPlayer) {
+                  _context5.next = 2;
+                  break;
+                }
+
+                return _context5.abrupt("return");
+
+              case 2:
+                // create the instance
+                options = this.options;
+                view = options.view;
+                return _context5.abrupt("return", view.animator.create('extras/player_indicator'));
+
+              case 5:
+              case "end":
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function _initPlayerIndicator() {
+        return _initPlayerIndicator2.apply(this, arguments);
+      }
+
+      return _initPlayerIndicator;
     }() // handles assembling the player
 
   }, {
     key: "_assemble",
     value: function () {
-      var _assemble2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(car, trail, nitro, namecard) {
-        var layers, scale;
-        return _regenerator.default.wrap(function _callee5$(_context5) {
+      var _assemble2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(car, trail, nitro, namecard, playerIndicator) {
+        var layers, scale, _findDisplayObjectsOf, _findDisplayObjectsOf2, indicatorLabel, _findDisplayObjectsOf3, _findDisplayObjectsOf4, indicatorRoot, _indicatorRoot$childr, indicatorContainer, startingX;
+
+        return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context6.prev = _context6.next) {
               case 0:
-                layers = this.layers, scale = this.scale; // include the car and it's shadow
+                layers = this.layers, scale = this.scale; // if this is a player, we show a special lane indicator
+                // TODO: consider making this a separate file
+
+                if (playerIndicator) {
+                  this.addChild(playerIndicator); // gather nodes
+
+                  _findDisplayObjectsOf = (0, _ntAnimator.findDisplayObjectsOfRole)(playerIndicator, 'player_label'), _findDisplayObjectsOf2 = (0, _slicedToArray2.default)(_findDisplayObjectsOf, 1), indicatorLabel = _findDisplayObjectsOf2[0];
+                  _findDisplayObjectsOf3 = (0, _ntAnimator.findDisplayObjectsOfRole)(playerIndicator, 'root_container'), _findDisplayObjectsOf4 = (0, _slicedToArray2.default)(_findDisplayObjectsOf3, 1), indicatorRoot = _findDisplayObjectsOf4[0]; // SUPER HACK
+                  // unfortunately, since we need to toggle some internal
+                  // props on layers we have to reach into the created object
+                  // and make some changes
+
+                  _indicatorRoot$childr = (0, _slicedToArray2.default)(indicatorRoot.children, 1), indicatorContainer = _indicatorRoot$childr[0];
+                  startingX = indicatorContainer.x;
+                  indicatorContainer.alpha = 0; // make changes when the race begins
+
+                  this.track.on('race:start', function () {
+                    (0, _ntAnimator.animate)({
+                      from: {
+                        t: 1
+                      },
+                      to: {
+                        t: 0
+                      },
+                      duration: playerIndicator.config.fadeDuration,
+                      loop: false,
+                      update: function update(_ref) {
+                        var t = _ref.t;
+                        indicatorLabel.alpha = t;
+                        indicatorRoot.x = -(startingX * 0.5) * (1 - t);
+                      },
+                      complete: function complete() {
+                        (0, _ntAnimator.removeDisplayObject)(indicatorLabel);
+                      }
+                    });
+                  });
+                } // include the car and it's shadow
+
 
                 layers.car = car;
                 layers.shadow = car.shadow;
@@ -91369,15 +91520,15 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
 
                 this.sortChildren();
 
-              case 10:
+              case 11:
               case "end":
-                return _context5.stop();
+                return _context6.stop();
             }
           }
-        }, _callee5, this);
+        }, _callee6, this);
       }));
 
-      function _assemble(_x, _x2, _x3, _x4) {
+      function _assemble(_x, _x2, _x3, _x4, _x5) {
         return _assemble2.apply(this, arguments);
       }
 
@@ -91414,23 +91565,23 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
   }, {
     key: "repaintCar",
     value: function () {
-      var _repaintCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(hue) {
-        return _regenerator.default.wrap(function _callee6$(_context6) {
+      var _repaintCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(hue) {
+        return _regenerator.default.wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
-                _context6.next = 2;
+                _context7.next = 2;
                 return this.car.repaintCar(hue);
 
               case 2:
               case "end":
-                return _context6.stop();
+                return _context7.stop();
             }
           }
-        }, _callee6, this);
+        }, _callee7, this);
       }));
 
-      function repaintCar(_x5) {
+      function repaintCar(_x6) {
         return _repaintCar.apply(this, arguments);
       }
 
@@ -91450,6 +91601,10 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
         action: _ntAnimator.removeDisplayObject
       }, {
         type: 'namecard',
+        source: namecard,
+        action: _ntAnimator.removeDisplayObject
+      }, {
+        type: 'nametag',
         source: namecard,
         action: _ntAnimator.removeDisplayObject
       }, {
@@ -91580,13 +91735,14 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
   }], [{
     key: "create",
     value: function () {
-      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(options, track) {
-        var instance, car, trail, nitro, namecard, resolved;
-        return _regenerator.default.wrap(function _callee7$(_context7) {
+      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(options, track) {
+        var instance, car, trail, nitro, namecard, playerIndicator, resolved;
+        return _regenerator.default.wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
                 instance = new Player();
+                instance.track = track;
                 instance.options = options;
                 instance.isPlayerRoot = true;
                 instance.mods = options.mods || {}; // initialize all layers
@@ -91594,17 +91750,18 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                 car = instance._initCar();
                 trail = instance._initTrail();
                 nitro = instance._initNitro();
-                namecard = instance._initNameCard(); // wait for the result
+                namecard = instance._initNameCard();
+                playerIndicator = instance._initPlayerIndicator(); // wait for the result
 
-                _context7.next = 10;
-                return Promise.all([car, trail, nitro, namecard]);
+                _context8.next = 12;
+                return Promise.all([car, trail, nitro, namecard, playerIndicator]);
 
-              case 10:
-                resolved = _context7.sent;
-                _context7.next = 13;
+              case 12:
+                resolved = _context8.sent;
+                _context8.next = 15;
                 return instance._assemble.apply(instance, (0, _toConsumableArray2.default)(resolved));
 
-              case 13:
+              case 15:
                 // after the instance is created, find all toggles
                 instance._assignToggles(); // used for individual variables
 
@@ -91622,17 +91779,17 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
 
 
                 instance.id = options.id || "player_".concat(+new Date());
-                return _context7.abrupt("return", instance);
+                return _context8.abrupt("return", instance);
 
-              case 22:
+              case 24:
               case "end":
-                return _context7.stop();
+                return _context8.stop();
             }
           }
-        }, _callee7);
+        }, _callee8);
       }));
 
-      function create(_x6, _x7) {
+      function create(_x7, _x8) {
         return _create.apply(this, arguments);
       }
 
@@ -91643,7 +91800,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
 }(_ntAnimator.PIXI.ResponsiveContainer);
 
 exports.default = Player;
-},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","./scaling":"views/track/scaling.js","../../config":"config.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","../../components/namecard":"components/namecard/index.js","../../components/nitro":"components/nitro/index.js"}],"../node_modules/json-stringify-safe/stringify.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","./scaling":"views/track/scaling.js","../../config":"config.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","../../components/namecard":"components/namecard/index.js","../../components/nitro":"components/nitro/index.js"}],"../node_modules/json-stringify-safe/stringify.js":[function(require,module,exports) {
 exports = module.exports = stringify
 exports.getSerialize = serializer
 
@@ -107799,6 +107956,8 @@ var _config = require("../../config");
 
 var _layers = require("../track/layers");
 
+var _namecard = _interopRequireDefault(require("../../components/namecard"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
@@ -107833,6 +107992,8 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "container", new _ntAnimator.PIXI.Container());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "originX", 660);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "originY", 350);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "swayScaling", 1);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "swayOffset", 0);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "dispose", function () {
       // cancel rendering
       _this.stopAutoRender(); // stop animations
@@ -107930,6 +108091,13 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
                 if (this.options.focus === 'trail') {
                   this.container.scale.x = this.container.scale.y = 1.5;
                   this.container.pivot.x -= 250;
+                } // if this is a trail preview, focus differently
+
+
+                if (this.options.focus === 'nametag') {
+                  this.container.scale.x = this.container.scale.y = 1;
+                  this.container.pivot.x -= 250;
+                  this.swayScaling = 0.2;
                 } // assemble the view
 
 
@@ -107937,7 +108105,7 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
                 this.container.addChild(this.car);
                 this.view.addChild(this.container);
 
-              case 14:
+              case 15:
               case "end":
                 return _context2.stop();
             }
@@ -107956,7 +108124,7 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
     key: "_initCar",
     value: function () {
       var _initCar2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(options) {
-        var baseHeight, car, container, trail;
+        var baseHeight, car, container, trail, namecard;
         return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
@@ -108010,10 +108178,34 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
                 container.sortChildren();
 
               case 18:
+                if (!options.nametag) {
+                  _context3.next = 29;
+                  break;
+                }
+
+                _context3.next = 21;
+                return _namecard.default.create(_objectSpread({
+                  view: this,
+                  baseHeight: baseHeight * CRUISE_VIEW_BONUS_SCALING
+                }, options.nametag));
+
+              case 21:
+                namecard = _context3.sent;
+                // link to a car
+                container.addChild(namecard); // shift the view over to fit the nametag
+
+                this.originX += 620;
+                namecard.x = car.positions.back;
+                namecard.x -= namecard.width * 0.75;
+                namecard.visible = true;
+                namecard.scale.x = namecard.scale.y = 0.8;
+                container.sortChildren();
+
+              case 29:
                 // add the car
                 this.car = container;
 
-              case 19:
+              case 30:
               case "end":
                 return _context3.stop();
             }
@@ -108030,6 +108222,8 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "_initAnimations",
     value: function _initAnimations() {
+      var _this3 = this;
+
       var car = this.car,
           view = this.view,
           container = this.container; // fade in the car
@@ -108066,32 +108260,32 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
 
       this.__animate_backForth = (0, _ntAnimator.animate)({
         from: {
-          x: this.originX - 100
+          x: -100
         },
         to: {
-          x: this.originX + 150
+          x: 150
         },
         ease: 'easeInOutQuad',
         duration: 3000,
         direction: 'alternate',
         loop: true,
         update: function update(props) {
-          return car.x = props.x;
+          return car.x = _this3.originX + props.x * _this3.swayScaling;
         }
       });
       this.__animate_upDown = (0, _ntAnimator.animate)({
         from: {
-          y: this.originY - 100
+          y: -100
         },
         to: {
-          y: this.originY + 100
+          y: 100
         },
         ease: 'easeInOutQuad',
         duration: 6000,
         direction: 'alternate',
         loop: true,
         update: function update(props) {
-          return car.y = props.y;
+          return car.y = _this3.originY + props.y * _this3.swayScaling;
         }
       });
     } // cleanup
@@ -108104,7 +108298,8 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
       if (this.treadmill && this.isViewActive) {
         var now = Date.now();
         var delta = Math.min(2, this.getDeltaTime(now));
-        this.container.rotation = Math.sin(this.step++ / 300) / 5 + Math.PI * -0.2;
+        this.container.rotation = (Math.sin(this.step++ / 300) / 5 + Math.PI * -0.2) * this.swayScaling;
+        this.container.rotation += this.swayOffset;
         this.treadmill.update({
           diff: -25 * delta,
           horizontalWrap: -1500
@@ -108122,7 +108317,7 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
 }(_base.BaseView);
 
 exports.default = CruiseView;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../components/treadmill":"components/treadmill.js","../../config":"config.js","../track/layers":"views/track/layers.js"}],"utils/wait.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../components/treadmill":"components/treadmill.js","../../config":"config.js","../track/layers":"views/track/layers.js","../../components/namecard":"components/namecard/index.js"}],"utils/wait.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -108280,6 +108475,8 @@ var _car = _interopRequireDefault(require("../../components/car"));
 
 var _trail = _interopRequireDefault(require("../../components/trail"));
 
+var _namecard = _interopRequireDefault(require("../../components/namecard"));
+
 var _config = require("../../config");
 
 var _layers = require("../track/layers");
@@ -108303,7 +108500,7 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
 var DEFAULT_MAX_HEIGHT = 250;
-var OTHER_DRIVER_OFFSCREEN_DISTANCE = -1200;
+var OTHER_DRIVER_OFFSCREEN_DISTANCE = -1600;
 var CONTENT_Y = -25;
 var CONTENT_X = 125;
 
@@ -108348,7 +108545,8 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 }, options));
 
               case 2:
-                // setup the main view
+                window.CUSTOMIZER = this; // setup the main view
+
                 this.workspace = new _ntAnimator.PIXI.ResponsiveContainer();
                 this.workspace.scaleX = 1;
                 this.workspace.scaleY = 1;
@@ -108360,18 +108558,18 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 this.workspace.addChild(this.viewport);
                 this.stage.addChild(this.workspace); // attach elements
 
-                _context.next = 12;
+                _context.next = 13;
                 return this._createTreadmill();
 
-              case 12:
-                _context.next = 14;
+              case 13:
+                _context.next = 15;
                 return this._createOtherDriver();
 
-              case 14:
-                _context.next = 16;
+              case 15:
+                _context.next = 17;
                 return this._createSprayer();
 
-              case 16:
+              case 17:
                 // make sure the game animates relative values
                 this.animationVariables.speed = 1;
                 this.animationVariables.base_speed = 1;
@@ -108380,7 +108578,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 this.startAutoRender();
                 this.ready = true;
 
-              case 21:
+              case 22:
               case "end":
                 return _context.stop();
             }
@@ -108601,24 +108799,154 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
       }
 
       return setPaint;
+    }() // for clarity sake -- internally these are known as
+    // namecards, but externally they are known as nametags
+
+  }, {
+    key: "setNametag",
+    value: function () {
+      var _setNametag = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(config) {
+        var waitForReady,
+            _args7 = arguments;
+        return _regenerator.default.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                waitForReady = _args7.length > 1 && _args7[1] !== undefined ? _args7[1] : true;
+                return _context7.abrupt("return", this.setNamecard(config, waitForReady = true));
+
+              case 2:
+              case "end":
+                return _context7.stop();
+            }
+          }
+        }, _callee7, this);
+      }));
+
+      function setNametag(_x4) {
+        return _setNametag.apply(this, arguments);
+      }
+
+      return setNametag;
+    }()
+  }, {
+    key: "setNamecard",
+    value: function () {
+      var _setNamecard = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(config) {
+        var _this$namecard;
+
+        var waitForReady,
+            type,
+            namecard,
+            _args8 = arguments;
+        return _regenerator.default.wrap(function _callee8$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                waitForReady = _args8.length > 1 && _args8[1] !== undefined ? _args8[1] : true;
+
+                if (!waitForReady) {
+                  _context8.next = 4;
+                  break;
+                }
+
+                _context8.next = 4;
+                return this.waitForActivity('namecard');
+
+              case 4:
+                (_this$namecard = this.namecard) === null || _this$namecard === void 0 ? void 0 : _this$namecard.dispose(); // if there's not a trail, they probably set
+                // it to none
+
+                type = config.type;
+
+                if (!type) {
+                  type = 'player';
+                } // set the trail
+
+
+                _context8.next = 9;
+                return _namecard.default.create({
+                  view: this,
+                  baseHeight: 100,
+                  type: config.type,
+                  isAnimated: true,
+                  name: config.name,
+                  team: config.tag,
+                  color: config.tagColor,
+                  isGold: config.isGold,
+                  isAdmin: config.isAdmin,
+                  isFriend: false,
+                  playerRank: config.rank
+                });
+
+              case 9:
+                namecard = _context8.sent;
+
+                // in case of an unusual scenario where
+                // a namecard might not be disposed, go ahead and target
+                // each namecard part and remove it individually
+                try {
+                  if (this.namecard) {
+                    (0, _ntAnimator.removeDisplayObject)(this.namecard);
+                  }
+                } // nothing to do here
+                catch (ex) {} // configure the namecard
+
+
+                this.namecard = namecard;
+                namecard.visible = true;
+                namecard.x = -850;
+                namecard.zIndex = 999;
+                namecard.alpha = 0; // add to the view
+
+                this.container.addChild(namecard);
+                this.container.sortChildren(); // also, fade in the namecards
+
+                (0, _ntAnimator.animate)({
+                  duration: 500,
+                  from: {
+                    t: 0
+                  },
+                  to: {
+                    t: 1
+                  },
+                  loop: false,
+                  update: function update(_update) {
+                    namecard.alpha = _update.t;
+                  }
+                });
+
+              case 19:
+              case "end":
+                return _context8.stop();
+            }
+          }
+        }, _callee8, this);
+      }));
+
+      function setNamecard(_x5) {
+        return _setNamecard.apply(this, arguments);
+      }
+
+      return setNamecard;
     }() // replaces the active car
 
   }, {
     key: "setCar",
     value: function () {
-      var _setCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(_ref) {
-        var type, hue, isAnimated, trail, tweaks, car, container;
-        return _regenerator.default.wrap(function _callee7$(_context7) {
+      var _setCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9(_ref) {
+        var type, hue, isAnimated, trail, tweaks, nametag, car, container;
+        return _regenerator.default.wrap(function _callee9$(_context9) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context9.prev = _context9.next) {
               case 0:
-                type = _ref.type, hue = _ref.hue, isAnimated = _ref.isAnimated, trail = _ref.trail, tweaks = _ref.tweaks;
+                type = _ref.type, hue = _ref.hue, isAnimated = _ref.isAnimated, trail = _ref.trail, tweaks = _ref.tweaks, nametag = _ref.nametag;
                 this.isReady = false; // clear the existing data
 
                 this._removeExistingCars(); // create the new car instance
 
 
-                _context7.next = 5;
+                _context9.next = 5;
                 return _car.default.create({
                   view: this,
                   baseHeight: 150,
@@ -108633,7 +108961,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 });
 
               case 5:
-                car = _context7.sent;
+                car = _context9.sent;
                 // put the car inside of a container that
                 // can be used to attach trails and 
                 // other effects to
@@ -108656,27 +108984,38 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 delete this.trail;
 
                 if (!trail) {
-                  _context7.next = 22;
+                  _context9.next = 22;
                   break;
                 }
 
-                _context7.next = 22;
+                _context9.next = 22;
                 return this.setTrail(trail, false);
 
               case 22:
+                delete this.namecard;
+
+                if (!nametag) {
+                  _context9.next = 26;
+                  break;
+                }
+
+                _context9.next = 26;
+                return this.setNamecard(nametag, false);
+
+              case 26:
                 // animate the new car into view
                 this.isReady = true;
-                return _context7.abrupt("return", this._animatePlayerCarIntoView(this.container));
+                return _context9.abrupt("return", this._animatePlayerCarIntoView(this.container));
 
-              case 24:
+              case 28:
               case "end":
-                return _context7.stop();
+                return _context9.stop();
             }
           }
-        }, _callee7, this);
+        }, _callee9, this);
       }));
 
-      function setCar(_x4) {
+      function setCar(_x6) {
         return _setCar.apply(this, arguments);
       }
 
@@ -108685,24 +109024,24 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "setTrail",
     value: function () {
-      var _setTrail = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(type) {
+      var _setTrail = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10(type) {
         var _this$trail;
 
         var waitForReady,
             trail,
-            _args8 = arguments;
-        return _regenerator.default.wrap(function _callee8$(_context8) {
+            _args10 = arguments;
+        return _regenerator.default.wrap(function _callee10$(_context10) {
           while (1) {
-            switch (_context8.prev = _context8.next) {
+            switch (_context10.prev = _context10.next) {
               case 0:
-                waitForReady = _args8.length > 1 && _args8[1] !== undefined ? _args8[1] : true;
+                waitForReady = _args10.length > 1 && _args10[1] !== undefined ? _args10[1] : true;
 
                 if (!waitForReady) {
-                  _context8.next = 4;
+                  _context10.next = 4;
                   break;
                 }
 
-                _context8.next = 4;
+                _context10.next = 4;
                 return this.waitForActivity('trail');
 
               case 4:
@@ -108710,14 +109049,14 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 // it to none
 
                 if (type) {
-                  _context8.next = 7;
+                  _context10.next = 7;
                   break;
                 }
 
-                return _context8.abrupt("return");
+                return _context10.abrupt("return");
 
               case 7:
-                _context8.next = 9;
+                _context10.next = 9;
                 return _trail.default.create({
                   view: this,
                   baseHeight: 130,
@@ -108725,7 +109064,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 });
 
               case 9:
-                trail = _context8.sent;
+                trail = _context10.sent;
 
                 // in case of an unusual scenario where
                 // a trail might not be disposed, go ahead and target
@@ -108756,20 +109095,20 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                     t: 1
                   },
                   loop: false,
-                  update: function update(_update) {
-                    trail.alpha = _update.t;
+                  update: function update(_update2) {
+                    trail.alpha = _update2.t;
                   }
                 });
 
               case 18:
               case "end":
-                return _context8.stop();
+                return _context10.stop();
             }
           }
-        }, _callee8, this);
+        }, _callee10, this);
       }));
 
-      function setTrail(_x5) {
+      function setTrail(_x7) {
         return _setTrail.apply(this, arguments);
       }
 
@@ -108842,6 +109181,29 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "_removeExistingCars",
     value: function _removeExistingCars() {
+      var _this7 = this;
+
+      // fade out assets
+      (0, _ntAnimator.animate)({
+        loop: false,
+        duration: 200,
+        from: {
+          t: 1
+        },
+        to: {
+          t: 0
+        },
+        update: function update(props) {
+          if (_this7.namecard) {
+            _this7.namecard.alpha = props.t;
+          }
+
+          if (_this7.trail) {
+            _this7.trail.alpha = props.t;
+          }
+        }
+      });
+
       var _iterator2 = _createForOfIteratorHelper(this.viewport.children),
           _step2;
 
@@ -108894,15 +109256,25 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "getFocusForZone",
     value: function getFocusForZone(zone) {
-      var _this$car;
-
       switch (zone) {
         case 'trail':
-          var center = (((_this$car = this.car) === null || _this$car === void 0 ? void 0 : _this$car.width) || 240) / 2;
-          return {
-            x: CONTENT_X + 200 + center,
-            y: 0
-          };
+          {
+            var _this$car;
+
+            var center = (((_this$car = this.car) === null || _this$car === void 0 ? void 0 : _this$car.width) || 240) / 2;
+            return {
+              x: CONTENT_X + 200 + center,
+              y: 0
+            };
+          }
+
+        case 'nametag':
+          {
+            return {
+              x: CONTENT_X + 725,
+              y: 0
+            };
+          }
 
         default:
           return {
@@ -108916,7 +109288,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
     key: "setFocus",
     value: function setFocus(zone) {
       var _this$__panViewport,
-          _this7 = this;
+          _this8 = this;
 
       // cancel prior animations
       (_this$__panViewport = this.__panViewport) === null || _this$__panViewport === void 0 ? void 0 : _this$__panViewport.stop(); // animate the next view
@@ -108935,7 +109307,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
         easing: 'easeInOutQuad',
         loop: false,
         update: function update(t) {
-          return _this7.focus = t;
+          return _this8.focus = t;
         }
       });
     } // renders the view
@@ -108963,19 +109335,22 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
         if (this.otherDriver.x < OTHER_DRIVER_OFFSCREEN_DISTANCE) {
           this._queuePassing();
         }
-      } // check for the currently previewed car
-      // animates the car shifting back and forth
+      } // reduces the sway on the screen when the view is shifted
+      // far to the left (since we want a level view of the nametag)
 
+
+      var angleScaling = 1 - (this.focus.x - 280) / 600; // check for the currently previewed car
+      // animates the car shifting back and forth
 
       if ((_this$container = this.container) === null || _this$container === void 0 ? void 0 : _this$container.ready) {
         this.container.offsetScale = Math.min(1, (this.container.offsetScale || 0) + 0.01);
-        this.container.y = CONTENT_Y + Math.cos(now * 0.0007) * 11 * this.container.offsetScale;
-        this.container.x = Math.sin(now * 0.001) * 20 * this.container.offsetScale;
+        this.container.y = (CONTENT_Y + Math.cos(now * 0.0007) * 11 * this.container.offsetScale) * angleScaling;
+        this.container.x = Math.sin(now * 0.001) * 20 * this.container.offsetScale * angleScaling;
       } // cause the view to shift left and right  
 
 
       var viewportTurnAngle = Math.min(0, Math.cos(now * 0.00015)) * (Math.cos(now * 0.0005) * -(Math.PI * 0.05));
-      this.viewport.rotation = viewportTurnAngle; // scroll the track
+      this.viewport.rotation = viewportTurnAngle * angleScaling; // scroll the track
 
       this.treadmill.update({
         diff: (-45 + Math.abs(viewportTurnAngle * 90)) * delta,
@@ -108993,7 +109368,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
 }(_base.BaseView);
 
 exports.default = CustomizerView;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../base":"views/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../components/treadmill":"components/treadmill.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","../../config":"config.js","../track/layers":"views/track/layers.js","../../utils/wait":"utils/wait.js"}],"views/animation/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../base":"views/base.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../components/treadmill":"components/treadmill.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","../../components/namecard":"components/namecard/index.js","../../config":"config.js","../track/layers":"views/track/layers.js","../../utils/wait":"utils/wait.js"}],"views/animation/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -109022,6 +109397,8 @@ var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/ge
 var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
 
 var _ntAnimator = require("nt-animator");
+
+var _namecard = _interopRequireDefault(require("../../components/namecard"));
 
 var _trail = _interopRequireDefault(require("../../components/trail"));
 
@@ -109093,28 +109470,33 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
                 this.view.addChild(this.container); // check for special modes
 
                 _context.t0 = options.mode;
-                _context.next = _context.t0 === 'trail-preview' ? 10 : _context.t0 === 'nitro-preview' ? 12 : 14;
+                _context.next = _context.t0 === 'trail-preview' ? 10 : _context.t0 === 'namecard-preview' ? 12 : _context.t0 === 'nametag-preview' ? 12 : _context.t0 === 'nitro-preview' ? 14 : 16;
                 break;
 
               case 10:
                 this._initTrailPreview();
 
-                return _context.abrupt("break", 16);
+                return _context.abrupt("break", 18);
 
               case 12:
-                this._initNitroPreview();
+                this._initNametagPreview();
 
-                return _context.abrupt("break", 16);
+                return _context.abrupt("break", 18);
 
               case 14:
-                _context.next = 16;
-                return this._initResource();
+                this._initNitroPreview();
+
+                return _context.abrupt("break", 18);
 
               case 16:
+                _context.next = 18;
+                return this._initResource();
+
+              case 18:
                 // automatically render
                 this.startAutoRender();
 
-              case 17:
+              case 19:
               case "end":
                 return _context.stop();
             }
@@ -109166,20 +109548,18 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
       }
 
       return _initResource;
-    }() // trails are shifted over and a fake car
-    // bumper is shown behind it
-
+    }()
   }, {
-    key: "_initTrailPreview",
+    key: "_initCarBumper",
     value: function () {
-      var _initTrailPreview2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
-        var _this$options, getCarUrl, playerCar, bumper, url, img, back, texture, trail, graphics, bg, contain;
+      var _initCarBumper2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
+        var _this$options, getCarUrl, playerCar, bumper, url, img, back, texture;
 
         return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
-                _this$options = this.options, getCarUrl = _this$options.getCarUrl, playerCar = _this$options.playerCar; // load the user car
+                _this$options = this.options, getCarUrl = _this$options.getCarUrl, playerCar = _this$options.playerCar;
 
                 if (!playerCar) {
                   _context3.next = 15;
@@ -109216,15 +109596,47 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
                 bumper.scale.x = bumper.scale.y = 0.7;
 
               case 21:
-                _context3.next = 23;
+                return _context3.abrupt("return", bumper);
+
+              case 22:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function _initCarBumper() {
+        return _initCarBumper2.apply(this, arguments);
+      }
+
+      return _initCarBumper;
+    }() // trails are shifted over and a fake car
+    // bumper is shown behind it
+
+  }, {
+    key: "_initTrailPreview",
+    value: function () {
+      var _initTrailPreview2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+        var bumper, trail, graphics, bg, contain;
+        return _regenerator.default.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                _context4.next = 2;
+                return this._initCarBumper();
+
+              case 2:
+                bumper = _context4.sent;
+                _context4.next = 5;
                 return _trail.default.create({
                   view: this,
                   baseHeight: this.preferredHeight,
                   type: this.options.path
                 });
 
-              case 23:
-                trail = _context3.sent;
+              case 5:
+                trail = _context4.sent;
 
                 // trim the view so the gradient car doesn't
                 // peek any trails underneath
@@ -109244,21 +109656,21 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
                 // to help the trails stand out more
 
                 if (this.options.hideBackground) {
-                  _context3.next = 35;
+                  _context4.next = 17;
                   break;
                 }
 
-                _context3.next = 30;
+                _context4.next = 12;
                 return this.animator.getSprite('extras/shop', 'asset_bg');
 
-              case 30:
-                bg = _context3.sent;
+              case 12:
+                bg = _context4.sent;
                 bg.pivot.x = bg.width;
                 bg.pivot.y = bg.height * 0.5;
                 bg.alpha = 0.66;
                 bg.x = bg.width * 0.2;
 
-              case 35:
+              case 17:
                 // since we're using the trail class for the trail
                 // we need a shared container to help make sure
                 // the trail lines up correctly using the 
@@ -109278,12 +109690,12 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
 
                 contain.sortChildren();
 
-              case 43:
+              case 25:
               case "end":
-                return _context3.stop();
+                return _context4.stop();
             }
           }
-        }, _callee3, this);
+        }, _callee4, this);
       }));
 
       function _initTrailPreview() {
@@ -109291,21 +109703,76 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
       }
 
       return _initTrailPreview;
+    }()
+  }, {
+    key: "_initNametagPreview",
+    value: function () {
+      var _initNametagPreview2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
+        var bumper, namecard, contain;
+        return _regenerator.default.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                _context5.next = 2;
+                return this._initCarBumper();
+
+              case 2:
+                bumper = _context5.sent;
+                _context5.next = 5;
+                return _namecard.default.create(_objectSpread(_objectSpread(_objectSpread({
+                  view: this,
+                  baseHeight: this.preferredHeight
+                }, this.options), this.options.nametag), {}, {
+                  type: this.options.path
+                }));
+
+              case 5:
+                namecard = _context5.sent;
+                // set positions
+                bumper.x = namecard.width * 0.5;
+                bumper.scale.x = bumper.scale.y = 1.85;
+                namecard.x = namecard.width * -0.075;
+                bumper.x += namecard.x * 0.5; // since we're using the trail class for the trail
+                // we need a shared container to help make sure
+                // the trail lines up correctly using the 
+                // attachTo function
+
+                contain = new _ntAnimator.PIXI.Container();
+                contain.sortableChildren = true;
+                contain.addChild(namecard);
+                contain.addChild(bumper);
+                contain.sortChildren();
+                namecard.visible = true;
+                this.container.addChild(contain);
+
+              case 17:
+              case "end":
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function _initNametagPreview() {
+        return _initNametagPreview2.apply(this, arguments);
+      }
+
+      return _initNametagPreview;
     }() // a nitro is shown and animated from time to time
 
   }, {
     key: "_initNitroPreview",
     value: function () {
-      var _initNitroPreview2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
-        return _regenerator.default.wrap(function _callee4$(_context4) {
+      var _initNitroPreview2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
+        return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
-            switch (_context4.prev = _context4.next) {
+            switch (_context6.prev = _context6.next) {
               case 0:
               case "end":
-                return _context4.stop();
+                return _context6.stop();
             }
           }
-        }, _callee4);
+        }, _callee6);
       }));
 
       function _initNitroPreview() {
@@ -109348,7 +109815,250 @@ function createBumper(img) {
   cache[img.src] = fade.canvas;
   return fade.canvas;
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../components/trail":"components/trail/index.js","../base":"views/base.js","../track/layers":"views/track/layers.js"}],"index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../components/namecard":"components/namecard/index.js","../../components/trail":"components/trail/index.js","../base":"views/base.js","../track/layers":"views/track/layers.js"}],"views/namecard/index.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
+
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
+
+var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
+
+var _get2 = _interopRequireDefault(require("@babel/runtime/helpers/get"));
+
+var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
+
+var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var _namecard = _interopRequireDefault(require("../../components/namecard"));
+
+var _ntAnimator = require("nt-animator");
+
+var _base = require("../base");
+
+var _activity = _interopRequireDefault(require("../../components/activity"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+var DEFAULT_MAX_HEIGHT = 250;
+var TRANSITION_TIME = 350;
+
+var NameCardView = /*#__PURE__*/function (_BaseView) {
+  (0, _inherits2.default)(NameCardView, _BaseView);
+
+  var _super = _createSuper(NameCardView);
+
+  function NameCardView() {
+    var _this;
+
+    (0, _classCallCheck2.default)(this, NameCardView);
+
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    _this = _super.call.apply(_super, [this].concat(args));
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "preferredFocusX", 0.5);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "focusX", 0.5);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "loader", (0, _activity.default)({
+      size: 120,
+      opacity: 0.5,
+      thickness: 10
+    }));
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "setNameCard", /*#__PURE__*/function () {
+      var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(config) {
+        var _iterator, _step, child, view, container, namecard;
+
+        return _regenerator.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _iterator = _createForOfIteratorHelper(_this.stage.children);
+
+                try {
+                  for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                    child = _step.value;
+                    fadeOut(child, false);
+                  }
+                } catch (err) {
+                  _iterator.e(err);
+                } finally {
+                  _iterator.f();
+                }
+
+                view = (0, _assertThisInitialized2.default)(_this);
+                container = new _ntAnimator.PIXI.ResponsiveContainer();
+                _context.next = 6;
+                return _namecard.default.create({
+                  view: view,
+                  baseHeight: _this.options.height || 200,
+                  type: config.type,
+                  isAnimated: true,
+                  name: config.name,
+                  team: config.tag,
+                  color: config.tagColor,
+                  isGold: config.isGold,
+                  isAdmin: config.isAdmin,
+                  isFriend: false,
+                  playerRank: config.rank
+                });
+
+              case 6:
+                namecard = _context.sent;
+                _this.namecard = namecard; // setup the container
+
+                container.addChild(namecard);
+                container.relativeY = 0.5;
+                container.relativeX = 0.5;
+                fadeOut(_this.loader);
+                fadeIn(container);
+                namecard.visible = true;
+
+                _this.stage.addChild(container);
+
+              case 15:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee);
+      }));
+
+      return function (_x) {
+        return _ref.apply(this, arguments);
+      };
+    }());
+    return _this;
+  }
+
+  (0, _createClass2.default)(NameCardView, [{
+    key: "init",
+    value: function () {
+      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(options) {
+        return _regenerator.default.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                window.PREVIEW = this; // initialize the view
+
+                _context2.next = 3;
+                return (0, _get2.default)((0, _getPrototypeOf2.default)(NameCardView.prototype), "init", this).call(this, _objectSpread({
+                  scale: {
+                    DEFAULT_MAX_HEIGHT: DEFAULT_MAX_HEIGHT
+                  },
+                  useDynamicPerformance: false,
+                  useWebGL: true,
+                  forceCanvas: false
+                }, options));
+
+              case 3:
+                // center the loader in the view
+                this.loader.relativeX = this.loader.relativeY = 0.5;
+                this.stage.addChild(this.loader); // automatically render
+
+                this.startAutoRender();
+
+              case 6:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function init(_x2) {
+        return _init.apply(this, arguments);
+      }
+
+      return init;
+    }() // creates a new car instance
+
+  }]);
+  return NameCardView;
+}(_base.BaseView);
+
+exports.default = NameCardView;
+
+function removeFromStage(target) {
+  if (target.parent) {
+    target.parent.removeChild(target);
+  }
+}
+
+function fadeOut(target, skipRemove) {
+  // cancel animations
+  if (target.__transition) {
+    target.__transition.stop();
+  } // request the animation
+
+
+  return new Promise(function (resolve) {
+    (0, _ntAnimator.animate)({
+      duration: TRANSITION_TIME,
+      ease: 'linear',
+      from: {
+        alpha: target.alpha
+      },
+      to: {
+        alpha: 0
+      },
+      loop: false,
+      update: function update(props) {
+        return target.alpha = props.alpha;
+      },
+      complete: function complete() {
+        removeFromStage(target);
+        setTimeout(resolve, 100);
+      }
+    });
+  });
+}
+
+function fadeIn(target) {
+  target.alpha = 0;
+  target.__transition = (0, _ntAnimator.animate)({
+    duration: TRANSITION_TIME,
+    ease: 'linear',
+    from: {
+      alpha: 0
+    },
+    to: {
+      alpha: 1
+    },
+    loop: false,
+    update: function update(props) {
+      return target.alpha = props.alpha;
+    }
+  });
+}
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/namecard":"components/namecard/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../components/activity":"components/activity.js"}],"index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -109396,6 +110106,12 @@ Object.defineProperty(exports, "Animation", {
     return _animation.default;
   }
 });
+Object.defineProperty(exports, "NameCard", {
+  enumerable: true,
+  get: function () {
+    return _namecard.default;
+  }
+});
 exports.Audio = void 0;
 
 var AudioController = _interopRequireWildcard(require("./audio"));
@@ -109414,6 +110130,8 @@ var _customizer = _interopRequireDefault(require("./views/customizer"));
 
 var _animation = _interopRequireDefault(require("./views/animation"));
 
+var _namecard = _interopRequireDefault(require("./views/namecard"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
@@ -109424,7 +110142,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '1.3.1';
+  window.NTTRACK = '1.5.0';
 } catch (ex) {}
-},{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js"}]},{},["index.js"], null)
+},{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

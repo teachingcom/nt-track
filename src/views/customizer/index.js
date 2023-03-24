@@ -4,12 +4,13 @@ import { animate, findDisplayObjectsOfRole, PIXI, removeDisplayObject } from 'nt
 import Treadmill from '../../components/treadmill'
 import Car from '../../components/car'
 import Trail from '../../components/trail'
+import NameCard from '../../components/namecard'
 import { TRAIL_SCALE_IN_PREVIEW } from '../../config'
 import { LAYER_TRAIL } from '../track/layers'
 import { waitForCondition } from '../../utils/wait'
 
 const DEFAULT_MAX_HEIGHT = 250
-const OTHER_DRIVER_OFFSCREEN_DISTANCE = -1200
+const OTHER_DRIVER_OFFSCREEN_DISTANCE = -1600
 const CONTENT_Y = -25
 const CONTENT_X = 125
 
@@ -27,6 +28,8 @@ export default class CustomizerView extends BaseView {
       // forceCanvas: true,
       ...options
     })
+
+    window.CUSTOMIZER = this
 
     // setup the main view
     this.workspace = new PIXI.ResponsiveContainer()
@@ -137,8 +140,80 @@ export default class CustomizerView extends BaseView {
     }, 300)
   }
 
+  // for clarity sake -- internally these are known as
+  // namecards, but externally they are known as nametags
+  async setNametag(config, waitForReady = true) {
+    return this.setNamecard(config, waitForReady = true)
+  }
+
+  async setNamecard(config, waitForReady = true) {
+
+    // wait for the customizer to be ready for changes, if needed
+    if (waitForReady) {
+      await this.waitForActivity('namecard');
+    }
+
+    this.namecard?.dispose()
+
+    // if there's not a trail, they probably set
+    // it to none
+    let { type } = config
+    if (!type) {
+      type = 'player'
+    }
+
+    // set the trail
+    const namecard = await NameCard.create({
+			view: this,
+			baseHeight: 100,
+			type: config.type,
+			isAnimated: true,
+			name: config.name,
+			team: config.tag,
+			color: config.tagColor,
+			isGold: config.isGold,
+			isAdmin: config.isAdmin,
+			isFriend: false,
+			playerRank: config.rank,
+		});
+
+    // in case of an unusual scenario where
+    // a namecard might not be disposed, go ahead and target
+    // each namecard part and remove it individually
+    try {
+      if (this.namecard) {
+        removeDisplayObject(this.namecard)
+      }
+    }
+    // nothing to do here
+    catch (ex) { }
+
+    // configure the namecard
+    this.namecard = namecard
+    namecard.visible = true
+    namecard.x = -850
+    namecard.zIndex = 999
+    namecard.alpha = 0
+
+    // add to the view
+    this.container.addChild(namecard)
+    this.container.sortChildren()
+
+    // also, fade in the namecards
+    animate({
+      duration: 500,
+      from: { t: 0 },
+      to: { t: 1 },
+      loop: false,
+      update: update => {
+        namecard.alpha = update.t
+      }
+    })
+
+  }
+
   // replaces the active car
-  async setCar ({ type, hue, isAnimated, trail, tweaks }) {
+  async setCar ({ type, hue, isAnimated, trail, tweaks, nametag }) {
     this.isReady = false
 
     // clear the existing data
@@ -181,6 +256,11 @@ export default class CustomizerView extends BaseView {
     delete this.trail
     if (trail) {
       await this.setTrail(trail, false)
+    }
+
+    delete this.namecard
+    if (nametag) {
+      await this.setNamecard(nametag, false)
     }
     
     // animate the new car into view
@@ -288,6 +368,24 @@ export default class CustomizerView extends BaseView {
 
   // removes all existing cars on the view
   _removeExistingCars() {
+
+    // fade out assets
+    animate({
+      loop: false,
+      duration: 200,
+      from: { t: 1 },
+      to: { t: 0 },
+      update: props => {
+        if (this.namecard) {
+          this.namecard.alpha = props.t
+        }
+
+        if (this.trail) {
+          this.trail.alpha = props.t
+        }
+      }
+    })
+
     for (const child of this.viewport.children) {
       if (!child.isCar) {
         continue
@@ -320,9 +418,14 @@ export default class CustomizerView extends BaseView {
 
   getFocusForZone(zone) {
     switch (zone) {
-      case 'trail':
+      case 'trail': {
         const center = (this.car?.width || 240) / 2
         return { x: CONTENT_X + 200 + center, y: 0 }
+      }
+
+      case 'nametag': {
+        return { x: CONTENT_X + 725, y: 0 }
+      }
 
       default:
         return { x: CONTENT_X + 155, y: 0 }
@@ -370,17 +473,21 @@ export default class CustomizerView extends BaseView {
       }
     }
 
+    // reduces the sway on the screen when the view is shifted
+    // far to the left (since we want a level view of the nametag)
+    const angleScaling = 1 - ((this.focus.x - 280) / 600)
+
     // check for the currently previewed car
     // animates the car shifting back and forth
     if (this.container?.ready) {
       this.container.offsetScale = Math.min(1, (this.container.offsetScale || 0) + 0.01)
-      this.container.y = CONTENT_Y + ((Math.cos(now * 0.0007) * 11) * this.container.offsetScale)
-      this.container.x = (Math.sin(now * 0.001) * 20) * this.container.offsetScale
+      this.container.y = (CONTENT_Y + ((Math.cos(now * 0.0007) * 11) * this.container.offsetScale)) * angleScaling
+      this.container.x = ((Math.sin(now * 0.001) * 20) * this.container.offsetScale) * angleScaling
     }
-  
+
     // cause the view to shift left and right  
-    const viewportTurnAngle = Math.min(0, Math.cos(now * 0.00015)) * (Math.cos(now * 0.0005) * -(Math.PI * 0.05))
-    this.viewport.rotation = viewportTurnAngle
+    const viewportTurnAngle = Math.min(0, Math.cos(now * 0.00015)) * (Math.cos(now * 0.0005) * -(Math.PI * 0.05)) 
+    this.viewport.rotation = viewportTurnAngle * angleScaling
 
     // scroll the track
     this.treadmill.update({
