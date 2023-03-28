@@ -89374,8 +89374,7 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
 
 
                 base = layers[0] || car;
-                bounds = bounds || base.getBounds();
-                console.log('loaded', car, height, bounds, imageSource); // save the size and layer to use
+                bounds = bounds || base.getBounds(); // save the size and layer to use
 
                 height = bounds.height;
                 imageSource = base;
@@ -89386,7 +89385,7 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
                   imageSource: imageSource
                 });
 
-              case 26:
+              case 25:
               case "end":
                 return _context3.stop();
             }
@@ -89915,29 +89914,28 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
           while (1) {
             switch (_context8.prev = _context8.next) {
               case 0:
-                console.log('create cara', options);
                 instance = new Car();
                 view = options.view, type = options.type, isAnimated = options.isAnimated; // attempt to link external manifest files
 
                 if (!isAnimated) {
-                  _context8.next = 12;
+                  _context8.next = 11;
                   break;
                 }
 
-                _context8.prev = 4;
-                _context8.next = 7;
+                _context8.prev = 3;
+                _context8.next = 6;
                 return view.animator.importManifest("cars/".concat(type));
 
-              case 7:
-                _context8.next = 12;
+              case 6:
+                _context8.next = 11;
                 break;
 
-              case 9:
-                _context8.prev = 9;
-                _context8.t0 = _context8["catch"](4);
+              case 8:
+                _context8.prev = 8;
+                _context8.t0 = _context8["catch"](3);
                 console.error('failed to load animation files for', type);
 
-              case 12:
+              case 11:
                 // determine the type to create
                 path = "cars/".concat(type);
                 config = view.animator.lookup(path);
@@ -89948,22 +89946,22 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
                   config: config
                 }); // initialize the car
 
-                _context8.next = 17;
+                _context8.next = 16;
                 return instance._initCar();
 
-              case 17:
-                _context8.next = 19;
+              case 16:
+                _context8.next = 18;
                 return instance._initFilters();
 
-              case 19:
+              case 18:
                 return _context8.abrupt("return", instance);
 
-              case 20:
+              case 19:
               case "end":
                 return _context8.stop();
             }
           }
-        }, _callee8, null, [[4, 9]]);
+        }, _callee8, null, [[3, 8]]);
       }));
 
       function create(_x3) {
@@ -110142,7 +110140,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '1.5.0';
+  window.NTTRACK = '1.5.1';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

@@ -38,7 +38,6 @@ export default class Car extends PIXI.Container {
 
 	/** handles creating a new car */
 	static async create(options) {
-		console.log('create cara', options)
 		const instance = new Car();
 		const { view, type, isAnimated } = options;
 
@@ -263,7 +262,6 @@ export default class Car extends PIXI.Container {
 		const base = layers[0] || car;
 		bounds = bounds || base.getBounds();
 
-		console.log('loaded', car, height, bounds, imageSource)
 		// save the size and layer to use
 		const height = bounds.height;
 		const imageSource = base;
