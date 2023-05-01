@@ -41,13 +41,18 @@ export default class NameCard extends PIXI.Container {
 		
 		// maybe needs to load
 		if (!config) {
-			await view.animator.importManifest(path)
-			config = view.animator.lookup(path)
+			try {
+				await view.animator.importManifest(path)
+				config = view.animator.lookup(path)
+			}
+			// nothing to do, just let the next config
+			// load attempt fix this
+			catch(ex) { }
 		}
 
 		// if missing, use the default
 		if (!config) {
-			path = 'nametags/default'
+			path = 'nametags/default_tag'
 			config = view.animator.lookup(path)
 		}
 

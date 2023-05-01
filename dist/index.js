@@ -87322,6 +87322,10 @@ var _perf = _interopRequireDefault(require("../perf"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
 function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
@@ -87569,7 +87573,7 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
                   backgroundColor: backgroundColor
                 }; // start with a canvas renderer
 
-                createCanvasRenderer(this);
+                createCanvasRenderer(this, options.cacheId);
                 renderer = this.canvasRenderer; // helper
 
                 window.addEventListener('unload', this.freeze);
@@ -87577,7 +87581,7 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
 
                 if (!forceCanvas && _ntAnimator.PIXI.utils.isWebGLSupported()) {
                   try {
-                    createWebGLRenderer(this); // if it was successful, we want to monitor for
+                    createWebGLRenderer(this, options.cacheId); // if it was successful, we want to monitor for
                     // any webGL context errors
 
                     gl = this.webGLRenderer.renderer.gl;
@@ -87662,11 +87666,15 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "dispose",
     value: function dispose() {
-      this.view.destroy({
-        children: true,
-        texture: false,
-        baseTexture: false
-      });
+      // when single use, kill everything
+      if (!this.options.cacheId) {
+        this.view.destroy({
+          children: true,
+          texture: false,
+          baseTexture: false
+        });
+      }
+
       this.freeze();
     } // prevents any more rendering attempts
 
@@ -87740,17 +87748,34 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
 
   }]);
   return BaseView;
-}(_ntAnimator.EventEmitter); // create a webgl based renderer
-
+}(_ntAnimator.EventEmitter);
 
 exports.BaseView = BaseView;
+var context;
+var canvas; // create a webgl based renderer
 
-function createWebGLRenderer(instance) {
-  var config = instance.config; // create the renderer
+function createWebGLRenderer(instance, cacheId) {
+  var _cache$cacheId;
 
-  var renderer = new _ntAnimator.PIXI.Renderer(config); // set sizing to zero so it does not
+  var config = instance.config;
+  var renderer = (_cache$cacheId = cache[cacheId]) === null || _cache$cacheId === void 0 ? void 0 : _cache$cacheId.gl; // wasn't one cached
+
+  if (!renderer) {
+    // create the renderer
+    renderer = new _ntAnimator.PIXI.Renderer(_objectSpread(_objectSpread({}, config), {}, {
+      view: canvas,
+      context: context
+    }));
+
+    if (cacheId) {
+      cache[cacheId] = _objectSpread(_objectSpread({}, cache[cacheId]), {}, {
+        gl: renderer
+      });
+    }
+  } // set sizing to zero so it does not
   // conflict with getting the size of
   // the container
+
 
   renderer.view.width = renderer.view.height = 1;
   renderer.view.setAttribute('mode', 'webgl'); // setup the renderer
@@ -87761,15 +87786,29 @@ function createWebGLRenderer(instance) {
     renderer: renderer,
     view: renderer.view
   };
-} // create an basic canvas renderer
+}
 
+var cache = {}; // create an basic canvas renderer
 
-function createCanvasRenderer(instance) {
-  var config = instance.config; // create the renderer
+function createCanvasRenderer(instance, cacheId) {
+  var _cache$cacheId2;
 
-  var renderer = new _ntAnimator.PIXI.CanvasRenderer(config); // set sizing to zero so it does not
+  var config = instance.config; // check for a cached renderer
+
+  var renderer = (_cache$cacheId2 = cache[cacheId]) === null || _cache$cacheId2 === void 0 ? void 0 : _cache$cacheId2.canvas; // without a renderer, create it now
+
+  if (!renderer) {
+    renderer = new _ntAnimator.PIXI.CanvasRenderer(config); // if caching, do it now
+
+    if (cacheId) {
+      cache[cacheId] = {
+        canvas: renderer
+      };
+    }
+  } // set sizing to zero so it does not
   // conflict with getting the size of
   // the container
+
 
   renderer.view.width = renderer.view.height = 1;
   renderer.view.setAttribute('mode', 'canvas'); // setup the renderer
@@ -90651,33 +90690,40 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                 config = view.animator.lookup(path); // maybe needs to load
 
                 if (config) {
-                  _context3.next = 9;
+                  _context3.next = 14;
                   break;
                 }
 
-                _context3.next = 8;
+                _context3.prev = 6;
+                _context3.next = 9;
                 return view.animator.importManifest(path);
 
-              case 8:
-                config = view.animator.lookup(path);
-
               case 9:
+                config = view.animator.lookup(path);
+                _context3.next = 14;
+                break;
+
+              case 12:
+                _context3.prev = 12;
+                _context3.t0 = _context3["catch"](6);
+
+              case 14:
                 // if missing, use the default
                 if (!config) {
-                  path = 'nametags/default';
+                  path = 'nametags/default_tag';
                   config = view.animator.lookup(path);
                 } // if still missing then there's not
                 // a name card that can be used
 
 
                 if (config) {
-                  _context3.next = 12;
+                  _context3.next = 17;
                   break;
                 }
 
                 return _context3.abrupt("return");
 
-              case 12:
+              case 17:
                 // save the properties
                 isGoldNamecard = /gold/i.test(type);
                 isPlayerNamecard = /player/i.test(type);
@@ -90694,42 +90740,42 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                   hasOverlay: hasOverlay
                 }); // attempt to add a namecard
 
-                _context3.prev = 17;
+                _context3.prev = 22;
                 // create a container for all parts
                 instance.container = new _ntAnimator.PIXI.Container();
                 instance.addChild(instance.container); // initialize all namecard parts
 
-                _context3.next = 22;
+                _context3.next = 27;
                 return instance._initNameCard();
 
-              case 22:
-                _context3.next = 24;
+              case 27:
+                _context3.next = 29;
                 return instance._initIcons();
 
-              case 24:
+              case 29:
                 // check for an overlay to render
                 if (hasOverlay) instance._initOverlay();
-                _context3.next = 32;
+                _context3.next = 37;
                 break;
 
-              case 27:
-                _context3.prev = 27;
-                _context3.t0 = _context3["catch"](17);
-                console.error(_context3.t0);
+              case 32:
+                _context3.prev = 32;
+                _context3.t1 = _context3["catch"](22);
+                console.error(_context3.t1);
                 this.failedToLoadNamecard = true;
                 return _context3.abrupt("return", null);
 
-              case 32:
+              case 37:
                 // return the created namecard
                 instance.pivot.x = -instance.nudgeX;
                 return _context3.abrupt("return", instance);
 
-              case 34:
+              case 39:
               case "end":
                 return _context3.stop();
             }
           }
-        }, _callee3, this, [[17, 27]]);
+        }, _callee3, this, [[6, 12], [22, 32]]);
       }));
 
       function create(_x) {
@@ -108408,7 +108454,7 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
                 }, options));
 
               case 2:
-                window.BUNDLE_VIEW = this;
+                this.contentHasChanged = true;
                 _context.next = 5;
                 return _treadmill.default.create({
                   totalSegments: 10,
@@ -108463,9 +108509,10 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
             switch (_context2.prev = _context2.next) {
               case 0:
                 car = _ref.car, trail = _ref.trail, nametag = _ref.nametag;
-                carHasChanged = this.active.car !== (car === null || car === void 0 ? void 0 : car.type);
-                trailHasChanged = this.active.trail !== (trail === null || trail === void 0 ? void 0 : trail.type);
-                nametagHasChanged = this.active.nametag !== (nametag === null || nametag === void 0 ? void 0 : nametag.type);
+                carHasChanged = this.contentHasChanged || this.active.car !== (car === null || car === void 0 ? void 0 : car.type);
+                trailHasChanged = this.contentHasChanged || this.active.trail !== (trail === null || trail === void 0 ? void 0 : trail.type);
+                nametagHasChanged = this.contentHasChanged || this.active.nametag !== (nametag === null || nametag === void 0 ? void 0 : nametag.type);
+                this.contentHasChanged = false;
                 this.active = {
                   car: car === null || car === void 0 ? void 0 : car.type,
                   trail: trail === null || trail === void 0 ? void 0 : trail.type,
@@ -108492,15 +108539,15 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
                   queue.push(this._initNametag(nametag));
                 }
 
-                _context2.next = 12;
+                _context2.next = 13;
                 return Promise.all(queue);
 
-              case 12:
+              case 13:
                 pending = _context2.sent;
 
                 this._assemble(pending);
 
-              case 14:
+              case 15:
               case "end":
                 return _context2.stop();
             }
@@ -108760,6 +108807,7 @@ function showItem(obj) {
 }
 
 function removeItem(obj) {
+  obj.removed = true;
   return new Promise(function (resolve) {
     (0, _ntAnimator.animate)({
       from: {

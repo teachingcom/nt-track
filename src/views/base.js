@@ -64,7 +64,7 @@ export class BaseView extends EventEmitter {
 		};
 
 		// start with a canvas renderer
-		createCanvasRenderer(this);
+		createCanvasRenderer(this, options.cacheId);
 		let renderer = this.canvasRenderer;
 
 		// helper
@@ -74,7 +74,7 @@ export class BaseView extends EventEmitter {
 		// create WebGL, if supported
 		if (!forceCanvas && PIXI.utils.isWebGLSupported()) {
 			try {
-				createWebGLRenderer(this);
+				createWebGLRenderer(this, options.cacheId);
 				
 				// if it was successful, we want to monitor for
 				// any webGL context errors
@@ -200,7 +200,11 @@ export class BaseView extends EventEmitter {
 	resume = () => this.paused = false
 
 	dispose() {
-		this.view.destroy({ children: true, texture: false, baseTexture: false })
+		// when single use, kill everything
+		if (!this.options.cacheId) {
+			this.view.destroy({ children: true, texture: false, baseTexture: false })
+		}
+
 		this.freeze()
 	}
 
@@ -358,12 +362,28 @@ export class BaseView extends EventEmitter {
 
 }
 
+let context;
+let canvas;
+
 // create a webgl based renderer
-function createWebGLRenderer(instance) {
+function createWebGLRenderer(instance, cacheId) {
 	const { config } = instance;
 
-	// create the renderer
-	const renderer = new PIXI.Renderer(config);
+	let renderer = cache[cacheId]?.gl
+
+	// wasn't one cached
+	if (!renderer) {
+		// create the renderer
+		renderer = new PIXI.Renderer({
+			...config,
+			view: canvas,
+			context
+		});
+
+		if (cacheId) {
+			cache[cacheId] = { ...cache[cacheId], gl: renderer }
+		}
+	}
 	
 	// set sizing to zero so it does not
 	// conflict with getting the size of
@@ -380,12 +400,24 @@ function createWebGLRenderer(instance) {
 	};
 }
 
+let cache = { }
+
 // create an basic canvas renderer
-function createCanvasRenderer(instance) {
+function createCanvasRenderer(instance, cacheId) {
 	const { config } = instance;
 
-	// create the renderer
-	const renderer = new PIXI.CanvasRenderer(config);
+	// check for a cached renderer
+	let renderer = cache[cacheId]?.canvas
+
+	// without a renderer, create it now
+	if (!renderer) {
+		renderer = new PIXI.CanvasRenderer(config);
+
+		// if caching, do it now
+		if (cacheId) {
+			cache[cacheId] = { canvas: renderer }
+		}
+	}
 	
 	// set sizing to zero so it does not
 	// conflict with getting the size of

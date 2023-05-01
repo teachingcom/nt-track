@@ -20,7 +20,7 @@ export default class BundleView extends BaseView {
       ...options
     })
 
-		window.BUNDLE_VIEW = this
+		this.contentHasChanged = true
 
 		this.treadmill = await Treadmill.create({
       totalSegments: 10,
@@ -57,9 +57,10 @@ export default class BundleView extends BaseView {
 
 	async setContent({ car, trail, nametag }) {
 
-		const carHasChanged = this.active.car !== car?.type
-		const trailHasChanged = this.active.trail !== trail?.type
-		const nametagHasChanged = this.active.nametag !== nametag?.type
+		const carHasChanged = this.contentHasChanged || (this.active.car !== car?.type)
+		const trailHasChanged = this.contentHasChanged || (this.active.trail !== trail?.type)
+		const nametagHasChanged = this.contentHasChanged || (this.active.nametag !== nametag?.type)
+		this.contentHasChanged = false
 
 		this.active = {
 			car: car?.type,
@@ -226,6 +227,8 @@ function showItem(obj) {
 }
 
 function removeItem(obj) {
+	obj.removed = true
+
 	return new Promise(resolve => {
 		animate({
 			from: { a: 1 },
