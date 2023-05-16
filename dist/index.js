@@ -87322,6 +87322,10 @@ var _perf = _interopRequireDefault(require("../perf"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
 function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
@@ -87569,7 +87573,7 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
                   backgroundColor: backgroundColor
                 }; // start with a canvas renderer
 
-                createCanvasRenderer(this);
+                createCanvasRenderer(this, options.cacheId);
                 renderer = this.canvasRenderer; // helper
 
                 window.addEventListener('unload', this.freeze);
@@ -87577,7 +87581,7 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
 
                 if (!forceCanvas && _ntAnimator.PIXI.utils.isWebGLSupported()) {
                   try {
-                    createWebGLRenderer(this); // if it was successful, we want to monitor for
+                    createWebGLRenderer(this, options.cacheId); // if it was successful, we want to monitor for
                     // any webGL context errors
 
                     gl = this.webGLRenderer.renderer.gl;
@@ -87662,11 +87666,15 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
   }, {
     key: "dispose",
     value: function dispose() {
-      this.view.destroy({
-        children: true,
-        texture: false,
-        baseTexture: false
-      });
+      // when single use, kill everything
+      if (!this.options.cacheId) {
+        this.view.destroy({
+          children: true,
+          texture: false,
+          baseTexture: false
+        });
+      }
+
       this.freeze();
     } // prevents any more rendering attempts
 
@@ -87740,17 +87748,34 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
 
   }]);
   return BaseView;
-}(_ntAnimator.EventEmitter); // create a webgl based renderer
-
+}(_ntAnimator.EventEmitter);
 
 exports.BaseView = BaseView;
+var context;
+var canvas; // create a webgl based renderer
 
-function createWebGLRenderer(instance) {
-  var config = instance.config; // create the renderer
+function createWebGLRenderer(instance, cacheId) {
+  var _cache$cacheId;
 
-  var renderer = new _ntAnimator.PIXI.Renderer(config); // set sizing to zero so it does not
+  var config = instance.config;
+  var renderer = (_cache$cacheId = cache[cacheId]) === null || _cache$cacheId === void 0 ? void 0 : _cache$cacheId.gl; // wasn't one cached
+
+  if (!renderer) {
+    // create the renderer
+    renderer = new _ntAnimator.PIXI.Renderer(_objectSpread(_objectSpread({}, config), {}, {
+      view: canvas,
+      context: context
+    }));
+
+    if (cacheId) {
+      cache[cacheId] = _objectSpread(_objectSpread({}, cache[cacheId]), {}, {
+        gl: renderer
+      });
+    }
+  } // set sizing to zero so it does not
   // conflict with getting the size of
   // the container
+
 
   renderer.view.width = renderer.view.height = 1;
   renderer.view.setAttribute('mode', 'webgl'); // setup the renderer
@@ -87761,15 +87786,29 @@ function createWebGLRenderer(instance) {
     renderer: renderer,
     view: renderer.view
   };
-} // create an basic canvas renderer
+}
 
+var cache = {}; // create an basic canvas renderer
 
-function createCanvasRenderer(instance) {
-  var config = instance.config; // create the renderer
+function createCanvasRenderer(instance, cacheId) {
+  var _cache$cacheId2;
 
-  var renderer = new _ntAnimator.PIXI.CanvasRenderer(config); // set sizing to zero so it does not
+  var config = instance.config; // check for a cached renderer
+
+  var renderer = (_cache$cacheId2 = cache[cacheId]) === null || _cache$cacheId2 === void 0 ? void 0 : _cache$cacheId2.canvas; // without a renderer, create it now
+
+  if (!renderer) {
+    renderer = new _ntAnimator.PIXI.CanvasRenderer(config); // if caching, do it now
+
+    if (cacheId) {
+      cache[cacheId] = {
+        canvas: renderer
+      };
+    }
+  } // set sizing to zero so it does not
   // conflict with getting the size of
   // the container
+
 
   renderer.view.width = renderer.view.height = 1;
   renderer.view.setAttribute('mode', 'canvas'); // setup the renderer
@@ -90588,12 +90627,12 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
       this.displayName = full; // check for icons
 
       var tallest = 0;
-      var ids = [];
-
-      if (!isAdmin && isGold && !isGoldNamecard && !config.hideGold) {
-        tallest = Math.max(tallest, ICONS.gold.height);
-        ids.push('gold');
-      }
+      var ids = []; // Disallow Gold Icons as of the nametags update
+      // leaving here to make it easy to restore if needed
+      // if (!isAdmin && isGold && !isGoldNamecard && !config.hideGold) {
+      // 	tallest = Math.max(tallest, ICONS.gold.height);
+      // 	ids.push('gold');
+      // }
 
       if (isAdmin && !config.hideAdmin) {
         tallest = Math.max(tallest, ICONS.admin.height);
@@ -90651,33 +90690,40 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                 config = view.animator.lookup(path); // maybe needs to load
 
                 if (config) {
-                  _context3.next = 9;
+                  _context3.next = 14;
                   break;
                 }
 
-                _context3.next = 8;
+                _context3.prev = 6;
+                _context3.next = 9;
                 return view.animator.importManifest(path);
 
-              case 8:
-                config = view.animator.lookup(path);
-
               case 9:
+                config = view.animator.lookup(path);
+                _context3.next = 14;
+                break;
+
+              case 12:
+                _context3.prev = 12;
+                _context3.t0 = _context3["catch"](6);
+
+              case 14:
                 // if missing, use the default
                 if (!config) {
-                  path = 'nametags/default';
+                  path = 'nametags/default_tag';
                   config = view.animator.lookup(path);
                 } // if still missing then there's not
                 // a name card that can be used
 
 
                 if (config) {
-                  _context3.next = 12;
+                  _context3.next = 17;
                   break;
                 }
 
                 return _context3.abrupt("return");
 
-              case 12:
+              case 17:
                 // save the properties
                 isGoldNamecard = /gold/i.test(type);
                 isPlayerNamecard = /player/i.test(type);
@@ -90694,42 +90740,42 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                   hasOverlay: hasOverlay
                 }); // attempt to add a namecard
 
-                _context3.prev = 17;
+                _context3.prev = 22;
                 // create a container for all parts
                 instance.container = new _ntAnimator.PIXI.Container();
                 instance.addChild(instance.container); // initialize all namecard parts
 
-                _context3.next = 22;
+                _context3.next = 27;
                 return instance._initNameCard();
 
-              case 22:
-                _context3.next = 24;
+              case 27:
+                _context3.next = 29;
                 return instance._initIcons();
 
-              case 24:
+              case 29:
                 // check for an overlay to render
                 if (hasOverlay) instance._initOverlay();
-                _context3.next = 32;
+                _context3.next = 37;
                 break;
 
-              case 27:
-                _context3.prev = 27;
-                _context3.t0 = _context3["catch"](17);
-                console.error(_context3.t0);
+              case 32:
+                _context3.prev = 32;
+                _context3.t1 = _context3["catch"](22);
+                console.error(_context3.t1);
                 this.failedToLoadNamecard = true;
                 return _context3.abrupt("return", null);
 
-              case 32:
+              case 37:
                 // return the created namecard
                 instance.pivot.x = -instance.nudgeX;
                 return _context3.abrupt("return", instance);
 
-              case 34:
+              case 39:
               case "end":
                 return _context3.stop();
             }
           }
-        }, _callee3, this, [[17, 27]]);
+        }, _callee3, this, [[6, 12], [22, 32]]);
       }));
 
       function create(_x) {
@@ -108315,7 +108361,475 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
 }(_base.BaseView);
 
 exports.default = CruiseView;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../components/treadmill":"components/treadmill.js","../../config":"config.js","../track/layers":"views/track/layers.js","../../components/namecard":"components/namecard/index.js"}],"utils/wait.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../components/treadmill":"components/treadmill.js","../../config":"config.js","../track/layers":"views/track/layers.js","../../components/namecard":"components/namecard/index.js"}],"views/bundle/index.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
+
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
+
+var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
+
+var _get3 = _interopRequireDefault(require("@babel/runtime/helpers/get"));
+
+var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
+
+var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var _car = _interopRequireDefault(require("../../components/car"));
+
+var _ntAnimator = require("nt-animator");
+
+var _base = require("../base");
+
+var _trail = _interopRequireDefault(require("../../components/trail"));
+
+var _config = require("../../config");
+
+var _namecard = _interopRequireDefault(require("../../components/namecard"));
+
+var _treadmill = _interopRequireDefault(require("../../components/treadmill"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+var DEFAULT_MAX_HEIGHT = 250;
+
+var BundleView = /*#__PURE__*/function (_BaseView) {
+  (0, _inherits2.default)(BundleView, _BaseView);
+
+  var _super = _createSuper(BundleView);
+
+  function BundleView() {
+    var _this;
+
+    (0, _classCallCheck2.default)(this, BundleView);
+
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    _this = _super.call.apply(_super, [this].concat(args));
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "goldOffset", 200);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "active", {});
+    return _this;
+  }
+
+  (0, _createClass2.default)(BundleView, [{
+    key: "init",
+    value: function () {
+      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(options) {
+        var _this2 = this;
+
+        return _regenerator.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.next = 2;
+                return (0, _get3.default)((0, _getPrototypeOf2.default)(BundleView.prototype), "init", this).call(this, _objectSpread({
+                  scale: {
+                    DEFAULT_MAX_HEIGHT: DEFAULT_MAX_HEIGHT
+                  },
+                  useDynamicPerformance: false
+                }, options));
+
+              case 2:
+                this.contentHasChanged = true;
+                _context.next = 5;
+                return _treadmill.default.create({
+                  totalSegments: 10,
+                  fitToHeight: 375,
+                  onCreateSegment: function onCreateSegment() {
+                    return _this2.animator.create('extras/bundle');
+                  }
+                });
+
+              case 5:
+                this.treadmill = _context.sent;
+                this.resize(options.container.offsetWidth, options.container.offsetHeight); // setup the main view
+
+                this.workspace = new _ntAnimator.PIXI.ResponsiveContainer();
+                this.workspace.scaleX = 1;
+                this.workspace.scaleY = 1; // this.workspace.relativeX = 0.275
+
+                this.workspace.relativeY = 0.5;
+                this.workspace.relativeX = 0.5; // when gold
+                // this.workspace.relativeX = 0.8
+                // setup a container used for panning the view
+
+                this.viewport = new _ntAnimator.PIXI.Container();
+                this.workspace.addChild(this.treadmill);
+                this.workspace.addChild(this.viewport);
+                this.stage.addChild(this.workspace); // automatically render
+
+                this.startAutoRender();
+
+              case 17:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function init(_x) {
+        return _init.apply(this, arguments);
+      }
+
+      return init;
+    }()
+  }, {
+    key: "setContent",
+    value: function () {
+      var _setContent = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(_ref) {
+        var car, trail, nametag, carHasChanged, trailHasChanged, nametagHasChanged, _i, _arr, obj, queue, pending;
+
+        return _regenerator.default.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                car = _ref.car, trail = _ref.trail, nametag = _ref.nametag;
+                carHasChanged = this.contentHasChanged || this.active.car !== (car === null || car === void 0 ? void 0 : car.type);
+                trailHasChanged = this.contentHasChanged || this.active.trail !== (trail === null || trail === void 0 ? void 0 : trail.type);
+                nametagHasChanged = this.contentHasChanged || this.active.nametag !== (nametag === null || nametag === void 0 ? void 0 : nametag.type);
+                this.contentHasChanged = false;
+                this.active = {
+                  car: car === null || car === void 0 ? void 0 : car.type,
+                  trail: trail === null || trail === void 0 ? void 0 : trail.type,
+                  nametag: nametag === null || nametag === void 0 ? void 0 : nametag.type
+                }; // needs to remove the car
+
+                for (_i = 0, _arr = [carHasChanged && this.car, trailHasChanged && this.trail, nametagHasChanged && this.nametag]; _i < _arr.length; _i++) {
+                  obj = _arr[_i];
+                  obj && removeItem(obj);
+                } // start queueing content to load
+
+
+                queue = [];
+
+                if (car && carHasChanged) {
+                  queue.push(this._initCar(car));
+                }
+
+                if (trail && (carHasChanged || trailHasChanged)) {
+                  queue.push(this._initTrail(trail));
+                }
+
+                if (nametag && (carHasChanged || nametagHasChanged)) {
+                  queue.push(this._initNametag(nametag));
+                }
+
+                _context2.next = 13;
+                return Promise.all(queue);
+
+              case 13:
+                pending = _context2.sent;
+
+                this._assemble(pending);
+
+              case 15:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function setContent(_x2) {
+        return _setContent.apply(this, arguments);
+      }
+
+      return setContent;
+    }()
+  }, {
+    key: "_assemble",
+    value: function () {
+      var _assemble2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
+        var car, trail, nametag, zIndex;
+        return _regenerator.default.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                car = this.car, trail = this.trail, nametag = this.nametag; // set the position
+                // car.y = 35
+                // update the trail
+
+                if (trail) {
+                  car.addChild(trail); // position the trail correctly
+
+                  zIndex = trail.config.layer === 'over_car' ? 100 : -100;
+
+                  _trail.default.setLayer(trail, {
+                    zIndex: zIndex
+                  });
+
+                  car.sortChildren(); // set the view and scaling
+
+                  trail.x = car.positions.back / 2;
+                  trail.scale.x = trail.scale.y = 0.75;
+                } // update the nametag
+
+
+                if (nametag) {
+                  car.addChild(nametag);
+                  nametag.visible = true;
+                  nametag.scale.x = nametag.scale.y = 0.8;
+                  nametag.x = trail ? -600 : 0;
+                }
+
+              case 3:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function _assemble() {
+        return _assemble2.apply(this, arguments);
+      }
+
+      return _assemble;
+    }()
+  }, {
+    key: "_initCar",
+    value: function () {
+      var _initCar2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(_ref2) {
+        var type, hue, isAnimated;
+        return _regenerator.default.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                type = _ref2.type, hue = _ref2.hue, isAnimated = _ref2.isAnimated;
+                _context4.next = 3;
+                return _car.default.create({
+                  view: this,
+                  type: type,
+                  isAnimated: isAnimated,
+                  hue: hue || 0,
+                  baseHeight: this.height * 0.225,
+                  lighting: {
+                    x: -5,
+                    y: 7
+                  }
+                });
+
+              case 3:
+                this.car = _context4.sent;
+                // add to the view
+                this.viewport.addChild(this.car);
+                showItem(this.car);
+
+              case 6:
+              case "end":
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+
+      function _initCar(_x3) {
+        return _initCar2.apply(this, arguments);
+      }
+
+      return _initCar;
+    }()
+  }, {
+    key: "setFocus",
+    value: function setFocus(target, instant) {
+      var _this$car,
+          _this$car2,
+          _this$__animate_focus,
+          _this3 = this;
+
+      var x = target === 'nametag' ? -(this.nametag.x + this.nametag.width * 0.2) : target === 'trail' ? -((_this$car = this.car) === null || _this$car === void 0 ? void 0 : _this$car.positions.back) : ((_this$car2 = this.car) === null || _this$car2 === void 0 ? void 0 : _this$car2.positions.back) * 0.15; // if nan or an error?
+
+      x = x || 0; // cancel the prior animation
+
+      (_this$__animate_focus = this.__animate_focus) === null || _this$__animate_focus === void 0 ? void 0 : _this$__animate_focus.stop();
+
+      if (instant) {
+        this.viewport.x = x;
+        return;
+      } // focus to the new view
+
+
+      this.__animate_focus = (0, _ntAnimator.animate)({
+        from: {
+          x: this.viewport.x
+        },
+        to: {
+          x: x
+        },
+        ease: 'easeOutQuad',
+        duration: 330,
+        loop: false,
+        update: function update(props) {
+          _this3.viewport.x = props.x;
+        }
+      });
+    }
+  }, {
+    key: "_initTrail",
+    value: function () {
+      var _initTrail2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(_ref3) {
+        var type;
+        return _regenerator.default.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                type = _ref3.type;
+                _context5.next = 3;
+                return _trail.default.create({
+                  view: this,
+                  baseHeight: 200,
+                  type: type
+                });
+
+              case 3:
+                this.trail = _context5.sent;
+                showItem(this.trail);
+
+              case 5:
+              case "end":
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function _initTrail(_x4) {
+        return _initTrail2.apply(this, arguments);
+      }
+
+      return _initTrail;
+    }()
+  }, {
+    key: "_initNametag",
+    value: function () {
+      var _initNametag2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(_ref4) {
+        var type, name, tag, tagColor, rank;
+        return _regenerator.default.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                type = _ref4.type, name = _ref4.name, tag = _ref4.tag, tagColor = _ref4.tagColor, rank = _ref4.rank;
+                _context6.next = 3;
+                return _namecard.default.create({
+                  view: this,
+                  baseHeight: this.height * 0.225,
+                  type: type,
+                  name: name,
+                  team: tag,
+                  isAnimated: true,
+                  color: tagColor,
+                  playerRank: rank
+                });
+
+              case 3:
+                this.nametag = _context6.sent;
+                showItem(this.nametag);
+
+              case 5:
+              case "end":
+                return _context6.stop();
+            }
+          }
+        }, _callee6, this);
+      }));
+
+      function _initNametag(_x5) {
+        return _initNametag2.apply(this, arguments);
+      }
+
+      return _initNametag;
+    }()
+  }, {
+    key: "render",
+    value: function render() {
+      var _this$treadmill, _get2;
+
+      var now = Date.now();
+      var delta = Math.min(2, this.getDeltaTime(now));
+      (_this$treadmill = this.treadmill) === null || _this$treadmill === void 0 ? void 0 : _this$treadmill.update({
+        diff: -25 * delta,
+        horizontalWrap: -800
+      });
+
+      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+
+      (_get2 = (0, _get3.default)((0, _getPrototypeOf2.default)(BundleView.prototype), "render", this)).call.apply(_get2, [this].concat(args));
+    }
+  }]);
+  return BundleView;
+}(_base.BaseView);
+
+exports.default = BundleView;
+
+function showItem(obj) {
+  obj.alpha = 0;
+  (0, _ntAnimator.animate)({
+    from: {
+      a: 0
+    },
+    to: {
+      a: 1
+    },
+    duration: 300,
+    loop: false,
+    ease: 'easeOutQuad',
+    update: function update(props) {
+      obj.alpha = props.a;
+    }
+  });
+}
+
+function removeItem(obj) {
+  obj.removed = true;
+  return new Promise(function (resolve) {
+    (0, _ntAnimator.animate)({
+      from: {
+        a: 1
+      },
+      to: {
+        a: 0
+      },
+      ease: 'easeInQuad',
+      duration: 300,
+      loop: false,
+      update: function update(props) {
+        obj.alpha = props.a;
+      },
+      complete: function complete() {
+        (0, _ntAnimator.removeDisplayObject)(obj);
+        resolve();
+      }
+    });
+  });
+}
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/car":"components/car/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../components/trail":"components/trail/index.js","../../config":"config.js","../../components/namecard":"components/namecard/index.js","../../components/treadmill":"components/treadmill.js"}],"utils/wait.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -108941,10 +109455,11 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 type = _ref.type, hue = _ref.hue, isAnimated = _ref.isAnimated, trail = _ref.trail, tweaks = _ref.tweaks, nametag = _ref.nametag;
                 this.isReady = false; // clear the existing data
 
-                this._removeExistingCars(); // create the new car instance
+                this._removeExistingCars();
 
+                console.log('will create', type); // create the new car instance
 
-                _context9.next = 5;
+                _context9.next = 6;
                 return _car.default.create({
                   view: this,
                   baseHeight: 150,
@@ -108958,7 +109473,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                   }
                 });
 
-              case 5:
+              case 6:
                 car = _context9.sent;
                 // put the car inside of a container that
                 // can be used to attach trails and 
@@ -108982,30 +109497,30 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 delete this.trail;
 
                 if (!trail) {
-                  _context9.next = 22;
+                  _context9.next = 23;
                   break;
                 }
 
-                _context9.next = 22;
+                _context9.next = 23;
                 return this.setTrail(trail, false);
 
-              case 22:
+              case 23:
                 delete this.namecard;
 
                 if (!nametag) {
-                  _context9.next = 26;
+                  _context9.next = 27;
                   break;
                 }
 
-                _context9.next = 26;
+                _context9.next = 27;
                 return this.setNamecard(nametag, false);
 
-              case 26:
+              case 27:
                 // animate the new car into view
                 this.isReady = true;
                 return _context9.abrupt("return", this._animatePlayerCarIntoView(this.container));
 
-              case 28:
+              case 29:
               case "end":
                 return _context9.stop();
             }
@@ -110092,6 +110607,12 @@ Object.defineProperty(exports, "Cruise", {
     return _cruise.default;
   }
 });
+Object.defineProperty(exports, "Bundle", {
+  enumerable: true,
+  get: function () {
+    return _bundle.default;
+  }
+});
 Object.defineProperty(exports, "Customizer", {
   enumerable: true,
   get: function () {
@@ -110124,6 +110645,8 @@ var _preview = _interopRequireDefault(require("./views/preview"));
 
 var _cruise = _interopRequireDefault(require("./views/cruise"));
 
+var _bundle = _interopRequireDefault(require("./views/bundle"));
+
 var _customizer = _interopRequireDefault(require("./views/customizer"));
 
 var _animation = _interopRequireDefault(require("./views/animation"));
@@ -110142,5 +110665,5 @@ exports.Audio = Audio;
 try {
   window.NTTRACK = '1.5.1';
 } catch (ex) {}
-},{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
+},{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

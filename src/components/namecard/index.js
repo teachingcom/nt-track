@@ -41,13 +41,18 @@ export default class NameCard extends PIXI.Container {
 		
 		// maybe needs to load
 		if (!config) {
-			await view.animator.importManifest(path)
-			config = view.animator.lookup(path)
+			try {
+				await view.animator.importManifest(path)
+				config = view.animator.lookup(path)
+			}
+			// nothing to do, just let the next config
+			// load attempt fix this
+			catch(ex) { }
 		}
 
 		// if missing, use the default
 		if (!config) {
-			path = 'nametags/default'
+			path = 'nametags/default_tag'
 			config = view.animator.lookup(path)
 		}
 
@@ -268,10 +273,13 @@ export default class NameCard extends PIXI.Container {
 		// check for icons
 		let tallest = 0;
 		const ids = [ ];
-		if (!isAdmin && isGold && !isGoldNamecard && !config.hideGold) {
-			tallest = Math.max(tallest, ICONS.gold.height);
-			ids.push('gold');
-		}
+
+		// Disallow Gold Icons as of the nametags update
+		// leaving here to make it easy to restore if needed
+		// if (!isAdmin && isGold && !isGoldNamecard && !config.hideGold) {
+		// 	tallest = Math.max(tallest, ICONS.gold.height);
+		// 	ids.push('gold');
+		// }
 		
 		if (isAdmin && !config.hideAdmin) {
 			tallest = Math.max(tallest, ICONS.admin.height);

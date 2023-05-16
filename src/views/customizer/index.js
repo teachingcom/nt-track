@@ -219,6 +219,8 @@ export default class CustomizerView extends BaseView {
     // clear the existing data
     this._removeExistingCars()
 
+    console.log('will create', type)
+
     // create the new car instance
     const car = await Car.create({
       view: this,
