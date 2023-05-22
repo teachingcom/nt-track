@@ -109,8 +109,6 @@ export default class ComposerView extends BaseView {
 
 		// save the player preview
 		this.player = player;
-
-		console.log(player);
 	}
 
 	activateNitro() {

@@ -91419,6 +91419,8 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
     key: "_initPlayerIndicator",
     value: function () {
       var _initPlayerIndicator2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
+        var _view$options;
+
         var options, view;
         return _regenerator.default.wrap(function _callee5$(_context5) {
           while (1) {
@@ -91435,9 +91437,18 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                 // create the instance
                 options = this.options;
                 view = options.view;
+
+                if (!((_view$options = view.options) === null || _view$options === void 0 ? void 0 : _view$options.isQualifyingRace)) {
+                  _context5.next = 6;
+                  break;
+                }
+
+                return _context5.abrupt("return");
+
+              case 6:
                 return _context5.abrupt("return", view.animator.create('extras/player_indicator'));
 
-              case 5:
+              case 7:
               case "end":
                 return _context5.stop();
             }
@@ -107026,9 +107037,8 @@ var ComposerView = /*#__PURE__*/function (_BaseView) {
                 player.relativeX = car.mods.nitro ? 0.8 : car.mods.trail ? 0.65 : 0.5; // save the player preview
 
                 _this.player = player;
-                console.log(player);
 
-              case 12:
+              case 11:
               case "end":
                 return _context4.stop();
             }

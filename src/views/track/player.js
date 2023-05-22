@@ -183,6 +183,11 @@ export default class Player extends PIXI.ResponsiveContainer {
 		// create the instance
 		const { options } = this;
 		const { view } = options;
+
+		if (view.options?.isQualifyingRace) {
+			return
+		}
+
 		return view.animator.create('extras/player_indicator');
 	}
  
