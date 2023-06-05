@@ -29,8 +29,6 @@ export default class CustomizerView extends BaseView {
       ...options
     })
 
-    window.CUSTOMIZER = this
-
     // setup the main view
     this.workspace = new PIXI.ResponsiveContainer()
     this.workspace.scaleX = 1
@@ -218,8 +216,6 @@ export default class CustomizerView extends BaseView {
 
     // clear the existing data
     this._removeExistingCars()
-
-    console.log('will create', type)
 
     // create the new car instance
     const car = await Car.create({

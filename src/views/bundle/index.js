@@ -42,6 +42,11 @@ export default class BundleView extends BaseView {
 		// when gold
 		// this.workspace.relativeX = 0.8
 
+		// make sure the game animates relative values
+    this.animationVariables.speed = 1
+    this.animationVariables.base_speed = 1
+    this.animationVariables.movement = 1
+
 		// setup a container used for panning the view
     this.viewport = new PIXI.Container()
 
@@ -97,8 +102,11 @@ export default class BundleView extends BaseView {
 	async _assemble() {
 		const { car, trail, nametag } = this
 
-		// set the position
-		// car.y = 35
+		// used for certain animation effects
+		if (car) {
+			car.isPlayerRoot = true
+			car.movement = 1
+		}
 
 		// update the trail
 		if (trail) {
@@ -143,7 +151,7 @@ export default class BundleView extends BaseView {
 
 	setFocus(target, instant) {
 		
-		let x = target === 'nametag' ? -(this.nametag.x + (this.nametag.width * 0.2))
+		let x = target === 'nametag' ? -(this.nametag?.x + (this.nametag?.width * 0.2))
 			: target === 'trail' ? -this.car?.positions.back
 			: this.car?.positions.back * 0.15
 

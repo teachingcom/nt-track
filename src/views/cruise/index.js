@@ -107,6 +107,10 @@ export default class CruiseView extends BaseView {
     // merge together
     container.addChild(car)
 
+    // used for certain animation effects
+    container.isPlayerRoot = true
+    container.movement = 1
+
     if (options.trail) {
       const trail = await Trail.create({
         view: this,

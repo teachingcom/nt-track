@@ -108206,21 +108206,24 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
                 container.y = this.originY;
                 container.alpha = 0; // merge together
 
-                container.addChild(car);
+                container.addChild(car); // used for certain animation effects
+
+                container.isPlayerRoot = true;
+                container.movement = 1;
 
                 if (!options.trail) {
-                  _context3.next = 18;
+                  _context3.next = 20;
                   break;
                 }
 
-                _context3.next = 12;
+                _context3.next = 14;
                 return _trail.default.create({
                   view: this,
                   baseHeight: baseHeight * CRUISE_VIEW_BONUS_SCALING,
                   type: options.trail
                 });
 
-              case 12:
+              case 14:
                 trail = _context3.sent;
                 // link to a car
                 container.addChild(trail);
@@ -108231,19 +108234,19 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
 
                 container.sortChildren();
 
-              case 18:
+              case 20:
                 if (!options.nametag) {
-                  _context3.next = 29;
+                  _context3.next = 31;
                   break;
                 }
 
-                _context3.next = 21;
+                _context3.next = 23;
                 return _namecard.default.create(_objectSpread({
                   view: this,
                   baseHeight: baseHeight * CRUISE_VIEW_BONUS_SCALING
                 }, options.nametag));
 
-              case 21:
+              case 23:
                 namecard = _context3.sent;
                 // link to a car
                 container.addChild(namecard); // shift the view over to fit the nametag
@@ -108255,11 +108258,11 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
                 namecard.scale.x = namecard.scale.y = 0.8;
                 container.sortChildren();
 
-              case 29:
+              case 31:
                 // add the car
                 this.car = container;
 
-              case 30:
+              case 32:
               case "end":
                 return _context3.stop();
             }
@@ -108485,7 +108488,11 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
                 this.workspace.relativeY = 0.5;
                 this.workspace.relativeX = 0.5; // when gold
                 // this.workspace.relativeX = 0.8
-                // setup a container used for panning the view
+                // make sure the game animates relative values
+
+                this.animationVariables.speed = 1;
+                this.animationVariables.base_speed = 1;
+                this.animationVariables.movement = 1; // setup a container used for panning the view
 
                 this.viewport = new _ntAnimator.PIXI.Container();
                 this.workspace.addChild(this.treadmill);
@@ -108494,7 +108501,7 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
 
                 this.startAutoRender();
 
-              case 17:
+              case 20:
               case "end":
                 return _context.stop();
             }
@@ -108580,9 +108587,13 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
-                car = this.car, trail = this.trail, nametag = this.nametag; // set the position
-                // car.y = 35
-                // update the trail
+                car = this.car, trail = this.trail, nametag = this.nametag; // used for certain animation effects
+
+                if (car) {
+                  car.isPlayerRoot = true;
+                  car.movement = 1;
+                } // update the trail
+
 
                 if (trail) {
                   car.addChild(trail); // position the trail correctly
@@ -108607,7 +108618,7 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
                   nametag.x = trail ? -600 : 0;
                 }
 
-              case 3:
+              case 4:
               case "end":
                 return _context3.stop();
             }
@@ -108667,12 +108678,14 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "setFocus",
     value: function setFocus(target, instant) {
-      var _this$car,
+      var _this$nametag,
+          _this$nametag2,
+          _this$car,
           _this$car2,
           _this$__animate_focus,
           _this3 = this;
 
-      var x = target === 'nametag' ? -(this.nametag.x + this.nametag.width * 0.2) : target === 'trail' ? -((_this$car = this.car) === null || _this$car === void 0 ? void 0 : _this$car.positions.back) : ((_this$car2 = this.car) === null || _this$car2 === void 0 ? void 0 : _this$car2.positions.back) * 0.15; // if nan or an error?
+      var x = target === 'nametag' ? -(((_this$nametag = this.nametag) === null || _this$nametag === void 0 ? void 0 : _this$nametag.x) + ((_this$nametag2 = this.nametag) === null || _this$nametag2 === void 0 ? void 0 : _this$nametag2.width) * 0.2) : target === 'trail' ? -((_this$car = this.car) === null || _this$car === void 0 ? void 0 : _this$car.positions.back) : ((_this$car2 = this.car) === null || _this$car2 === void 0 ? void 0 : _this$car2.positions.back) * 0.15; // if nan or an error?
 
       x = x || 0; // cancel the prior animation
 
@@ -109067,8 +109080,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 }, options));
 
               case 2:
-                window.CUSTOMIZER = this; // setup the main view
-
+                // setup the main view
                 this.workspace = new _ntAnimator.PIXI.ResponsiveContainer();
                 this.workspace.scaleX = 1;
                 this.workspace.scaleY = 1;
@@ -109080,18 +109092,18 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 this.workspace.addChild(this.viewport);
                 this.stage.addChild(this.workspace); // attach elements
 
-                _context.next = 13;
+                _context.next = 12;
                 return this._createTreadmill();
 
-              case 13:
-                _context.next = 15;
+              case 12:
+                _context.next = 14;
                 return this._createOtherDriver();
 
-              case 15:
-                _context.next = 17;
+              case 14:
+                _context.next = 16;
                 return this._createSprayer();
 
-              case 17:
+              case 16:
                 // make sure the game animates relative values
                 this.animationVariables.speed = 1;
                 this.animationVariables.base_speed = 1;
@@ -109100,7 +109112,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 this.startAutoRender();
                 this.ready = true;
 
-              case 22:
+              case 21:
               case "end":
                 return _context.stop();
             }
@@ -109465,11 +109477,10 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 type = _ref.type, hue = _ref.hue, isAnimated = _ref.isAnimated, trail = _ref.trail, tweaks = _ref.tweaks, nametag = _ref.nametag;
                 this.isReady = false; // clear the existing data
 
-                this._removeExistingCars();
+                this._removeExistingCars(); // create the new car instance
 
-                console.log('will create', type); // create the new car instance
 
-                _context9.next = 6;
+                _context9.next = 5;
                 return _car.default.create({
                   view: this,
                   baseHeight: 150,
@@ -109483,7 +109494,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                   }
                 });
 
-              case 6:
+              case 5:
                 car = _context9.sent;
                 // put the car inside of a container that
                 // can be used to attach trails and 
@@ -109507,30 +109518,30 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 delete this.trail;
 
                 if (!trail) {
-                  _context9.next = 23;
+                  _context9.next = 22;
                   break;
                 }
 
-                _context9.next = 23;
+                _context9.next = 22;
                 return this.setTrail(trail, false);
 
-              case 23:
+              case 22:
                 delete this.namecard;
 
                 if (!nametag) {
-                  _context9.next = 27;
+                  _context9.next = 26;
                   break;
                 }
 
-                _context9.next = 27;
+                _context9.next = 26;
                 return this.setNamecard(nametag, false);
 
-              case 27:
+              case 26:
                 // animate the new car into view
                 this.isReady = true;
                 return _context9.abrupt("return", this._animatePlayerCarIntoView(this.container));
 
-              case 29:
+              case 28:
               case "end":
                 return _context9.stop();
             }
