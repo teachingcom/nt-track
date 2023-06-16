@@ -3,9 +3,12 @@ import NameCard from '../../components/namecard'
 import Trail from '../../components/trail'
 import { BaseView } from '../base'
 import { LAYER_TRAIL } from '../track/layers'
+import Nitro from '../../components/nitro'
 
 // config
 const DEFAULT_MAX_HEIGHT = 250
+const NITRO_DELAY = 1000
+const NITRO_INTERVAL = 4000
 
 // creates an animated view for a resource
 export default class AnimationView extends BaseView {
@@ -94,7 +97,11 @@ export default class AnimationView extends BaseView {
 			bumper.scale.x = bumper.scale.y = 0.7
 		}
 
-		return bumper
+		const contain = new PIXI.Container()
+		contain.addChild(bumper)
+		contain.sprite = bumper
+
+		return contain
 	}
 
 	// trails are shifted over and a fake car
@@ -191,13 +198,63 @@ export default class AnimationView extends BaseView {
 
 	// a nitro is shown and animated from time to time
 	async _initNitroPreview() {
+		// load the user car
+		const bumper = await this._initCarBumper()	
+		const nitro = await Nitro.create({
+			view: this,
+			baseHeight: this.preferredHeight,
+			type: this.options.path
+		})
 
+		this.nitro = nitro
+		
+		// add each nitro part to the view
+		nitro.each(part => bumper.addChild(part))
+		bumper.sortChildren()
+		
+		// odd need to rotate everything
+		// bumper.sprite.rotation = -bumper.rotation
+		
+		// put everything into a view container
+		const contain = new PIXI.Container()
+		contain.addChild(bumper)
+		contain.x = Math.max(0, (this.view.width * 0.3))
+
+		// config overrides this value
+		if (nitro.config.preview?.x) {
+			contain.x = nitro.config.preview.x
+		}
+		
+		// auto animate
+		this.__activateInterval = setInterval(this.activateNitro, NITRO_DELAY)
+		
+		this.container.addChild(contain);
+	}
+
+	activateNitro = () => {
+		const now = Date.now()
+		if ((this.nextAllowedNitroActivation || 0) > now) {
+			return
+		}
+
+		// check how often to animate this
+		let next = NITRO_INTERVAL
+		if (this.nitro.config.preview?.duration) {
+			next = this.nitro.config.preview.duration
+		}
+
+		// set the next time to animate
+		this.nextAllowedNitroActivation = now + next
+		this.nitro.activate()
 	}
 
   // cleanup
   dispose = () => {
     // cancel rendering
     this.stopAutoRender()
+
+		// stop timers
+		clearInterval(this.__activateInterval)
 
 		// remove all objects and animations
 		removeDisplayObject(this.obj);

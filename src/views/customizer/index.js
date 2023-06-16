@@ -8,6 +8,7 @@ import NameCard from '../../components/namecard'
 import { TRAIL_SCALE_IN_PREVIEW } from '../../config'
 import { LAYER_TRAIL } from '../track/layers'
 import { waitForCondition } from '../../utils/wait'
+import Nitro from '../../components/nitro'
 
 const DEFAULT_MAX_HEIGHT = 250
 const OTHER_DRIVER_OFFSCREEN_DISTANCE = -1600
@@ -116,6 +117,10 @@ export default class CustomizerView extends BaseView {
     );
   }
 
+  activateNitro() {
+    this.car.activateNitro()
+  }
+
   // changes the paint for a car
   async setPaint (hue) {
     await this.waitForActivity('paint');
@@ -136,6 +141,34 @@ export default class CustomizerView extends BaseView {
     this.__pendingHueShift = setTimeout(() => {
       this.car?.repaintCar(hue);
     }, 300)
+  }
+
+  async setNitro(type, waitForReady = true) {
+    // wait for the customizer to be ready for changes, if needed
+    if (waitForReady) {
+      await this.waitForActivity('nitro');
+    }
+
+    // clear the prior nitro, if needed
+    this.nitro?.dispose?.()
+    if (this.nitro) {
+      removeDisplayObject(this.nitro)
+    }
+    delete this.nitro
+
+    // create the new nitro effect
+    const nitro = await Nitro.create({
+      view: this,
+      baseHeight: 100,
+			type
+    })
+
+    // configure the nitro
+    this.nitro = nitro
+    
+    // prepare the nitro
+    nitro.attachToCar(this)
+    this.onNitroReady?.()
   }
 
   // for clarity sake -- internally these are known as
@@ -211,7 +244,7 @@ export default class CustomizerView extends BaseView {
   }
 
   // replaces the active car
-  async setCar ({ type, hue, isAnimated, trail, tweaks, nametag }) {
+  async setCar ({ type, hue, isAnimated, trail, tweaks, nametag, nitro }) {
     this.isReady = false
 
     // clear the existing data
@@ -254,11 +287,19 @@ export default class CustomizerView extends BaseView {
     delete this.trail
     if (trail) {
       await this.setTrail(trail, false)
+      car.attachMods({ nitro: this.nitro, trail })
     }
 
     delete this.namecard
     if (nametag) {
       await this.setNamecard(nametag, false)
+    }
+
+    delete this.nitro
+    if (nitro) {
+      await this.setNitro(nitro, false)
+      car.attachMods({ nitro: this.nitro, trail: this.trail })
+      this.nitro.attachToCar({ car, trail: this.trail })
     }
     
     // animate the new car into view
@@ -307,6 +348,8 @@ export default class CustomizerView extends BaseView {
     
     this.container.sortChildren()
 
+    // attach to the car
+    this.car.attachMods({ nitro: this.nitro, trail })
 
     // also, fade in the trails
     animate({
@@ -409,16 +452,24 @@ export default class CustomizerView extends BaseView {
   }
 
   // NOT IMPLEMENTED YET
-  // setNamecard () { }
-  // setNitro () { }
   // setSpeedTrail () { }
   // setCelebration () { }
 
   getFocusForZone(zone) {
+    const center = 150 
+    
+    // NOTE: after adding nitros, the car width changes since the
+    // particle effect animations may have updated the size. probably
+    // need to rethink this, but 150 is a good coverage for most cars
+    // (this.car?.width || 240) / 2
+
     switch (zone) {
       case 'trail': {
-        const center = (this.car?.width || 240) / 2
         return { x: CONTENT_X + 200 + center, y: 0 }
+      }
+
+      case 'nitro': {
+        return { x: CONTENT_X + 250 + center, y: 0 }
       }
 
       case 'nametag': {

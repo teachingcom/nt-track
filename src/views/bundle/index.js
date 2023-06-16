@@ -5,6 +5,7 @@ import Trail from '../../components/trail';
 import { TRAIL_SCALE } from '../../config';
 import NameCard from '../../components/namecard';
 import Treadmill from '../../components/treadmill';
+import Nitro from '../../components/nitro';
 
 const DEFAULT_MAX_HEIGHT = 250
 
@@ -60,24 +61,27 @@ export default class BundleView extends BaseView {
 
 	active = { }
 
-	async setContent({ car, trail, nametag }) {
+	async setContent({ car, trail, nametag, nitro }) {
 
 		const carHasChanged = this.contentHasChanged || (this.active.car !== car?.type)
 		const trailHasChanged = this.contentHasChanged || (this.active.trail !== trail?.type)
 		const nametagHasChanged = this.contentHasChanged || (this.active.nametag !== nametag?.type)
+		const nitroHasChanged = this.contentHasChanged || (this.active.nitro !== nitro?.type)
 		this.contentHasChanged = false
 
 		this.active = {
 			car: car?.type,
 			trail: trail?.type,
-			nametag: nametag?.type
+			nametag: nametag?.type,
+			nitro: nitro?.type
 		}
 
 		// needs to remove the car
 		for (const obj of [
 			carHasChanged && this.car,
 			trailHasChanged && this.trail,
-			nametagHasChanged && this.nametag
+			nametagHasChanged && this.nametag,
+			nitroHasChanged && this.nitro
 		]) {
 			obj && removeItem(obj)
 		}
@@ -93,6 +97,9 @@ export default class BundleView extends BaseView {
 		if (nametag && (carHasChanged || nametagHasChanged)) {
 			queue.push(this._initNametag(nametag))
 		}
+		if (nitro && (carHasChanged || nitroHasChanged)) {
+			queue.push(this._initNitro(nitro))
+		}
 
 		const pending = await Promise.all(queue)
 		this._assemble(pending)
@@ -100,7 +107,7 @@ export default class BundleView extends BaseView {
 	}
 
 	async _assemble() {
-		const { car, trail, nametag } = this
+		const { car, trail, nametag, nitro } = this
 
 		// used for certain animation effects
 		if (car) {
@@ -122,13 +129,26 @@ export default class BundleView extends BaseView {
 			trail.scale.x = trail.scale.y = 0.75
 		}
 
+		// update the nitro
+		if (nitro) {
+			nitro.attachToCar({ car, trail })
+			nitro.each(part => {
+				if (!('startingY' in part)) {
+					part.startingY = part.y
+				}
+
+				part.scale.x = part.scale.y = 0.75
+				part.y = part.startingY + this.car.y
+			})
+			
+		}
+
 		// update the nametag
 		if (nametag) {
 			car.addChild(nametag)
 
 			nametag.visible = true
 			nametag.scale.x = nametag.scale.y = 0.8
-
 			nametag.x = trail ? -600 : 0
 		}
 
@@ -149,14 +169,33 @@ export default class BundleView extends BaseView {
 		showItem(this.car)
 	}
 
+	activateNitro = () => {
+		const now = Date.now()
+		if ((this.nextAllowedNitro || 0) > now) {
+			return
+		}
+
+		// TODO: maybe pull from config?
+		this.nextAllowedNitro = now + 4000
+		this.car.activateNitro()
+	}
+	
 	setFocus(target, instant) {
-		
 		let x = target === 'nametag' ? -(this.nametag?.x + (this.nametag?.width * 0.2))
 			: target === 'trail' ? -this.car?.positions.back
+			: target === 'nitro' ? -this.car?.positions.back
 			: this.car?.positions.back * 0.15
 
 		// if nan or an error?
 		x = x || 0
+
+		// trigger nitros, if needed
+		if (target === 'nitro' && target !== this.currentTarget) {
+			setTimeout(() => this.activateNitro(), 500)
+		}
+
+		// save the active view
+		this.currentTarget = target
 
 		// cancel the prior animation
 		this.__animate_focus?.stop()
@@ -189,6 +228,21 @@ export default class BundleView extends BaseView {
     })
 
 		showItem(this.trail)
+	}
+
+	async _initNitro({ type }) {
+
+		this.nitro = await Nitro.create({
+      view: this,
+      baseHeight: 200,
+      type
+    })
+
+		if (this.car) {
+			this.nitro.attachToCar(this)
+		}
+
+		showItem(this.nitro)
 	}
 
 	async _initNametag({ type, name, tag, tagColor, rank }) {

@@ -6,12 +6,15 @@ import Treadmill from '../../components/treadmill'
 import { TRAIL_SCALE_IN_PREVIEW } from '../../config'
 import { LAYER_TRAIL } from '../track/layers'
 import NameCard from '../../components/namecard'
+import Nitro from '../../components/nitro'
 
 // config
 const DEFAULT_MAX_HEIGHT = 250
 
 // extra scaling when looking at trails
 const CRUISE_VIEW_BONUS_SCALING = 1.3
+const FIRST_NITRO_DELAY = 1000
+const NITRO_ACTIVATION_INTERVAL = 4000
 
 // creates a rolling view for an individual car
 export default class CruiseView extends BaseView {
@@ -67,7 +70,7 @@ export default class CruiseView extends BaseView {
     this.container.scale.x = this.container.scale.y = 1.2;
     
     // if this is a trail preview, focus differently
-    if (this.options.focus === 'trail') {
+    if (['trail', 'nitro'].includes(this.options.focus)) {
       this.container.scale.x = this.container.scale.y = 1.5;
       this.container.pivot.x -= 250
     }
@@ -98,8 +101,11 @@ export default class CruiseView extends BaseView {
       lighting: { x: -5, y: 7 }
     });
 
+    // save the car reference
+    this.carInstance = car
+
     // create the unified container
-    const container = new PIXI.Container();
+    const container = new PIXI.Container()
     container.x = this.originX
     container.y = this.originY
     container.alpha = 0
@@ -124,10 +130,11 @@ export default class CruiseView extends BaseView {
       trail.x = car.positions.back
       Trail.setLayer(trail, car)
       
+      car.trail = trail
       container.sortChildren()
     }
 
-    if (options.nametag) {
+    if (options.nametag && !options.nitro) {
       const namecard = await NameCard.create({
         view: this,
         baseHeight: baseHeight * CRUISE_VIEW_BONUS_SCALING,
@@ -146,6 +153,20 @@ export default class CruiseView extends BaseView {
       namecard.scale.x = namecard.scale.y = 0.8
       
       container.sortChildren()
+    }
+
+    if (options.nitro) {
+      const nitro = await Nitro.create({
+        view: this,
+        baseHeight: baseHeight * CRUISE_VIEW_BONUS_SCALING,
+        type: options.nitro
+      })
+
+      // link to a car
+      nitro.attachToCar({ car })
+
+      // queue up nitro animations
+      setTimeout(this.activateNitro, FIRST_NITRO_DELAY)
     }
 
     // add the car
@@ -198,6 +219,12 @@ export default class CruiseView extends BaseView {
 		});
   }
 
+  activateNitro = () => {
+    // console.log('will test', this)
+    this.carInstance?.activateNitro?.()
+    this.__activateNitro = setTimeout(this.activateNitro, NITRO_ACTIVATION_INTERVAL)
+  }
+
   // cleanup
   dispose = () => {
     // cancel rendering
@@ -208,6 +235,8 @@ export default class CruiseView extends BaseView {
     this.__animate_entry.stop()
     this.__animate_backForth.stop()
     this.__animate_upDown.stop()
+    
+    clearTimeout(this.__activateNitro)
   }
   
   render(...args) {

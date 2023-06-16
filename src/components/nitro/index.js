@@ -1,7 +1,8 @@
-import { PIXI } from 'nt-animator';
+import { PIXI, removeDisplayObject } from 'nt-animator';
 import { merge } from '../../utils';
 import * as audio from '../../audio';
 import { VOLUME_NITRO } from '../../audio/volume';
+import { NITRO_OFFSET_Y } from '../../config';
 
 export default class Nitro extends PIXI.DetatchedContainer {
 
@@ -20,7 +21,7 @@ export default class Nitro extends PIXI.DetatchedContainer {
 
 		// fall back to default
 		if (!config) {
-			config = view.animator.lookup('nitros/default');
+			config = view.animator.lookup('nitros/nitro_default');
 		}
 
 		// if this doesn't exist, don't try and create
@@ -39,7 +40,7 @@ export default class Nitro extends PIXI.DetatchedContainer {
 		// load the nitro sound - there's no reason
 		// to wait for this since it can't be used
 		// until after the race starts
-		instance._initSound();
+		// instance._initSound();
 		instance._applyConfig();
 
 		// if this didn't load for some reason
@@ -82,7 +83,9 @@ export default class Nitro extends PIXI.DetatchedContainer {
 		// use sound name convention
 		else {
 			// load the sound, if any
-			const key = `nitros/${type}`;
+			// NOTE: we can support custom sounds per nitro if we decide to do that
+			// const key = `nitros/${type}`;
+			const key = `nitros/nitro_default`;
 			await audio.register(key);
 	
 			// save the sound effect
@@ -121,9 +124,46 @@ export default class Nitro extends PIXI.DetatchedContainer {
 		instance.controller.activateEmitters();
 	}
 
+	reset = (positionX, offsetY = NITRO_OFFSET_Y) => {
+		this.alpha = 0;
+		this.each(part => {
+			part.alpha = 0;
+			part.x = positionX;
+			part.y += offsetY;
+		});
+	}
+
+	// performs normal attachments to put a nitro
+	// connected to a car - since this can also be
+	// something like car bumper (in the shop), not
+	// all car functions are available
+	attachToCar({ car, trail }, scaleBy = 1) {
+    this.visible = true
+
+		// prepare the nitro
+    this.reset(((car.positions?.back || 0) * 0.5) * scaleBy)
+    this.attachTo(car, scaleBy)
+
+		// update layering
+    car.sortChildren()
+
+    // fix mods, as needed
+    car.attachMods?.({ nitro: this, trail: trail || car.trail })
+    car.nitro = this
+	}
+
 	/** is a valid Nitro instance */
 	get isValid() {
 		return !!(this.parts?.length > 0);
+	}
+
+	dispose = () => {
+		this.instance.controller.stopEmitters();
+		for (const part of this.parts || [ ]) {
+			removeDisplayObject(part)
+		}
+
+		removeDisplayObject(this)
 	}
 
 }

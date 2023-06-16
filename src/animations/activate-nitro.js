@@ -96,6 +96,7 @@ export default class ActivateNitroAnimation extends Animation {
 
 
 		// activate the nitro animation, if any
+		console.log('check for', hasNitro)
 		if (hasNitro) {
 			nitro.activate();
 		}

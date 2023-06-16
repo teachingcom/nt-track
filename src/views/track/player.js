@@ -266,18 +266,19 @@ export default class Player extends PIXI.ResponsiveContainer {
 
 			// add this layer
 			layers.nitro = nitro;
-			nitro.attachTo(this, scale.x * NITRO_SCALE);
-
-			// give the car a reference to the nitro
-			nitro.alpha = 0;
 			car.nitro = nitro;
 
-			// update the position of each
+			nitro.attachToCar({ car, trail });
 			nitro.each(part => {
-				part.alpha = 0;
-				part.x = car.positions.back;
-				part.y += NITRO_OFFSET_Y;
-			});
+				part.scale.x = part.scale.y = NITRO_SCALE
+				part.x *= NITRO_SCALE
+				part.y *= NITRO_SCALE
+				part.x += (car.positions.back * (1 - NITRO_SCALE))
+			})
+
+
+			// give the car a reference to the nitro
+			// this.nitro.reset(car.positions.back * scale.x * NITRO_SCALE);
 		}
 
 		// save the namecard

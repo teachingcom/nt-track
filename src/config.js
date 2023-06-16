@@ -76,7 +76,7 @@ export const TRAIL_SCALE = 0.55
 export const TRAIL_SCALE_IN_PREVIEW = 0.7
 
 // nitros
-export const NITRO_SCALE = 0.75
+export const NITRO_SCALE = 0.7
 export const NITRO_OFFSET_X = -75
 export const NITRO_OFFSET_Y = -7
 export const NITRO_ACTIVATED_TRAIL_OPACITY = 0.33
