@@ -3,7 +3,7 @@ import Trail from '../../components/trail'
 import { animate, getBoundsForRole, PIXI } from 'nt-animator'
 import { BaseView } from '../base'
 import Treadmill from '../../components/treadmill'
-import { TRAIL_SCALE_IN_PREVIEW } from '../../config'
+import { NITRO_SCALE, TRAIL_SCALE_IN_PREVIEW } from '../../config'
 import { LAYER_TRAIL } from '../track/layers'
 import NameCard from '../../components/namecard'
 import Nitro from '../../components/nitro'
@@ -151,23 +151,29 @@ export default class CruiseView extends BaseView {
       namecard.x -= namecard.width * 0.75
       namecard.visible = true
       namecard.scale.x = namecard.scale.y = 0.8
-      
-      container.sortChildren()
     }
-
+    
     if (options.nitro) {
       const nitro = await Nitro.create({
         view: this,
         baseHeight: baseHeight * CRUISE_VIEW_BONUS_SCALING,
         type: options.nitro
       })
-
+      
       // link to a car
-      nitro.attachToCar({ car })
+      container.addChild(nitro)
+      Nitro.setLayer(nitro, car)
 
+			// update scaling
+      Nitro.alignToCar(nitro, car, CRUISE_VIEW_BONUS_SCALING)
+      car.nitro = nitro
+			
       // queue up nitro animations
       setTimeout(this.activateNitro, FIRST_NITRO_DELAY)
     }
+
+    // update layers
+    container.sortChildren()
 
     // add the car
     this.car = container
@@ -220,7 +226,8 @@ export default class CruiseView extends BaseView {
   }
 
   activateNitro = () => {
-    // console.log('will test', this)
+    console.log('try nitro')
+    console.log(this.carInstance)
     this.carInstance?.activateNitro?.()
     this.__activateNitro = setTimeout(this.activateNitro, NITRO_ACTIVATION_INTERVAL)
   }

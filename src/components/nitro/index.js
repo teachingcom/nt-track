@@ -1,10 +1,30 @@
 import { PIXI, removeDisplayObject } from 'nt-animator';
-import { merge } from '../../utils';
+import { isNumber, merge } from '../../utils';
 import * as audio from '../../audio';
 import { VOLUME_NITRO } from '../../audio/volume';
 import { NITRO_OFFSET_Y } from '../../config';
+import { LAYER_NITRO } from '../../views/track/layers';
 
-export default class Nitro extends PIXI.DetatchedContainer {
+export default class Nitro extends PIXI.Container {
+
+	static setLayer(nitro, target = { zIndex: 0 }) {
+		if (nitro?.config?.layer) {
+		  if (nitro.isOverCar) {
+			nitro.zIndex = target.zIndex + 1;
+		  }
+		  else if (isNumber(nitro.config.layer)) {
+			nitro.zIndex = nitro.config.layer;
+		  }
+		}
+		else {
+		  nitro.zIndex = LAYER_NITRO;
+		}
+	}
+
+	static alignToCar(nitro, car, scale = 1) {
+		nitro.scale.x = nitro.scale.y = scale;
+		nitro.x = car.positions.back;
+	}
 
 	/** handles creating the new nitro instance */
 	static async create(options) {
@@ -45,6 +65,11 @@ export default class Nitro extends PIXI.DetatchedContainer {
 
 		// if this didn't load for some reason
 		if (!instance.isValid) return;
+
+		// check for visibility
+		if (this.shouldFadeIn) {
+			this.alpha = 0
+		}
 		
 		// give back the instance
 		return instance;
@@ -65,7 +90,7 @@ export default class Nitro extends PIXI.DetatchedContainer {
 
 		// save the nitro instance
 		this.instance = nitro;
-		this.parts = nitro.children.slice();
+		// this.parts = nitro.children.slice();
 		this.addChild(nitro);
 	}
 
@@ -125,12 +150,12 @@ export default class Nitro extends PIXI.DetatchedContainer {
 	}
 
 	reset = (positionX, offsetY = NITRO_OFFSET_Y) => {
-		this.alpha = 0;
-		this.each(part => {
-			part.alpha = 0;
-			part.x = positionX;
-			part.y += offsetY;
-		});
+		// this.alpha = 0;
+		// this.each(part => {
+		// 	part.alpha = 0;
+		// 	part.x = positionX;
+		// 	part.y += offsetY;
+		// });
 	}
 
 	// performs normal attachments to put a nitro
@@ -138,31 +163,29 @@ export default class Nitro extends PIXI.DetatchedContainer {
 	// something like car bumper (in the shop), not
 	// all car functions are available
 	attachToCar({ car, trail }, scaleBy = 1) {
-    this.visible = true
+		this.visible = true
+		this.alpha = 0
 
-		// prepare the nitro
-    this.reset(((car.positions?.back || 0) * 0.5) * scaleBy)
-    this.attachTo(car, scaleBy)
+			// prepare the nitro
+		this.reset(((car.positions?.back || 0) * 0.5) * scaleBy)
+		// this.attachTo(car, scaleBy)
 
-		// update layering
-    car.sortChildren()
+			// update layering
+		car.sortChildren()
 
-    // fix mods, as needed
-    car.attachMods?.({ nitro: this, trail: trail || car.trail })
-    car.nitro = this
+		// fix mods, as needed
+		car.attachMods?.({ nitro: this, trail: trail || car.trail })
+		car.nitro = this
 	}
 
 	/** is a valid Nitro instance */
 	get isValid() {
-		return !!(this.parts?.length > 0);
+		return true
+		// return !!(this.children?.length > 0);
 	}
 
 	dispose = () => {
 		this.instance.controller.stopEmitters();
-		for (const part of this.parts || [ ]) {
-			removeDisplayObject(part)
-		}
-
 		removeDisplayObject(this)
 	}
 

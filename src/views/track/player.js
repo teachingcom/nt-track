@@ -137,7 +137,7 @@ export default class Player extends PIXI.ResponsiveContainer {
 
 		// no nitro was equiped
 		if (!mods.nitro) return;
-		
+
 		// load a nitro, if any
 		return Nitro.create({
 			view,
@@ -260,25 +260,22 @@ export default class Player extends PIXI.ResponsiveContainer {
 			trail.x = car.positions.back;
 			trail.scale.x = trail.scale.y = scale.x * TRAIL_SCALE;
 		}
-		
+
 		// include the nitro, if any
 		if (nitro) {
-
 			// add this layer
 			layers.nitro = nitro;
 			car.nitro = nitro;
 
-			nitro.attachToCar({ car, trail });
-			nitro.each(part => {
-				part.scale.x = part.scale.y = NITRO_SCALE
-				part.x *= NITRO_SCALE
-				part.y *= NITRO_SCALE
-				part.x += (car.positions.back * (1 - NITRO_SCALE))
-			})
+			// add to the view
+			this.addChild(nitro);
 
+			// update layering
+			Nitro.setLayer(nitro, car);
 
-			// give the car a reference to the nitro
-			// this.nitro.reset(car.positions.back * scale.x * NITRO_SCALE);
+			// update scaling
+			nitro.x = car.positions.back;
+			nitro.scale.x = nitro.scale.y = scale.x * NITRO_SCALE;
 		}
 
 		// save the namecard

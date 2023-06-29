@@ -5,7 +5,7 @@ import Treadmill from '../../components/treadmill'
 import Car from '../../components/car'
 import Trail from '../../components/trail'
 import NameCard from '../../components/namecard'
-import { TRAIL_SCALE_IN_PREVIEW } from '../../config'
+import { DEVELOPMENT, TRAIL_SCALE_IN_PREVIEW } from '../../config'
 import { LAYER_TRAIL } from '../track/layers'
 import { waitForCondition } from '../../utils/wait'
 import Nitro from '../../components/nitro'
@@ -29,6 +29,10 @@ export default class CustomizerView extends BaseView {
       // forceCanvas: true,
       ...options
     })
+
+    if (DEVELOPMENT) {
+      window.CUSTOMIZER = this
+    }
 
     // setup the main view
     this.workspace = new PIXI.ResponsiveContainer()
@@ -117,8 +121,9 @@ export default class CustomizerView extends BaseView {
     );
   }
 
-  activateNitro() {
-    this.car.activateNitro()
+  activateNitro = () => {
+    this.car?.activateNitro()
+    this.__nextNitro = setTimeout(this.activateNitro, 5000)
   }
 
   // changes the paint for a car
@@ -165,9 +170,19 @@ export default class CustomizerView extends BaseView {
 
     // configure the nitro
     this.nitro = nitro
+
+    // add to the view
+    const { container, car } = this
+    container.addChild(nitro)
+    car.nitro = nitro
+
+    // set position
+    Nitro.setLayer(nitro, car)
+    Nitro.alignToCar(nitro, car, 1)
+    container.sortChildren()
     
     // prepare the nitro
-    nitro.attachToCar(this)
+    // nitro.attachToCar(this)
     this.onNitroReady?.()
   }
 
@@ -287,7 +302,7 @@ export default class CustomizerView extends BaseView {
     delete this.trail
     if (trail) {
       await this.setTrail(trail, false)
-      car.attachMods({ nitro: this.nitro, trail })
+      car.attachMods({ nitro: this.nitro, trail: this.trail })
     }
 
     delete this.namecard
@@ -299,7 +314,6 @@ export default class CustomizerView extends BaseView {
     if (nitro) {
       await this.setNitro(nitro, false)
       car.attachMods({ nitro: this.nitro, trail: this.trail })
-      this.nitro.attachToCar({ car, trail: this.trail })
     }
     
     // animate the new car into view
@@ -349,7 +363,8 @@ export default class CustomizerView extends BaseView {
     this.container.sortChildren()
 
     // attach to the car
-    this.car.attachMods({ nitro: this.nitro, trail })
+    // this.car.attachMods({ nitro: this.nitro, trail: this.trail })
+    this.car.trail = trail
 
     // also, fade in the trails
     animate({
@@ -451,12 +466,23 @@ export default class CustomizerView extends BaseView {
     }
   }
 
+  clearNitroInterval = () => {
+    clearTimeout(this.__nextNitro)
+    clearInterval(this.__nextNitro)
+  }
+
+  startNitroInterval = () => {
+    this.__nextNitro = setTimeout(this.activateNitro, 1000)
+  }
+  
+
   // NOT IMPLEMENTED YET
   // setSpeedTrail () { }
   // setCelebration () { }
 
   getFocusForZone(zone) {
-    const center = 150 
+    const center = 150
+    this.clearNitroInterval()
     
     // NOTE: after adding nitros, the car width changes since the
     // particle effect animations may have updated the size. probably
@@ -469,6 +495,7 @@ export default class CustomizerView extends BaseView {
       }
 
       case 'nitro': {
+        this.startNitroInterval()
         return { x: CONTENT_X + 250 + center, y: 0 }
       }
 

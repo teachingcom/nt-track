@@ -2,7 +2,7 @@ import Car from '../../components/car'
 import { animate, createContext, findDisplayObjectsOfRole, getBoundsForRole, PIXI, removeDisplayObject } from 'nt-animator';
 import { BaseView } from '../base'
 import Trail from '../../components/trail';
-import { TRAIL_SCALE } from '../../config';
+import { DEVELOPMENT, TRAIL_SCALE } from '../../config';
 import NameCard from '../../components/namecard';
 import Treadmill from '../../components/treadmill';
 import Nitro from '../../components/nitro';
@@ -20,6 +20,10 @@ export default class BundleView extends BaseView {
       useDynamicPerformance: false,
       ...options
     })
+
+		if (DEVELOPMENT) {
+			window.BUNDLE = this
+		}
 
 		this.contentHasChanged = true
 
@@ -127,20 +131,23 @@ export default class BundleView extends BaseView {
 			// set the view and scaling
 			trail.x = car.positions.back / 2
 			trail.scale.x = trail.scale.y = 0.75
+			car.trail = trail
 		}
 
 		// update the nitro
 		if (nitro) {
-			nitro.attachToCar({ car, trail })
-			nitro.each(part => {
-				if (!('startingY' in part)) {
-					part.startingY = part.y
-				}
+			car.addChild(nitro)
 
-				part.scale.x = part.scale.y = 0.75
-				part.y = part.startingY + this.car.y
-			})
+			// position the nitro correctly
+			const zIndex = nitro.config.layer === 'over_car' ? 100 : -100
+			Nitro.setLayer(nitro, { zIndex })
+			Nitro.alignToCar(nitro, car)
+			car.sortChildren()
+			car.nitro = nitro
 			
+			// set the view and scaling
+			nitro.x = car.positions.back / 2
+			nitro.scale.x = nitro.scale.y = 0.75
 		}
 
 		// update the nametag
@@ -237,10 +244,6 @@ export default class BundleView extends BaseView {
       baseHeight: 200,
       type
     })
-
-		if (this.car) {
-			this.nitro.attachToCar(this)
-		}
 
 		showItem(this.nitro)
 	}

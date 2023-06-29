@@ -1,3 +1,4 @@
+export const DEVELOPMENT = /(local\.nitro|localhost)/i.test(window.location.host)
 
 // tracks
 export const TRACK_MAXIMUM_SCROLL_SPEED = 35

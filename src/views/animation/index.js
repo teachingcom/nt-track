@@ -209,8 +209,9 @@ export default class AnimationView extends BaseView {
 		this.nitro = nitro
 		
 		// add each nitro part to the view
-		nitro.each(part => bumper.addChild(part))
-		bumper.sortChildren()
+		bumper.addChild(nitro)
+		// nitro.each(part => bumper.addChild(part))
+		// bumper.sortChildren()
 		
 		// odd need to rotate everything
 		// bumper.sprite.rotation = -bumper.rotation
@@ -233,12 +234,12 @@ export default class AnimationView extends BaseView {
 
 	activateNitro = () => {
 		const now = Date.now()
-		if ((this.nextAllowedNitroActivation || 0) > now) {
+		if (((this.nextAllowedNitroActivation || 0) > now) || this.paused) {
 			return
 		}
 
 		// check how often to animate this
-		let next = NITRO_INTERVAL
+		let next = this.defaultOptions.nitroInterval || NITRO_INTERVAL
 		if (this.nitro.config.preview?.duration) {
 			next = this.nitro.config.preview.duration
 		}
@@ -246,6 +247,9 @@ export default class AnimationView extends BaseView {
 		// set the next time to animate
 		this.nextAllowedNitroActivation = now + next
 		this.nitro.activate()
+
+		// notify as needed
+		this.defaultOptions.onActivateNitro?.()
 	}
 
   // cleanup

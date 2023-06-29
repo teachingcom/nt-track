@@ -28,6 +28,11 @@ export default class ActivateNitroAnimation extends Animation {
 		const hasNitro = this.hasNitro = !!nitro;
 		this.hasTrail = !!trail;
 
+		// just in case
+		// if (!this.nitro.visible) {
+		// 	this.nitro.visible = true
+		// }
+
 		// checking for special nitro rules
 		const nitroEffectStartingAlpha = hasNitro && nitro.shouldFadeIn ? 0 : 1;
 		const nitroEffectEndingAlpha = hasNitro && nitro.shouldFadeOut ? 0 : 1;
@@ -94,9 +99,7 @@ export default class ActivateNitroAnimation extends Animation {
 			nitroEffectAlpha: 1
 		};
 
-
 		// activate the nitro animation, if any
-		console.log('check for', hasNitro)
 		if (hasNitro) {
 			nitro.activate();
 		}
@@ -159,7 +162,8 @@ export default class ActivateNitroAnimation extends Animation {
 
 		// update the nitro, if any
 		if (hasNitro) {
-			nitro.assign({ alpha: props.nitroEffectAlpha })
+			// nitro.assign({ alpha: props.nitroEffectAlpha })
+			nitro.alpha = props.nitroEffectAlpha;
 		}
 
 		// update the default nitro streak
