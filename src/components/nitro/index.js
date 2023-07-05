@@ -10,10 +10,10 @@ export default class Nitro extends PIXI.Container {
 	static setLayer(nitro, target = { zIndex: 0 }) {
 		if (nitro?.config?.layer) {
 		  if (nitro.isOverCar) {
-			nitro.zIndex = target.zIndex + 1;
+				nitro.zIndex = target.zIndex + 1;
 		  }
 		  else if (isNumber(nitro.config.layer)) {
-			nitro.zIndex = nitro.config.layer;
+				nitro.zIndex = nitro.config.layer;
 		  }
 		}
 		else {

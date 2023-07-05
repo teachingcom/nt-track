@@ -33,18 +33,18 @@ export default class AnimationView extends BaseView {
 		switch (options.mode) {
 			// create a trail preview 
 			case 'trail-preview':
-				this._initTrailPreview()
+				await this._initTrailPreview()
 				break
 
 			// create a nametag preview 
 			case 'namecard-preview':
 			case 'nametag-preview':
-				this._initNametagPreview()
+				await this._initNametagPreview()
 				break
 			
 			// load an animated nitro
 			case 'nitro-preview':
-				this._initNitroPreview()
+				await this._initNitroPreview()
 				break
 
 			// load a generic animation
@@ -54,7 +54,23 @@ export default class AnimationView extends BaseView {
 		
 		// automatically render
     this.startAutoRender()
+
+		// notify this is ready to go
+		if (options.mode === 'nitro-preview') {		
+			options.onNitroReady?.()
+		}
+
+		if (this.options.autoPlayNitroAnimations) {
+			this.setupNitroAutoPlay()
+		}
   }
+
+	setupNitroAutoPlay() {
+		this.__activateNitroInit = setTimeout(() => {
+			this.activateNitro()
+			this.__activateNitroInterval = setInterval(this.activateNitro, NITRO_INTERVAL)
+		}, NITRO_DELAY)
+	}
 
   // creates the rolling track
   async _initResource() {
@@ -207,45 +223,45 @@ export default class AnimationView extends BaseView {
 		})
 
 		this.nitro = nitro
-		
-		// add each nitro part to the view
-		bumper.addChild(nitro)
-		// nitro.each(part => bumper.addChild(part))
-		// bumper.sortChildren()
-		
-		// odd need to rotate everything
-		// bumper.sprite.rotation = -bumper.rotation
+
+		// set the position for the faded background
+		// to help the trails stand out more
+		let bg
+		if (!this.options.hideBackground) {
+			bg = await this.animator.getSprite('extras/shop', 'asset_bg')
+			bg.pivot.x = bg.width
+			bg.pivot.y = bg.height * 0.5
+			bg.scale.x = 1.33
+			bg.alpha = 0.66
+		}
 		
 		// put everything into a view container
 		const contain = new PIXI.Container()
 		contain.addChild(bumper)
 		contain.x = Math.max(0, (this.view.width * 0.3))
-
+		
 		// config overrides this value
 		if (nitro.config.preview?.x) {
 			contain.x = nitro.config.preview.x
 		}
 		
-		// auto animate
-		this.__activateInterval = setInterval(this.activateNitro, NITRO_DELAY)
+		// adds the background
+		if (bg) {
+			this.container.addChild(bg)
+			bg.x = contain.x + bumper.width
+			bg.zIndex - 100
+		}
+
+		// make sure to layer correctly
+		Nitro.setLayer(nitro)
+		contain.addChild(nitro)
+		contain.sortChildren()
+
 		
 		this.container.addChild(contain);
 	}
 
 	activateNitro = () => {
-		const now = Date.now()
-		if (((this.nextAllowedNitroActivation || 0) > now) || this.paused) {
-			return
-		}
-
-		// check how often to animate this
-		let next = this.defaultOptions.nitroInterval || NITRO_INTERVAL
-		if (this.nitro.config.preview?.duration) {
-			next = this.nitro.config.preview.duration
-		}
-
-		// set the next time to animate
-		this.nextAllowedNitroActivation = now + next
 		this.nitro.activate()
 
 		// notify as needed
@@ -258,7 +274,8 @@ export default class AnimationView extends BaseView {
     this.stopAutoRender()
 
 		// stop timers
-		clearInterval(this.__activateInterval)
+		clearTimeout(this.__activateNitroInit)
+		clearInterval(this.__activateNitroInterval)
 
 		// remove all objects and animations
 		removeDisplayObject(this.obj);

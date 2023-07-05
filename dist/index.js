@@ -78041,40 +78041,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var SourceExpression = /*#__PURE__*/function () {
   (0, _createClass2.default)(SourceExpression, [{
-    key: "getWidthOfCar",
-    value: function getWidthOfCar(stage, player) {
-      var _player$car, _player$car$positions;
-
-      window.PLAYER = player; // return 344
-
-      return ((_player$car = player.car) === null || _player$car === void 0 ? void 0 : (_player$car$positions = _player$car.positions) === null || _player$car$positions === void 0 ? void 0 : _player$car$positions.back) / -0.7; // return player.car?.width || 0
-
-      if (!this.frontPosition) {
-        return 0; // const positions = player.car?.positions
-        // if (!positions) {
-        // 	return 0
-        // }
-        // const [ front ] = findDisplayObjectsOfRole(player.car, 'front')
-        // console.log('target to', front)
-        // if (front) {
-        // 	this.frontPosition = front.x
-        // }
-        // else {
-        // 	this.frontPosition = positions.back + player.car.bounds.width
-        // }
-        // console.log('will use', this.frontPosition, positions)
-        // // not ready to use yet
-        // if (!(boundedWidth && scaledWidth)) {
-        // 	return 0
-        // }
-        // const scaleBy = boundedWidth / scaledWidth
-        // this.frontPosition = ((boundedWidth / 2) * scaleBy) || 0
-      } // console.log('resulting', result)
-
-
-      return this.frontPosition;
-    }
-  }, {
     key: "getValue",
     value: function getValue() {
       return 0;
@@ -78088,9 +78054,6 @@ var SourceExpression = /*#__PURE__*/function () {
     (0, _defineProperty2.default)(this, "update", function (target, stage, player) {
       var _this$getValue;
 
-      // const now = Date.now();
-      // const index = (((now + this.offset) - CycleExpression.start) / this.interval) % this.valueCount;
-      // const value = this.values[0 | index];
       var value = (((_this$getValue = _this.getValue) === null || _this$getValue === void 0 ? void 0 : _this$getValue.call(_this, stage, player)) || 0) + (_this.nudge || 0) || 0;
 
       _this.mapping(target, _this.convertToInt ? 0 | value : value);
@@ -78098,37 +78061,13 @@ var SourceExpression = /*#__PURE__*/function () {
     this.prop = prop;
     this.mapping = mappings.lookup(prop);
     this.source = args.shift();
-    this.nudge = 0 | args.shift() || 0; // handle look up helpers
-
-    if (this.source === 'width_of_car') {
-      this.getValue = this.getWidthOfCar;
-    } else {
-      console.log('src unknown:', this.source);
-    } // let values = []
-    // let interval = 1000
-    // for (const arg of args) { 
-    //   const isObj = isObject(arg)
-    //   if (arg === 'int') {
-    //     this.convertToInt = true
-    //   }
-    //   else if (isObj && 'interval' in arg) {
-    //     interval = arg.interval
-    //   }
-    //   else if (isObj && 'values' in arg) {
-    //     values = arg.values
-    //   }
-    //   else if (arg === 'stagger' || (isObj && arg.stagger)) { 
-    //     this.offset += 0 | (arg.stagger || 10000) * Math.random()
-    //   }
-    //   else if (arg.offset) { 
-    //     this.offset = arg.offset * 1000
-    //   }
+    this.nudge = 0 | args.shift() || 0; // // handle look up helpers
+    // if (this.source === 'width_of_car') {
+    // 	this.getValue = this.getWidthOfCar
     // }
-    // // save the args
-    // this.interval = interval
-    // this.values = values
-    // this.valueCount = this.values.length;
-
+    // else {
+    // 	console.log('src unknown:', this.source)
+    // }
   }
 
   return SourceExpression;
@@ -110345,23 +110284,7 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
 
     _this = _super.call.apply(_super, [this].concat(args));
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "activateNitro", function () {
-      var _this$nitro$config$pr, _this$defaultOptions$, _this$defaultOptions;
-
-      var now = Date.now();
-
-      if ((_this.nextAllowedNitroActivation || 0) > now || _this.paused) {
-        return;
-      } // check how often to animate this
-
-
-      var next = _this.defaultOptions.nitroInterval || NITRO_INTERVAL;
-
-      if ((_this$nitro$config$pr = _this.nitro.config.preview) === null || _this$nitro$config$pr === void 0 ? void 0 : _this$nitro$config$pr.duration) {
-        next = _this.nitro.config.preview.duration;
-      } // set the next time to animate
-
-
-      _this.nextAllowedNitroActivation = now + next;
+      var _this$defaultOptions$, _this$defaultOptions;
 
       _this.nitro.activate(); // notify as needed
 
@@ -110373,7 +110296,8 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
       _this.stopAutoRender(); // stop timers
 
 
-      clearInterval(_this.__activateInterval); // remove all objects and animations
+      clearTimeout(_this.__activateNitroInit);
+      clearInterval(_this.__activateNitroInterval); // remove all objects and animations
 
       (0, _ntAnimator.removeDisplayObject)(_this.obj);
     });
@@ -110384,6 +110308,8 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
     key: "init",
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(options) {
+        var _options$onNitroReady;
+
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
@@ -110406,33 +110332,47 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
                 this.view.addChild(this.container); // check for special modes
 
                 _context.t0 = options.mode;
-                _context.next = _context.t0 === 'trail-preview' ? 10 : _context.t0 === 'namecard-preview' ? 12 : _context.t0 === 'nametag-preview' ? 12 : _context.t0 === 'nitro-preview' ? 14 : 16;
+                _context.next = _context.t0 === 'trail-preview' ? 10 : _context.t0 === 'namecard-preview' ? 13 : _context.t0 === 'nametag-preview' ? 13 : _context.t0 === 'nitro-preview' ? 16 : 19;
                 break;
 
               case 10:
-                this._initTrailPreview();
-
-                return _context.abrupt("break", 18);
+                _context.next = 12;
+                return this._initTrailPreview();
 
               case 12:
-                this._initNametagPreview();
+                return _context.abrupt("break", 21);
 
-                return _context.abrupt("break", 18);
+              case 13:
+                _context.next = 15;
+                return this._initNametagPreview();
 
-              case 14:
-                this._initNitroPreview();
-
-                return _context.abrupt("break", 18);
+              case 15:
+                return _context.abrupt("break", 21);
 
               case 16:
                 _context.next = 18;
-                return this._initResource();
+                return this._initNitroPreview();
 
               case 18:
-                // automatically render
-                this.startAutoRender();
+                return _context.abrupt("break", 21);
 
               case 19:
+                _context.next = 21;
+                return this._initResource();
+
+              case 21:
+                // automatically render
+                this.startAutoRender(); // notify this is ready to go
+
+                if (options.mode === 'nitro-preview') {
+                  (_options$onNitroReady = options.onNitroReady) === null || _options$onNitroReady === void 0 ? void 0 : _options$onNitroReady.call(options);
+                }
+
+                if (this.options.autoPlayNitroAnimations) {
+                  this.setupNitroAutoPlay();
+                }
+
+              case 24:
               case "end":
                 return _context.stop();
             }
@@ -110445,7 +110385,18 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
       }
 
       return init;
-    }() // creates the rolling track
+    }()
+  }, {
+    key: "setupNitroAutoPlay",
+    value: function setupNitroAutoPlay() {
+      var _this2 = this;
+
+      this.__activateNitroInit = setTimeout(function () {
+        _this2.activateNitro();
+
+        _this2.__activateNitroInterval = setInterval(_this2.activateNitro, NITRO_INTERVAL);
+      }, NITRO_DELAY);
+    } // creates the rolling track
 
   }, {
     key: "_initResource",
@@ -110705,7 +110656,7 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
       var _initNitroPreview2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
         var _nitro$config$preview;
 
-        var bumper, nitro, contain;
+        var bumper, nitro, bg, contain;
         return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
             switch (_context6.prev = _context6.next) {
@@ -110724,27 +110675,49 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
 
               case 5:
                 nitro = _context6.sent;
-                this.nitro = nitro; // add each nitro part to the view
+                this.nitro = nitro; // set the position for the faded background
+                // to help the trails stand out more
 
-                bumper.addChild(nitro); // nitro.each(part => bumper.addChild(part))
-                // bumper.sortChildren()
-                // odd need to rotate everything
-                // bumper.sprite.rotation = -bumper.rotation
+                if (this.options.hideBackground) {
+                  _context6.next = 15;
+                  break;
+                }
+
+                _context6.next = 10;
+                return this.animator.getSprite('extras/shop', 'asset_bg');
+
+              case 10:
+                bg = _context6.sent;
+                bg.pivot.x = bg.width;
+                bg.pivot.y = bg.height * 0.5;
+                bg.scale.x = 1.33;
+                bg.alpha = 0.66;
+
+              case 15:
                 // put everything into a view container
-
                 contain = new _ntAnimator.PIXI.Container();
                 contain.addChild(bumper);
                 contain.x = Math.max(0, this.view.width * 0.3); // config overrides this value
 
                 if ((_nitro$config$preview = nitro.config.preview) === null || _nitro$config$preview === void 0 ? void 0 : _nitro$config$preview.x) {
                   contain.x = nitro.config.preview.x;
-                } // auto animate
+                } // adds the background
 
 
-                this.__activateInterval = setInterval(this.activateNitro, NITRO_DELAY);
+                if (bg) {
+                  this.container.addChild(bg);
+                  bg.x = contain.x + bumper.width;
+                  bg.zIndex - 100;
+                } // make sure to layer correctly
+
+
+                _nitro.default.setLayer(nitro);
+
+                contain.addChild(nitro);
+                contain.sortChildren();
                 this.container.addChild(contain);
 
-              case 14:
+              case 24:
               case "end":
                 return _context6.stop();
             }
