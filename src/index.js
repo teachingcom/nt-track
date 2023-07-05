@@ -10,4 +10,4 @@ export { default as Animation } from './views/animation'
 export { default as NameCard } from './views/namecard'
 export const Audio = AudioController
 
-try { window.NTTRACK = '1.5.1' } catch (ex) { }
+try { window.NTTRACK = '1.7.0' } catch (ex) { }
