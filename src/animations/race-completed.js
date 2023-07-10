@@ -186,8 +186,8 @@ export default class RaceCompletedAnimation extends Animation {
 
 	// refresh confetti 
 	update = () => {
-		const { confetti } = this;
-		if (confetti) confetti.update();
+		// const { confetti } = this;
+		// if (confetti) confetti.update();
 	}
 
 	// perform the flash animation
@@ -198,7 +198,6 @@ export default class RaceCompletedAnimation extends Animation {
 		// add some confetti
 		try {
 			this.confetti = await createConfetti(animator, track);
-			console.log('did create', this.confetti)
 			track.view.addChild(this.confetti);
 			track.view.sortChildren();
 			// if (this.confetti && this.confetti.sprite)

@@ -83898,7 +83898,6 @@ function _createEmitter() {
               emitter = new Particles.Emitter(generator, sequences, config);
               emitter.particleConstructor = Particles.AnimatedParticle;
             } else {
-              console.log('make', textures, config);
               emitter = new Particles.Emitter(generator, textures, config);
             }
 
@@ -104767,20 +104766,18 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
         });
       }
     });
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "update", function () {
-      var _assertThisInitialize4 = (0, _assertThisInitialized2.default)(_this),
-          confetti = _assertThisInitialize4.confetti;
-
-      if (confetti) confetti.update();
-    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "update", function () {} // const { confetti } = this;
+    // if (confetti) confetti.update();
+    // perform the flash animation
+    );
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "activateFlash", /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
-      var _assertThisInitialize5, track, animator, flash;
+      var _assertThisInitialize4, track, animator, flash;
 
       return _regenerator.default.wrap(function _callee$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
             case 0:
-              _assertThisInitialize5 = (0, _assertThisInitialized2.default)(_this), track = _assertThisInitialize5.track;
+              _assertThisInitialize4 = (0, _assertThisInitialized2.default)(_this), track = _assertThisInitialize4.track;
               animator = track.animator; // add some confetti
 
               _context.prev = 2;
@@ -104789,20 +104786,19 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
 
             case 5:
               _this.confetti = _context.sent;
-              console.log('did create', _this.confetti);
               track.view.addChild(_this.confetti);
               track.view.sortChildren(); // if (this.confetti && this.confetti.sprite)
 
-              _context.next = 15;
+              _context.next = 14;
               break;
 
-            case 11:
-              _context.prev = 11;
+            case 10:
+              _context.prev = 10;
               _context.t0 = _context["catch"](2);
               console.error('failed to create confetti');
               console.error(_context.t0);
 
-            case 15:
+            case 14:
               // create the flash of white
               flash = new _ntAnimator.PIXI.Sprite(_ntAnimator.PIXI.Texture.WHITE); // match the screen and place on the top
 
@@ -104839,12 +104835,12 @@ var RaceCompletedAnimation = /*#__PURE__*/function (_Animation) {
                 }
               });
 
-            case 21:
+            case 20:
             case "end":
               return _context.stop();
           }
         }
-      }, _callee, null, [[2, 11]]);
+      }, _callee, null, [[2, 10]]);
     })));
     _this.track = _track;
     _this.players = _players; // play the finish sound
