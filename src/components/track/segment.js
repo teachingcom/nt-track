@@ -31,9 +31,9 @@ export default class Segment {
 		bottom.sortChildren();
 	}
 
-	get visible() {
-		return this.top.visible;
-	}
+	// get visible() {
+	// 	return this.top.visible;
+	// }
 
 	set visible(value) {
 		this.top.visible = this.bottom.visible = value;
@@ -46,18 +46,22 @@ export default class Segment {
 		return this.bottom.visible;
 	}
 
-	set visible(visible) {
-		this.bottom.visible = this.top.visible = !!visible;
+	// set visible(visible) {
+	// 	this.bottom.visible = this.top.visible = !!visible;
+	// }
+
+	setVisibility(visible) {
+		this.bottom.visible = this.top.visible = visible;
 	}
 
-	// perform culling if out of view
-	cull = () => {
-		const { bottom, bounds, track } = this;
-		const { x } = bottom;
-		const { width } = bounds;
-		const overflow = track.view.width * 1.5;
-		this.visible = x < overflow && x > -(width + overflow);
-	}
+	// // perform culling if out of view
+	// cull = () => {
+	// 	const { bottom, bounds, track } = this;
+	// 	const { x } = bottom;
+	// 	const { width } = bounds;
+	// 	const overflow = track.view.width * 1.5;
+	// 	this.visible = x < overflow && x > -(width + overflow);
+	// }
 
 	getBounds(asGlobal) {
 		return getBoundsForRole(this.bottom, 'base', asGlobal);

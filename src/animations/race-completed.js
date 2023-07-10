@@ -198,8 +198,10 @@ export default class RaceCompletedAnimation extends Animation {
 		// add some confetti
 		try {
 			this.confetti = await createConfetti(animator, track);
-			if (this.confetti && this.confetti.sprite)
-				track.view.addChild(this.confetti.sprite);
+			console.log('did create', this.confetti)
+			track.view.addChild(this.confetti);
+			track.view.sortChildren();
+			// if (this.confetti && this.confetti.sprite)
 		}
 		// never crash for this
 		catch (ex) {

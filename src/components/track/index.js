@@ -64,12 +64,12 @@ export default class Track {
 			
 			activity = 'assembling starting line';
 			view.setLoadingStatus('init', 'creating starting line');
-			// await instance._createStartingLine();
+			await instance._createStartingLine();
 			
 			// todo? create when needed?
 			activity = 'assembling finish line';
 			view.setLoadingStatus('init', 'creating finish line');
-			// await instance._createFinishLine();
+			await instance._createFinishLine();
 			
 			// create spectator watermark
 			activity = 'assembling spectator mode';
@@ -233,16 +233,15 @@ export default class Track {
 	async _createSegment(id, placeholder) {
 		const { view, manifest, path, overlay, ground, segmentCache: cache, segmentCounts: counts } = this;
 		const { repeating, order } = manifest.track;
-		const total = repeating.length;
 
+		// create the road segment
 		const template = repeating[id]
-		console.log(template)
 		const comp = await view.animator.compose(template, path, manifest);
 		const segment = new Segment(this, comp);
 
 		// create the entry for this segment
 		if (!cache[id]) {
-			cache[id] = []
+			cache[id] = [];
 		}
 
 		// add to the cache
@@ -254,14 +253,9 @@ export default class Track {
 		// add to the view
 		overlay.addChild(segment.top);
 		ground.addChild(segment.bottom);
-
-		// align to the left edge
-		segment.top.pivot.x = segment.bounds.left;
-		segment.bottom.pivot.x = segment.bounds.left;
 		
 		// hidden to start
-		segment.top.visible = false
-		segment.bottom.visible = false
+		segment.setVisibility(false);
 
 		return segment
 	}
@@ -276,12 +270,6 @@ export default class Track {
 		// then this won't work
 		const randomize = /random(ize)?/i.test(order);
 		const sequence = isArray(order) ? order : null;
-		
-
-		// create the segment
-		async function createSegment(id) {
-			
-		}
 
 		// create each segment
 		for (const id of sequence) {
@@ -291,51 +279,15 @@ export default class Track {
 			let bounded = cache[id]?.[0]
 			if (!bounded) {
 				bounded = await this._createSegment(id)
-				// bounded = await this._createSegment(id)
-				// bounded = await this._createSegment(id)
 			}
-			
-			// // there's two in a row
-			// if (cache[id]?.length === 1 && previous?.id === id) {
-			// 	counts[id] = 2
-			// 	await createSegment(id)
-			// }
-
-			// // there's two in a row
-			// if (cache[id]?.length === 2 && previous?.id === id) {
-			// 	counts[id] = 3
-			// 	await createSegment(id)
-			// }
 
 			// add to the view
 			segments.push({
 				x: (previous?.x + previous?.width) || 0,
 				width: bounded.bounds.width,
-				// width: bounded.boundedWidth,
 				id
 			})
 		}
-
-		// console.log('has', counts)
-		
-
-
-		// // create each segment twice, but don't add it right away
-		// for (let i = 0; i < repeating.length; i++) {
-
-		// 	// ignore unused segments
-		// 	if (!sequence?.includes(i)) {
-		// 		continue
-		// 	}
-
-			
-
-		// }
-
-		
-
-		console.log('is using', segments, cache)
-
 
 		// set the default positions for each tile
 		this._updateSegmentPositions();
@@ -355,21 +307,22 @@ export default class Track {
 		// add the starting line
 		const comp = await view.animator.compose({ compose: start }, path, manifest);
 		const segment = this.startingLine = new Segment(this, comp);
+		
+		// save the width?
+		const bounds = getBoundsForRole(segment.bottom, 'base');
+		segment.width = bounds.width;
 
 		// add the overlay section
 		overlay.addChild(segment.top);
 		ground.addChild(segment.bottom);
-
-		// TODO: calculate this value
-		this._cycleTrack(-1500);
-		
-		// fit the starting block to the middle of the screen
 		this._fitBlockToTrackPosition(segment, 0);
 
 		// distance to move back
 		const shiftBy = (view.width / 2) - (view.width * this.view.getStartingLinePosition());
-
 		this._cycleToSegmentLine(segment, shiftBy);
+		
+		// where to remove the starting line at
+		this.startingLineThreshold = (segment.width * 2)
 	}
 
 	// creates the finlish line
@@ -662,94 +615,57 @@ export default class Track {
 	// reset the starting positions for the repeating tiles
 	_updateSegmentPositions = async () => {
 		const { segments, segmentCache: cache, offscreen } = this;
-		const right = offscreen * -1.25
-
+		
+		// keeping track of how many segments are active
 		const counts = { }
 
+		// check for the offscreen threshold (just slightly beyond the view)
+		const right = offscreen * -1.15
+
+		// check each of the pre-generated road segments
 		const { length: totalSegments } = segments
 		for (let i = 0; i < totalSegments; i++) {
 			let segment = segments[i]
 			
-			// no need to draw
+			// check for the next segment
+			const index = counts[segment.id] || 0;
+			let block = cache[segment.id][index];
+			block?.setVisibility(false);
+			
+			// check if this part is on screen
 			if (segment.x > right) {
 				continue;
 			}
 
-
-			const index = counts[segment.id] || 0
-			let block = cache[segment.id][index]
-
+			// needs more road, create as needed
 			if (!block) {
-				block = await this._createSegment(segment.id)
-				// block = cache[segment.id][index]
+				block = await this._createSegment(segment.id);
+				console.log('JIT Segment: ', segment.id, 'is at', cache[segment.id].length);
 			}
 
+			// shouldn't happen
 			if (!block) {
-				continue
+				continue;
 			}
 
-			// if (!segment) {
-			// 	// segment = await createSegment(segment)
-			// }
-
-			// if (counts[segment.id] >= this.segmentCounts[segment.id]) {
-			// 	continue
-			// }
-
-			// if (used[segment.id]) {
-			// 	continue
-			// }
-
+			// move to correct position and show
+			block.setX(segment.x);
+			block.setVisibility(true);
 			
-			// const part = this.segmentCache[segment.id][counts[segment.id] || 0]
-
-			block.bottom.x = segment.x
-			block.top.x = segment.x
-			// block.bottom.y = (segment.id || 0) * 100
-
-			block.bottom.visible = true
-			block.top.visible = true
-			
-
 			// crease 
 			counts[segment.id] = index + 1
 		}
-
-		// // return to original positions
-		// for (const segment of segments) {
-		// 	segment.setX(0);
-		// }
-
-		// // stitch each 
-		// let width = 0;
-		// for (let i = 0; i < segments.length; i++) {
-		// 	const segment = segments[i];
-		// 	const previous = segments[i - 1];
-
-		// 	// if there's a previous road, stack up next to it
-		// 	if (previous) {
-		// 		width += Math.floor(previous.bounds.width) - 1;
-		// 	}
-
-		// 	// set to the current position
-		// 	segment.setX(width);
-		// }
-
-		// // set the starting position of each segment which will be
-		// // stitched to the next segment, but also offset by half
-		// // of the total width so that the road extends the
-		// // entire screen
-		// const offsetX = width * -0.5;
-		// for (const segment of segments) {
-		// 	segment.addX(offsetX);
-		// 	segment.cull();
-		// }
 	}
+
+	distance = 0
 
 	// changes the location of the repeating track
 	_cycleTrack(diff) {
 		const { segments, segmentCache: cache, offscreen } = this
 		const { length: totalSegments } = segments
+
+		// handle tracking total travel distance
+		this.distance -= diff
 		
 		// cycle all road segments
 		let shift = 0
@@ -762,6 +678,24 @@ export default class Track {
 			if ((segment.x + segment.width) < offscreen) {
 				shift++;
 			}
+		}
+
+		// check what is going on with the starting line
+		if (this.startingLine) {
+
+			// has left the view
+			if (this.distance > this.startingLineThreshold) {
+				this.removeStartingLine();
+				delete this.startingLine;
+			}
+			// shift along the view
+			else {
+				this.startingLine.addX(diff)
+			}
+		}
+
+		if (this.finishLine) {
+			this.finishLine.addX(diff)
 		}
 
 		// it appears that this needs to cycle over
@@ -780,122 +714,186 @@ export default class Track {
 
 		// update the displayed positions
 		this._updateSegmentPositions();
-
-		// const { segments, startingLine, finishLine } = this;
-		// this.trackPosition += diff;
-
-		// // keep track of segments that need
-		// // to also be shifted
-		// let reset;
-		// let max;
-
-		// // check for off screen
-		// const offscreen = (this.view.width / this.view.view.scaleX) * -0.5;
-
-		// // update each segment
-		// diff = Math.floor(diff);
-		// for (const segment of segments) {
-
-		// 	// apply the diff
-		// 	segment.addX(diff);
-
-		// 	// if this has gone off screen, it's time
-		// 	// to reset it -- maximum one per frame
-		// 	const right = segment.bottom.x + segment.bounds.width;
-		// 	if (right < offscreen) {
-		// 		if (!reset || segment.bottom.x < reset.bottom.x)
-		// 			reset = segment;
-		// 	}
-
-		// 	// if this is the farthest segment
-		// 	if (!max || segment.bottom.x > max.bottom.x) {
-		// 		max = segment;
-		// 	}
-
-		// 	// manage visibility
-		// 	segment.visible = segment.bottom.x < -offscreen;
-		// }
-
-		// // if this tile needs to return to the
-		// // beginning of the loop
-		// if (reset && max) {
-		// 	const shift = Math.floor(max.bottom.x + max.bounds.width) - 1;
-		// 	reset.setX(shift);
-		// 	reset.visible = false;
-		// }
-
-		// // move the starting and ending lines
-		// if (startingLine) {
-		// 	startingLine.addX(diff);
-
-		// 	// check if time to remove the starting line
-		// 	if ((startingLine.bottom.x + startingLine.bounds.width) < offscreen) {
-		// 		this.removeStartingLine();
-		// 	}
-		// }
-
-		// // check for the finish line block
-		// if (finishLine && finishLine.visible) {
-		// 	finishLine.addX(diff);
-		// }
-
 	}
 
 	// tries to fit a block into the view
 	_fitBlockToTrackPosition(block, position) {
 		const { segments } = this;
-
-		// TODO: if the road is a defined sequence, then we should
-		// move all rows so they're sorted by their sequence again
-		// this can probably be done by sorting positions first and
-		// then copying the final values and setting again
-
-		// make sure to sort before starting since it's
-		// possible for the array to not match the
-		// visual sequence
-		segments.sort(byRightEdge);
+		const { width } = block;
 		
-		// get the inserted block into place
-		const bounds = getBoundsForRole(block.bottom, 'base');
-		const width = bounds.width;
-		block.setX(0);
+		// set the target position
+		block.setX(position)
 
-		// start checking each segment
-		const { length: total } = segments;
-		for (let i = 0; i < total; i++) {
+
+		// determine the right side of the inserted block
+		const anchorTo = position + width
+
+		// tracking shift values
+		let shiftLeftBy = 0
+		let shiftRightBy = 0
+
+		// start looping to find a split location
+		const { length: totalSegments } = segments;
+		for (let i = 0; i < totalSegments; i++) {
 			const segment = segments[i];
+			const rightEdge = segment.x + segment.width;
 
-			// if this is past the insertion point, then
-			// it's time to divide the segments
-			const edge = getRightEdge(segment);
-			if (edge > position) {
+			// start finding everything to move
+			if (rightEdge <= anchorTo) {
+				shiftLeftBy = rightEdge
+			}
+			// at the split
+			else {
 
-				// calculate the amount to move by
-				const shiftBy = position - edge;
-
-				// nudge left layers back
-				for (let j = (i + 1); j--> 0;) {
-					segments[j].addX(shiftBy);
+				// for all blocks to the left of the inserted block
+				// simply shift them over by the required 
+				for (let j = (i - 1); j >= 0; j--) {
+					const adjust = segments[j];
+					adjust.x -= shiftLeftBy;
 				}
+
+				// define the starting point for blocks that are
+				// placed ot the right of the inserted block
+				shiftRightBy = anchorTo - segment.x;
+				for (let j = i; i < totalSegments; i++) {
+					const adjust = segments[j];
+					const previous = segments[j - 1];
+
+					// move to the new position
+					adjust.x = anchorTo;
+
+					// if there's a previous point to use, move over
+					if (previous && j !== i) {
+						adjust.x += previous.width + previous.x;
+					}
+
+
+					// // if this isn't the first block, grab the prior
+					// // width to determine how far to 
+					// const previous = j === i ? null : segments[j - 1]
+					// adjust.x = anchorTo + ((previous?.width + previous?.x) || 0)
+				}
+
 				
-				// for remaining segments, move them to the right
-				for (let j = (i + 1); j < total; j++) {
-					segments[j].addX(shiftBy);
-					segments[j].addX(width);
-				}
-
-				// all finished
-				return;
+				break;
 			}
 
+			// // hasn't found the insert point yet
+			// if (!inserted) {
+
+			// 	// if this segment is fully to the left of the
+			// 	// inserted block, add it to the view
+			// 	if (rightEdge < 0) {
+			// 		shiftLeftBy += segment.width;
+			// 	}
+			// 	// this appears to be partially overlapping the newly
+			// 	// inserted block, just add the difference
+			// 	else {
+			// 		shiftLeftBy += rightEdge;
+			// 		shiftRightBy = width - rightEdge;
+			// 		inserted = true;
+
+			// 		console.log('shift', shiftLeftBy, shiftRightBy)
+
+			// 		// console.log('bef', segments.map(item => ({ ...item })))
+
+			// 		// console.log('is at', i)
+			// 		// // segment.x -= shiftLeftBy + 1500;
+			// 		// segments[0].x = -1500
+			// 		// console.log(segments[0].pivot)
+
+			// 		// // and since it's been inserted, go back and
+			// 		// // update all prior blocks
+			// 		// for (let j = (i - 1); j >= 0; j--) {
+			// 		// 	const prior = segments[j];
+			// 		// 	prior.x -= shiftLeftBy;
+			// 		// }
+
+			// 		// for (let j = (i + 1); j < totalSegments; j++) {
+			// 		// 	const next = segments[j];
+			// 		// 	next.x += shiftRightBy;
+			// 		// }
+
+			// 		console.log('aft', segments)
+
+			// 		break;
+			// 	}
+
+			// }
+
+
+
 		}
+		
+
+		// // move the last one to the front
+		// const last = segments.pop();
+		// segments.unshift(last)
+		// last.x = -last.width;
+
+		// // move the remaining over
+		// for (let i = 1; i < totalSegments; i++) {
+		// 	const segment = segments[i];
+		// 	segment.x += width;
+
+		// 	// if (inserted) {
+		// 	// 	shift = segments.pop()
+
+		// 	// }
+			
+		// }
+
+		// // TODO: if the road is a defined sequence, then we should
+		// // move all rows so they're sorted by their sequence again
+		// // this can probably be done by sorting positions first and
+		// // then copying the final values and setting again
+
+		// // make sure to sort before starting since it's
+		// // possible for the array to not match the
+		// // visual sequence
+		// // segments.sort(byRightEdge);
+		
+		// // get the inserted block into place
+		// const bounds = getBoundsForRole(block.bottom, 'base');
+		// const width = bounds.width;
+		// block.setX(0);
+
+		// // start checking each segment
+		// const { length: total } = segments;
+		// for (let i = 0; i < total; i++) {
+		// 	const segment = segments[i];
+
+		// 	// if this is past the insertion point, then
+		// 	// it's time to divide the segments
+		// 	const edge = getRightEdge(segment);
+		// 	if (edge > position) {
+
+		// 		// calculate the amount to move by
+		// 		const shiftBy = position - edge;
+
+		// 		// nudge left layers back
+		// 		for (let j = (i + 1); j--> 0;) {
+		// 			segments[j].addX(shiftBy);
+		// 		}
+				
+		// 		// for remaining segments, move them to the right
+		// 		for (let j = (i + 1); j < total; j++) {
+		// 			segments[j].addX(shiftBy);
+		// 			segments[j].addX(width);
+		// 		}
+
+		// 		// all finished
+		// 		return;
+		// 	}
+
+		// }
 
 	}
 
 }
 
 // helpers
-const getRightEdge = t => t.bottom.x + t.bounds.width;
+const getRightEdge = t => t.x + t.width;
 const byRightEdge = (a, b) => getRightEdge(a) - getRightEdge(b);
 
 

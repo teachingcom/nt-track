@@ -54,9 +54,9 @@ export default class TrackView extends BaseView {
 		PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.LINEAR
 		PIXI.settings.PRECISION_VERTEX = PIXI.PRECISION.LOW
 		PIXI.settings.PRECISION_FRAGMENT = PIXI.PRECISION.LOW
-		PIXI.settings.MIPMAP_TEXTURES = PIXI.MIPMAP_MODES.OFF
+		PIXI.settings.MIPMAP_TEXTURES = PIXI.MIPMAP_MODES.ON
 		PIXI.settings.ROUND_PIXELS = true
-		
+
 		super(...args)
 		window.TRACK = this
 	}
@@ -89,7 +89,8 @@ export default class TrackView extends BaseView {
 	async init(options) {
 		options = merge({
 			scale: { height: scaling.BASE_HEIGHT },
-			dynamicPerformanceCacheKey: 'track'
+			dynamicPerformanceCacheKey: 'track',
+			preserveBuffer: true
 		}, options);
 		
 		// base class init

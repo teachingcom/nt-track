@@ -57,7 +57,7 @@ export class BaseView extends EventEmitter {
 			// autoDensity: true,
 			antialias: false, // doesn't appear to change anything
 			smoothProperty: 'none', // doesn't appear to change anything
-			preserveDrawingBuffer: true,
+			preserveDrawingBuffer: options.preserveBuffer,
 			transparent,
 			clearBeforeRender,
 			backgroundColor

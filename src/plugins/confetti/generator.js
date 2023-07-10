@@ -1,4 +1,4 @@
-import { PIXI, createContext, drawPixiTexture } from 'nt-animator';
+import { PIXI, createContext, drawPixiTexture, RAD } from 'nt-animator';
 import { LAYER_TRACK_OVERLAY } from '../../views/track/layers';
 
 const PARTICLE_COUNT = 125;
@@ -17,137 +17,75 @@ const INDEX_ROTATION = 6;
 export default class FastConfetti {
 
 	static async create(animator, track) {
+		const tx1 = makeConfettiTexture()
+		const tx2 = makeConfettiTexture()
+		const tx3 = makeConfettiTexture()
+
+		const generator = new PIXI.Container();
 		
-		const instance = new FastConfetti(track);
-		instance.c1 = await animator.getImage('particles', 'confetti_1');
-		instance.c2 = await animator.getImage('particles', 'confetti_2');
-		instance.c3 = await animator.getImage('particles', 'confetti_3');
-		instance.c4 = await animator.getImage('particles', 'confetti_4');
+		const config = {
+			particlesPerWave: 2,
+			maxParticles: 30,
+			frequency: 0.25,
+			spawnChance: 1,
+			alpha: { list: [{ value: 1, time: 0 }, { value: 1, time: 0.9 }, { value: 0, time: 1 }]},
+
+			speed: { start: 200, end: 300 },
+			startRotation: { min: 93, max: 98 }, 
+			rotationSpeed: { min: 7, max: 15 },
+			orderedArt: true,
+
+			spawnRect: { w: track.width, h: 0, x: 0, y: -200 },
+			spawnType: 'rect',
+
+			// noRotation: true,
+			lifetime: { min: 5, max: 5 },
+			pos: {
+				x: 0,
+				y: 0
+			}
+		};
+
+
+		const emitter = new PIXI.Particles.Emitter(generator, [ tx1, tx2, tx3 ], config)
+		emitter.config = config;
+		emitter.autoUpdate = true;
+		emitter.emit = true;
 
 		// use the build in canvas, if possible
-		return instance;
+		generator.zIndex = LAYER_TRACK_OVERLAY;
+		return generator;
 	}
 
-	constructor(track) {
-		this.track = track;
-		this.view = track.view;
+}
 
-		// if this is using canvas, just draw
-		// directly onto the scene
-		if (this.track.isUsingCanvas) {
-			this.context = {
-				canvas: this.track.renderer.view,
-				ctx: this.track.renderer.context
-			};
+function makeConfettiTexture() {
+	const size = 512;
+	const colors = ['#25F2E2', '#854AFF', '#F228A1', '#FD3E11', '#FEE141', '#CBFB0A', '#0AF75C', '#FF2600'];
+	let colorIndex = 0
+	const { length: total } = colors;
+	const context = createContext(size, size);
+	const { ctx, canvas } = context;
+	canvas.width = canvas.height = size;
 
-			// helper util function
-			this.context.ctx.drawTexture = drawPixiTexture;
-			this.isDirectDraw = true;
-			this.alpha = 0;
-		}
-		// if it's webGL then we need a texture
-		else {
-			this.context = createContext(1000, 1000);
-			this.texture = PIXI.Texture.from(this.context.canvas);
-			this.sprite = new PIXI.Sprite(this.texture);
-			this.sprite.zIndex = LAYER_TRACK_OVERLAY;
-			this.isDirectDraw = false;
-		}
+	// draw some particles
+	const edge = 10;
+	const padding = edge * 2;
+	const offset = size - padding;
+	const totalParticles = 22;
 
-	}
+	for (let i = 0; i < totalParticles; i++) {
+		const x = ((offset) * Math.random()) + edge;
+		const y = ((offset) * Math.random()) + edge;
 
-	particles = [ ]
-
-	// creates a new particle value
-	createParticle = () => {
-		const pick = [this.c1, this.c2, this.c3, this.c4][0 | (Math.random() * 4)];
-		const dir = (Math.PI * 0.475) + (Math.random() * (Math.PI * 0.33));
-		const originX = Math.random() * this.view.width;
-		const originY = -DEFAULT_PARTICLE_SIZE * 2;
-		const speed = 1 + Math.random() * 2;
-		const movementX = Math.cos(dir) * speed;
-		const movementY = Math.sin(dir) * speed;
-		const life = Math.random() * 200;
-
-		// save the particle
-		return [ pick, life, movementX, movementY, originX, originY, Math.random() * Math.PI ];
-	}
-
-	// handles updating confetti effects
-	update = () => {
-		const {
-			sprite,
-			context,
-			view,
-			particles,
-			track,
-			texture,
-			isDirectDraw
-		} = this;
-		
-		// calculate the new size
-		const { ctx, canvas } = context;
-		const { width, height, scaleX } = view;
-		const { delta } = track.state;
-
-		// pre-calculate a few values
-		const size = scaleX * DEFAULT_PARTICLE_SIZE;
-		const offscreen = height + 5;
-
-		// match size
 		ctx.setTransform(1, 0, 0, 1, 0, 0);
-
-		// is rendering directly to the canvas
-		if (isDirectDraw) {
-			// fade in the effect
-			ctx.globalAlpha = Math.min(1, this.alpha);
-			this.alpha += 0.01;
-		}
-		// is drawing to a texture
-		else {
-			// reset the canvas when using a texture
-			sprite.width = canvas.width = width;
-			sprite.height = canvas.height = height;
-		}
-
-		// update all particles
-		for (let i = PARTICLE_COUNT; i-- > 0;) {
-			let particle = particles[i];
-
-			// create a new particle
-			if (!particle) {
-				particle = this.createParticle();
-				particles.push(particle);
-			}
-
-			// adjust
-			particle[INDEX_LIFE] += (1 * delta);
-			particle[INDEX_ROTATION] += (0.05 * delta);
-			const x = (particle[INDEX_MOVEMENT_X] * particle[INDEX_LIFE]) + particle[INDEX_ORIGIN_X];
-			const y = (particle[INDEX_MOVEMENT_Y] * particle[INDEX_LIFE]) + particle[INDEX_ORIGIN_Y];
-
-			// reset the particle
-			if (y > offscreen) particle[INDEX_LIFE] = 0;
-
-			// doesn't look as good, but faster on chromebooks
-			ctx.drawTexture(particle[INDEX_SPRITE], x, y, size, size);
-			
-			// looks better but is slower
-			// create a slight drifing effect
-			// const drift = (Math.sin(particle[INDEX_LIFE]) * 0.01) * -50;
-
-			// draw the particle
-			// ctx.translate(x, y);
-			// ctx.rotate(particle[INDEX_ROTATION]);
-			// ctx.translate(drift, 0);
-			// ctx.drawImage(particle[INDEX_SPRITE], 0, 0, size, size);
-			// ctx.setTransform(1, 0, 0, 1, 0, 0);
-
-		}
-
-		// refresh the texture
-		if (texture)
-			texture.update();
+		ctx.translate(x, y);
+		ctx.rotate(Math.random() * Math.PI);
+		const cs = Math.floor(8 + (6 * Math.random()))
+		ctx.fillStyle = colors[(++colorIndex) % total]
+		ctx.fillRect(0, 0, cs, cs);
 	}
 
+	const texture = PIXI.Texture.from(canvas);
+	return texture;
 }
