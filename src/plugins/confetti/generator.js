@@ -17,29 +17,32 @@ const INDEX_ROTATION = 6;
 export default class FastConfetti {
 
 	static async create(animator, track) {
-		const tx1 = makeConfettiTexture()
-		const tx2 = makeConfettiTexture()
-		const tx3 = makeConfettiTexture()
-
-		const generator = new PIXI.Container();
+		const tx1 = makeConfettiTexture();
+		const tx2 = makeConfettiTexture();
+		const tx3 = makeConfettiTexture();
 		
+		const calculateLifetime = ({ speed }) => {
+			const time = (track.view.height / ((speed.start + speed.end) * 0.5)) * 0.9;
+			return { min: time, max: time };
+		};
+		
+		const generator = new PIXI.Container();
+
+		// create the base config
 		const config = {
 			particlesPerWave: 2,
-			maxParticles: 30,
+			maxParticles: 40,
 			frequency: 0.25,
 			spawnChance: 1,
-			alpha: { list: [{ value: 1, time: 0 }, { value: 1, time: 0.9 }, { value: 0, time: 1 }]},
+			alpha: { list: [{ value: 0, time: 0 }, { value: 1, time: 0.1 }, { value: 1, time: 0.9 }, { value: 0, time: 1 }]},
 
-			speed: { start: 200, end: 300 },
 			startRotation: { min: 93, max: 98 }, 
-			rotationSpeed: { min: 7, max: 15 },
+			rotationSpeed: { min: -18, max: 18 },
 			orderedArt: true,
 
-			spawnRect: { w: track.width, h: 0, x: 0, y: -200 },
+			spawnRect: { w: track.view.width, h: 0, x: 0, y: 0 },
 			spawnType: 'rect',
 
-			// noRotation: true,
-			lifetime: { min: 5, max: 5 },
 			pos: {
 				x: 0,
 				y: 0
@@ -47,10 +50,47 @@ export default class FastConfetti {
 		};
 
 
-		const emitter = new PIXI.Particles.Emitter(generator, [ tx1, tx2, tx3 ], config)
-		emitter.config = config;
-		emitter.autoUpdate = true;
-		emitter.emit = true;
+		// create the emitter instance
+		const config1 = { ...config, speed: { start: 350, end: 420 }, maxParticles: 25, freq: 0.25, scale: { start: 0.9, end: 0.6 } };
+		const config2 = { ...config, speed: { start: 220, end: 310 }, maxParticles: 15, freq: 1, scale: { start: 1.1, end: 0.8 } };
+		const emitter1 = new PIXI.Particles.Emitter(generator, [ tx1, tx2, tx3 ], { ...config1, lifetime: calculateLifetime(config1) });
+		const emitter2 = new PIXI.Particles.Emitter(generator, [ tx1, tx2, tx3 ], { ...config2, lifetime: calculateLifetime(config2) });
+		
+		// make sure to update values when the track size changes
+		track.on('resize', () => { 
+			emitter1.spawnRect.width = emitter2.spawnRect.width = track.view.width;
+
+			const life1 = calculateLifetime(config1);
+			const life2 = calculateLifetime(config2);
+			
+			emitter1.maxLifetime = emitter1.minLifetime = life1.min;
+			emitter2.maxLifetime = emitter2.minLifetime = life2.min;
+		});
+
+		// const _spawnFunc = emitter._spawnFunc;
+		// emitter._spawnFunc = (...args) => {
+		// 	_spawnFunc.apply(emitter, args);
+
+		// 	// update speeds
+		// 	emitter.startSpeed.value = speed.start + ((speed.start * 0.75) * Math.random())
+		// 	emitter.startSpeed.next.value = speed.end + ((speed.end * 0.75) * Math.random())
+
+		// 	// emitter.maxSpeed = speed.end + ((speed.end * 0.25) * Math.random())
+		// };
+		
+
+		// emitter.parent.x = track.width * 0.5
+		emitter1.config = config;
+		emitter1.autoUpdate = true;
+		emitter1.emit = true;
+
+		emitter2.config = config;
+		emitter2.autoUpdate = true;
+		emitter2.emit = true;
+
+		// window.EMM = emitter
+
+
 
 		// use the build in canvas, if possible
 		generator.zIndex = LAYER_TRACK_OVERLAY;
@@ -61,12 +101,14 @@ export default class FastConfetti {
 
 function makeConfettiTexture() {
 	const size = 512;
-	const colors = ['#25F2E2', '#854AFF', '#F228A1', '#FD3E11', '#FEE141', '#CBFB0A', '#0AF75C', '#FF2600'];
+	
 	let colorIndex = 0
-	const { length: total } = colors;
 	const context = createContext(size, size);
 	const { ctx, canvas } = context;
 	canvas.width = canvas.height = size;
+	
+	const colors = ['#25F2E2', '#854AFF', '#F228A1', '#FD3E11', '#FEE141', '#CBFB0A', '#0AF75C', '#FF2600'];
+	const { length: total } = colors;
 
 	// draw some particles
 	const edge = 10;
@@ -82,7 +124,17 @@ function makeConfettiTexture() {
 		ctx.translate(x, y);
 		ctx.rotate(Math.random() * Math.PI);
 		const cs = Math.floor(8 + (6 * Math.random()))
-		ctx.fillStyle = colors[(++colorIndex) % total]
+		
+		const shiftA = Math.random()
+		const shiftB = 1 - shiftA;
+		const skewA = shiftA * 0.3;
+		const skewB = shiftB * 0.3;
+		ctx.transform(1, skewA, skewB, 1, 0, 0);
+		
+		const useColor = (++colorIndex) % total;
+		ctx.shadowColor = colors[useColor];
+		ctx.shadowBlur = 10;
+		ctx.fillStyle = colors[useColor];
 		ctx.fillRect(0, 0, cs, cs);
 	}
 
