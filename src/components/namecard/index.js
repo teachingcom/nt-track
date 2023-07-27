@@ -1,6 +1,6 @@
 // TODO: refactor this file after introducing SSAA
 
-import { isNumber, merge } from '../../utils';
+import { isArray, isNumber, merge } from '../../utils';
 import { toRGBA } from '../../utils/color';
 import { PIXI, createContext, getBoundsForRole, removeDisplayObject } from 'nt-animator';
 
@@ -181,7 +181,15 @@ export default class NameCard extends PIXI.Container {
 		// prepare to draw text
 		ctx.textBaseline = 'top';
 		ctx.textAlignment = 'left';
-		ctx.font = `${DEFAULT_NAMECARD_FONT_WEIGHT} ${DEFAULT_NAMECARD_FONT_SIZE}px ${DEFAULT_NAMECARD_FONT_NAME}`;
+
+		// check for fonts
+		let font = [ DEFAULT_NAMECARD_FONT_NAME ];
+		if (config.text?.font) {
+			const include = isArray(config.text.font) ? config.text.font : [ config.text.font ];
+			font.unshift(...include);
+		}
+
+		ctx.font = `${DEFAULT_NAMECARD_FONT_WEIGHT} ${DEFAULT_NAMECARD_FONT_SIZE}px ${font.join(', ')}`;
 
 		// render the text
 		ctx.translate(0, cy + DEFAULT_CENTER_PADDING);

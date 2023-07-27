@@ -90257,6 +90257,8 @@ var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"))
 
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
+var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
+
 var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
 
 var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
@@ -90329,6 +90331,8 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
       _this.x = 0 | x; // this.y = 0 | this.y;
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "_renderOverlay", function () {
+      var _config$text;
+
       var _assertThisInitialize = (0, _assertThisInitialized2.default)(_this),
           displayName = _assertThisInitialize.displayName,
           icons = _assertThisInitialize.icons,
@@ -90364,22 +90368,30 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
 
 
       ctx.textBaseline = 'top';
-      ctx.textAlignment = 'left';
-      ctx.font = "".concat(DEFAULT_NAMECARD_FONT_WEIGHT, " ").concat(DEFAULT_NAMECARD_FONT_SIZE, "px ").concat(DEFAULT_NAMECARD_FONT_NAME); // render the text
+      ctx.textAlignment = 'left'; // check for fonts
+
+      var font = [DEFAULT_NAMECARD_FONT_NAME];
+
+      if ((_config$text = config.text) === null || _config$text === void 0 ? void 0 : _config$text.font) {
+        var include = (0, _utils.isArray)(config.text.font) ? config.text.font : [config.text.font];
+        font.unshift.apply(font, (0, _toConsumableArray2.default)(include));
+      }
+
+      ctx.font = "".concat(DEFAULT_NAMECARD_FONT_WEIGHT, " ").concat(DEFAULT_NAMECARD_FONT_SIZE, "px ").concat(font.join(', ')); // render the text
 
       ctx.translate(0, cy + DEFAULT_CENTER_PADDING);
 
       for (var _i = 0, _arr = [{
         color: shadowColor,
         y: ('shadowY' in (config.text || {})) ? config.text.shadowY || 0 : 4,
-        blur: ((_config$text = config.text) === null || _config$text === void 0 ? void 0 : _config$text.shadowBlur) || 0,
+        blur: ((_config$text2 = config.text) === null || _config$text2 === void 0 ? void 0 : _config$text2.shadowBlur) || 0,
         isShadow: true
       }, {
         color: textColor,
         y: 0,
         blur: 0
       }]; _i < _arr.length; _i++) {
-        var _config$text;
+        var _config$text2;
 
         var style = _arr[_i];
 
@@ -90587,9 +90599,9 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
       var full = [team && "[".concat(team, "]"), name].join(' '); // measure to fit
 
       if (full.length > NAMECARD_MAX_NAME_LENGTH) {
-        var _config$text2;
+        var _config$text3;
 
-        var maxWidth = ((_config$text2 = config.text) === null || _config$text2 === void 0 ? void 0 : _config$text2.maxWidth) || NAMECARD_MAXIMUM_WIDTH;
+        var maxWidth = ((_config$text3 = config.text) === null || _config$text3 === void 0 ? void 0 : _config$text3.maxWidth) || NAMECARD_MAXIMUM_WIDTH;
         var safety = full.length;
 
         while (--safety > 0) {
@@ -90795,7 +90807,7 @@ function drawIcons(ctx, icons) {
 function clean(str) {
   return (str || '').toString().replace(/^\s*|\s*$/g, '').replace(/\s+/, ' ');
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../utils":"utils/index.js","../../utils/color":"utils/color.js","nt-animator":"../node_modules/nt-animator/dist/index.js"}],"components/nitro/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../utils":"utils/index.js","../../utils/color":"utils/color.js","nt-animator":"../node_modules/nt-animator/dist/index.js"}],"components/nitro/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -111314,7 +111326,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '1.7.0';
+  window.NTTRACK = '1.8.0';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
