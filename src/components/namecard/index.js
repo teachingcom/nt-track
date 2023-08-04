@@ -189,7 +189,7 @@ export default class NameCard extends PIXI.Container {
 			font.unshift(...include);
 		}
 
-		ctx.font = `${DEFAULT_NAMECARD_FONT_WEIGHT} ${DEFAULT_NAMECARD_FONT_SIZE}px ${font.join(', ')}`;
+		ctx.font = `${DEFAULT_NAMECARD_FONT_WEIGHT} ${DEFAULT_NAMECARD_FONT_SIZE * (config.text?.scale || 1)}px ${font.join(', ')}`;
 
 		// render the text
 		ctx.translate(0, cy + DEFAULT_CENTER_PADDING);

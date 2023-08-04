@@ -1,5 +1,5 @@
 
-import { animate, PIXI } from 'nt-animator';
+import { animate, findDisplayObjectsOfRole, PIXI, removeDisplayObject } from 'nt-animator';
 import { merge } from '../../utils';
 import * as audio from '../../audio';
 import { BaseView } from '../base';
@@ -58,7 +58,7 @@ export default class TrackView extends BaseView {
 		PIXI.settings.ROUND_PIXELS = true
 
 		super(...args)
-		window.TRACK = this
+		// window.TRACK = this
 	}
 
 	// global effect filter
@@ -755,6 +755,13 @@ export default class TrackView extends BaseView {
 	}
 
 	lastUpdate = +new Date;
+
+	removeShadows = () => {
+		const shadows = findDisplayObjectsOfRole(this.view, 'shadow')
+		for (const shadow of shadows) {
+			removeDisplayObject(shadow);
+		}
+	}
 
 	// handle rendering the track in the requested state
 	render(force) {

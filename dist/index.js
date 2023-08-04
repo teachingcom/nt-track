@@ -90331,7 +90331,7 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
       _this.x = 0 | x; // this.y = 0 | this.y;
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "_renderOverlay", function () {
-      var _config$text;
+      var _config$text, _config$text2;
 
       var _assertThisInitialize = (0, _assertThisInitialized2.default)(_this),
           displayName = _assertThisInitialize.displayName,
@@ -90377,21 +90377,21 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
         font.unshift.apply(font, (0, _toConsumableArray2.default)(include));
       }
 
-      ctx.font = "".concat(DEFAULT_NAMECARD_FONT_WEIGHT, " ").concat(DEFAULT_NAMECARD_FONT_SIZE, "px ").concat(font.join(', ')); // render the text
+      ctx.font = "".concat(DEFAULT_NAMECARD_FONT_WEIGHT, " ").concat(DEFAULT_NAMECARD_FONT_SIZE * (((_config$text2 = config.text) === null || _config$text2 === void 0 ? void 0 : _config$text2.scale) || 1), "px ").concat(font.join(', ')); // render the text
 
       ctx.translate(0, cy + DEFAULT_CENTER_PADDING);
 
       for (var _i = 0, _arr = [{
         color: shadowColor,
         y: ('shadowY' in (config.text || {})) ? config.text.shadowY || 0 : 4,
-        blur: ((_config$text2 = config.text) === null || _config$text2 === void 0 ? void 0 : _config$text2.shadowBlur) || 0,
+        blur: ((_config$text3 = config.text) === null || _config$text3 === void 0 ? void 0 : _config$text3.shadowBlur) || 0,
         isShadow: true
       }, {
         color: textColor,
         y: 0,
         blur: 0
       }]; _i < _arr.length; _i++) {
-        var _config$text2;
+        var _config$text3;
 
         var style = _arr[_i];
 
@@ -90599,9 +90599,9 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
       var full = [team && "[".concat(team, "]"), name].join(' '); // measure to fit
 
       if (full.length > NAMECARD_MAX_NAME_LENGTH) {
-        var _config$text3;
+        var _config$text4;
 
-        var maxWidth = ((_config$text3 = config.text) === null || _config$text3 === void 0 ? void 0 : _config$text3.maxWidth) || NAMECARD_MAXIMUM_WIDTH;
+        var maxWidth = ((_config$text4 = config.text) === null || _config$text4 === void 0 ? void 0 : _config$text4.maxWidth) || NAMECARD_MAXIMUM_WIDTH;
         var safety = full.length;
 
         while (--safety > 0) {
@@ -105993,7 +105993,8 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       args[_key] = arguments[_key];
     }
 
-    _this = _super.call.apply(_super, [this].concat(args));
+    _this = _super.call.apply(_super, [this].concat(args)); // window.TRACK = this
+
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "colorFilter", new _ntAnimator.PIXI.filters.ColorMatrixFilter());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "frame", 0);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "activePlayers", {});
@@ -106722,6 +106723,23 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       }
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "lastUpdate", +new Date());
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "removeShadows", function () {
+      var shadows = (0, _ntAnimator.findDisplayObjectsOfRole)(_this.view, 'shadow');
+
+      var _iterator4 = _createForOfIteratorHelper(shadows),
+          _step4;
+
+      try {
+        for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+          var shadow = _step4.value;
+          (0, _ntAnimator.removeDisplayObject)(shadow);
+        }
+      } catch (err) {
+        _iterator4.e(err);
+      } finally {
+        _iterator4.f();
+      }
+    });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "finalizePerformanceTracking", function () {
       var actualFps = _this.fps.phaserFPS.actualFps; // if for some reason the FPS is zero, do not replace
       // the score since it'll force the lowest settings
@@ -106735,7 +106753,6 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
         _this.performance.finalize();
       }
     });
-    window.TRACK = (0, _assertThisInitialized2.default)(_this);
     return _this;
   } // global effect filter
 
@@ -106804,12 +106821,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     value: function resolveWaitingTrackRequests() {
       this.isTrackReady = true;
 
-      var _iterator4 = _createForOfIteratorHelper(this._waitingForTrack),
-          _step4;
+      var _iterator5 = _createForOfIteratorHelper(this._waitingForTrack),
+          _step5;
 
       try {
-        for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-          var resolve = _step4.value;
+        for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
+          var resolve = _step5.value;
 
           try {
             resolve(this.track);
@@ -106818,9 +106835,9 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
           }
         }
       } catch (err) {
-        _iterator4.e(err);
+        _iterator5.e(err);
       } finally {
-        _iterator4.f();
+        _iterator5.f();
       }
     } // gets the currently loaded track instance
 
@@ -111326,7 +111343,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '1.8.0';
+  window.NTTRACK = '1.9.0';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
