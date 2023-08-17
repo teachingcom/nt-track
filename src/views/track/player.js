@@ -142,7 +142,8 @@ export default class Player extends PIXI.ResponsiveContainer {
 		return Nitro.create({
 			view,
 			baseHeight: SCALED_CAR_HEIGHT,
-			type: mods.nitro
+			type: mods.nitro,
+			useAudio: true
 		});
 	}
 

@@ -90592,6 +90592,7 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
       var hasPlayerRank = !!playerRankIcon; // debug
       // options.name = '|||||.|||||.|||||.|||||.|||||';
       // options.team = ' TALK ';
+      // console.log('is usong', options, this)
       // create the full name
 
       var name = clean(options.name);
@@ -90998,19 +90999,21 @@ var Nitro = /*#__PURE__*/function (_PIXI$Container) {
                 sound = audio.create('sfx', key);
 
               case 11:
+                console.log('did find', sound); // no sound was found?
+
                 if (sound) {
-                  _context2.next = 13;
+                  _context2.next = 14;
                   break;
                 }
 
                 return _context2.abrupt("return");
 
-              case 13:
+              case 14:
                 // prepare the sound
                 this.sound = sound;
                 sound.loop(false);
 
-              case 15:
+              case 16:
               case "end":
                 return _context2.stop();
             }
@@ -91138,18 +91141,22 @@ var Nitro = /*#__PURE__*/function (_PIXI$Container) {
                 // load the nitro sound - there's no reason
                 // to wait for this since it can't be used
                 // until after the race starts
-                // instance._initSound();
-                instance._applyConfig(); // if this didn't load for some reason
+                instance._applyConfig(); // require nitro sounds to be included
+
+
+                if (options.useAudio) {
+                  instance._initSound();
+                } // if this didn't load for some reason
 
 
                 if (instance.isValid) {
-                  _context3.next = 18;
+                  _context3.next = 19;
                   break;
                 }
 
                 return _context3.abrupt("return");
 
-              case 18:
+              case 19:
                 // check for visibility
                 if (this.shouldFadeIn) {
                   this.alpha = 0;
@@ -91158,7 +91165,7 @@ var Nitro = /*#__PURE__*/function (_PIXI$Container) {
 
                 return _context3.abrupt("return", instance);
 
-              case 20:
+              case 21:
               case "end":
                 return _context3.stop();
             }
@@ -91412,7 +91419,8 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                 return _context3.abrupt("return", _nitro.default.create({
                   view: view,
                   baseHeight: _scaling.SCALED_CAR_HEIGHT,
-                  type: mods.nitro
+                  type: mods.nitro,
+                  useAudio: true
                 }));
 
               case 5:
@@ -105993,8 +106001,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
       args[_key] = arguments[_key];
     }
 
-    _this = _super.call.apply(_super, [this].concat(args)); // window.TRACK = this
-
+    _this = _super.call.apply(_super, [this].concat(args));
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "colorFilter", new _ntAnimator.PIXI.filters.ColorMatrixFilter());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "frame", 0);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "activePlayers", {});
@@ -106753,6 +106760,11 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
         _this.performance.finalize();
       }
     });
+
+    if (_config.DEVELOPMENT) {
+      window.TRACK = (0, _assertThisInitialized2.default)(_this);
+    }
+
     return _this;
   } // global effect filter
 
@@ -107480,6 +107492,12 @@ var _config = require("../../config");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -107722,7 +107740,8 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
     }());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "createCar", /*#__PURE__*/function () {
       var _ref4 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(config) {
-        var view, tweaks, player, container, car, display, scale, configScale, trail;
+        var view, tweaks, player, container, car, display, scale, configScale, trail, inner, _iterator, _step, child;
+
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
@@ -107788,7 +107807,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 trail = _context4.sent;
                 // add to the view
                 player.addChild(trail);
-                trail.scale.x = trail.scale.y = scale;
+                trail.scale.x = trail.scale.y = (0, _utils.isNumber)(tweaks.trailScale) ? tweaks.trailScale : scale;
                 trail.x = car.positions.back * (car.pivot.x * (scale / configScale));
 
                 _trail.default.setLayer(trail, car);
@@ -107811,9 +107830,38 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                   container.rotation += Math.PI * 2 * tweaks.rotation;
                 }
 
+                if ((0, _utils.isNumber)(tweaks.offsetX)) {
+                  container.x += tweaks.offsetX;
+                }
+
+                if ((0, _utils.isNumber)(tweaks.offsetY)) {
+                  container.y += tweaks.offsetY;
+                }
+
+                if ((0, _utils.isNumber)(tweaks.viewScale)) {
+                  inner = new _ntAnimator.PIXI.Container();
+                  inner.scale.x *= tweaks.viewScale;
+                  inner.scale.y *= tweaks.viewScale; // move all children
+
+                  _iterator = _createForOfIteratorHelper(container.children);
+
+                  try {
+                    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                      child = _step.value;
+                      inner.addChild(child);
+                    }
+                  } catch (err) {
+                    _iterator.e(err);
+                  } finally {
+                    _iterator.f();
+                  }
+
+                  container.addChild(inner);
+                }
+
                 return _context4.abrupt("return", container);
 
-              case 34:
+              case 37:
               case "end":
                 return _context4.stop();
             }
@@ -110847,12 +110895,19 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
           while (1) {
             switch (_context5.prev = _context5.next) {
               case 0:
-                _context5.next = 2;
+                if (this.options.assetOnly) {
+                  _context5.next = 4;
+                  break;
+                }
+
+                _context5.next = 3;
                 return this._initCarBumper();
 
-              case 2:
+              case 3:
                 bumper = _context5.sent;
-                _context5.next = 5;
+
+              case 4:
+                _context5.next = 6;
                 return _namecard.default.create(_objectSpread(_objectSpread(_objectSpread({
                   view: this,
                   baseHeight: this.preferredHeight
@@ -110860,26 +110915,35 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
                   type: this.options.path
                 }));
 
-              case 5:
+              case 6:
                 namecard = _context5.sent;
+
                 // set positions
-                bumper.x = namecard.width * 0.5;
-                bumper.scale.x = bumper.scale.y = 1.85;
-                namecard.x = namecard.width * -0.075;
-                bumper.x += namecard.x * 0.5; // since we're using the trail class for the trail
+                if (bumper) {
+                  bumper.x = namecard.width * 0.5;
+                  bumper.scale.x = bumper.scale.y = 1.85;
+                  bumper.x += namecard.x * 0.5;
+                  namecard.x = namecard.width * -0.075;
+                } // since we're using the trail class for the trail
                 // we need a shared container to help make sure
                 // the trail lines up correctly using the 
                 // attachTo function
 
+
                 contain = new _ntAnimator.PIXI.Container();
                 contain.sortableChildren = true;
-                contain.addChild(namecard);
-                contain.addChild(bumper);
+                contain.addChild(namecard); // add the bumper, if any
+
+                if (bumper) {
+                  contain.addChild(bumper);
+                } // display
+
+
                 contain.sortChildren();
                 namecard.visible = true;
                 this.container.addChild(contain);
 
-              case 17:
+              case 15:
               case "end":
                 return _context5.stop();
             }
@@ -111044,6 +111108,8 @@ var _base = require("../base");
 
 var _activity = _interopRequireDefault(require("../../components/activity"));
 
+var _config = require("../../config");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
@@ -111159,7 +111225,10 @@ var NameCardView = /*#__PURE__*/function (_BaseView) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                window.PREVIEW = this; // initialize the view
+                if (_config.DEVELOPMENT) {
+                  window.PREVIEW = this;
+                } // initialize the view
+
 
                 _context2.next = 3;
                 return (0, _get2.default)((0, _getPrototypeOf2.default)(NameCardView.prototype), "init", this).call(this, _objectSpread({
@@ -111251,7 +111320,7 @@ function fadeIn(target) {
     }
   });
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/namecard":"components/namecard/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../components/activity":"components/activity.js"}],"index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/namecard":"components/namecard/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../components/activity":"components/activity.js","../../config":"config.js"}],"index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -111343,7 +111412,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '1.9.0';
+  window.NTTRACK = '2.1.0';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

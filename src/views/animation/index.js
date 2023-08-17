@@ -182,7 +182,12 @@ export default class AnimationView extends BaseView {
 
 	async _initNametagPreview() {
 		// load the user car
-		const bumper = await this._initCarBumper()	
+		let bumper
+		if (!this.options.assetOnly) {
+			bumper = await this._initCarBumper()	
+		}
+
+		// create the nametag
 		const namecard = await NameCard.create({
 			view: this,
 			baseHeight: this.preferredHeight,
@@ -192,10 +197,12 @@ export default class AnimationView extends BaseView {
 		})
 
 		// set positions
-		bumper.x = (namecard.width * 0.5)
-		bumper.scale.x = bumper.scale.y = 1.85
-		namecard.x = namecard.width * -0.075
-		bumper.x += (namecard.x * 0.5)
+		if (bumper) {
+			bumper.x = (namecard.width * 0.5)
+			bumper.scale.x = bumper.scale.y = 1.85
+			bumper.x += (namecard.x * 0.5)
+			namecard.x = namecard.width * -0.075
+		}
 
 		// since we're using the trail class for the trail
 		// we need a shared container to help make sure
@@ -204,11 +211,15 @@ export default class AnimationView extends BaseView {
 		const contain = new PIXI.Container()
 		contain.sortableChildren = true
 		contain.addChild(namecard)
-		contain.addChild(bumper)
-		contain.sortChildren()
-		
-		namecard.visible = true
 
+		// add the bumper, if any
+		if (bumper) {
+			contain.addChild(bumper)
+		}
+
+		// display
+		contain.sortChildren()
+		namecard.visible = true
 		this.container.addChild(contain);
 	}
 

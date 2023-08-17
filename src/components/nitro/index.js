@@ -60,8 +60,12 @@ export default class Nitro extends PIXI.Container {
 		// load the nitro sound - there's no reason
 		// to wait for this since it can't be used
 		// until after the race starts
-		// instance._initSound();
 		instance._applyConfig();
+
+		// require nitro sounds to be included
+		if (options.useAudio) {
+			instance._initSound();
+		}
 
 		// if this didn't load for some reason
 		if (!instance.isValid) return;
@@ -116,6 +120,8 @@ export default class Nitro extends PIXI.Container {
 			// save the sound effect
 			sound = audio.create('sfx', key);
 		}
+
+		console.log('did find', sound)
 
 		// no sound was found?
 		if (!sound) return;

@@ -3,6 +3,7 @@ import NameCard from '../../components/namecard';
 import { animate, PIXI } from 'nt-animator';
 import { BaseView } from '../base';
 import createActivityIndicator from '../../components/activity';
+import { DEVELOPMENT } from '../../config';
 
 const DEFAULT_MAX_HEIGHT = 250;
 const TRANSITION_TIME = 350;
@@ -15,7 +16,9 @@ export default class NameCardView extends BaseView {
 	loader = createActivityIndicator({ size: 120, opacity: 0.5, thickness: 10 });
 	
 	async init(options) {
-		window.PREVIEW = this
+		if (DEVELOPMENT) {
+			window.PREVIEW = this
+		}
 
 		// initialize the view
 		await super.init({

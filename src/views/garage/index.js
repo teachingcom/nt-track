@@ -236,7 +236,7 @@ export default class GarageView extends BaseView {
 
 			// add to the view
 			player.addChild(trail);
-			trail.scale.x = trail.scale.y = scale
+			trail.scale.x = trail.scale.y = isNumber(tweaks.trailScale) ? tweaks.trailScale : scale
 			trail.x = car.positions.back * (car.pivot.x * (scale / configScale));
 			Trail.setLayer(trail, car);
 		
@@ -259,6 +259,27 @@ export default class GarageView extends BaseView {
 		// car shadow fixes
 		if (isNumber(tweaks.rotation)) {
 			container.rotation += (Math.PI * 2) * tweaks.rotation;
+		}
+
+		if (isNumber(tweaks.offsetX)) {
+			container.x += tweaks.offsetX
+		}
+
+		if (isNumber(tweaks.offsetY)) {
+			container.y += tweaks.offsetY
+		}
+
+		if (isNumber(tweaks.viewScale)) {
+			const inner = new PIXI.Container()
+			inner.scale.x *= tweaks.viewScale
+			inner.scale.y *= tweaks.viewScale
+
+			// move all children
+			for (const child of container.children) {
+				inner.addChild(child)
+			}
+
+			container.addChild(inner)
 		}
 
 		return container;

@@ -17,7 +17,8 @@ import {
 	TRACK_MAXIMUM_SPEED_DRAG_RATE,
 	TRACK_STARTING_LINE_POSITION,
 	SPECTATOR_WATERMARK_START_POSITION,
-	SPECTATOR_WATERMARK_FINISH_POSITION
+	SPECTATOR_WATERMARK_FINISH_POSITION,
+	DEVELOPMENT
 } from '../../config';
 
 import {
@@ -58,7 +59,10 @@ export default class TrackView extends BaseView {
 		PIXI.settings.ROUND_PIXELS = true
 
 		super(...args)
-		// window.TRACK = this
+
+		if (DEVELOPMENT) {
+			window.TRACK = this
+		}
 	}
 
 	// global effect filter
