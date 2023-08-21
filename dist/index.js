@@ -76939,7 +76939,7 @@ var BaseSineExpression = function BaseSineExpression(prop, args) {
   (0, _defineProperty2.default)(this, "scale", 1);
   (0, _defineProperty2.default)(this, "flip", 1);
   (0, _defineProperty2.default)(this, "update", function (target, stage, player) {
-    var ts = (Date.now() - BaseSineExpression.start + _this.offset) * _this.scale;
+    var ts = (Date.now() - _this.startAt + _this.offset) * _this.scale;
 
     var modifier = _this.modifier(target, stage, player); // inverses so the value so it's the reverse of
     // the modifier value
@@ -76975,6 +76975,7 @@ var BaseSineExpression = function BaseSineExpression(prop, args) {
   };
 
   this.sortLayers = this.prop === 'z';
+  var startAt = BaseSineExpression.start;
   var min = 0;
   var max = 1;
 
@@ -76998,6 +76999,8 @@ var BaseSineExpression = function BaseSineExpression(prop, args) {
         this.inverse = 1;
       } else if (isObj && 'inverse' in arg) {
         this.inverse = arg.inverse || 1;
+      } else if (isObj && 'start' in arg) {
+        startAt = arg.start;
       } else if (isObj && 'min' in arg) {
         min = arg.min;
       } else if (isObj && 'max' in arg) {
@@ -77050,6 +77053,7 @@ var BaseSineExpression = function BaseSineExpression(prop, args) {
   } // save the args
 
 
+  this.startAt = startAt;
   this.min = min;
   this.max = max;
 };
@@ -83469,7 +83473,10 @@ function applyParticleOverride(target) {
 
     if (this.emitter.config.flipParticleX && this.scale.x > 0) this.scale.x *= -1; // allow sprite flipping on y axis
 
-    if (this.emitter.config.flipParticleY && this.scale.y > 0) this.scale.y *= -1;
+    if (this.emitter.config.flipParticleY && this.scale.y > 0) this.scale.y *= -1; // perform flipping
+
+    this.scale.x *= this.randomFlipX;
+    this.scale.y *= this.randomFlipY;
     return result;
   };
 
@@ -83488,7 +83495,8 @@ function applyParticleOverride(target) {
         hasRandomStartRotation = _this$emitter$config.hasRandomStartRotation,
         hasAssignedTint = _this$emitter$config.hasAssignedTint,
         hasDefinedRotationOffset = _this$emitter$config.hasDefinedRotationOffset,
-        definedRotationOffset = _this$emitter$config.definedRotationOffset;
+        definedRotationOffset = _this$emitter$config.definedRotationOffset,
+        randomFlip = _this$emitter$config.randomFlip;
 
     if (hasAssignedTint) {
       var index = Math.floor(Math.random() * tint.length);
@@ -83510,7 +83518,24 @@ function applyParticleOverride(target) {
       } // no rotation modification
       else {
           this.rotation = this.rotationModifier = 0;
-        } // if there's a constant rotation applied, then
+        } // set the default
+
+
+    this.randomFlipX = 1;
+    this.randomFlipY = 1;
+
+    if (randomFlip === 'x') {
+      this.randomFlipX = Math.random() > 0.5 ? -1 : 1;
+    } else if (randomFlip === 'y') {
+      this.randomFlipY = Math.random() > 0.5 ? -1 : 1;
+    } else if (['any', 'either'].includes(randomFlip)) {
+      this.randomFlipX = Math.random() > 0.5 ? -1 : 1;
+      this.randomFlipY = Math.random() > 0.5 ? -1 : 1;
+    } else if (!!randomFlip) {
+      var flip = Math.random() > 0.5 ? -1 : 1;
+      this.randomFlipX = flip;
+      this.randomFlipY = flip;
+    } // if there's a constant rotation applied, then
     // this should be every frame. otherwise, do it
     // once any stop
 
@@ -83803,6 +83828,7 @@ function _createEmitter() {
             config.hueShift = !!emit.hueShift;
             config.flipParticleX = !!(emit.flipParticleX || emit.flipX || emit['flip.x']);
             config.flipParticleY = !!(emit.flipParticleY || emit.flipY || emit['flip.y']);
+            config.randomFlip = emit.randomFlip;
 
             if ('tint' in emit) {
               config.hasAssignedTint = true;
@@ -83962,18 +83988,18 @@ function _createEmitter() {
               dispose: dispose
             }]);
 
-          case 75:
-            _context.prev = 75;
+          case 76:
+            _context.prev = 76;
             _context.t2 = _context["catch"](7);
             console.error("Failed to create emitter ".concat(path, " while ").concat(phase));
             throw _context.t2;
 
-          case 79:
+          case 80:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[7, 75]]);
+    }, _callee, null, [[7, 76]]);
   }));
   return _createEmitter.apply(this, arguments);
 }
@@ -86572,7 +86598,7 @@ var NITRO_OFFSET_X = -75;
 exports.NITRO_OFFSET_X = NITRO_OFFSET_X;
 var NITRO_OFFSET_Y = -7;
 exports.NITRO_OFFSET_Y = NITRO_OFFSET_Y;
-var NITRO_ACTIVATED_TRAIL_OPACITY = 0.33;
+var NITRO_ACTIVATED_TRAIL_OPACITY = 0.1;
 exports.NITRO_ACTIVATED_TRAIL_OPACITY = NITRO_ACTIVATED_TRAIL_OPACITY;
 var NITRO_BLUR_OFFSET_Y = -10;
 exports.NITRO_BLUR_OFFSET_Y = NITRO_BLUR_OFFSET_Y;
@@ -90999,21 +91025,19 @@ var Nitro = /*#__PURE__*/function (_PIXI$Container) {
                 sound = audio.create('sfx', key);
 
               case 11:
-                console.log('did find', sound); // no sound was found?
-
                 if (sound) {
-                  _context2.next = 14;
+                  _context2.next = 13;
                   break;
                 }
 
                 return _context2.abrupt("return");
 
-              case 14:
+              case 13:
                 // prepare the sound
                 this.sound = sound;
                 sound.loop(false);
 
-              case 16:
+              case 15:
               case "end":
                 return _context2.stop();
             }
@@ -102205,8 +102229,8 @@ var _utils = require("../utils");
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var MAX_RAIN_SHIFT_DISTANCE = -800;
-var width = 800;
-var height = 400;
+var width = 400;
+var height = 200;
 
 var RainEffect = /*#__PURE__*/function () {
   function RainEffect(track, container, animator) {
@@ -102313,6 +102337,7 @@ function makeRainTexture(width, height) {
   var rain = (0, _utils.createSurface)(width, height);
   rain.ctx.strokeStyle = "white";
   rain.ctx.translate(rain.width / 2, rain.height / 2);
+  rain.ctx.lineWidth = 0.5;
   var hw = width / 2;
   var hh = height / 2; // const max = Math.max(hw, hh);
   // rain.ctx.fillRect(0, 0, width, height);
@@ -104357,6 +104382,8 @@ var _ntAnimator = require("nt-animator");
 
 var _layers = require("../../views/track/layers");
 
+var _scaling = require("../../views/track/scaling");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
@@ -104383,7 +104410,7 @@ var FastConfetti = /*#__PURE__*/function () {
     key: "create",
     value: function () {
       var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(animator, track) {
-        var tx1, tx2, tx3, calculateLifetime, generator, config, config1, config2, emitter1, emitter2;
+        var tx1, tx2, tx3, startingWidth, startingHeight, startingRatio, calculateLifetime, container, config, speedScale, lifetime, config1, config2, generator1, generator2, emitter1, emitter2, preferredInterval, matchToView;
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
@@ -104391,6 +104418,9 @@ var FastConfetti = /*#__PURE__*/function () {
                 tx1 = makeConfettiTexture();
                 tx2 = makeConfettiTexture();
                 tx3 = makeConfettiTexture();
+                startingWidth = track.view.width;
+                startingHeight = track.view.height;
+                startingRatio = startingWidth / startingHeight;
 
                 calculateLifetime = function calculateLifetime(_ref) {
                   var speed = _ref.speed;
@@ -104401,10 +104431,10 @@ var FastConfetti = /*#__PURE__*/function () {
                   };
                 };
 
-                generator = new _ntAnimator.PIXI.Container(); // create the base config
+                container = new _ntAnimator.PIXI.Container(); // create the base config
 
                 config = {
-                  particlesPerWave: 2,
+                  particlesPerWave: 1,
                   maxParticles: 40,
                   frequency: 0.25,
                   spawnChance: 1,
@@ -104433,10 +104463,10 @@ var FastConfetti = /*#__PURE__*/function () {
                   },
                   orderedArt: true,
                   spawnRect: {
-                    w: track.view.width,
+                    w: startingWidth,
                     h: 0,
                     x: 0,
-                    y: 0
+                    y: -100
                   },
                   spawnType: 'rect',
                   pos: {
@@ -104445,65 +104475,85 @@ var FastConfetti = /*#__PURE__*/function () {
                   }
                 }; // create the emitter instance
 
+                speedScale = 0.66;
+                lifetime = 4;
                 config1 = _objectSpread(_objectSpread({}, config), {}, {
+                  lifetime: {
+                    min: lifetime,
+                    max: lifetime
+                  },
                   speed: {
-                    start: 350,
-                    end: 420
+                    start: 350 * speedScale,
+                    end: 420 * speedScale
                   },
                   maxParticles: 25,
                   freq: 0.25,
                   scale: {
-                    start: 0.9,
-                    end: 0.6
+                    start: 0.7,
+                    end: 0.5
                   }
                 });
                 config2 = _objectSpread(_objectSpread({}, config), {}, {
+                  lifetime: {
+                    min: lifetime,
+                    max: lifetime
+                  },
                   speed: {
-                    start: 220,
-                    end: 310
+                    start: 220 * speedScale,
+                    end: 310 * speedScale
                   },
                   maxParticles: 15,
                   freq: 1,
                   scale: {
-                    start: 1.1,
-                    end: 0.8
+                    start: 0.9,
+                    end: 0.7
                   }
                 });
-                emitter1 = new _ntAnimator.PIXI.Particles.Emitter(generator, [tx1, tx2, tx3], _objectSpread(_objectSpread({}, config1), {}, {
-                  lifetime: calculateLifetime(config1)
-                }));
-                emitter2 = new _ntAnimator.PIXI.Particles.Emitter(generator, [tx1, tx2, tx3], _objectSpread(_objectSpread({}, config2), {}, {
-                  lifetime: calculateLifetime(config2)
-                })); // make sure to update values when the track size changes
+                generator1 = new _ntAnimator.PIXI.Container();
+                generator2 = new _ntAnimator.PIXI.Container();
+                emitter1 = new _ntAnimator.PIXI.Particles.Emitter(generator1, [tx1, tx2, tx3], config1);
+                emitter2 = new _ntAnimator.PIXI.Particles.Emitter(generator2, [tx1, tx2, tx3], config2);
+                generator1.emitter = emitter1;
+                generator2.emitter = emitter2; // manually update the confetti - for some reason
+                // the confetti stops when races end and it has something
+                // to do with autoUpdate not running anymore. I couldn't
+                // figure out the reason, but this is a cgood way to accomplish the
+                // same thing
 
-                track.on('resize', function () {
-                  emitter1.spawnRect.width = emitter2.spawnRect.width = track.view.width;
-                  var life1 = calculateLifetime(config1);
-                  var life2 = calculateLifetime(config2);
-                  emitter1.maxLifetime = emitter1.minLifetime = life1.min;
-                  emitter2.maxLifetime = emitter2.minLifetime = life2.min;
-                }); // const _spawnFunc = emitter._spawnFunc;
-                // emitter._spawnFunc = (...args) => {
-                // 	_spawnFunc.apply(emitter, args);
-                // 	// update speeds
-                // 	emitter.startSpeed.value = speed.start + ((speed.start * 0.75) * Math.random())
-                // 	emitter.startSpeed.next.value = speed.end + ((speed.end * 0.75) * Math.random())
-                // 	// emitter.maxSpeed = speed.end + ((speed.end * 0.25) * Math.random())
-                // };
-                // emitter.parent.x = track.width * 0.5
+                preferredInterval = 32;
+                setInterval(function () {
+                  emitter1.update(preferredInterval / 1000);
+                  emitter2.update(preferredInterval / 1000);
+                }, preferredInterval); // update scale to match the view - this scales confetti to match
+                // as the screen changes. it does not maintain a 1/1 aspect ratio but
+                // if the containing element stays the same aspect ratio, then this
+                // should not change
+
+                matchToView = function matchToView() {
+                  var scale = track.view.height / _scaling.BASE_HEIGHT;
+                  container.scale.y = scale;
+                  container.scale.x = scale;
+                  emitter1.spawnRect.width = track.view.width;
+                  emitter2.spawnRect.width = track.view.width;
+                }; // set default scaling
+
+
+                matchToView(); // make sure to update values when the track size changes
+
+                track.on('resize', matchToView); // save configs
 
                 emitter1.config = config;
-                emitter1.autoUpdate = true;
                 emitter1.emit = true;
                 emitter2.config = config;
-                emitter2.autoUpdate = true;
-                emitter2.emit = true; // window.EMM = emitter
-                // use the build in canvas, if possible
+                emitter2.emit = true; // add to the view
 
-                generator.zIndex = _layers.LAYER_TRACK_OVERLAY;
-                return _context.abrupt("return", generator);
+                container.addChild(generator1);
+                container.addChild(generator2); // use the build in canvas, if possible
 
-              case 19:
+                container.zIndex = _layers.LAYER_TRACK_OVERLAY;
+                return _context.abrupt("return", container);
+
+              case 32:
               case "end":
                 return _context.stop();
             }
@@ -104561,7 +104611,7 @@ function makeConfettiTexture() {
 
   return texture;
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../views/track/layers":"views/track/layers.js"}],"plugins/confetti/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../views/track/layers":"views/track/layers.js","../../views/track/scaling":"views/track/scaling.js"}],"plugins/confetti/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -104572,6 +104622,8 @@ exports.default = createConfetti;
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
+var _config = require("../../config");
 
 var _generator = _interopRequireDefault(require("./generator"));
 
@@ -104594,9 +104646,14 @@ function _createConfetti() {
 
           case 2:
             instance = _context.sent;
+
+            if (_config.DEVELOPMENT) {
+              window.CONFETTI = instance;
+            }
+
             return _context.abrupt("return", instance);
 
-          case 4:
+          case 5:
           case "end":
             return _context.stop();
         }
@@ -104605,7 +104662,7 @@ function _createConfetti() {
   }));
   return _createConfetti.apply(this, arguments);
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","./generator":"plugins/confetti/generator.js"}],"animations/race-completed.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","../../config":"config.js","./generator":"plugins/confetti/generator.js"}],"animations/race-completed.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -111412,7 +111469,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '2.1.0';
+  window.NTTRACK = '2.2.1';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

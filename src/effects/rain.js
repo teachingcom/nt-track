@@ -2,8 +2,8 @@ import { PIXI } from 'nt-animator';
 import { createSurface, interpolate } from '../utils';
 
 const MAX_RAIN_SHIFT_DISTANCE = -800;
-const width = 800;
-const height = 400;
+const width = 400;
+const height = 200;
 
 export default class RainEffect {
 
@@ -60,6 +60,7 @@ function makeRainTexture(width, height, start = 0, stop = Math.PI * 2) {
 
 	rain.ctx.strokeStyle = "white";
 	rain.ctx.translate(rain.width / 2, rain.height / 2);
+	rain.ctx.lineWidth = 0.5;
 
 	const hw = width / 2;
 	const hh = height / 2;

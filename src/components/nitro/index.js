@@ -121,8 +121,6 @@ export default class Nitro extends PIXI.Container {
 			sound = audio.create('sfx', key);
 		}
 
-		console.log('did find', sound)
-
 		// no sound was found?
 		if (!sound) return;
 	

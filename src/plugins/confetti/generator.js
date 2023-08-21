@@ -1,5 +1,6 @@
 import { PIXI, createContext, drawPixiTexture, RAD } from 'nt-animator';
 import { LAYER_TRACK_OVERLAY } from '../../views/track/layers';
+import { BASE_HEIGHT } from '../../views/track/scaling';
 
 const PARTICLE_COUNT = 125;
 const DEFAULT_PARTICLE_SIZE = 11;
@@ -20,17 +21,21 @@ export default class FastConfetti {
 		const tx1 = makeConfettiTexture();
 		const tx2 = makeConfettiTexture();
 		const tx3 = makeConfettiTexture();
+		const startingWidth = track.view.width;
+		const startingHeight = track.view.height;
+		const startingRatio = startingWidth / startingHeight;
+
 		
 		const calculateLifetime = ({ speed }) => {
 			const time = (track.view.height / ((speed.start + speed.end) * 0.5)) * 0.9;
 			return { min: time, max: time };
 		};
 		
-		const generator = new PIXI.Container();
-
+		const container = new PIXI.Container();
+		
 		// create the base config
 		const config = {
-			particlesPerWave: 2,
+			particlesPerWave: 1,
 			maxParticles: 40,
 			frequency: 0.25,
 			spawnChance: 1,
@@ -40,7 +45,7 @@ export default class FastConfetti {
 			rotationSpeed: { min: -18, max: 18 },
 			orderedArt: true,
 
-			spawnRect: { w: track.view.width, h: 0, x: 0, y: 0 },
+			spawnRect: { w: startingWidth, h: 0, x: 0, y: -100 },
 			spawnType: 'rect',
 
 			pos: {
@@ -51,50 +56,62 @@ export default class FastConfetti {
 
 
 		// create the emitter instance
-		const config1 = { ...config, speed: { start: 350, end: 420 }, maxParticles: 25, freq: 0.25, scale: { start: 0.9, end: 0.6 } };
-		const config2 = { ...config, speed: { start: 220, end: 310 }, maxParticles: 15, freq: 1, scale: { start: 1.1, end: 0.8 } };
-		const emitter1 = new PIXI.Particles.Emitter(generator, [ tx1, tx2, tx3 ], { ...config1, lifetime: calculateLifetime(config1) });
-		const emitter2 = new PIXI.Particles.Emitter(generator, [ tx1, tx2, tx3 ], { ...config2, lifetime: calculateLifetime(config2) });
+		const speedScale = 0.66;
+		const lifetime = 4;
+
+		const config1 = { ...config, lifetime: { min: lifetime, max: lifetime }, speed: { start: 350 * speedScale, end: 420 * speedScale }, maxParticles: 25, freq: 0.25, scale: { start: 0.7, end: 0.5 } };
+		const config2 = { ...config, lifetime: { min: lifetime, max: lifetime }, speed: { start: 220 * speedScale, end: 310 * speedScale }, maxParticles: 15, freq: 1, scale: { start: 0.9, end: 0.7 } };
+		const generator1 = new PIXI.Container();
+		const generator2 = new PIXI.Container();
+		const emitter1 = new PIXI.Particles.Emitter(generator1, [ tx1, tx2, tx3 ], config1);
+		const emitter2 = new PIXI.Particles.Emitter(generator2, [ tx1, tx2, tx3 ], config2);
+
+		generator1.emitter = emitter1;
+		generator2.emitter = emitter2;
+
+		// manually update the confetti - for some reason
+		// the confetti stops when races end and it has something
+		// to do with autoUpdate not running anymore. I couldn't
+		// figure out the reason, but this is a cgood way to accomplish the
+		// same thing
+		const preferredInterval = 32
+		setInterval(() => { 
+			emitter1.update(preferredInterval / 1000)
+			emitter2.update(preferredInterval / 1000)
+		}, preferredInterval)
+
+		// update scale to match the view - this scales confetti to match
+		// as the screen changes. it does not maintain a 1/1 aspect ratio but
+		// if the containing element stays the same aspect ratio, then this
+		// should not change
+		const matchToView = () => {
+			const scale = track.view.height / BASE_HEIGHT;
+			container.scale.y = scale;
+			container.scale.x = scale;
+
+			emitter1.spawnRect.width = track.view.width
+			emitter2.spawnRect.width = track.view.width
+		}
+
+		// set default scaling
+		matchToView();
 		
 		// make sure to update values when the track size changes
-		track.on('resize', () => { 
-			emitter1.spawnRect.width = emitter2.spawnRect.width = track.view.width;
-
-			const life1 = calculateLifetime(config1);
-			const life2 = calculateLifetime(config2);
+		track.on('resize', matchToView);
 			
-			emitter1.maxLifetime = emitter1.minLifetime = life1.min;
-			emitter2.maxLifetime = emitter2.minLifetime = life2.min;
-		});
-
-		// const _spawnFunc = emitter._spawnFunc;
-		// emitter._spawnFunc = (...args) => {
-		// 	_spawnFunc.apply(emitter, args);
-
-		// 	// update speeds
-		// 	emitter.startSpeed.value = speed.start + ((speed.start * 0.75) * Math.random())
-		// 	emitter.startSpeed.next.value = speed.end + ((speed.end * 0.75) * Math.random())
-
-		// 	// emitter.maxSpeed = speed.end + ((speed.end * 0.25) * Math.random())
-		// };
-		
-
-		// emitter.parent.x = track.width * 0.5
+		// save configs
 		emitter1.config = config;
-		emitter1.autoUpdate = true;
 		emitter1.emit = true;
-
 		emitter2.config = config;
-		emitter2.autoUpdate = true;
 		emitter2.emit = true;
 
-		// window.EMM = emitter
-
-
+		// add to the view
+		container.addChild(generator1);
+		container.addChild(generator2);
 
 		// use the build in canvas, if possible
-		generator.zIndex = LAYER_TRACK_OVERLAY;
-		return generator;
+		container.zIndex = LAYER_TRACK_OVERLAY;
+		return container;
 	}
 
 }
