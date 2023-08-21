@@ -111,7 +111,7 @@ export default class BundleView extends BaseView {
 	}
 
 	async _assemble() {
-		const { car, trail, nametag, nitro } = this
+		let { car, trail, nametag, nitro } = this
 
 		// used for certain animation effects
 		if (car) {
@@ -121,6 +121,13 @@ export default class BundleView extends BaseView {
 
 		// update the trail
 		if (trail) {
+
+			// make sure there's something ot use
+			if (car) {
+				car = this.car
+			}
+			
+			// add to the view
 			car.addChild(trail)
 
 			// position the trail correctly
@@ -184,46 +191,62 @@ export default class BundleView extends BaseView {
 
 		// TODO: maybe pull from config?
 		this.nextAllowedNitro = now + 4000
-		this.car.activateNitro()
+		this.car?.activateNitro()
 	}
 	
 	setFocus(target, instant) {
-		let x = target === 'nametag' ? -(this.nametag?.x + (this.nametag?.width * 0.2))
-			: target === 'trail' ? -this.car?.positions.back
-			: target === 'nitro' ? -this.car?.positions.back
-			: this.car?.positions.back * 0.15
+		try {
+			let x = target === 'nametag' ? -(this.nametag?.x + (this.nametag?.width * 0.2))
+				: target === 'trail' ? -this.car?.positions.back
+				: target === 'nitro' ? -this.car?.positions.back
+				: this.car?.positions.back * 0.15
 
-		// if nan or an error?
-		x = x || 0
+			// if nan or an error?
+			x = x || 0
 
-		// trigger nitros, if needed
-		if (target === 'nitro' && target !== this.currentTarget) {
-			setTimeout(() => this.activateNitro(), 500)
-		}
-
-		// save the active view
-		this.currentTarget = target
-
-		// cancel the prior animation
-		this.__animate_focus?.stop()
-
-		if (instant) {
-			this.viewport.x = x
-			return
-		}
-		
-		// focus to the new view
-		this.__animate_focus = animate({
-			from: { x: this.viewport.x },
-			to: { x },
-			ease: 'easeOutQuad',
-      duration: 330,
-			loop: false,
-      update: props => {
-				this.viewport.x = props.x
+			// trigger nitros, if needed
+			if (target === 'nitro' && target !== this.currentTarget) {
+				setTimeout(() => this.activateNitro(), 500)
 			}
-		});
 
+			// save the active view
+			this.currentTarget = target
+
+			// cancel the prior animation
+			this.__animate_focus?.stop()
+
+			if (instant) {
+				this.focusViewport(x)
+				return
+			}
+			
+			// focus to the new view
+			this.__animate_focus = animate({
+				from: { x: this.viewport.x },
+				to: { x },
+				ease: 'easeOutQuad',
+				duration: 330,
+				loop: false,
+				update: props => {
+					this.focusViewport(props.x)
+				}
+			});
+		}
+		catch (ex) {
+			// not a problem - the view might not be
+			// ready to show focus on anything yet
+		}
+
+	}
+
+	focusViewport = x => {
+		try {
+			this.viewport.x = x
+		}
+		catch (ex) {
+			// not a problem - view might not
+			// have been ready to do this
+		}
 	}
 
 	async _initTrail({ type }) {

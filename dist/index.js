@@ -83468,15 +83468,33 @@ function applyParticleOverride(target) {
 
     if (this.rotationModifier) {
       this.rotation += this.rotationModifier;
-    } // allow sprite flipping on x axis
+    } // perform flipping
 
 
-    if (this.emitter.config.flipParticleX && this.scale.x > 0) this.scale.x *= -1; // allow sprite flipping on y axis
+    if (this.lastKnownScaleX !== this.scale.x) {
+      // allow sprite flipping on x axis
+      if (this.emitter.config.flipParticleX) {
+        this.scale.x *= -1;
+      }
 
-    if (this.emitter.config.flipParticleY && this.scale.y > 0) this.scale.y *= -1; // perform flipping
+      if (this.randomFlipX === -1) {
+        this.scale.x *= -1;
+      }
+    }
 
-    this.scale.x *= this.randomFlipX;
-    this.scale.y *= this.randomFlipY;
+    if (this.lastKnownScaleY !== this.scale.y) {
+      // allow sprite flipping on y axis
+      if (this.emitter.config.flipParticleY) {
+        this.scale.y *= -1;
+      }
+
+      if (this.randomFlipY === -1) {
+        this.scale.y *= -1;
+      }
+    }
+
+    this.lastKnownScaleX = this.scale.x;
+    this.lastKnownScaleY = this.scale.y;
     return result;
   };
 
@@ -83523,12 +83541,14 @@ function applyParticleOverride(target) {
 
     this.randomFlipX = 1;
     this.randomFlipY = 1;
+    this.lastKnownScaleX = null;
+    this.lastKnownScaleY = null;
 
     if (randomFlip === 'x') {
       this.randomFlipX = Math.random() > 0.5 ? -1 : 1;
     } else if (randomFlip === 'y') {
       this.randomFlipY = Math.random() > 0.5 ? -1 : 1;
-    } else if (['any', 'either'].includes(randomFlip)) {
+    } else if (randomFlip === 'any') {
       this.randomFlipX = Math.random() > 0.5 ? -1 : 1;
       this.randomFlipY = Math.random() > 0.5 ? -1 : 1;
     } else if (!!randomFlip) {
@@ -108889,6 +108909,8 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "goldOffset", 200);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "active", {});
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "activateNitro", function () {
+      var _this$car;
+
       var now = Date.now();
 
       if ((_this.nextAllowedNitro || 0) > now) {
@@ -108897,8 +108919,14 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
 
 
       _this.nextAllowedNitro = now + 4000;
-
-      _this.car.activateNitro();
+      (_this$car = _this.car) === null || _this$car === void 0 ? void 0 : _this$car.activateNitro();
+    });
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "focusViewport", function (x) {
+      try {
+        _this.viewport.x = x;
+      } catch (ex) {// not a problem - view might not
+        // have been ready to do this
+      }
     });
     return _this;
   }
@@ -109062,6 +109090,12 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
 
 
                 if (trail) {
+                  // make sure there's something ot use
+                  if (car) {
+                    car = this.car;
+                  } // add to the view
+
+
                   car.addChild(trail); // position the trail correctly
 
                   zIndex = trail.config.layer === 'over_car' ? 100 : -100;
@@ -109164,49 +109198,49 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "setFocus",
     value: function setFocus(target, instant) {
-      var _this$nametag,
-          _this$nametag2,
-          _this$car,
-          _this$car2,
-          _this$car3,
-          _this3 = this,
-          _this$__animate_focus;
+      var _this3 = this;
 
-      var x = target === 'nametag' ? -(((_this$nametag = this.nametag) === null || _this$nametag === void 0 ? void 0 : _this$nametag.x) + ((_this$nametag2 = this.nametag) === null || _this$nametag2 === void 0 ? void 0 : _this$nametag2.width) * 0.2) : target === 'trail' ? -((_this$car = this.car) === null || _this$car === void 0 ? void 0 : _this$car.positions.back) : target === 'nitro' ? -((_this$car2 = this.car) === null || _this$car2 === void 0 ? void 0 : _this$car2.positions.back) : ((_this$car3 = this.car) === null || _this$car3 === void 0 ? void 0 : _this$car3.positions.back) * 0.15; // if nan or an error?
+      try {
+        var _this$nametag, _this$nametag2, _this$car2, _this$car3, _this$car4, _this$__animate_focus;
 
-      x = x || 0; // trigger nitros, if needed
+        var x = target === 'nametag' ? -(((_this$nametag = this.nametag) === null || _this$nametag === void 0 ? void 0 : _this$nametag.x) + ((_this$nametag2 = this.nametag) === null || _this$nametag2 === void 0 ? void 0 : _this$nametag2.width) * 0.2) : target === 'trail' ? -((_this$car2 = this.car) === null || _this$car2 === void 0 ? void 0 : _this$car2.positions.back) : target === 'nitro' ? -((_this$car3 = this.car) === null || _this$car3 === void 0 ? void 0 : _this$car3.positions.back) : ((_this$car4 = this.car) === null || _this$car4 === void 0 ? void 0 : _this$car4.positions.back) * 0.15; // if nan or an error?
 
-      if (target === 'nitro' && target !== this.currentTarget) {
-        setTimeout(function () {
-          return _this3.activateNitro();
-        }, 500);
-      } // save the active view
+        x = x || 0; // trigger nitros, if needed
+
+        if (target === 'nitro' && target !== this.currentTarget) {
+          setTimeout(function () {
+            return _this3.activateNitro();
+          }, 500);
+        } // save the active view
 
 
-      this.currentTarget = target; // cancel the prior animation
+        this.currentTarget = target; // cancel the prior animation
 
-      (_this$__animate_focus = this.__animate_focus) === null || _this$__animate_focus === void 0 ? void 0 : _this$__animate_focus.stop();
+        (_this$__animate_focus = this.__animate_focus) === null || _this$__animate_focus === void 0 ? void 0 : _this$__animate_focus.stop();
 
-      if (instant) {
-        this.viewport.x = x;
-        return;
-      } // focus to the new view
+        if (instant) {
+          this.focusViewport(x);
+          return;
+        } // focus to the new view
 
 
-      this.__animate_focus = (0, _ntAnimator.animate)({
-        from: {
-          x: this.viewport.x
-        },
-        to: {
-          x: x
-        },
-        ease: 'easeOutQuad',
-        duration: 330,
-        loop: false,
-        update: function update(props) {
-          _this3.viewport.x = props.x;
-        }
-      });
+        this.__animate_focus = (0, _ntAnimator.animate)({
+          from: {
+            x: this.viewport.x
+          },
+          to: {
+            x: x
+          },
+          ease: 'easeOutQuad',
+          duration: 330,
+          loop: false,
+          update: function update(props) {
+            _this3.focusViewport(props.x);
+          }
+        });
+      } catch (ex) {// not a problem - the view might not be
+        // ready to show focus on anything yet
+      }
     }
   }, {
     key: "_initTrail",
@@ -111469,7 +111503,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '2.2.1';
+  window.NTTRACK = '2.2.3';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
