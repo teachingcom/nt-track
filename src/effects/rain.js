@@ -29,29 +29,29 @@ export default class RainEffect {
 	}
 
 	async setup() {
-		const { track, container } = this;
-		const { effect } = container;
-		const update = effect.updateTransform;
+		// const { track, container } = this;
+		// const { effect } = container;
+		// const update = effect.updateTransform;
 
 		// save the starting location
-		this.startingX = effect.x;
+		// this.startingX = effect.x;
 
 		// handle updating each time the transform is updated
-		effect.updateTransform = () => {
-			if (this.isRacing) {
-				this.preferredX = Math.min(1.5, this.preferredX + 0.01);
-				const shift = (this.preferredX + ((track.state.typingSpeedModifier || 0) * 3)) / 4;
+		// effect.updateTransform = () => {
+		// 	if (this.isRacing) {
+		// 		this.preferredX = Math.min(1.5, this.preferredX + 0.01);
+		// 		const shift = (this.preferredX + ((track.state.typingSpeedModifier || 0) * 3)) / 4;
 				
-				// calculate the offset
-				effect.x = shift * MAX_RAIN_SHIFT_DISTANCE;
-			}
-			else {
-				effect.x = this.startingX;
-			}
+		// 		// calculate the offset
+		// 		effect.x = shift * MAX_RAIN_SHIFT_DISTANCE;
+		// 	}
+		// 	else {
+		// 		effect.x = this.startingX;
+		// 	}
 
-			// update normally
-			update.call(effect);
-		};
+		// 	// update normally
+		// 	update.call(effect);
+		// };
 	}
 }
 

@@ -91014,55 +91014,57 @@ var Nitro = /*#__PURE__*/function (_PIXI$Container) {
     key: "_initSound",
     value: function () {
       var _initSound2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
-        var options, config, sfx, type, sound, key;
+        var options, config, _config$sfx, sfx, type, sound;
+
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
+                _context2.prev = 0;
                 options = this.options, config = this.config;
-                sfx = config.sfx;
+                _config$sfx = config.sfx, sfx = _config$sfx === void 0 ? 'nitro' : _config$sfx;
                 type = options.type; // if this uses a standard library sound
+                // let sound;
+                // if (sfx) {
+                // console.log('will load', sfx)
 
-                if (!sfx) {
-                  _context2.next = 7;
-                  break;
-                }
+                sound = audio.create('sfx', sfx); // }
+                // use sound name convention
+                // else {
+                // 	// load the sound, if any
+                // 	// NOTE: we can support custom sounds per nitro if we decide to do that
+                // 	// const key = `nitros/${type}`;
+                // 	const key = `nitros/nitro_default`;
+                // 	await audio.register(key);
+                // 	// save the sound effect
+                // 	sound = audio.create('sfx', key);
+                // }
+                // no sound was found?
 
-                sound = audio.create('sfx', sfx);
-                _context2.next = 11;
-                break;
-
-              case 7:
-                // load the sound, if any
-                // NOTE: we can support custom sounds per nitro if we decide to do that
-                // const key = `nitros/${type}`;
-                key = "nitros/nitro_default";
-                _context2.next = 10;
-                return audio.register(key);
-
-              case 10:
-                // save the sound effect
-                sound = audio.create('sfx', key);
-
-              case 11:
                 if (sound) {
-                  _context2.next = 13;
+                  _context2.next = 7;
                   break;
                 }
 
                 return _context2.abrupt("return");
 
-              case 13:
+              case 7:
                 // prepare the sound
                 this.sound = sound;
                 sound.loop(false);
+                _context2.next = 13;
+                break;
 
-              case 15:
+              case 11:
+                _context2.prev = 11;
+                _context2.t0 = _context2["catch"](0);
+
+              case 13:
               case "end":
                 return _context2.stop();
             }
           }
-        }, _callee2, this);
+        }, _callee2, this, [[0, 11]]);
       }));
 
       function _initSound() {
@@ -102304,39 +102306,15 @@ var RainEffect = /*#__PURE__*/function () {
     key: "setup",
     value: function () {
       var _setup = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
-        var _this2 = this;
-
-        var track, container, effect, update;
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                track = this.track, container = this.container;
-                effect = container.effect;
-                update = effect.updateTransform; // save the starting location
-
-                this.startingX = effect.x; // handle updating each time the transform is updated
-
-                effect.updateTransform = function () {
-                  if (_this2.isRacing) {
-                    _this2.preferredX = Math.min(1.5, _this2.preferredX + 0.01);
-                    var shift = (_this2.preferredX + (track.state.typingSpeedModifier || 0) * 3) / 4; // calculate the offset
-
-                    effect.x = shift * MAX_RAIN_SHIFT_DISTANCE;
-                  } else {
-                    effect.x = _this2.startingX;
-                  } // update normally
-
-
-                  update.call(effect);
-                };
-
-              case 5:
               case "end":
                 return _context2.stop();
             }
           }
-        }, _callee2, this);
+        }, _callee2);
       }));
 
       function setup() {
@@ -111503,7 +111481,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '2.2.3';
+  window.NTTRACK = '2.2.5';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

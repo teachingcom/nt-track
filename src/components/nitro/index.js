@@ -100,33 +100,40 @@ export default class Nitro extends PIXI.Container {
 
 	// loads the sound for this car
 	async _initSound() {
-		const { options, config } = this;
-		const { sfx } = config;
-		const { type } = options;
+		try { 
 
-		// if this uses a standard library sound
-		let sound;
-		if (sfx) {
-			sound = audio.create('sfx', sfx)
-		}
-		// use sound name convention
-		else {
-			// load the sound, if any
-			// NOTE: we can support custom sounds per nitro if we decide to do that
-			// const key = `nitros/${type}`;
-			const key = `nitros/nitro_default`;
-			await audio.register(key);
-	
-			// save the sound effect
-			sound = audio.create('sfx', key);
-		}
-
-		// no sound was found?
-		if (!sound) return;
-	
-		// prepare the sound
-		this.sound = sound;
-		sound.loop(false);
+			const { options, config } = this;
+			const { sfx = 'nitro' } = config;
+			const { type } = options;
+			
+			// if this uses a standard library sound
+			// let sound;
+			// if (sfx) {
+			// console.log('will load', sfx)
+			let sound = audio.create('sfx', sfx)
+			// }
+			// use sound name convention
+			// else {
+				// 	// load the sound, if any
+				// 	// NOTE: we can support custom sounds per nitro if we decide to do that
+				// 	// const key = `nitros/${type}`;
+				// 	const key = `nitros/nitro_default`;
+				// 	await audio.register(key);
+				
+				// 	// save the sound effect
+				// 	sound = audio.create('sfx', key);
+				// }
+				
+				// no sound was found?
+				if (!sound) return;
+				
+				// prepare the sound
+				this.sound = sound;
+				sound.loop(false);
+			}
+			catch (ex) {
+				// not an issue
+			}
 	}
 
 	// apply special config values
