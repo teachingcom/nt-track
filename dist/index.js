@@ -108886,6 +108886,9 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
     _this = _super.call.apply(_super, [this].concat(args));
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "goldOffset", 200);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "active", {});
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "reload", function () {
+      _this.setContent(_this.activeSetup, true);
+    });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "activateNitro", function () {
       var _this$car;
 
@@ -108983,7 +108986,7 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "setContent",
     value: function () {
-      var _setContent = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(_ref) {
+      var _setContent = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(_ref, forceReload) {
         var car, trail, nametag, nitro, carHasChanged, trailHasChanged, nametagHasChanged, nitroHasChanged, _i, _arr, obj, queue, pending;
 
         return _regenerator.default.wrap(function _callee2$(_context2) {
@@ -108991,6 +108994,18 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
             switch (_context2.prev = _context2.next) {
               case 0:
                 car = _ref.car, trail = _ref.trail, nametag = _ref.nametag, nitro = _ref.nitro;
+                this.activeSetup = {
+                  car: car,
+                  trail: trail,
+                  nametag: nametag,
+                  nitro: nitro
+                }; // wants to reload no matter what
+
+                if (forceReload) {
+                  this.contentHasChanged = true;
+                } // check for changes
+
+
                 carHasChanged = this.contentHasChanged || this.active.car !== (car === null || car === void 0 ? void 0 : car.type);
                 trailHasChanged = this.contentHasChanged || this.active.trail !== (trail === null || trail === void 0 ? void 0 : trail.type);
                 nametagHasChanged = this.contentHasChanged || this.active.nametag !== (nametag === null || nametag === void 0 ? void 0 : nametag.type);
@@ -109027,15 +109042,15 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
                   queue.push(this._initNitro(nitro));
                 }
 
-                _context2.next = 15;
+                _context2.next = 17;
                 return Promise.all(queue);
 
-              case 15:
+              case 17:
                 pending = _context2.sent;
 
                 this._assemble(pending);
 
-              case 17:
+              case 19:
               case "end":
                 return _context2.stop();
             }
@@ -109043,7 +109058,7 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
         }, _callee2, this);
       }));
 
-      function setContent(_x2) {
+      function setContent(_x2, _x3) {
         return _setContent.apply(this, arguments);
       }
 
@@ -109053,19 +109068,25 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
     key: "_assemble",
     value: function () {
       var _assemble2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
-        var car, trail, nametag, nitro, zIndex, _zIndex;
+        var _this$car2, car, trail, nametag, nitro, zIndex, _zIndex;
 
         return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
-                car = this.car, trail = this.trail, nametag = this.nametag, nitro = this.nitro; // make sure there's something ot use
+                _this$car2 = this.car, car = _this$car2 === void 0 ? this.car : _this$car2, trail = this.trail, nametag = this.nametag, nitro = this.nitro; // if there's not a car, it's not possible to assemble
+                // the content yet - maybe retry the load attempt?
 
-                if (!car) {
-                  car = this.car;
-                } // used for certain animation effects
+                if (car) {
+                  _context3.next = 4;
+                  break;
+                }
 
+                setTimeout(this.reload, 1000);
+                return _context3.abrupt("return");
 
+              case 4:
+                // used for certain animation effects
                 if (car) {
                   car.isPlayerRoot = true;
                   car.movement = 1;
@@ -109113,9 +109134,14 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
                   nametag.visible = true;
                   nametag.scale.x = nametag.scale.y = 0.8;
                   nametag.x = trail ? -600 : 0;
+                } // activate focus, if possible
+
+
+                if (this.preferredFocus) {
+                  this.setFocus(this.preferredFocus, true);
                 }
 
-              case 6:
+              case 9:
               case "end":
                 return _context3.stop();
             }
@@ -109166,7 +109192,7 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
         }, _callee4, this);
       }));
 
-      function _initCar(_x3) {
+      function _initCar(_x4) {
         return _initCar2.apply(this, arguments);
       }
 
@@ -109177,10 +109203,12 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
     value: function setFocus(target, instant) {
       var _this3 = this;
 
-      try {
-        var _this$nametag, _this$nametag2, _this$car2, _this$car3, _this$car4, _this$__animate_focus;
+      this.preferredFocus = target;
 
-        var x = target === 'nametag' ? -(((_this$nametag = this.nametag) === null || _this$nametag === void 0 ? void 0 : _this$nametag.x) + ((_this$nametag2 = this.nametag) === null || _this$nametag2 === void 0 ? void 0 : _this$nametag2.width) * 0.2) : target === 'trail' ? -((_this$car2 = this.car) === null || _this$car2 === void 0 ? void 0 : _this$car2.positions.back) : target === 'nitro' ? -((_this$car3 = this.car) === null || _this$car3 === void 0 ? void 0 : _this$car3.positions.back) : ((_this$car4 = this.car) === null || _this$car4 === void 0 ? void 0 : _this$car4.positions.back) * 0.15; // if nan or an error?
+      try {
+        var _this$nametag, _this$nametag2, _this$car3, _this$car4, _this$car5, _this$__animate_focus;
+
+        var x = target === 'nametag' ? -(((_this$nametag = this.nametag) === null || _this$nametag === void 0 ? void 0 : _this$nametag.x) + ((_this$nametag2 = this.nametag) === null || _this$nametag2 === void 0 ? void 0 : _this$nametag2.width) * 0.2) : target === 'trail' ? -((_this$car3 = this.car) === null || _this$car3 === void 0 ? void 0 : _this$car3.positions.back) : target === 'nitro' ? -((_this$car4 = this.car) === null || _this$car4 === void 0 ? void 0 : _this$car4.positions.back) : ((_this$car5 = this.car) === null || _this$car5 === void 0 ? void 0 : _this$car5.positions.back) * 0.15; // if nan or an error?
 
         x = x || 0; // trigger nitros, if needed
 
@@ -109248,7 +109276,7 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
         }, _callee5, this);
       }));
 
-      function _initTrail(_x4) {
+      function _initTrail(_x5) {
         return _initTrail2.apply(this, arguments);
       }
 
@@ -109283,7 +109311,7 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
         }, _callee6, this);
       }));
 
-      function _initNitro(_x5) {
+      function _initNitro(_x6) {
         return _initNitro2.apply(this, arguments);
       }
 
@@ -109323,7 +109351,7 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
         }, _callee7, this);
       }));
 
-      function _initNametag(_x6) {
+      function _initNametag(_x7) {
         return _initNametag2.apply(this, arguments);
       }
 
@@ -111480,7 +111508,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '2.2.6';
+  window.NTTRACK = '2.2.7';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

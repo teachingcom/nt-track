@@ -65,8 +65,19 @@ export default class BundleView extends BaseView {
 
 	active = { }
 
-	async setContent({ car, trail, nametag, nitro }) {
+	reload = () => {
+		this.setContent(this.activeSetup, true)
+	}
 
+	async setContent({ car, trail, nametag, nitro }, forceReload) {
+		this.activeSetup = { car, trail, nametag, nitro }
+
+		// wants to reload no matter what
+		if (forceReload) {
+			this.contentHasChanged = true
+		}
+
+		// check for changes
 		const carHasChanged = this.contentHasChanged || (this.active.car !== car?.type)
 		const trailHasChanged = this.contentHasChanged || (this.active.trail !== trail?.type)
 		const nametagHasChanged = this.contentHasChanged || (this.active.nametag !== nametag?.type)
@@ -111,11 +122,13 @@ export default class BundleView extends BaseView {
 	}
 
 	async _assemble() {
-		let { car, trail, nametag, nitro } = this
+		let { car = this.car, trail, nametag, nitro } = this
 
-		// make sure there's something ot use
+		// if there's not a car, it's not possible to assemble
+		// the content yet - maybe retry the load attempt?
 		if (!car) {
-			car = this.car
+			setTimeout(this.reload, 1000)
+			return
 		}
 
 		// used for certain animation effects
@@ -164,6 +177,10 @@ export default class BundleView extends BaseView {
 			nametag.x = trail ? -600 : 0
 		}
 
+		// activate focus, if possible
+		if (this.preferredFocus) {
+			this.setFocus(this.preferredFocus, true)
+		}
 	}
 
 	async _initCar({ type, hue, isAnimated }) {
@@ -193,6 +210,8 @@ export default class BundleView extends BaseView {
 	}
 	
 	setFocus(target, instant) {
+		this.preferredFocus = target
+
 		try {
 			let x = target === 'nametag' ? -(this.nametag?.x + (this.nametag?.width * 0.2))
 				: target === 'trail' ? -this.car?.positions.back
