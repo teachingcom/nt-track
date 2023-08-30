@@ -113,6 +113,11 @@ export default class BundleView extends BaseView {
 	async _assemble() {
 		let { car, trail, nametag, nitro } = this
 
+		// make sure there's something ot use
+		if (!car) {
+			car = this.car
+		}
+
 		// used for certain animation effects
 		if (car) {
 			car.isPlayerRoot = true
@@ -121,13 +126,6 @@ export default class BundleView extends BaseView {
 
 		// update the trail
 		if (trail) {
-
-			// make sure there's something ot use
-			if (car) {
-				car = this.car
-			}
-			
-			// add to the view
 			car.addChild(trail)
 
 			// position the trail correctly

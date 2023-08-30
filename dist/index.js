@@ -109059,7 +109059,12 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
-                car = this.car, trail = this.trail, nametag = this.nametag, nitro = this.nitro; // used for certain animation effects
+                car = this.car, trail = this.trail, nametag = this.nametag, nitro = this.nitro; // make sure there's something ot use
+
+                if (!car) {
+                  car = this.car;
+                } // used for certain animation effects
+
 
                 if (car) {
                   car.isPlayerRoot = true;
@@ -109068,12 +109073,6 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
 
 
                 if (trail) {
-                  // make sure there's something ot use
-                  if (car) {
-                    car = this.car;
-                  } // add to the view
-
-
                   car.addChild(trail); // position the trail correctly
 
                   zIndex = trail.config.layer === 'over_car' ? 100 : -100;
@@ -109116,7 +109115,7 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
                   nametag.x = trail ? -600 : 0;
                 }
 
-              case 5:
+              case 6:
               case "end":
                 return _context3.stop();
             }
@@ -111481,7 +111480,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '2.2.5';
+  window.NTTRACK = '2.2.6';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
