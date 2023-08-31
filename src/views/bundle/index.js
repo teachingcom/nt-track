@@ -11,7 +11,11 @@ const DEFAULT_MAX_HEIGHT = 250
 
 export default class BundleView extends BaseView {
 
+	viewport = new PIXI.Container()
+	workspace = new PIXI.ResponsiveContainer()
+
 	goldOffset = 200
+	contentHasChanged = true
 
 	async init (options) {
     // initialize the view
@@ -25,39 +29,35 @@ export default class BundleView extends BaseView {
 			window.BUNDLE = this
 		}
 
-		this.contentHasChanged = true
-
+		// create the scrolling view
 		this.treadmill = await Treadmill.create({
       totalSegments: 10,
       fitToHeight: 375,
       onCreateSegment: () => this.animator.create('extras/bundle')
     })
 
-		this.resize(options.container.offsetWidth, options.container.offsetHeight)
-
 		// setup the main view
-    this.workspace = new PIXI.ResponsiveContainer()
     this.workspace.scaleX = 1
     this.workspace.scaleY = 1
-
+		
     // this.workspace.relativeX = 0.275
     this.workspace.relativeY = 0.5
 		this.workspace.relativeX = 0.5
-
+		
 		// when gold
 		// this.workspace.relativeX = 0.8
-
+		
 		// make sure the game animates relative values
     this.animationVariables.speed = 1
     this.animationVariables.base_speed = 1
     this.animationVariables.movement = 1
-
-		// setup a container used for panning the view
-    this.viewport = new PIXI.Container()
-
+		
 		this.workspace.addChild(this.treadmill)
 		this.workspace.addChild(this.viewport)
     this.stage.addChild(this.workspace)
+
+		// update sizing
+		this.resize(options.container.offsetWidth, options.container.offsetHeight)
     
     // automatically render
     this.startAutoRender()
@@ -122,11 +122,11 @@ export default class BundleView extends BaseView {
 	}
 
 	async _assemble() {
-		let { car = this.car, trail, nametag, nitro } = this
+		let { car = this.car, trail, nametag, viewport } = this
 
 		// if there's not a car, it's not possible to assemble
 		// the content yet - maybe retry the load attempt?
-		if (!car) {
+		if (!(car && viewport)) {
 			setTimeout(this.reload, 1000)
 			return
 		}
@@ -153,20 +153,9 @@ export default class BundleView extends BaseView {
 		}
 
 		// update the nitro
-		if (nitro) {
-			car.addChild(nitro)
-
-			// position the nitro correctly
-			const zIndex = nitro.config.layer === 'over_car' ? 100 : -100
-			Nitro.setLayer(nitro, { zIndex })
-			Nitro.alignToCar(nitro, car)
-			car.sortChildren()
-			car.nitro = nitro
-			
-			// set the view and scaling
-			nitro.x = car.positions.back / 2
-			nitro.scale.x = nitro.scale.y = 0.75
-		}
+		// if (nitro) {
+			// nitros are created for each time they're activated
+		// }
 
 		// update the nametag
 		if (nametag) {
@@ -198,15 +187,42 @@ export default class BundleView extends BaseView {
 		showItem(this.car)
 	}
 
-	activateNitro = () => {
+	activateNitro = async (instant) => {
+		const { car } = this
 		const now = Date.now()
-		if ((this.nextAllowedNitro || 0) > now) {
+		if (
+			!car || // needs a car to perform the nitro effect
+			this.preferredFocus !== 'nitro' || // should be looking at the nitro view
+			!this.active.nitro || // should have a nitro added to the bundle
+			(!instant && (this.nextAllowedNitro || 0) > now) // should not be too recent
+			) {
 			return
 		}
 
+		// remove the prior nitro, if any
+		car.nitro?.destroy()
+
+		// set up the next allowed time
 		// TODO: maybe pull from config?
-		this.nextAllowedNitro = now + 4000
-		this.car?.activateNitro()
+		this.nextAllowedNitro = now + 2500
+
+		// create the new nitro
+		const nitro = await this._initNitro({ type: this.active.nitro })
+		car.addChild(nitro)
+
+		// position the nitro correctly
+		const zIndex = nitro.config.layer === 'over_car' ? 100 : -100
+		Nitro.setLayer(nitro, { zIndex })
+		Nitro.alignToCar(nitro, car)
+		car.sortChildren()
+		car.nitro = nitro
+		
+		// set the view and scaling
+		nitro.x = car.positions.back / 2
+		nitro.scale.x = nitro.scale.y = 0.75
+
+		// perform the effect
+		car.activateNitro()
 	}
 	
 	setFocus(target, instant) {
@@ -222,8 +238,9 @@ export default class BundleView extends BaseView {
 			x = x || 0
 
 			// trigger nitros, if needed
-			if (target === 'nitro' && target !== this.currentTarget) {
-				setTimeout(() => this.activateNitro(), 500)
+			if (target === 'nitro') {
+				clearTimeout(this.__pendingNitro)
+				this.__pendingNitro = setTimeout(() => this.activateNitro(instant), 500)
 			}
 
 			// save the active view
@@ -278,14 +295,11 @@ export default class BundleView extends BaseView {
 	}
 
 	async _initNitro({ type }) {
-
-		this.nitro = await Nitro.create({
+		return await Nitro.create({
       view: this,
       baseHeight: 200,
       type
     })
-
-		showItem(this.nitro)
 	}
 
 	async _initNametag({ type, name, tag, tagColor, rank }) {

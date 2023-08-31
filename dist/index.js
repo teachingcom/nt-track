@@ -108884,24 +108884,82 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
     }
 
     _this = _super.call.apply(_super, [this].concat(args));
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "viewport", new _ntAnimator.PIXI.Container());
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "workspace", new _ntAnimator.PIXI.ResponsiveContainer());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "goldOffset", 200);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "contentHasChanged", true);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "active", {});
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "reload", function () {
       _this.setContent(_this.activeSetup, true);
     });
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "activateNitro", function () {
-      var _this$car;
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "activateNitro", /*#__PURE__*/function () {
+      var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(instant) {
+        var _car$nitro;
 
-      var now = Date.now();
+        var _assertThisInitialize, car, now, nitro, zIndex;
 
-      if ((_this.nextAllowedNitro || 0) > now) {
-        return;
-      } // TODO: maybe pull from config?
+        return _regenerator.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _assertThisInitialize = (0, _assertThisInitialized2.default)(_this), car = _assertThisInitialize.car;
+                now = Date.now();
 
+                if (!(!car || // needs a car to perform the nitro effect
+                _this.preferredFocus !== 'nitro' || // should be looking at the nitro view
+                !_this.active.nitro || // should have a nitro added to the bundle
+                !instant && (_this.nextAllowedNitro || 0) > now // should not be too recent
+                )) {
+                  _context.next = 4;
+                  break;
+                }
 
-      _this.nextAllowedNitro = now + 4000;
-      (_this$car = _this.car) === null || _this$car === void 0 ? void 0 : _this$car.activateNitro();
-    });
+                return _context.abrupt("return");
+
+              case 4:
+                // remove the prior nitro, if any
+                (_car$nitro = car.nitro) === null || _car$nitro === void 0 ? void 0 : _car$nitro.destroy(); // set up the next allowed time
+                // TODO: maybe pull from config?
+
+                _this.nextAllowedNitro = now + 2500; // create the new nitro
+
+                _context.next = 8;
+                return _this._initNitro({
+                  type: _this.active.nitro
+                });
+
+              case 8:
+                nitro = _context.sent;
+                car.addChild(nitro); // position the nitro correctly
+
+                zIndex = nitro.config.layer === 'over_car' ? 100 : -100;
+
+                _nitro.default.setLayer(nitro, {
+                  zIndex: zIndex
+                });
+
+                _nitro.default.alignToCar(nitro, car);
+
+                car.sortChildren();
+                car.nitro = nitro; // set the view and scaling
+
+                nitro.x = car.positions.back / 2;
+                nitro.scale.x = nitro.scale.y = 0.75; // perform the effect
+
+                car.activateNitro();
+
+              case 18:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee);
+      }));
+
+      return function (_x) {
+        return _ref.apply(this, arguments);
+      };
+    }());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "focusViewport", function (x) {
       try {
         _this.viewport.x = x;
@@ -108915,14 +108973,14 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
   (0, _createClass2.default)(BundleView, [{
     key: "init",
     value: function () {
-      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(options) {
+      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(options) {
         var _this2 = this;
 
-        return _regenerator.default.wrap(function _callee$(_context) {
+        return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
-            switch (_context.prev = _context.next) {
+            switch (_context2.prev = _context2.next) {
               case 0:
-                _context.next = 2;
+                _context2.next = 2;
                 return (0, _get3.default)((0, _getPrototypeOf2.default)(BundleView.prototype), "init", this).call(this, _objectSpread({
                   scale: {
                     DEFAULT_MAX_HEIGHT: DEFAULT_MAX_HEIGHT
@@ -108933,10 +108991,10 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
               case 2:
                 if (_config.DEVELOPMENT) {
                   window.BUNDLE = this;
-                }
+                } // create the scrolling view
 
-                this.contentHasChanged = true;
-                _context.next = 6;
+
+                _context2.next = 5;
                 return _treadmill.default.create({
                   totalSegments: 10,
                   fitToHeight: 375,
@@ -108945,11 +109003,9 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
                   }
                 });
 
-              case 6:
-                this.treadmill = _context.sent;
-                this.resize(options.container.offsetWidth, options.container.offsetHeight); // setup the main view
-
-                this.workspace = new _ntAnimator.PIXI.ResponsiveContainer();
+              case 5:
+                this.treadmill = _context2.sent;
+                // setup the main view
                 this.workspace.scaleX = 1;
                 this.workspace.scaleY = 1; // this.workspace.relativeX = 0.275
 
@@ -108960,24 +109016,24 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
 
                 this.animationVariables.speed = 1;
                 this.animationVariables.base_speed = 1;
-                this.animationVariables.movement = 1; // setup a container used for panning the view
-
-                this.viewport = new _ntAnimator.PIXI.Container();
+                this.animationVariables.movement = 1;
                 this.workspace.addChild(this.treadmill);
                 this.workspace.addChild(this.viewport);
-                this.stage.addChild(this.workspace); // automatically render
+                this.stage.addChild(this.workspace); // update sizing
+
+                this.resize(options.container.offsetWidth, options.container.offsetHeight); // automatically render
 
                 this.startAutoRender();
 
-              case 21:
+              case 18:
               case "end":
-                return _context.stop();
+                return _context2.stop();
             }
           }
-        }, _callee, this);
+        }, _callee2, this);
       }));
 
-      function init(_x) {
+      function init(_x2) {
         return _init.apply(this, arguments);
       }
 
@@ -108986,14 +109042,14 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "setContent",
     value: function () {
-      var _setContent = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(_ref, forceReload) {
+      var _setContent = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(_ref2, forceReload) {
         var car, trail, nametag, nitro, carHasChanged, trailHasChanged, nametagHasChanged, nitroHasChanged, _i, _arr, obj, queue, pending;
 
-        return _regenerator.default.wrap(function _callee2$(_context2) {
+        return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
-            switch (_context2.prev = _context2.next) {
+            switch (_context3.prev = _context3.next) {
               case 0:
-                car = _ref.car, trail = _ref.trail, nametag = _ref.nametag, nitro = _ref.nitro;
+                car = _ref2.car, trail = _ref2.trail, nametag = _ref2.nametag, nitro = _ref2.nitro;
                 this.activeSetup = {
                   car: car,
                   trail: trail,
@@ -109042,23 +109098,23 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
                   queue.push(this._initNitro(nitro));
                 }
 
-                _context2.next = 17;
+                _context3.next = 17;
                 return Promise.all(queue);
 
               case 17:
-                pending = _context2.sent;
+                pending = _context3.sent;
 
                 this._assemble(pending);
 
               case 19:
               case "end":
-                return _context2.stop();
+                return _context3.stop();
             }
           }
-        }, _callee2, this);
+        }, _callee3, this);
       }));
 
-      function setContent(_x2, _x3) {
+      function setContent(_x3, _x4) {
         return _setContent.apply(this, arguments);
       }
 
@@ -109067,23 +109123,23 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "_assemble",
     value: function () {
-      var _assemble2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
-        var _this$car2, car, trail, nametag, nitro, zIndex, _zIndex;
+      var _assemble2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+        var _this$car, car, trail, nametag, viewport, zIndex;
 
-        return _regenerator.default.wrap(function _callee3$(_context3) {
+        return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
-            switch (_context3.prev = _context3.next) {
+            switch (_context4.prev = _context4.next) {
               case 0:
-                _this$car2 = this.car, car = _this$car2 === void 0 ? this.car : _this$car2, trail = this.trail, nametag = this.nametag, nitro = this.nitro; // if there's not a car, it's not possible to assemble
+                _this$car = this.car, car = _this$car === void 0 ? this.car : _this$car, trail = this.trail, nametag = this.nametag, viewport = this.viewport; // if there's not a car, it's not possible to assemble
                 // the content yet - maybe retry the load attempt?
 
-                if (car) {
-                  _context3.next = 4;
+                if (car && viewport) {
+                  _context4.next = 4;
                   break;
                 }
 
                 setTimeout(this.reload, 1000);
-                return _context3.abrupt("return");
+                return _context4.abrupt("return");
 
               case 4:
                 // used for certain animation effects
@@ -109108,25 +109164,10 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
                   trail.scale.x = trail.scale.y = 0.75;
                   car.trail = trail;
                 } // update the nitro
-
-
-                if (nitro) {
-                  car.addChild(nitro); // position the nitro correctly
-
-                  _zIndex = nitro.config.layer === 'over_car' ? 100 : -100;
-
-                  _nitro.default.setLayer(nitro, {
-                    zIndex: _zIndex
-                  });
-
-                  _nitro.default.alignToCar(nitro, car);
-
-                  car.sortChildren();
-                  car.nitro = nitro; // set the view and scaling
-
-                  nitro.x = car.positions.back / 2;
-                  nitro.scale.x = nitro.scale.y = 0.75;
-                } // update the nametag
+                // if (nitro) {
+                // nitros are created for each time they're activated
+                // }
+                // update the nametag
 
 
                 if (nametag) {
@@ -109141,12 +109182,12 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
                   this.setFocus(this.preferredFocus, true);
                 }
 
-              case 9:
+              case 8:
               case "end":
-                return _context3.stop();
+                return _context4.stop();
             }
           }
-        }, _callee3, this);
+        }, _callee4, this);
       }));
 
       function _assemble() {
@@ -109158,14 +109199,14 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "_initCar",
     value: function () {
-      var _initCar2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(_ref2) {
+      var _initCar2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(_ref3) {
         var type, hue, isAnimated;
-        return _regenerator.default.wrap(function _callee4$(_context4) {
+        return _regenerator.default.wrap(function _callee5$(_context5) {
           while (1) {
-            switch (_context4.prev = _context4.next) {
+            switch (_context5.prev = _context5.next) {
               case 0:
-                type = _ref2.type, hue = _ref2.hue, isAnimated = _ref2.isAnimated;
-                _context4.next = 3;
+                type = _ref3.type, hue = _ref3.hue, isAnimated = _ref3.isAnimated;
+                _context5.next = 3;
                 return _car.default.create({
                   view: this,
                   type: type,
@@ -109179,20 +109220,20 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
                 });
 
               case 3:
-                this.car = _context4.sent;
+                this.car = _context5.sent;
                 // add to the view
                 this.viewport.addChild(this.car);
                 showItem(this.car);
 
               case 6:
               case "end":
-                return _context4.stop();
+                return _context5.stop();
             }
           }
-        }, _callee4, this);
+        }, _callee5, this);
       }));
 
-      function _initCar(_x4) {
+      function _initCar(_x5) {
         return _initCar2.apply(this, arguments);
       }
 
@@ -109206,15 +109247,16 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
       this.preferredFocus = target;
 
       try {
-        var _this$nametag, _this$nametag2, _this$car3, _this$car4, _this$car5, _this$__animate_focus;
+        var _this$nametag, _this$nametag2, _this$car2, _this$car3, _this$car4, _this$__animate_focus;
 
-        var x = target === 'nametag' ? -(((_this$nametag = this.nametag) === null || _this$nametag === void 0 ? void 0 : _this$nametag.x) + ((_this$nametag2 = this.nametag) === null || _this$nametag2 === void 0 ? void 0 : _this$nametag2.width) * 0.2) : target === 'trail' ? -((_this$car3 = this.car) === null || _this$car3 === void 0 ? void 0 : _this$car3.positions.back) : target === 'nitro' ? -((_this$car4 = this.car) === null || _this$car4 === void 0 ? void 0 : _this$car4.positions.back) : ((_this$car5 = this.car) === null || _this$car5 === void 0 ? void 0 : _this$car5.positions.back) * 0.15; // if nan or an error?
+        var x = target === 'nametag' ? -(((_this$nametag = this.nametag) === null || _this$nametag === void 0 ? void 0 : _this$nametag.x) + ((_this$nametag2 = this.nametag) === null || _this$nametag2 === void 0 ? void 0 : _this$nametag2.width) * 0.2) : target === 'trail' ? -((_this$car2 = this.car) === null || _this$car2 === void 0 ? void 0 : _this$car2.positions.back) : target === 'nitro' ? -((_this$car3 = this.car) === null || _this$car3 === void 0 ? void 0 : _this$car3.positions.back) : ((_this$car4 = this.car) === null || _this$car4 === void 0 ? void 0 : _this$car4.positions.back) * 0.15; // if nan or an error?
 
         x = x || 0; // trigger nitros, if needed
 
-        if (target === 'nitro' && target !== this.currentTarget) {
-          setTimeout(function () {
-            return _this3.activateNitro();
+        if (target === 'nitro') {
+          clearTimeout(this.__pendingNitro);
+          this.__pendingNitro = setTimeout(function () {
+            return _this3.activateNitro(instant);
           }, 500);
         } // save the active view
 
@@ -109250,42 +109292,7 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "_initTrail",
     value: function () {
-      var _initTrail2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(_ref3) {
-        var type;
-        return _regenerator.default.wrap(function _callee5$(_context5) {
-          while (1) {
-            switch (_context5.prev = _context5.next) {
-              case 0:
-                type = _ref3.type;
-                _context5.next = 3;
-                return _trail.default.create({
-                  view: this,
-                  baseHeight: 200,
-                  type: type
-                });
-
-              case 3:
-                this.trail = _context5.sent;
-                showItem(this.trail);
-
-              case 5:
-              case "end":
-                return _context5.stop();
-            }
-          }
-        }, _callee5, this);
-      }));
-
-      function _initTrail(_x5) {
-        return _initTrail2.apply(this, arguments);
-      }
-
-      return _initTrail;
-    }()
-  }, {
-    key: "_initNitro",
-    value: function () {
-      var _initNitro2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(_ref4) {
+      var _initTrail2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(_ref4) {
         var type;
         return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
@@ -109293,15 +109300,15 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
               case 0:
                 type = _ref4.type;
                 _context6.next = 3;
-                return _nitro.default.create({
+                return _trail.default.create({
                   view: this,
                   baseHeight: 200,
                   type: type
                 });
 
               case 3:
-                this.nitro = _context6.sent;
-                showItem(this.nitro);
+                this.trail = _context6.sent;
+                showItem(this.trail);
 
               case 5:
               case "end":
@@ -109311,7 +109318,41 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
         }, _callee6, this);
       }));
 
-      function _initNitro(_x6) {
+      function _initTrail(_x6) {
+        return _initTrail2.apply(this, arguments);
+      }
+
+      return _initTrail;
+    }()
+  }, {
+    key: "_initNitro",
+    value: function () {
+      var _initNitro2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(_ref5) {
+        var type;
+        return _regenerator.default.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                type = _ref5.type;
+                _context7.next = 3;
+                return _nitro.default.create({
+                  view: this,
+                  baseHeight: 200,
+                  type: type
+                });
+
+              case 3:
+                return _context7.abrupt("return", _context7.sent);
+
+              case 4:
+              case "end":
+                return _context7.stop();
+            }
+          }
+        }, _callee7, this);
+      }));
+
+      function _initNitro(_x7) {
         return _initNitro2.apply(this, arguments);
       }
 
@@ -109320,14 +109361,14 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "_initNametag",
     value: function () {
-      var _initNametag2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(_ref5) {
+      var _initNametag2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(_ref6) {
         var type, name, tag, tagColor, rank;
-        return _regenerator.default.wrap(function _callee7$(_context7) {
+        return _regenerator.default.wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
-                type = _ref5.type, name = _ref5.name, tag = _ref5.tag, tagColor = _ref5.tagColor, rank = _ref5.rank;
-                _context7.next = 3;
+                type = _ref6.type, name = _ref6.name, tag = _ref6.tag, tagColor = _ref6.tagColor, rank = _ref6.rank;
+                _context8.next = 3;
                 return _namecard.default.create({
                   view: this,
                   baseHeight: this.height * 0.225,
@@ -109340,18 +109381,18 @@ var BundleView = /*#__PURE__*/function (_BaseView) {
                 });
 
               case 3:
-                this.nametag = _context7.sent;
+                this.nametag = _context8.sent;
                 showItem(this.nametag);
 
               case 5:
               case "end":
-                return _context7.stop();
+                return _context8.stop();
             }
           }
-        }, _callee7, this);
+        }, _callee8, this);
       }));
 
-      function _initNametag(_x7) {
+      function _initNametag(_x8) {
         return _initNametag2.apply(this, arguments);
       }
 
@@ -111508,7 +111549,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '2.2.7';
+  window.NTTRACK = '2.2.8';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
