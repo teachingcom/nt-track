@@ -66,7 +66,6 @@ export default class TrackView extends BaseView {
 	}
 
 	// global effect filter
-	colorFilter = new PIXI.filters.ColorMatrixFilter()
 	frame = 0
 
 	// tracking players and their namecards
@@ -115,9 +114,6 @@ export default class TrackView extends BaseView {
 		this.progress = options.manifest.progress;
 		this.pendingPlayers = options.expectedPlayerCount;
 		this.raceProgressAnimation = new RaceProgressAnimation({ track: this, isQualifyingRace });
-
-		// attach the effects filter
-		// this.stage.filters = [ this.colorFilter ];
 	}
 
 	// allow waiting for the track to finish loading

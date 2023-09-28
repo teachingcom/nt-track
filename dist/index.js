@@ -106183,7 +106183,6 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     }
 
     _this = _super.call.apply(_super, [this].concat(args));
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "colorFilter", new _ntAnimator.PIXI.filters.ColorMatrixFilter());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "frame", 0);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "activePlayers", {});
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "players", []);
@@ -106991,8 +106990,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 this.raceProgressAnimation = new _raceProgress.default({
                   track: this,
                   isQualifyingRace: isQualifyingRace
-                }); // attach the effects filter
-                // this.stage.filters = [ this.colorFilter ];
+                });
 
               case 11:
               case "end":
