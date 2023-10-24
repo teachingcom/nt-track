@@ -90,13 +90,14 @@ export default class RaceProgressAnimation extends Animation {
 		// calculate a position relative to the player but
 		// offset by the difference in progress
 		else {
-			const diff = this.calculateRelativeProgress(player.progress / 100, activePlayer.progress / 100);
+			const diff = this.calculateRelativeProgress(player.progress / 100, (activePlayer.progress || 0) / 100);
 			player.raceProgressModifier = diff;
 			player.preferredX = (activePlayer.preferredX || activePlayer.relativeX) + diff;
 		}
 
 		// adjust this player tween
-		interpolator.update(player.relativeX, player.preferredX);
+		// uses a backup relativeX if preferredX is NaN since it shoudl never be zero anyways
+		interpolator.update(player.relativeX, player.preferredX || player.relativeX);
 	}
 
 	/** animates the player */
@@ -252,7 +253,7 @@ class ProgressInterpolator {
 		this.current = this.target = starting;
 		this.timestamp = 0;
 	}
-
+	
 	update(current, target) {
 		this.current = current;
 		this.target = target;
@@ -263,7 +264,9 @@ class ProgressInterpolator {
 		const { current, target, timestamp } = this;
 		const now = +new Date;
 		const diff = (now - timestamp) / 1100;
-		return current + ((target - current) * diff);
+		const result = current + ((target - current) * diff);
+		const nan = isNaN(result)
+		return nan ? current : result
 	}
 
 }

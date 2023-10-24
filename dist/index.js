@@ -91890,22 +91890,19 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
     key: "removeAssets",
     value: function removeAssets() {
       var car = this.car,
-          namecard = this.namecard,
           shadow = this.shadow,
           trail = this.trail;
+      var namecard = this.layers.namecard;
       var removals = [{
         type: 'car',
         source: car,
         action: _ntAnimator.removeDisplayObject
       }, {
         type: 'namecard',
-        source: namecard,
+        source: namecard === null || namecard === void 0 ? void 0 : namecard.parent,
         action: _ntAnimator.removeDisplayObject
-      }, {
-        type: 'nametag',
-        source: namecard,
-        action: _ntAnimator.removeDisplayObject
-      }, {
+      }, // { type: 'nametag', source: namecard, action: removeDisplayObject },
+      {
         type: 'shadow',
         source: shadow,
         action: _ntAnimator.removeDisplayObject
@@ -105273,14 +105270,15 @@ var RaceProgressAnimation = /*#__PURE__*/function (_Animation) {
       } // calculate a position relative to the player but
       // offset by the difference in progress
       else {
-          var diff = _this.calculateRelativeProgress(player.progress / 100, activePlayer.progress / 100);
+          var diff = _this.calculateRelativeProgress(player.progress / 100, (activePlayer.progress || 0) / 100);
 
           player.raceProgressModifier = diff;
           player.preferredX = (activePlayer.preferredX || activePlayer.relativeX) + diff;
         } // adjust this player tween
+      // uses a backup relativeX if preferredX is NaN since it shoudl never be zero anyways
 
 
-      interpolator.update(player.relativeX, player.preferredX);
+      interpolator.update(player.relativeX, player.preferredX || player.relativeX);
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "updateActivePlayer", function (player) {
       var _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this),
@@ -105488,7 +105486,9 @@ var ProgressInterpolator = /*#__PURE__*/function () {
           timestamp = this.timestamp;
       var now = +new Date();
       var diff = (now - timestamp) / 1100;
-      return current + (target - current) * diff;
+      var result = current + (target - current) * diff;
+      var nan = isNaN(result);
+      return nan ? current : result;
     }
   }]);
   return ProgressInterpolator;
@@ -106262,10 +106262,11 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
             switch (_context.prev = _context.next) {
               case 0:
                 _assertThisInitialize = (0, _assertThisInitialized2.default)(_this), activePlayers = _assertThisInitialize.activePlayers, state = _assertThisInitialize.state, stage = _assertThisInitialize.stage, isViewActive = _assertThisInitialize.isViewActive, animator = _assertThisInitialize.animator;
-                _context.next = 3;
+                window.LAST_PLAYER = data;
+                _context.next = 4;
                 return _this.getTrackInstance();
 
-              case 3:
+              case 4:
                 track = _context.sent;
                 lighting = track === null || track === void 0 ? void 0 : (_track$manifest = track.manifest) === null || _track$manifest === void 0 ? void 0 : _track$manifest.lighting;
                 playerOptions = _objectSpread(_objectSpread({
@@ -106280,30 +106281,30 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 // this player
 
                 if (!(playerOptions.lane < 0)) {
-                  _context.next = 10;
+                  _context.next = 11;
                   break;
                 }
 
                 return _context.abrupt("return");
 
-              case 10:
+              case 11:
                 if (!activePlayers[data.id]) {
-                  _context.next = 12;
+                  _context.next = 13;
                   break;
                 }
 
                 return _context.abrupt("return");
 
-              case 12:
+              case 13:
                 activePlayers[data.id] = true; // increase the expected players
 
                 state.totalPlayers++; // create the player instance
 
-                _context.prev = 14;
-                _context.next = 17;
+                _context.prev = 15;
+                _context.next = 18;
                 return _player2.default.create(playerOptions, (0, _assertThisInitialized2.default)(_this));
 
-              case 17:
+              case 18:
                 player = _context.sent;
                 player.track = (0, _assertThisInitialized2.default)(_this); // if this happens to be a race in progress
 
@@ -106315,13 +106316,13 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
 
                 if (!(isPlayer && !player.hasRequiredAssets)) {
-                  _context.next = 22;
+                  _context.next = 23;
                   break;
                 }
 
                 throw new PlayerAssetError();
 
-              case 22:
+              case 23:
                 // set the active player, if needed
                 if (isPlayer) {
                   _this.activePlayerId = id;
@@ -106347,11 +106348,11 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 _player = player, car = _player.car;
 
                 if (!((_car$plugin = car.plugin) === null || _car$plugin === void 0 ? void 0 : _car$plugin.extend)) {
-                  _context.next = 27;
+                  _context.next = 28;
                   break;
                 }
 
-                _context.next = 27;
+                _context.next = 28;
                 return car.plugin.extend({
                   animator: animator,
                   car: car,
@@ -106359,7 +106360,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   track: (0, _assertThisInitialized2.default)(_this)
                 });
 
-              case 27:
+              case 28:
                 // with the player, include their namecard
                 namecard = player.layers.namecard;
 
@@ -106421,12 +106422,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 // }
 
 
-                _context.next = 44;
+                _context.next = 45;
                 break;
 
-              case 36:
-                _context.prev = 36;
-                _context.t0 = _context["catch"](14);
+              case 37:
+                _context.prev = 37;
+                _context.t0 = _context["catch"](15);
                 console.log('failed to add player', _context.t0);
                 delete activePlayers[data.id];
                 state.totalPlayers--; // if the player was created, try and remove it
@@ -106435,18 +106436,18 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 // a breaking exception
 
                 if (!isPlayer) {
-                  _context.next = 44;
+                  _context.next = 45;
                   break;
                 }
 
                 throw _context.t0;
 
-              case 44:
+              case 45:
               case "end":
                 return _context.stop();
             }
           }
-        }, _callee, null, [[14, 36]]);
+        }, _callee, null, [[15, 37]]);
       }));
 
       return function (_x, _x2) {
@@ -106628,19 +106629,30 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
             switch (_context3.prev = _context3.next) {
               case 0:
                 _assertThisInitialize3 = (0, _assertThisInitialized2.default)(_this), players = _assertThisInitialize3.players, state = _assertThisInitialize3.state;
-                totalPlayers = state.totalPlayers; // add the player to the list
+                totalPlayers = state.totalPlayers;
 
+                if (!(_this.lanes[player.options.lane] !== player.id)) {
+                  _context3.next = 6;
+                  break;
+                }
+
+                console.log('was changed!');
+                player.dispose(false);
+                return _context3.abrupt("return");
+
+              case 6:
+                // add the player to the list
                 players.push(player); // if needed
 
                 progress = (_this$startingRacerPr = _this.startingRacerProgress) === null || _this$startingRacerPr === void 0 ? void 0 : _this$startingRacerPr[player.id];
 
                 if (isNaN(progress)) {
-                  _context3.next = 18;
+                  _context3.next = 22;
                   break;
                 }
 
                 if (!player.isPlayer) {
-                  _context3.next = 11;
+                  _context3.next = 15;
                   break;
                 }
 
@@ -106649,28 +106661,28 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
                 _this.waitForPlayerReady.release(player);
 
-                _context3.next = 18;
+                _context3.next = 22;
                 break;
 
-              case 11:
-                _context3.next = 13;
+              case 15:
+                _context3.next = 17;
                 return _this.waitForPlayerReady.wait();
 
-              case 13:
+              case 17:
                 activePlayer = _context3.sent;
                 relativeProgress = (_this$startingRacerPr2 = _this.startingRacerProgress) === null || _this$startingRacerPr2 === void 0 ? void 0 : _this$startingRacerPr2[activePlayer.id];
                 diff = _this.raceProgressAnimation.calculateRelativeProgress(progress / 100, relativeProgress / 100);
                 player.raceProgressModifier = diff;
                 player.relativeX = player.preferredX = (activePlayer.preferredX || activePlayer.relativeX) + diff;
 
-              case 18:
+              case 22:
                 // game is ready to play
                 // TODO: this might change depending on how players are loaded
                 if (players.length === totalPlayers) {
                   _this.emit('ready');
                 }
 
-              case 19:
+              case 23:
               case "end":
                 return _context3.stop();
             }

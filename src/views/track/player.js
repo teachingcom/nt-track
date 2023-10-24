@@ -353,11 +353,12 @@ export default class Player extends PIXI.ResponsiveContainer {
 	}
 
 	removeAssets() {
-		const { car, namecard, shadow, trail } = this;
+		const { car, shadow, trail } = this;
+		const { namecard } = this.layers
 		const removals = [
 			{ type: 'car', source: car, action: removeDisplayObject },
-			{ type: 'namecard', source: namecard, action: removeDisplayObject },
-			{ type: 'nametag', source: namecard, action: removeDisplayObject },
+			{ type: 'namecard', source: namecard?.parent, action: removeDisplayObject },
+			// { type: 'nametag', source: namecard, action: removeDisplayObject },
 			{ type: 'shadow', source: shadow, action: removeDisplayObject },
 			{ type: 'trail', source: trail, action: removeDisplayObject },
 			{ type: 'player', source: this, action: removeDisplayObject }

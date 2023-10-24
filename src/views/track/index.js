@@ -211,6 +211,7 @@ export default class TrackView extends BaseView {
 	/** adds a new car to the track */
 	addPlayer = async (data, isInstant) => {
 		const { activePlayers, state, stage, isViewActive, animator } = this;
+		window.LAST_PLAYER = data
 
 		const track = await this.getTrackInstance();
 		const lighting = track?.manifest?.lighting;
@@ -501,6 +502,12 @@ export default class TrackView extends BaseView {
 	setPlayerReady = async player => {
 		const { players, state } = this;
 		const { totalPlayers } = state;
+
+		if (this.lanes[player.options.lane] !== player.id) {
+			console.log('was changed!')
+			player.dispose(false)
+			return
+		}
 
 		// add the player to the list
 		players.push(player);
