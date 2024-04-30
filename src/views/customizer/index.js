@@ -219,6 +219,7 @@ export default class CustomizerView extends BaseView {
 			color: config.tagColor,
 			isGold: config.isGold,
 			isAdmin: config.isAdmin,
+			isChampion: config.isChampion,
 			isFriend: false,
 			playerRank: config.rank,
 		});

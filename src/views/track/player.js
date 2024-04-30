@@ -151,7 +151,7 @@ export default class Player extends PIXI.ResponsiveContainer {
 	async _initNameCard() {
 		const { options, mods } = this;
 		const { view } = options;
-		const { playerName, playerTeam, teamColor, isGold, isFriend, playerRank, isAdmin } = options;
+		const { playerName, playerTeam, teamColor, isGold, isChampion, isFriend, playerRank, isAdmin } = options;
 		let { card = 'default' } = mods;
 
 		// prevent player namecards
@@ -172,6 +172,7 @@ export default class Player extends PIXI.ResponsiveContainer {
 			isGold,
 			isFriend,
 			isAdmin,
+			isChampion,
 			playerRank,
 		});
 	}

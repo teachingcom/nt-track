@@ -39,7 +39,6 @@ export default class NameCardView extends BaseView {
 
 	// creates a new car instance
 	setNameCard = async config => {
-
 		for (const child of this.stage.children) {
 			fadeOut(child, false)
 		}
@@ -56,8 +55,9 @@ export default class NameCardView extends BaseView {
 			color: config.tagColor,
 			isGold: config.isGold,
 			isAdmin: config.isAdmin,
+			isChampion: config.isChampion,
 			isFriend: false,
-			playerRank: config.rank,
+			// playerRank: config.rank,
 		});
 
 		this.namecard = namecard

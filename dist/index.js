@@ -78107,6 +78107,7 @@ var BetweenExpression = function BetweenExpression(prop, args) {
   (0, _defineProperty2.default)(this, "flip", false);
   (0, _defineProperty2.default)(this, "min", 0);
   (0, _defineProperty2.default)(this, "max", 0);
+  (0, _defineProperty2.default)(this, "clamp", false);
   (0, _defineProperty2.default)(this, "update", function (target, stage, player) {
     var _this$modifier;
 
@@ -78121,7 +78122,14 @@ var BetweenExpression = function BetweenExpression(prop, args) {
       value = range - value;
     }
 
-    value *= _this.scale; // apply the value
+    value *= _this.scale;
+    console.log('do this step?');
+
+    if (_this.clamp) {
+      value = Math.min(_this.max, value);
+      value = Math.max(_this.min, value);
+    } // apply the value
+
 
     _this.mapping(target, _this.convertToInt ? 0 | value : value);
   });
@@ -78138,6 +78146,8 @@ var BetweenExpression = function BetweenExpression(prop, args) {
 
       if (arg === 'int') {
         this.convertToInt = true;
+      } else if (arg === 'clamp') {
+        this.clamp = true;
       } else if (arg === 'invert' || arg === 'flip') {
         this.flip = true;
       } else if ('min' in arg) {
@@ -90425,6 +90435,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
+var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
+
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
@@ -90656,7 +90668,8 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
     key: "_initIcons",
     value: function () {
       var _initIcons2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
-        var view;
+        var view, _yield$Promise$all, _yield$Promise$all2, top3, top10, top50, top100, top300, gold, friend, admin, admin_invert, champion;
+
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
@@ -90671,63 +90684,35 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
               case 2:
                 view = this.view;
                 _context2.next = 5;
-                return view.animator.getImage('images', 'icon_top_3');
+                return Promise.all([view.animator.getImage('images', 'icon_top_3'), view.animator.getImage('images', 'icon_top_10'), view.animator.getImage('images', 'icon_top_50'), view.animator.getImage('images', 'icon_top_100'), view.animator.getImage('images', 'icon_top_300'), view.animator.getImage('images', 'icon_gold'), view.animator.getImage('images', 'icon_friend'), view.animator.getImage('images', 'icon_admin'), view.animator.getImage('images', 'icon_admin_invert'), view.animator.getImage('images', 'icon_champion')]);
 
               case 5:
-                _context2.t0 = _context2.sent;
-                _context2.next = 8;
-                return view.animator.getImage('images', 'icon_top_10');
-
-              case 8:
-                _context2.t1 = _context2.sent;
-                _context2.next = 11;
-                return view.animator.getImage('images', 'icon_top_50');
-
-              case 11:
-                _context2.t2 = _context2.sent;
-                _context2.next = 14;
-                return view.animator.getImage('images', 'icon_top_100');
-
-              case 14:
-                _context2.t3 = _context2.sent;
-                _context2.next = 17;
-                return view.animator.getImage('images', 'icon_top_300');
-
-              case 17:
-                _context2.t4 = _context2.sent;
-                _context2.next = 20;
-                return view.animator.getImage('images', 'icon_gold');
-
-              case 20:
-                _context2.t5 = _context2.sent;
-                _context2.next = 23;
-                return view.animator.getImage('images', 'icon_friend');
-
-              case 23:
-                _context2.t6 = _context2.sent;
-                _context2.next = 26;
-                return view.animator.getImage('images', 'icon_admin');
-
-              case 26:
-                _context2.t7 = _context2.sent;
-                _context2.next = 29;
-                return view.animator.getImage('images', 'icon_admin_invert');
-
-              case 29:
-                _context2.t8 = _context2.sent;
+                _yield$Promise$all = _context2.sent;
+                _yield$Promise$all2 = (0, _slicedToArray2.default)(_yield$Promise$all, 10);
+                top3 = _yield$Promise$all2[0];
+                top10 = _yield$Promise$all2[1];
+                top50 = _yield$Promise$all2[2];
+                top100 = _yield$Promise$all2[3];
+                top300 = _yield$Promise$all2[4];
+                gold = _yield$Promise$all2[5];
+                friend = _yield$Promise$all2[6];
+                admin = _yield$Promise$all2[7];
+                admin_invert = _yield$Promise$all2[8];
+                champion = _yield$Promise$all2[9];
                 NameCard.ICONS = {
-                  top3: _context2.t0,
-                  top10: _context2.t1,
-                  top50: _context2.t2,
-                  top100: _context2.t3,
-                  top300: _context2.t4,
-                  gold: _context2.t5,
-                  friend: _context2.t6,
-                  admin: _context2.t7,
-                  admin_invert: _context2.t8
+                  top3: top3,
+                  top10: top10,
+                  top50: top50,
+                  top100: top100,
+                  top300: top300,
+                  gold: gold,
+                  friend: friend,
+                  admin: admin,
+                  admin_invert: admin_invert,
+                  champion: champion
                 };
 
-              case 31:
+              case 18:
               case "end":
                 return _context2.stop();
             }
@@ -90754,6 +90739,7 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
           config = this.config;
       var isTop3 = options.isTop3,
           isGold = options.isGold,
+          isChampion = options.isChampion,
           isFriend = options.isFriend,
           isAdmin = options.isAdmin; // TODO: support for old style -- remove later and
       // only use the playerRank
@@ -90799,11 +90785,15 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
       if (isAdmin && !config.hideAdmin) {
         tallest = Math.max(tallest, ICONS.admin.height);
         ids.push(config.invertAdmin ? 'admin_invert' : 'admin');
-      }
+      } // if (hasPlayerRank) {
+      // 	tallest = Math.max(tallest, playerRankIcon.height);
+      // 	ids.push(playerRankIconId);
+      // }
 
-      if (hasPlayerRank) {
-        tallest = Math.max(tallest, playerRankIcon.height);
-        ids.push(playerRankIconId);
+
+      if (isChampion && !isAdmin) {
+        tallest = Math.max(tallest, ICONS.champion.height);
+        ids.push('champion');
       }
 
       if (isFriend) {
@@ -90836,8 +90826,7 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
     /** handles creating a new namecard */
     value: function () {
       var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(options) {
-        var instance, type, view, path, config, isGoldNamecard, isPlayerNamecard, hasOverlay, _config, isAdmin;
-
+        var instance, type, view, path, config, isGoldNamecard, isPlayerNamecard, hasOverlay, isAdmin, isChampion;
         return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
@@ -90887,10 +90876,11 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
 
               case 17:
                 // save the properties
+                console.log('jhas', options);
                 isGoldNamecard = /gold/i.test(type);
                 isPlayerNamecard = /player/i.test(type);
                 hasOverlay = config.overlay !== false;
-                _config = config, isAdmin = _config.isAdmin;
+                isAdmin = options.isAdmin, isChampion = options.isChampion;
                 (0, _utils.merge)(instance, {
                   options: options,
                   view: view,
@@ -90899,45 +90889,46 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                   isGoldNamecard: isGoldNamecard,
                   isPlayerNamecard: isPlayerNamecard,
                   isAdmin: isAdmin,
+                  isChampion: isChampion,
                   hasOverlay: hasOverlay
                 }); // attempt to add a namecard
 
-                _context3.prev = 22;
+                _context3.prev = 23;
                 // create a container for all parts
                 instance.container = new _ntAnimator.PIXI.Container();
                 instance.addChild(instance.container); // initialize all namecard parts
 
-                _context3.next = 27;
+                _context3.next = 28;
                 return instance._initNameCard();
 
-              case 27:
-                _context3.next = 29;
+              case 28:
+                _context3.next = 30;
                 return instance._initIcons();
 
-              case 29:
+              case 30:
                 // check for an overlay to render
                 if (hasOverlay) instance._initOverlay();
-                _context3.next = 37;
+                _context3.next = 38;
                 break;
 
-              case 32:
-                _context3.prev = 32;
-                _context3.t1 = _context3["catch"](22);
+              case 33:
+                _context3.prev = 33;
+                _context3.t1 = _context3["catch"](23);
                 console.error(_context3.t1);
                 this.failedToLoadNamecard = true;
                 return _context3.abrupt("return", null);
 
-              case 37:
+              case 38:
                 // return the created namecard
                 instance.pivot.x = -instance.nudgeX;
                 return _context3.abrupt("return", instance);
 
-              case 39:
+              case 40:
               case "end":
                 return _context3.stop();
             }
           }
-        }, _callee3, this, [[6, 12], [22, 32]]);
+        }, _callee3, this, [[6, 12], [23, 33]]);
       }));
 
       function create(_x) {
@@ -90980,7 +90971,7 @@ function drawIcons(ctx, icons) {
 function clean(str) {
   return (str || '').toString().replace(/^\s*|\s*$/g, '').replace(/\s+/, ' ');
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../utils":"utils/index.js","../../utils/color":"utils/color.js","nt-animator":"../node_modules/nt-animator/dist/index.js"}],"components/nitro/index.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../utils":"utils/index.js","../../utils/color":"utils/color.js","nt-animator":"../node_modules/nt-animator/dist/index.js"}],"components/nitro/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -91614,7 +91605,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
     key: "_initNameCard",
     value: function () {
       var _initNameCard2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
-        var options, mods, view, playerName, playerTeam, teamColor, isGold, isFriend, playerRank, isAdmin, _mods$card, card;
+        var options, mods, view, playerName, playerTeam, teamColor, isGold, isChampion, isFriend, playerRank, isAdmin, _mods$card, card;
 
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
@@ -91622,7 +91613,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
               case 0:
                 options = this.options, mods = this.mods;
                 view = options.view;
-                playerName = options.playerName, playerTeam = options.playerTeam, teamColor = options.teamColor, isGold = options.isGold, isFriend = options.isFriend, playerRank = options.playerRank, isAdmin = options.isAdmin;
+                playerName = options.playerName, playerTeam = options.playerTeam, teamColor = options.teamColor, isGold = options.isGold, isChampion = options.isChampion, isFriend = options.isFriend, playerRank = options.playerRank, isAdmin = options.isAdmin;
                 _mods$card = mods.card, card = _mods$card === void 0 ? 'default' : _mods$card; // prevent player namecards
                 // TODO: this may change if we support custom namecards
 
@@ -91642,6 +91633,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                   isGold: isGold,
                   isFriend: isFriend,
                   isAdmin: isAdmin,
+                  isChampion: isChampion,
                   playerRank: playerRank
                 }));
 
@@ -110249,6 +110241,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                   color: config.tagColor,
                   isGold: config.isGold,
                   isAdmin: config.isAdmin,
+                  isChampion: config.isChampion,
                   isFriend: false,
                   playerRank: config.rank
                 });
@@ -111458,8 +111451,9 @@ var NameCardView = /*#__PURE__*/function (_BaseView) {
                   color: config.tagColor,
                   isGold: config.isGold,
                   isAdmin: config.isAdmin,
-                  isFriend: false,
-                  playerRank: config.rank
+                  isChampion: config.isChampion,
+                  isFriend: false // playerRank: config.rank,
+
                 });
 
               case 6:
@@ -111685,7 +111679,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '2.3.0';
+  window.NTTRACK = '2.3.2';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

@@ -61,11 +61,12 @@ export default class NameCard extends PIXI.Container {
 		if (!config) return
 
 		// save the properties
+		console.log('jhas', options)
 		const isGoldNamecard = /gold/i.test(type)
 		const isPlayerNamecard = /player/i.test(type)
 		const hasOverlay = config.overlay !== false
-		const { isAdmin } = config
-		merge(instance, { options, view, path, config, isGoldNamecard, isPlayerNamecard, isAdmin, hasOverlay })
+		const { isAdmin, isChampion } = options
+		merge(instance, { options, view, path, config, isGoldNamecard, isPlayerNamecard, isAdmin, isChampion, hasOverlay })
 
 		// attempt to add a namecard
 		try {			
@@ -125,16 +126,42 @@ export default class NameCard extends PIXI.Container {
 	async _initIcons() {
 		if (!!NameCard.ICONS) return;
 		const { view } = this;
+		
+		const [
+			top3,
+			top10,
+			top50,
+			top100,
+			top300,
+			gold,
+			friend,
+			admin,
+			admin_invert,
+			champion,
+		] = await Promise.all([
+			view.animator.getImage('images', 'icon_top_3'),
+			view.animator.getImage('images', 'icon_top_10'),
+			view.animator.getImage('images', 'icon_top_50'),
+			view.animator.getImage('images', 'icon_top_100'),
+			view.animator.getImage('images', 'icon_top_300'),
+			view.animator.getImage('images', 'icon_gold'),
+			view.animator.getImage('images', 'icon_friend'),
+			view.animator.getImage('images', 'icon_admin'),
+			view.animator.getImage('images', 'icon_admin_invert'),
+			view.animator.getImage('images', 'icon_champion')
+		])
+		
 		NameCard.ICONS = {
-			top3: await view.animator.getImage('images', 'icon_top_3'),
-			top10: await view.animator.getImage('images', 'icon_top_10'),
-			top50: await view.animator.getImage('images', 'icon_top_50'),
-			top100: await view.animator.getImage('images', 'icon_top_100'),
-			top300: await view.animator.getImage('images', 'icon_top_300'),
-			gold: await view.animator.getImage('images', 'icon_gold'),
-			friend: await view.animator.getImage('images', 'icon_friend'),
-			admin: await view.animator.getImage('images', 'icon_admin'),
-			admin_invert: await view.animator.getImage('images', 'icon_admin_invert'),
+			top3,
+			top10,
+			top50,
+			top100,
+			top300,
+			gold,
+			friend,
+			admin,
+			admin_invert,
+			champion,
 		};
 	}
 
@@ -244,6 +271,7 @@ export default class NameCard extends PIXI.Container {
 		const {
 			isTop3,
 			isGold,
+			isChampion,
 			isFriend,
 			isAdmin
 		} = options;
@@ -295,9 +323,14 @@ export default class NameCard extends PIXI.Container {
 			ids.push(config.invertAdmin ? 'admin_invert' : 'admin');
 		}
 		
-		if (hasPlayerRank) {
-			tallest = Math.max(tallest, playerRankIcon.height);
-			ids.push(playerRankIconId);
+		// if (hasPlayerRank) {
+		// 	tallest = Math.max(tallest, playerRankIcon.height);
+		// 	ids.push(playerRankIconId);
+		// }
+
+		if (isChampion && !isAdmin) {
+			tallest = Math.max(tallest, ICONS.champion.height);
+			ids.push('champion');
 		}
 
 		if (isFriend) {
