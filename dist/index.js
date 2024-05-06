@@ -78123,7 +78123,6 @@ var BetweenExpression = function BetweenExpression(prop, args) {
     }
 
     value *= _this.scale;
-    console.log('do this step?');
 
     if (_this.clamp) {
       value = Math.min(_this.max, value);
