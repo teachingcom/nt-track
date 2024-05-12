@@ -61,7 +61,6 @@ export default class NameCard extends PIXI.Container {
 		if (!config) return
 
 		// save the properties
-		console.log('jhas', options)
 		const isGoldNamecard = /gold/i.test(type)
 		const isPlayerNamecard = /player/i.test(type)
 		const hasOverlay = config.overlay !== false

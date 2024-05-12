@@ -90875,7 +90875,6 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
 
               case 17:
                 // save the properties
-                console.log('jhas', options);
                 isGoldNamecard = /gold/i.test(type);
                 isPlayerNamecard = /player/i.test(type);
                 hasOverlay = config.overlay !== false;
@@ -90892,42 +90891,42 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                   hasOverlay: hasOverlay
                 }); // attempt to add a namecard
 
-                _context3.prev = 23;
+                _context3.prev = 22;
                 // create a container for all parts
                 instance.container = new _ntAnimator.PIXI.Container();
                 instance.addChild(instance.container); // initialize all namecard parts
 
-                _context3.next = 28;
+                _context3.next = 27;
                 return instance._initNameCard();
 
-              case 28:
-                _context3.next = 30;
+              case 27:
+                _context3.next = 29;
                 return instance._initIcons();
 
-              case 30:
+              case 29:
                 // check for an overlay to render
                 if (hasOverlay) instance._initOverlay();
-                _context3.next = 38;
+                _context3.next = 37;
                 break;
 
-              case 33:
-                _context3.prev = 33;
-                _context3.t1 = _context3["catch"](23);
+              case 32:
+                _context3.prev = 32;
+                _context3.t1 = _context3["catch"](22);
                 console.error(_context3.t1);
                 this.failedToLoadNamecard = true;
                 return _context3.abrupt("return", null);
 
-              case 38:
+              case 37:
                 // return the created namecard
                 instance.pivot.x = -instance.nudgeX;
                 return _context3.abrupt("return", instance);
 
-              case 40:
+              case 39:
               case "end":
                 return _context3.stop();
             }
           }
-        }, _callee3, this, [[6, 12], [23, 33]]);
+        }, _callee3, this, [[6, 12], [22, 32]]);
       }));
 
       function create(_x) {
@@ -111678,7 +111677,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '2.4.2';
+  window.NTTRACK = '2.4.3';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
