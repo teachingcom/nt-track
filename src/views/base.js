@@ -1,6 +1,6 @@
 
 import { isViewActive, onViewActiveStateChanged } from '../utils/view';
-import { Animator, EventEmitter, PIXI } from 'nt-animator';
+import { Animator, EventEmitter, PIXI, findDisplayObjectsOfRole } from 'nt-animator';
 import { noop } from '../utils';
 import { DEFAULT_PERFORMANCE_MONITORING_DELAY, PERFORMANCE_LEVEL } from '../config';
 
@@ -66,6 +66,8 @@ export class BaseView extends EventEmitter {
 		// start with a canvas renderer
 		createCanvasRenderer(this, options.cacheId);
 		let renderer = this.canvasRenderer;
+
+		window.RENDERER = this
 
 		// helper
 		window.addEventListener('unload', this.freeze);
@@ -164,6 +166,15 @@ export class BaseView extends EventEmitter {
 	// checks if this frame should perform rendering
 	get shouldAnimateFrame() {
 		return !this.paused && !!this.isViewActive && (this.frame % this.animationRate === 0);
+	}
+
+	makeWebGLCompatible(obj, action = layer => layer.visible = false) {
+		if (this.isUsingWebGL) {
+			return
+		}
+		
+		findDisplayObjectsOfRole(obj, 'requiresWebGL')
+			.forEach(action)
 	}
 
 	// temporarily freezes rendering - used in response to the

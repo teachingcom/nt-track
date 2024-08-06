@@ -87727,7 +87727,8 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
                 }; // start with a canvas renderer
 
                 createCanvasRenderer(this, options.cacheId);
-                renderer = this.canvasRenderer; // helper
+                renderer = this.canvasRenderer;
+                window.RENDERER = this; // helper
 
                 window.addEventListener('unload', this.freeze);
                 window.addEventListener('beforeunload', this.tempFreeze); // create WebGL, if supported
@@ -87800,7 +87801,7 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
                   });
                 }
 
-              case 36:
+              case 37:
               case "end":
                 return _context.stop();
             }
@@ -87815,6 +87816,22 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
       return init;
     }()
     /** keeping track of progress */
+
+  }, {
+    key: "makeWebGLCompatible",
+    value: function makeWebGLCompatible(obj) {
+      var action = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : function (layer) {
+        return layer.visible = false;
+      };
+
+      if (this.isUsingWebGL) {
+        return;
+      }
+
+      (0, _ntAnimator.findDisplayObjectsOfRole)(obj, 'requiresWebGL').forEach(action);
+    } // temporarily freezes rendering - used in response to the
+    // before unload event to prevent the flash of the WebGL view
+    // when leaving the page
 
   }, {
     key: "dispose",
@@ -87895,10 +87912,7 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
     // checks if this frame should perform rendering
     get: function get() {
       return !this.paused && !!this.isViewActive && this.frame % this.animationRate === 0;
-    } // temporarily freezes rendering - used in response to the
-    // before unload event to prevent the flash of the WebGL view
-    // when leaving the page
-
+    }
   }]);
   return BaseView;
 }(_ntAnimator.EventEmitter);
@@ -89757,14 +89771,21 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
     // creates the car instance
     value: function () {
       var _initCar2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
-        var path, config, view, options, type, tweaks, baseHeight, lighting, includeNormalMap, includeShadow, _ref4, car, height, imageSource, bounds, scaleBy, positions, front, id;
+        var path, config, view, options, type, tweaks, baseHeight, lighting, _ref4, requiresWebGL, includeNormalMap, includeShadow, _ref5, car, height, imageSource, bounds, scaleBy, positions, front, id;
 
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
                 path = this.path, config = this.config, view = this.view, options = this.options;
-                type = options.type, tweaks = options.tweaks, baseHeight = options.baseHeight, lighting = options.lighting; // deciding textures to render
+                type = options.type, tweaks = options.tweaks, baseHeight = options.baseHeight, lighting = options.lighting;
+                _ref4 = config || {}, requiresWebGL = _ref4.requiresWebGL; // if webgl is required
+
+                if (requiresWebGL && !view.view.isUsingWebGL) {
+                  type = options.carID;
+                  config = null;
+                } // deciding textures to render
+
 
                 includeNormalMap = view.options.includeNormalMaps;
                 includeShadow = true; // view.options.includeShadows;
@@ -89773,34 +89794,36 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
                 // imageSource: used to identify the actual image for a car
 
                 if (!config) {
-                  _context4.next = 10;
+                  _context4.next = 12;
                   break;
                 }
 
-                _context4.next = 7;
+                _context4.next = 9;
                 return this._createEnhancedCar(path);
 
-              case 7:
+              case 9:
                 _context4.t0 = _context4.sent;
-                _context4.next = 13;
+                _context4.next = 15;
                 break;
 
-              case 10:
-                _context4.next = 12;
+              case 12:
+                _context4.next = 14;
                 return this._createStaticCar(type, tweaks);
 
-              case 12:
+              case 14:
                 _context4.t0 = _context4.sent;
 
-              case 13:
-                _ref4 = _context4.t0;
-                car = _ref4.car;
-                height = _ref4.height;
-                imageSource = _ref4.imageSource;
-                bounds = _ref4.bounds;
-                // scale the car to match the preferred height, which is
+              case 15:
+                _ref5 = _context4.t0;
+                car = _ref5.car;
+                height = _ref5.height;
+                imageSource = _ref5.imageSource;
+                bounds = _ref5.bounds;
+                // update for compatibility
+                view.makeWebGLCompatible(car); // scale the car to match the preferred height, which is
                 // the height of the car relative to the base size of the
                 // stage itself - The ResponsiveContainer will handle the rest
+
                 scaleBy = car.scale.x = car.scale.y = baseHeight / height; // get positions to attach things
 
                 positions = this._establishPositions(bounds, car, scaleBy); // shift everything to align to the front of the car
@@ -89817,10 +89840,10 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
                 this.car = car;
                 this.bounds = bounds; // load any textures
 
-                _context4.next = 28;
+                _context4.next = 31;
                 return this._initTextures();
 
-              case 28:
+              case 31:
                 // add the car to the view
                 this.addChild(car); // replace the shadow 
 
@@ -89835,7 +89858,7 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
                   });
                 }
 
-              case 32:
+              case 35:
               case "end":
                 return _context4.stop();
             }
@@ -90090,9 +90113,9 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
     key: "attachMods",
 
     /** associates mods with a specific car */
-    value: function attachMods(_ref5) {
-      var trail = _ref5.trail,
-          nitro = _ref5.nitro;
+    value: function attachMods(_ref6) {
+      var trail = _ref6.trail,
+          nitro = _ref6.nitro;
       this.trail = trail;
       this.nitro = nitro;
       this.hasTrail = !!trail;
@@ -90619,36 +90642,79 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
     // creates the namecard instance
     value: function () {
       var _initNameCard2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
-        var path, view, options, config, container, baseHeight, namecard, scale, _config$nudgeX, nudgeX, _config$nudgeY, nudgeY, bounding;
+        var path, view, options, config, container, baseHeight, namecard, isStatic, texture, sprite, scaling, scale, _scale, _config$nudgeX, nudgeX, _config$nudgeY, nudgeY, bounding;
 
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
                 path = this.path, view = this.view, options = this.options, config = this.config, container = this.container;
-                baseHeight = options.baseHeight; // create the instance
+                baseHeight = options.baseHeight; // if the config is a webgl only nametag and we don't have
+                // access to that, we need to use the static image
 
-                _context.next = 4;
+                if (!(config.requiresWebGL && !view.isUsingWebGL)) {
+                  _context.next = 20;
+                  break;
+                }
+
+                isStatic = true;
+                _context.next = 6;
+                return _ntAnimator.PIXI.Texture.from(options.staticCardURL);
+
+              case 6:
+                texture = _context.sent;
+                _context.next = 9;
+                return _ntAnimator.PIXI.Sprite.from(texture);
+
+              case 9:
+                sprite = _context.sent;
+                sprite.anchor.x = sprite.anchor.y = 0.5;
+                namecard = new _ntAnimator.PIXI.Container();
+                namecard.addChild(sprite);
+                sprite.role = ['base'];
+                scaling = 642 / 310;
+                sprite.width = 350 * scaling;
+                sprite.height = 180 * scaling;
+                sprite.x = sprite.width * -0.05;
+                _context.next = 23;
+                break;
+
+              case 20:
+                _context.next = 22;
                 return view.animator.create(path);
 
-              case 4:
+              case 22:
                 namecard = _context.sent;
-                // scale correctly
-                this.bounds = (0, _ntAnimator.getBoundsForRole)(namecard, 'base');
-                if (config.height) this.bounds.height = config.height;
-                if (config.width) this.bounds.width = config.width; // save scaling values
 
-                scale = baseHeight / this.bounds.height;
-                container.scale.x = container.scale.y = scale; // calculate nudging values used to position this layer correctly
+              case 23:
+                // make sure this works with WebGL
+                view.makeWebGLCompatible(namecard);
+                this.bounds = (0, _ntAnimator.getBoundsForRole)(namecard, 'base'); // scale correctly
 
-                _config$nudgeX = config.nudgeX, nudgeX = _config$nudgeX === void 0 ? 0 : _config$nudgeX, _config$nudgeY = config.nudgeY, nudgeY = _config$nudgeY === void 0 ? 0 : _config$nudgeY;
-                bounding = namecard.getBounds();
-                this.nudgeX = ((bounding.width - TARGET_NAMECARD_WIDTH) * -0.5 + nudgeX) * scale;
-                this.nudgeY = nudgeY * scale; // add to the view
+                if (isStatic) {
+                  scale = baseHeight / 180;
+                  container.scale.x = container.scale.y = scale;
+                  this.nudgeX = -5;
+                  this.nudgeY = -10; // container.scale.x = container.scale.y = 0.25
+                  // container.scale = 
+                } // dynamic animated
+                else {
+                    if (config.height) this.bounds.height = config.height;
+                    if (config.width) this.bounds.width = config.width; // save scaling values
+
+                    _scale = baseHeight / this.bounds.height;
+                    container.scale.x = container.scale.y = _scale; // calculate nudging values used to position this layer correctly
+
+                    _config$nudgeX = config.nudgeX, nudgeX = _config$nudgeX === void 0 ? 0 : _config$nudgeX, _config$nudgeY = config.nudgeY, nudgeY = _config$nudgeY === void 0 ? 0 : _config$nudgeY;
+                    bounding = namecard.getBounds();
+                    this.nudgeX = ((bounding.width - TARGET_NAMECARD_WIDTH) * -0.5 + nudgeX) * _scale;
+                    this.nudgeY = nudgeY * _scale;
+                  } // add to the view
+
 
                 container.addChild(namecard);
 
-              case 15:
+              case 27:
               case "end":
                 return _context.stop();
             }
@@ -90858,7 +90924,13 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                 _context3.t0 = _context3["catch"](6);
 
               case 14:
-                // if missing, use the default
+                // if webgl is required and no static image was provided, we'll
+                // just have to fall back to default
+                if (config.requiresWebGL && !view.isUsingWebGL && !options.staticCardURL) {
+                  config = null;
+                } // if missing, use the default
+
+
                 if (!config) {
                   path = 'nametags/default_tag';
                   config = view.animator.lookup(path);
@@ -90867,13 +90939,13 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
 
 
                 if (config) {
-                  _context3.next = 17;
+                  _context3.next = 18;
                   break;
                 }
 
                 return _context3.abrupt("return");
 
-              case 17:
+              case 18:
                 // save the properties
                 isGoldNamecard = /gold/i.test(type);
                 isPlayerNamecard = /player/i.test(type);
@@ -90891,42 +90963,42 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
                   hasOverlay: hasOverlay
                 }); // attempt to add a namecard
 
-                _context3.prev = 22;
+                _context3.prev = 23;
                 // create a container for all parts
                 instance.container = new _ntAnimator.PIXI.Container();
                 instance.addChild(instance.container); // initialize all namecard parts
 
-                _context3.next = 27;
+                _context3.next = 28;
                 return instance._initNameCard();
 
-              case 27:
-                _context3.next = 29;
+              case 28:
+                _context3.next = 30;
                 return instance._initIcons();
 
-              case 29:
+              case 30:
                 // check for an overlay to render
                 if (hasOverlay) instance._initOverlay();
-                _context3.next = 37;
+                _context3.next = 38;
                 break;
 
-              case 32:
-                _context3.prev = 32;
-                _context3.t1 = _context3["catch"](22);
+              case 33:
+                _context3.prev = 33;
+                _context3.t1 = _context3["catch"](23);
                 console.error(_context3.t1);
                 this.failedToLoadNamecard = true;
                 return _context3.abrupt("return", null);
 
-              case 37:
+              case 38:
                 // return the created namecard
                 instance.pivot.x = -instance.nudgeX;
                 return _context3.abrupt("return", instance);
 
-              case 39:
+              case 40:
               case "end":
                 return _context3.stop();
             }
           }
-        }, _callee3, this, [[6, 12], [22, 32]]);
+        }, _callee3, this, [[6, 12], [23, 33]]);
       }));
 
       function create(_x) {
@@ -91603,7 +91675,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
     key: "_initNameCard",
     value: function () {
       var _initNameCard2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
-        var options, mods, view, playerName, playerTeam, teamColor, isGold, isChampion, isFriend, playerRank, isAdmin, _mods$card, card;
+        var options, mods, view, playerName, playerTeam, teamColor, isGold, isChampion, isFriend, playerRank, isAdmin, _mods$card, card, staticCardURL;
 
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
@@ -91612,7 +91684,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                 options = this.options, mods = this.mods;
                 view = options.view;
                 playerName = options.playerName, playerTeam = options.playerTeam, teamColor = options.teamColor, isGold = options.isGold, isChampion = options.isChampion, isFriend = options.isFriend, playerRank = options.playerRank, isAdmin = options.isAdmin;
-                _mods$card = mods.card, card = _mods$card === void 0 ? 'default' : _mods$card; // prevent player namecards
+                _mods$card = mods.card, card = _mods$card === void 0 ? 'default' : _mods$card, staticCardURL = mods.staticCardURL; // prevent player namecards
                 // TODO: this may change if we support custom namecards
 
                 if (options.spectator && card === 'player') {
@@ -91624,6 +91696,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                   view: view,
                   baseHeight: _scaling.SCALED_NAMECARD_HEIGHT,
                   type: card,
+                  staticCardURL: staticCardURL,
                   isAnimated: mods.isNamecardAnimated,
                   name: playerName,
                   team: playerTeam,
@@ -111677,7 +111750,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '2.4.3';
+  window.NTTRACK = '2.5.0';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

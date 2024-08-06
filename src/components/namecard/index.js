@@ -50,6 +50,12 @@ export default class NameCard extends PIXI.Container {
 			catch(ex) { }
 		}
 
+		// if webgl is required and no static image was provided, we'll
+		// just have to fall back to default
+		if (config.requiresWebGL && !view.isUsingWebGL && !options.staticCardURL) {
+			config = null
+		}
+
 		// if missing, use the default
 		if (!config) {
 			path = 'nametags/default_tag'
@@ -99,23 +105,61 @@ export default class NameCard extends PIXI.Container {
 		const { path, view, options, config, container } = this;
 		const { baseHeight } = options;
 
-		// create the instance
-		const namecard = await view.animator.create(path);
+		// if the config is a webgl only nametag and we don't have
+		// access to that, we need to use the static image
+		let namecard
+		let isStatic
+
+		// since we need to use the static image, load it instead
+		if (config.requiresWebGL && !view.isUsingWebGL) {
+			isStatic = true
+			const texture = await PIXI.Texture.from(options.staticCardURL)
+			const sprite = await PIXI.Sprite.from(texture)
+			sprite.anchor.x = sprite.anchor.y = 0.5
+			namecard = new PIXI.Container()
+			namecard.addChild(sprite)
+
+			sprite.role = ['base']
+			const scaling = 642 / 310
+			sprite.width = 350 * scaling
+			sprite.height = 180 * scaling
+			sprite.x = sprite.width * -0.05
+		}
+		else {
+			// create the instance
+			namecard = await view.animator.create(path);
+		}
+
+		// make sure this works with WebGL
+		view.makeWebGLCompatible(namecard)
+	
+		this.bounds = getBoundsForRole(namecard, 'base');
 
 		// scale correctly
-		this.bounds = getBoundsForRole(namecard, 'base');
-		if (config.height) this.bounds.height = config.height;
-		if (config.width) this.bounds.width = config.width;
-		
-		// save scaling values
-		const scale = baseHeight / this.bounds.height
-		container.scale.x = container.scale.y = scale;
+		if (isStatic) {
+			const scale = baseHeight / 180
+			container.scale.x = container.scale.y = scale
 
-		// calculate nudging values used to position this layer correctly
-		const { nudgeX = 0, nudgeY = 0 } = config
-		const bounding = namecard.getBounds()
-		this.nudgeX = (((bounding.width - TARGET_NAMECARD_WIDTH) * -0.5) + nudgeX) * scale
-		this.nudgeY = nudgeY * scale
+			this.nudgeX = -5
+			this.nudgeY = -10
+			// container.scale.x = container.scale.y = 0.25
+			// container.scale = 
+		}
+		// dynamic animated
+		else {
+			if (config.height) this.bounds.height = config.height;
+			if (config.width) this.bounds.width = config.width;
+		
+			// save scaling values
+			const scale = baseHeight / this.bounds.height
+			container.scale.x = container.scale.y = scale;
+
+			// calculate nudging values used to position this layer correctly
+			const { nudgeX = 0, nudgeY = 0 } = config
+			const bounding = namecard.getBounds()
+			this.nudgeX = (((bounding.width - TARGET_NAMECARD_WIDTH) * -0.5) + nudgeX) * scale
+			this.nudgeY = nudgeY * scale
+		}
 
 		// add to the view
 		container.addChild(namecard);

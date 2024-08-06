@@ -152,7 +152,7 @@ export default class Player extends PIXI.ResponsiveContainer {
 		const { options, mods } = this;
 		const { view } = options;
 		const { playerName, playerTeam, teamColor, isGold, isChampion, isFriend, playerRank, isAdmin } = options;
-		let { card = 'default' } = mods;
+		let { card = 'default', staticCardURL } = mods;
 
 		// prevent player namecards
 		// TODO: this may change if we support custom namecards
@@ -165,6 +165,7 @@ export default class Player extends PIXI.ResponsiveContainer {
 			view,
 			baseHeight: SCALED_NAMECARD_HEIGHT,
 			type: card,
+			staticCardURL,
 			isAnimated: mods.isNamecardAnimated,
 			name: playerName,
 			team: playerTeam,

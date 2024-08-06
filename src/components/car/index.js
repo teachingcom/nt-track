@@ -65,8 +65,15 @@ export default class Car extends PIXI.Container {
 	
 	// creates the car instance
 	async _initCar() {
-		const { path, config, view, options } = this;
-		const { type, tweaks, baseHeight, lighting } = options;
+		let { path, config, view, options } = this;
+		let { type, tweaks, baseHeight, lighting } = options;
+		const { requiresWebGL } = config || { }
+		
+		// if webgl is required
+		if (requiresWebGL && !view.view.isUsingWebGL) {
+			type = options.carID
+			config = null
+		}
 		
 		// deciding textures to render
 		const includeNormalMap = view.options.includeNormalMaps;
@@ -78,6 +85,9 @@ export default class Car extends PIXI.Container {
 		const { car, height, imageSource, bounds } = config
 			? await this._createEnhancedCar(path)
 			: await this._createStaticCar(type, tweaks);
+
+		// update for compatibility
+		view.makeWebGLCompatible(car)
 			
 		// scale the car to match the preferred height, which is
 		// the height of the car relative to the base size of the
