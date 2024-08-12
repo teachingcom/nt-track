@@ -70,7 +70,7 @@ export default class Car extends PIXI.Container {
 		const { requiresWebGL } = config || { }
 		
 		// if webgl is required
-		if (requiresWebGL && !view.view.isUsingWebGL) {
+		if (requiresWebGL && !view.isUsingWebGL) {
 			type = options.carID
 			config = null
 		}
