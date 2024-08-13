@@ -222,6 +222,7 @@ export default class CustomizerView extends BaseView {
 			isChampion: config.isChampion,
 			isFriend: false,
 			playerRank: config.rank,
+      staticCardURL: config.src
 		});
 
     // in case of an unusual scenario where
@@ -260,7 +261,7 @@ export default class CustomizerView extends BaseView {
   }
 
   // replaces the active car
-  async setCar ({ type, hue, isAnimated, trail, tweaks, nametag, nitro }) {
+  async setCar ({ type, carID, hue, isAnimated, trail, tweaks, nametag, nitro }) {
     this.isReady = false
 
     // clear the existing data
@@ -270,6 +271,7 @@ export default class CustomizerView extends BaseView {
     const car = await Car.create({
       view: this,
       baseHeight: 150,
+      carID,
       type,
       isAnimated,
       hue,

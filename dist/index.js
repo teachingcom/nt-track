@@ -110314,7 +110314,8 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                   isAdmin: config.isAdmin,
                   isChampion: config.isChampion,
                   isFriend: false,
-                  playerRank: config.rank
+                  playerRank: config.rank,
+                  staticCardURL: config.src
                 });
 
               case 9:
@@ -110373,12 +110374,12 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
     key: "setCar",
     value: function () {
       var _setCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10(_ref) {
-        var type, hue, isAnimated, trail, tweaks, nametag, nitro, car, container;
+        var type, carID, hue, isAnimated, trail, tweaks, nametag, nitro, car, container;
         return _regenerator.default.wrap(function _callee10$(_context10) {
           while (1) {
             switch (_context10.prev = _context10.next) {
               case 0:
-                type = _ref.type, hue = _ref.hue, isAnimated = _ref.isAnimated, trail = _ref.trail, tweaks = _ref.tweaks, nametag = _ref.nametag, nitro = _ref.nitro;
+                type = _ref.type, carID = _ref.carID, hue = _ref.hue, isAnimated = _ref.isAnimated, trail = _ref.trail, tweaks = _ref.tweaks, nametag = _ref.nametag, nitro = _ref.nitro;
                 this.isReady = false; // clear the existing data
 
                 this._removeExistingCars(); // create the new car instance
@@ -110388,6 +110389,7 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
                 return _car.default.create({
                   view: this,
                   baseHeight: 150,
+                  carID: carID,
                   type: type,
                   isAnimated: isAnimated,
                   hue: hue,
