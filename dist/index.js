@@ -102802,6 +102802,248 @@ function makeLeavesTexture(width, height) {
 
   return new _ntAnimator.PIXI.Texture.from(leaves.el);
 }
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../utils":"utils/index.js"}],"effects/snow.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
+
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var _ntAnimator = require("nt-animator");
+
+var _utils = require("../utils");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var width = 600;
+var height = 1000;
+var MIN_SPEED = 3;
+var MAX_SPEED = 23;
+var MIN_GUST = 2;
+var MAX_GUST = 6; // textures
+
+var SNOW_1;
+var SNOW_2;
+var SNOW_3;
+
+var SnowEffect = /*#__PURE__*/function () {
+  function SnowEffect(_track, container, animator) {
+    var _this = this;
+
+    (0, _classCallCheck2.default)(this, SnowEffect);
+    (0, _defineProperty2.default)(this, "isRacing", false);
+    (0, _defineProperty2.default)(this, "createHandler", function (origin, snow) {
+      var track = _this.track;
+      var update = snow.updateTransform;
+      var rotationSpeed = 0.01;
+      var width = track.width * 1.2;
+      var halfWidth = width / 2;
+      var offset = 100000 * Math.random(); // tracks the set of leaves behavior
+
+      var modifier = 0; // reset the 
+
+      function reset() {
+        snow.x = halfWidth;
+        snow.y = 0; // snow.rotation = (Math.random() * 0.2) - 0.1;
+
+        snow.dir = Math.random() * rotationSpeed - rotationSpeed / 2;
+      } // override the update transform method
+
+
+      snow.updateTransform = function () {
+        // update the effect modifier
+        modifier = _this.isRacing ? Math.min(modifier + 0.0025, 1) : 0; // calculate new values
+
+        var now = Math.cos((Date.now() + offset) * 0.001);
+        var adjusted = modifier + Math.min(1.5, track.state.typingSpeedModifier || 0);
+        var gustSpeed = Math.max(0, now * (MIN_GUST + MAX_GUST * adjusted));
+        var speed = MIN_SPEED + MAX_SPEED * adjusted + gustSpeed; // update the visuals
+
+        snow.x -= speed;
+        snow.rotation += now * -0.0033;
+        snow.y = now * 100; // reset if needed
+
+        if (snow.x < -halfWidth) {
+          reset();
+        } // perform the normal update
+
+
+        update.call(snow);
+      }; // initial state
+
+
+      reset();
+      snow.x = width * origin;
+    });
+    this.track = _track;
+    this.container = container;
+    this.animator = animator;
+  }
+
+  (0, _createClass2.default)(SnowEffect, [{
+    key: "init",
+    value: function () {
+      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+        var _this2 = this;
+
+        var track, animator;
+        return _regenerator.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                track = this.track, animator = this.animator; // TODO: use animator.getImage
+                // SNOW_1 = await createSnow('iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyhpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDcuMi1jMDAwIDc5LjFiNjVhNzliNCwgMjAyMi8wNi8xMy0yMjowMTowMSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIDIzLjUgKE1hY2ludG9zaCkiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NDREMUMwNzk5ODc0MTFFRkEzNkNENTUyMEE0MENFNzQiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6NDREMUMwN0E5ODc0MTFFRkEzNkNENTUyMEE0MENFNzQiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo0NEQxQzA3Nzk4NzQxMUVGQTM2Q0Q1NTIwQTQwQ0U3NCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo0NEQxQzA3ODk4NzQxMUVGQTM2Q0Q1NTIwQTQwQ0U3NCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PjH6gEsAAADqSURBVHjaYvj//z8DFCsA8QwgfgjEP6H0dCCWQ1JDEMMYHkD8+T928BGI3UgxEOSyT//xA5C8IjEGMjEwMFQCMS8DfgCSL2EgAjACTX0EpGWJUPsAiBWJMfAnkGYjwsAfQMxJSBHIyy8YiANEqQMZuI1IA7cSpQroZXkg/kAglj9A1RGdDl2g6Q0beA/E9qQmbAZojpgGxHegiRxETyI1pzCCTaUiYGKgMhiUBuoBsR8Qi8OSDSV4JlJq+ArEnpREigkQn0YTu0WJl5WwiClSYuBhIP6GJraT0jB0BuLrQPwLiNcBsRhAgAEAERcnjrR8rWgAAAAASUVORK5CYII=');
+                // SNOW_2 = await createSnow('iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyhpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDcuMi1jMDAwIDc5LjFiNjVhNzliNCwgMjAyMi8wNi8xMy0yMjowMTowMSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIDIzLjUgKE1hY2ludG9zaCkiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6NDREMUMwN0Q5ODc0MTFFRkEzNkNENTUyMEE0MENFNzQiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6NDREMUMwN0U5ODc0MTFFRkEzNkNENTUyMEE0MENFNzQiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo0NEQxQzA3Qjk4NzQxMUVGQTM2Q0Q1NTIwQTQwQ0U3NCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo0NEQxQzA3Qzk4NzQxMUVGQTM2Q0Q1NTIwQTQwQ0U3NCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PsV5knMAAAEISURBVHjaYvj//z8DDbAqEK8F4o9A/AnKVkdWQwtL1YD4/X9MABLTpKXFa//jButh6hjBtlMXfARiPhxyX4GYB8RgYqA+YCRGETaL9YDYD4jFybR4Dx65/XAWWvzMRIqPr0DsSUYca+BIXB+AWAtb4jLBovgmmQkMlHo3A/EXqAc2I6doEGZBCgYlLEGjSGZwXwdiX2Lj+DAQf0OT38lAK4AWRM5AfB2IfwHxOiAWo1HJRpN8zEBudhq1eNTi4WlxE7R6a6aVxbjyMagE4wTiL0DMS08f90Etn0pvH4+malIB4VYMDWoeolox1LaU6FYMtYOa6FYMtS0mvhVDgzgmqhUzYPkYIMAA7s15nbdc8/AAAAAASUVORK5CYII=');
+                // SNOW_3 = await createSnow('iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyhpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDcuMi1jMDAwIDc5LjFiNjVhNzliNCwgMjAyMi8wNi8xMy0yMjowMTowMSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIDIzLjUgKE1hY2ludG9zaCkiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6Njk3Q0QzQUM5ODc0MTFFRkEzNkNENTUyMEE0MENFNzQiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6Njk3Q0QzQUQ5ODc0MTFFRkEzNkNENTUyMEE0MENFNzQiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo0NEQxQzA3Rjk4NzQxMUVGQTM2Q0Q1NTIwQTQwQ0U3NCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDo0NEQxQzA4MDk4NzQxMUVGQTM2Q0Q1NTIwQTQwQ0U3NCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PitJ0HAAAAEOSURBVHjaYvz//z/DQAAmhgECyBY3AfFHIG6mgrl6QOwHxOI4VYCCGoq//YeAz0hi5OCZ/xHgKxB7YlOHzGmBKuygwFKT/5jgJiGLqYHDsFj8C5taaieuw0D8DU1sJ6E4RseqQLwWiD8C8ScoW50IXzsD8XWoT9cBsRgpQa0GxO+xBBtITJMa0YJLYu1/3GA9NSxmxFFygfIzH454/ArEPLQquRgHqsjcg0fPfqrYjCMONHAkrg9ArEXLxMUATb2bgfgLtETbTK0UjS9xjYxqcdTiUYuHn8WEG2jUBKQ00KiJSWqgkYmboK2YZnSLiW6gkYmxNpuZSGqgkQf6oOZPxRbHRDXQqIkHrHYCCDAAXtKUT6nnibcAAAAASUVORK5CYII=');
+                // handle effects
+
+                track.on('race:start', function () {
+                  return _this2.isRacing = true;
+                });
+                track.on('race:finish', function () {
+                  return _this2.isRacing = false;
+                }); // generate some textures
+
+                animator.addTexture('snow_1', makeSnowTexture(width, height));
+                animator.addTexture('snow_2', makeSnowTexture(width, height));
+                animator.addTexture('snow_3', makeSnowTexture(width, height));
+                animator.addTexture('snow_4', makeSnowTexture(width, height));
+
+              case 7:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function init() {
+        return _init.apply(this, arguments);
+      }
+
+      return init;
+    }()
+  }, {
+    key: "setup",
+    value: function () {
+      var _setup = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+        var container, track, effect, snow, total, i;
+        return _regenerator.default.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                container = this.container, track = this.track;
+                effect = container.effect; // setup each leaf effect
+
+                snow = (0, _ntAnimator.findDisplayObjectsOfRole)(effect, 'snow');
+                total = snow.length;
+
+                for (i = 0; i < total; i++) {
+                  this.createHandler(i / total, snow[i]);
+                }
+
+              case 5:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function setup() {
+        return _setup.apply(this, arguments);
+      }
+
+      return setup;
+    }()
+  }]);
+  return SnowEffect;
+}();
+
+exports.default = SnowEffect;
+
+function createSnow(src) {
+  return new Promise(function (resolve) {
+    var img = document.createElement('img');
+    img.src = "data:image/png;base64,".concat(src);
+
+    img.onload = function () {
+      return resolve(img);
+    };
+  });
+}
+
+function makeSnowTexture(width, height) {
+  // const shadowSize = 30;
+  // const halfShadowSize = shadowSize / 2;
+  // const shadow = createSurface(shadowSize, shadowSize);
+  // shadow.ctx.fillStyle = shadow.ctx.createRadialGradient(halfShadowSize, halfShadowSize, 0, halfShadowSize, halfShadowSize, halfShadowSize);
+  // shadow.ctx.fillStyle.addColorStop(0, 'rgba(0,0,0,1)');
+  // shadow.ctx.fillStyle.addColorStop(1, 'rgba(0,0,0,0)');
+  // shadow.ctx.fillRect(0, 0, shadowSize, shadowSize);
+  var snow = (0, _utils.createSurface)(width, height);
+  snow.ctx.shadowBlur = 5;
+  snow.ctx.shadowOffsetX = 0;
+  snow.ctx.shadowOffsetY = 0;
+  snow.ctx.shadowColor = '#bbffff';
+  snow.ctx.fillStyle = 'white';
+  snow.ctx.strokeStyle = '#b2d8e7';
+  var x = 0;
+  var y = 0;
+  var prevX = -100;
+  var prevY = -100;
+  var images = [SNOW_1, SNOW_2, SNOW_3];
+  var density = 0.1;
+
+  while (x < width) {
+    x += Math.random() * width * density;
+    y = 0;
+
+    while (y < height) {
+      y += Math.random() * height * density; // require a minimum distance
+
+      if (Math.abs(Math.abs(x - prevX) + Math.abs(y - prevY)) < 100) {
+        continue;
+      } // const scale = (Math.random() * 0.5) + 0.5
+      // snow.ctx.moveTo(x, y);
+
+
+      snow.ctx.beginPath();
+      var rnd = Math.random();
+      snow.ctx.shadowBlur = 5 * rnd;
+      snow.ctx.arc(x, y, 0.5 + rnd * 1.5, 0, Math.PI * 2);
+      snow.ctx.closePath();
+      snow.ctx.globalAlpha = Math.min(rnd * 2, 1);
+      snow.ctx.fill();
+      snow.ctx.lineWidth = rnd;
+      snow.ctx.stroke(); // const offset = 2 + (Math.random() * 10)
+      // snow.ctx.globalAlpha = 0.1 + ((1 - (offset / 12)) * 0.1)
+      // snow.ctx.scale(scale, scale);
+      // snow.ctx.drawImage(shadow.el, (offset / scale) + -halfShadowSize, -halfShadowSize)
+      // snow.ctx.globalAlpha = 1
+      // snow.ctx.rotate(Math.random() * (Math.PI * 2));
+      // const image = images[(0 | x + y) % 3];
+      // snow.ctx.drawImage(image, 0, 0);
+      // snow.ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+      prevX = x;
+      prevY = y;
+    }
+  }
+
+  return new _ntAnimator.PIXI.Texture.from(snow.el);
+}
 },{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../utils":"utils/index.js"}],"components/track/index.js":[function(require,module,exports) {
 "use strict";
 
@@ -102845,6 +103087,8 @@ var _scripts = require("../../scripts");
 var _rain = _interopRequireDefault(require("../../effects/rain"));
 
 var _leaves = _interopRequireDefault(require("../../effects/leaves"));
+
+var _snow = _interopRequireDefault(require("../../effects/snow"));
 
 var _audio = require("../../audio");
 
@@ -103600,7 +103844,7 @@ var Track = /*#__PURE__*/function () {
               case 4:
                 // check for any scripts that need to run
                 // TODO: maybe add more support, but for now this is fine)
-                Handler = effect.script === 'rain' ? _rain.default : effect.script === 'leaves' ? _leaves.default : null;
+                Handler = effect.script === 'rain' ? _rain.default : effect.script === 'leaves' ? _leaves.default : effect.script === 'snow' ? _snow.default : null;
                 handler = Handler ? new Handler(view, this, view.animator) : null; // initialization
 
                 if (!handler) {
@@ -104178,7 +104422,7 @@ var byRightEdge = function byRightEdge(a, b) {
 var shiftArray = function shiftArray(arr) {
   return arr.push(arr.shift());
 };
-},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../rng":"rng.js","../../views/track/scaling":"views/track/scaling.js","../../config":"config.js","../../utils":"utils/index.js","./segment":"components/track/segment.js","../../plugins/crowd":"plugins/crowd/index.js","../../audio/ambient":"audio/ambient.js","./preload":"components/track/preload.js","../../scripts":"scripts/index.js","../../effects/rain":"effects/rain.js","../../effects/leaves":"effects/leaves.js","../../audio":"audio/index.js"}],"utils/async-lock.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../rng":"rng.js","../../views/track/scaling":"views/track/scaling.js","../../config":"config.js","../../utils":"utils/index.js","./segment":"components/track/segment.js","../../plugins/crowd":"plugins/crowd/index.js","../../audio/ambient":"audio/ambient.js","./preload":"components/track/preload.js","../../scripts":"scripts/index.js","../../effects/rain":"effects/rain.js","../../effects/leaves":"effects/leaves.js","../../effects/snow":"effects/snow.js","../../audio":"audio/index.js"}],"utils/async-lock.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -111752,7 +111996,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '2.5.3';
+  window.NTTRACK = '3.0.0';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

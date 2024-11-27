@@ -11,6 +11,7 @@ import { loadScript, parseScriptArgs } from '../../scripts';
 
 import RainEffect from '../../effects/rain';
 import LeavesEffect from '../../effects/leaves';
+import SnowEffect from '../../effects/snow';
 import { createFakeSound } from '../../audio';
 
 // total number of road slices to create
@@ -377,6 +378,7 @@ export default class Track {
 		// TODO: maybe add more support, but for now this is fine)
 		const Handler = effect.script === 'rain' ? RainEffect
 			: effect.script === 'leaves' ? LeavesEffect
+			: effect.script === 'snow' ? SnowEffect
 			: null;
 
 		const handler = Handler ? new Handler(view, this, view.animator) : null;
