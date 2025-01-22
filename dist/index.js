@@ -77150,6 +77150,7 @@ var BaseRelativeTo = /*#__PURE__*/function () {
     this.isVisibility = prop === 'visible';
     this.flip = args.indexOf('flip') > -1;
     this.toInt = args.indexOf('int') > -1;
+    this.clamp = args.indexOf('clamp') > -1;
     this.min = args[0];
     this.max = args[1];
   }
@@ -77165,6 +77166,11 @@ var BaseRelativeTo = /*#__PURE__*/function () {
         percent = Math.abs((at - mid) / mid); // full range
       } else {
         percent = at / relativeTo;
+      } // also clamp
+
+
+      if (this.clamp) {
+        percent = Math.max(-1, Math.min(1, percent));
       } // specials
 
 
@@ -102153,7 +102159,126 @@ var GameScript = function GameScript(config, obj, track, animator) {
 };
 
 exports.GameScript = GameScript;
-},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js"}],"scripts/reactive_gull.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js"}],"scripts/airtime.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
+
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
+
+var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
+
+var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
+
+var _ntAnimator = require("nt-animator");
+
+var _base = require("./base");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+var REACTION_DISTANCE = 800;
+var SCALE_UP = 0.1;
+var SCALE_DOWN = 0.05;
+
+var Airtime = /*#__PURE__*/function (_GameScript) {
+  (0, _inherits2.default)(Airtime, _GameScript);
+
+  var _super = _createSuper(Airtime);
+
+  function Airtime() {
+    (0, _classCallCheck2.default)(this, Airtime);
+    return _super.apply(this, arguments);
+  }
+
+  (0, _createClass2.default)(Airtime, [{
+    key: "init",
+    value: function () {
+      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+        return _regenerator.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee);
+      }));
+
+      function init() {
+        return _init.apply(this, arguments);
+      }
+
+      return init;
+    }()
+  }, {
+    key: "update",
+    value: function update(state) {
+      var source = new _ntAnimator.PIXI.Point();
+      this.obj.getGlobalPosition(source, true); // compare if close to any players
+
+      var reactionDistance = REACTION_DISTANCE; // * (1 * state.speed)
+
+      var compareTo = new _ntAnimator.PIXI.Point();
+
+      var _iterator = _createForOfIteratorHelper(this.track.players),
+          _step;
+
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var player = _step.value;
+          var car = player.car;
+          car.getGlobalPosition(compareTo, true);
+          var x = compareTo.x - source.x;
+          var diff = x / reactionDistance; // adjust scaling
+
+          if (Math.abs(diff) < 1) {
+            if (diff < 0) {
+              diff += (1 - diff) * SCALE_UP;
+            } else if (diff > 0) {
+              diff -= (1 - diff) * SCALE_DOWN;
+            }
+
+            car.__airtimeScriptUpdate__ = this.track.frame;
+            car.scale.x = car.scale.y = 1 + Math.sin((1 - Math.abs(diff)) * 0.5);
+          } // someone else didn't update
+          else if (car.__airtimeScriptUpdate__ !== this.track.frame) {
+              car.scale.x = car.scale.y = 1;
+            }
+        }
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
+    }
+  }]);
+  return Airtime;
+}(_base.GameScript);
+
+exports.default = Airtime;
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","nt-animator":"../node_modules/nt-animator/dist/index.js","./base":"scripts/base.js"}],"scripts/reactive_gull.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102323,6 +102448,8 @@ var _typeof2 = _interopRequireDefault(require("@babel/runtime/helpers/typeof"));
 
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
+var _airtime = _interopRequireDefault(require("./airtime"));
+
 var _reactive_gull = _interopRequireDefault(require("./reactive_gull"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -102346,7 +102473,7 @@ function _loadScript() {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            Type = name === 'reactive_gull' ? _reactive_gull.default : null; // load if possible
+            Type = name === 'reactive_gull' ? _reactive_gull.default : name === 'airtime' ? _airtime.default : null; // load if possible
 
             if (Type) {
               _context.next = 3;
@@ -102412,7 +102539,7 @@ function parseScriptArgs(args) {
 
   return [name, config];
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/typeof":"../node_modules/@babel/runtime/helpers/typeof.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","./reactive_gull":"scripts/reactive_gull.js"}],"effects/rain.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/typeof":"../node_modules/@babel/runtime/helpers/typeof.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","./airtime":"scripts/airtime.js","./reactive_gull":"scripts/reactive_gull.js"}],"effects/rain.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103595,7 +103722,7 @@ var Track = /*#__PURE__*/function () {
 
               case 8:
                 if ((_step2 = _iterator2.n()).done) {
-                  _context5.next = 19;
+                  _context5.next = 20;
                   break;
                 }
 
@@ -103617,43 +103744,44 @@ var Track = /*#__PURE__*/function () {
 
               case 16:
                 // add to the view
+                console.log('has', previous);
                 segments.push({
                   x: (previous === null || previous === void 0 ? void 0 : previous.x) + (previous === null || previous === void 0 ? void 0 : previous.width) || 0,
                   width: bounded.bounds.width,
                   id: id
                 });
 
-              case 17:
+              case 18:
                 _context5.next = 8;
                 break;
 
-              case 19:
-                _context5.next = 24;
+              case 20:
+                _context5.next = 25;
                 break;
 
-              case 21:
-                _context5.prev = 21;
+              case 22:
+                _context5.prev = 22;
                 _context5.t0 = _context5["catch"](6);
 
                 _iterator2.e(_context5.t0);
 
-              case 24:
-                _context5.prev = 24;
+              case 25:
+                _context5.prev = 25;
 
                 _iterator2.f();
 
-                return _context5.finish(24);
+                return _context5.finish(25);
 
-              case 27:
+              case 28:
                 // set the default positions for each tile
                 this._updateSegmentPositions();
 
-              case 28:
+              case 29:
               case "end":
                 return _context5.stop();
             }
           }
-        }, _callee5, this, [[6, 21, 24, 27]]);
+        }, _callee5, this, [[6, 22, 25, 28]]);
       }));
 
       function _createRoad() {
@@ -103667,7 +103795,8 @@ var Track = /*#__PURE__*/function () {
     key: "_createStartingLine",
     value: function () {
       var _createStartingLine2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
-        var view, overlay, ground, manifest, path, start, comp, segment, bounds, shiftBy;
+        var view, overlay, ground, manifest, path, start, comp, segment, bounds, _iterator3, _step3, seg, shiftBy;
+
         return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
             switch (_context6.prev = _context6.next) {
@@ -103697,9 +103826,32 @@ var Track = /*#__PURE__*/function () {
                 segment.width = bounds.width; // add the overlay section
 
                 overlay.addChild(segment.top);
-                ground.addChild(segment.bottom);
+                ground.addChild(segment.bottom); // the starting block is responsible for filling the
+                // back side of the track
 
-                this._fitBlockToTrackPosition(segment, 0); // distance to move back
+                if (manifest.fitStartingBlock === false) {
+                  _iterator3 = _createForOfIteratorHelper(this.segments);
+
+                  try {
+                    for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+                      seg = _step3.value;
+                      seg.x += this.segments[0].width;
+                    } // if not fitting into the block, the starting block
+                    // follows the same z-indexing rules as the other layers
+                    // TODO: we might make this configurable
+
+                  } catch (err) {
+                    _iterator3.e(err);
+                  } finally {
+                    _iterator3.f();
+                  }
+
+                  segment.top.zIndex = segment.bottom.zIndex = -100;
+                  overlay.sortChildren();
+                  ground.sortChildren();
+                } else {
+                  this._fitBlockToTrackPosition(segment, 0);
+                } // distance to move back
 
 
                 shiftBy = view.width / 2 - view.width * this.view.getStartingLinePosition();
@@ -104000,7 +104152,7 @@ var Track = /*#__PURE__*/function () {
     key: "applyScripts",
     value: function () {
       var _applyScripts = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee12() {
-        var _i2, _arr2, container, objs, _iterator3, _step3, _obj$config, obj, _parseScriptArgs, _parseScriptArgs2, name, args, handler;
+        var _i2, _arr2, container, objs, _iterator4, _step4, _obj$config, obj, _parseScriptArgs, _parseScriptArgs2, name, args, handler;
 
         return _regenerator.default.wrap(function _callee12$(_context12) {
           while (1) {
@@ -104018,18 +104170,18 @@ var Track = /*#__PURE__*/function () {
 
                 container = _arr2[_i2];
                 objs = (0, _ntAnimator.findDisplayObjectsOfRole)(container, 'script');
-                _iterator3 = _createForOfIteratorHelper(objs);
+                _iterator4 = _createForOfIteratorHelper(objs);
                 _context12.prev = 5;
 
-                _iterator3.s();
+                _iterator4.s();
 
               case 7:
-                if ((_step3 = _iterator3.n()).done) {
+                if ((_step4 = _iterator4.n()).done) {
                   _context12.next = 16;
                   break;
                 }
 
-                obj = _step3.value;
+                obj = _step4.value;
                 _parseScriptArgs = (0, _scripts.parseScriptArgs)((_obj$config = obj.config) === null || _obj$config === void 0 ? void 0 : _obj$config.script), _parseScriptArgs2 = (0, _slicedToArray2.default)(_parseScriptArgs, 2), name = _parseScriptArgs2[0], args = _parseScriptArgs2[1];
                 _context12.next = 12;
                 return (0, _scripts.loadScript)(name, args, obj, this.view, this.view.animator);
@@ -104053,12 +104205,12 @@ var Track = /*#__PURE__*/function () {
                 _context12.prev = 18;
                 _context12.t0 = _context12["catch"](5);
 
-                _iterator3.e(_context12.t0);
+                _iterator4.e(_context12.t0);
 
               case 21:
                 _context12.prev = 21;
 
-                _iterator3.f();
+                _iterator4.f();
 
                 return _context12.finish(21);
 
@@ -104096,7 +104248,8 @@ var Track = /*#__PURE__*/function () {
     value: function _cycleTrack(diff) {
       var segments = this.segments,
           cache = this.segmentCache,
-          offscreen = this.offscreen;
+          offscreen = this.offscreen,
+          manifest = this.manifest;
       var totalSegments = segments.length; // handle tracking total travel distance
 
       this.distance -= diff; // cycle all road segments
@@ -104138,7 +104291,21 @@ var Track = /*#__PURE__*/function () {
         // all rendered blocks in this area
 
         shiftArray(cache[adjust.id]);
-        shiftArray(segments);
+        shiftArray(segments); // re-z-index
+
+        if (manifest.updateCycledSegmentZIndex) {
+          var reindex = cache[adjust.id];
+
+          if (reindex === null || reindex === void 0 ? void 0 : reindex[0]) {
+            var _reindex$ = reindex[0],
+                top = _reindex$.top,
+                bottom = _reindex$.bottom;
+            top.parent.addChildAt(top, 0);
+            bottom.parent.addChild(bottom);
+            top.parent.sortChildren();
+            bottom.parent.sortChildren();
+          }
+        }
       } // update the displayed positions
 
 
@@ -111996,7 +112163,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '3.0.0';
+  window.NTTRACK = '3.1.1';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

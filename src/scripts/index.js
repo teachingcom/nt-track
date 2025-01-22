@@ -1,8 +1,10 @@
+import Airtime from './airtime';
 import ReactiveGull from './reactive_gull';
 
 // loads a script as required
 export async function loadScript(name, config, obj, track, animator) {
 	const Type = name === 'reactive_gull' ? ReactiveGull
+		: name === 'airtime' ? Airtime
 		: null;
 
 	// load if possible

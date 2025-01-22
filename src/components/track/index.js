@@ -283,6 +283,7 @@ export default class Track {
 			}
 
 			// add to the view
+			console.log('has', previous)
 			segments.push({
 				x: (previous?.x + previous?.width) || 0,
 				width: bounded.bounds.width,
@@ -316,7 +317,24 @@ export default class Track {
 		// add the overlay section
 		overlay.addChild(segment.top);
 		ground.addChild(segment.bottom);
-		this._fitBlockToTrackPosition(segment, 0);
+		
+		// the starting block is responsible for filling the
+		// back side of the track
+		if (manifest.fitStartingBlock === false) {
+			for (const seg of this.segments) {
+				seg.x += this.segments[0].width
+			}
+
+			// if not fitting into the block, the starting block
+			// follows the same z-indexing rules as the other layers
+			// TODO: we might make this configurable
+			segment.top.zIndex = segment.bottom.zIndex = -100
+			overlay.sortChildren()
+			ground.sortChildren()
+		}
+		else {
+			this._fitBlockToTrackPosition(segment, 0);
+		}
 
 		// distance to move back
 		const shiftBy = (view.width / 2) - (view.width * this.view.getStartingLinePosition());
@@ -663,7 +681,7 @@ export default class Track {
 
 	// changes the location of the repeating track
 	_cycleTrack(diff) {
-		const { segments, segmentCache: cache, offscreen } = this
+		const { segments, segmentCache: cache, offscreen, manifest } = this
 		const { length: totalSegments } = segments
 
 		// handle tracking total travel distance
@@ -712,6 +730,19 @@ export default class Track {
 			// all rendered blocks in this area
 			shiftArray(cache[adjust.id]);
 			shiftArray(segments);
+
+			// re-z-index
+			if (manifest.updateCycledSegmentZIndex) {
+				const reindex = cache[adjust.id]
+				if (reindex?.[0]) {
+					const { top, bottom } = reindex[0]
+					top.parent.addChildAt(top, 0)
+					bottom.parent.addChild(bottom)
+					top.parent.sortChildren()
+					bottom.parent.sortChildren()
+				}
+			}
+
 		}
 
 		// update the displayed positions
