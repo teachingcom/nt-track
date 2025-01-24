@@ -283,7 +283,6 @@ export default class Track {
 			}
 
 			// add to the view
-			console.log('has', previous)
 			segments.push({
 				x: (previous?.x + previous?.width) || 0,
 				width: bounded.bounds.width,

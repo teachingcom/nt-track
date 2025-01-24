@@ -102197,7 +102197,7 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
-var REACTION_DISTANCE = 800;
+var REACTION_DISTANCE = 600;
 var SCALE_UP = 0.1;
 var SCALE_DOWN = 0.05;
 
@@ -102235,6 +102235,10 @@ var Airtime = /*#__PURE__*/function (_GameScript) {
   }, {
     key: "update",
     value: function update(state) {
+      if (this.isFinished) {
+        return;
+      }
+
       var source = new _ntAnimator.PIXI.Point();
       this.obj.getGlobalPosition(source, true); // compare if close to any players
 
@@ -102249,19 +102253,33 @@ var Airtime = /*#__PURE__*/function (_GameScript) {
         for (_iterator.s(); !(_step = _iterator.n()).done;) {
           var player = _step.value;
           var car = player.car;
-          car.getGlobalPosition(compareTo, true);
+          car.getGlobalPosition(compareTo, true); // race is over, fix all scaling
+
+          if (this.track.state.isFinished) {
+            this.isFinished = true;
+            car.scale.x = car.scale.y = 1;
+            continue;
+          }
+
           var x = compareTo.x - source.x;
           var diff = x / reactionDistance; // adjust scaling
 
           if (Math.abs(diff) < 1) {
-            if (diff < 0) {
-              diff += (1 - diff) * SCALE_UP;
-            } else if (diff > 0) {
-              diff -= (1 - diff) * SCALE_DOWN;
-            }
-
+            // if (diff < 0) {
+            //   diff += (1 - diff) * SCALE_UP
+            // }
+            // else if (diff > 0) {
+            //   diff -= (1 - diff) * SCALE_DOWN
+            // }
             car.__airtimeScriptUpdate__ = this.track.frame;
-            car.scale.x = car.scale.y = 1 + Math.sin((1 - Math.abs(diff)) * 0.5);
+            var reduce = 0.4;
+
+            var _x = Math.abs(diff);
+
+            var scale = ease((diff + 1) / 2);
+            var shift = (1 - _x) * scale * reduce; // car.scale.x = car.scale.y = 1 + Math.sin((1 - Math.abs(diff)) * 0.5)
+
+            car.scale.x = car.scale.y = 1 + shift;
           } // someone else didn't update
           else if (car.__airtimeScriptUpdate__ !== this.track.frame) {
               car.scale.x = car.scale.y = 1;
@@ -102278,6 +102296,12 @@ var Airtime = /*#__PURE__*/function (_GameScript) {
 }(_base.GameScript);
 
 exports.default = Airtime;
+
+function ease(x) {
+  // return 1 - Math.pow(1 - x, 4);
+  return 1 - Math.pow(1 - x, 5); // return x < 0.5 ? 8 * x * x * x * x : 1 - Math.pow(-2 * x + 2, 4) / 2;
+  // return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+}
 },{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","nt-animator":"../node_modules/nt-animator/dist/index.js","./base":"scripts/base.js"}],"scripts/reactive_gull.js":[function(require,module,exports) {
 "use strict";
 
@@ -103722,7 +103746,7 @@ var Track = /*#__PURE__*/function () {
 
               case 8:
                 if ((_step2 = _iterator2.n()).done) {
-                  _context5.next = 20;
+                  _context5.next = 19;
                   break;
                 }
 
@@ -103744,44 +103768,43 @@ var Track = /*#__PURE__*/function () {
 
               case 16:
                 // add to the view
-                console.log('has', previous);
                 segments.push({
                   x: (previous === null || previous === void 0 ? void 0 : previous.x) + (previous === null || previous === void 0 ? void 0 : previous.width) || 0,
                   width: bounded.bounds.width,
                   id: id
                 });
 
-              case 18:
+              case 17:
                 _context5.next = 8;
                 break;
 
-              case 20:
-                _context5.next = 25;
+              case 19:
+                _context5.next = 24;
                 break;
 
-              case 22:
-                _context5.prev = 22;
+              case 21:
+                _context5.prev = 21;
                 _context5.t0 = _context5["catch"](6);
 
                 _iterator2.e(_context5.t0);
 
-              case 25:
-                _context5.prev = 25;
+              case 24:
+                _context5.prev = 24;
 
                 _iterator2.f();
 
-                return _context5.finish(25);
+                return _context5.finish(24);
 
-              case 28:
+              case 27:
                 // set the default positions for each tile
                 this._updateSegmentPositions();
 
-              case 29:
+              case 28:
               case "end":
                 return _context5.stop();
             }
           }
-        }, _callee5, this, [[6, 22, 25, 28]]);
+        }, _callee5, this, [[6, 21, 24, 27]]);
       }));
 
       function _createRoad() {
@@ -112163,7 +112186,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '3.1.1';
+  window.NTTRACK = '3.1.2';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
