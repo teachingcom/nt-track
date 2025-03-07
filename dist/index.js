@@ -88218,7 +88218,7 @@ function _createStaticCar() {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.LAYER_TRACK_GROUND = exports.LAYER_TRACK_SPECTATOR_MODE = exports.LAYER_RACE_HOST_MARKER = exports.LAYER_SHADOW = exports.LAYER_TRAIL = exports.LAYER_NITRO = exports.LAYER_CAR = exports.LAYER_NAMECARD = exports.LAYER_NAMECARD_OVERLAY = exports.LAYER_NITRO_BLUR = exports.LAYER_TRACK_OVERLAY = exports.LAYER_COUNTDOWN = void 0;
+exports.LAYER_TRACK_GROUND = exports.LAYER_TRACK_SPECTATOR_MODE = exports.LAYER_RACE_HOST_MARKER = exports.LAYER_SHADOW = exports.LAYER_TRAIL = exports.LAYER_NITRO = exports.LAYER_DOODAD = exports.LAYER_CAR = exports.LAYER_NAMECARD = exports.LAYER_NAMECARD_OVERLAY = exports.LAYER_NITRO_BLUR = exports.LAYER_TRACK_OVERLAY = exports.LAYER_COUNTDOWN = void 0;
 var LAYER_COUNTDOWN = 150;
 exports.LAYER_COUNTDOWN = LAYER_COUNTDOWN;
 var LAYER_TRACK_OVERLAY = 100;
@@ -88231,6 +88231,8 @@ var LAYER_NAMECARD = 80;
 exports.LAYER_NAMECARD = LAYER_NAMECARD;
 var LAYER_CAR = 0;
 exports.LAYER_CAR = LAYER_CAR;
+var LAYER_DOODAD = -35;
+exports.LAYER_DOODAD = LAYER_DOODAD;
 var LAYER_NITRO = -48;
 exports.LAYER_NITRO = LAYER_NITRO;
 var LAYER_TRAIL = -49;
@@ -89747,6 +89749,7 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
           trail = _assertThisInitialize6.trail,
           shadow = _assertThisInitialize6.shadow,
           nitroBlur = _assertThisInitialize6.nitroBlur,
+          doodad = _assertThisInitialize6.doodad,
           state = _assertThisInitialize6.state; // no nitro to activate
 
 
@@ -89757,6 +89760,7 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
         car: car,
         nitro: nitro,
         trail: trail,
+        doodad: doodad,
         shadow: shadow,
         nitroBlur: nitroBlur
       }); // start the animation
@@ -90121,11 +90125,14 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
     /** associates mods with a specific car */
     value: function attachMods(_ref6) {
       var trail = _ref6.trail,
-          nitro = _ref6.nitro;
+          nitro = _ref6.nitro,
+          doodad = _ref6.doodad;
       this.trail = trail;
       this.nitro = nitro;
+      this.doodad = doodad;
       this.hasTrail = !!trail;
       this.hasNitro = !!nitro;
+      this.hasDoodad = !!doodad;
     }
     /** handles activating the car nitros */
 
@@ -90417,6 +90424,264 @@ var Trail = /*#__PURE__*/function (_PIXI$Container) {
 }(_ntAnimator.PIXI.Container);
 
 exports.default = Trail;
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","../../views/track/layers":"views/track/layers.js"}],"components/doodad/index.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
+
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
+
+var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
+
+var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
+
+var _ntAnimator = require("nt-animator");
+
+var _utils = require("../../utils");
+
+var _layers = require("../../views/track/layers");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+var Doodad = /*#__PURE__*/function (_PIXI$Container) {
+  (0, _inherits2.default)(Doodad, _PIXI$Container);
+
+  var _super = _createSuper(Doodad);
+
+  function Doodad() {
+    (0, _classCallCheck2.default)(this, Doodad);
+    return _super.apply(this, arguments);
+  }
+
+  (0, _createClass2.default)(Doodad, [{
+    key: "syncToCar",
+    // syncs a doodad position to a car
+    value: function syncToCar(car) {}
+  }, {
+    key: "alignTo",
+    value: function alignTo(car, position) {
+      this.x = car.positions[position] * car.pivot.x;
+    } // start creating loot
+
+  }, {
+    key: "_initDoodad",
+    value: function () {
+      var _initDoodad2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+        var _window$location$sear;
+
+        var view, options, type, path, doodad, tiers, limit, _iterator, _step, tier, condition, level, show, _tier$controller, _tier$controller$stop;
+
+        return _regenerator.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                view = this.view, options = this.options;
+                type = options.type; // load the animation
+
+                path = "doodads/".concat(type);
+                _context.next = 5;
+                return view.animator.create(path);
+
+              case 5:
+                doodad = this.doodad = _context.sent;
+
+                if (doodad) {
+                  _context.next = 9;
+                  break;
+                }
+
+                console.error("Unable to create doodad \"".concat(path, "\""));
+                return _context.abrupt("return");
+
+              case 9:
+                // toggle visibility
+                tiers = (0, _ntAnimator.findDisplayObjectsOfRole)(doodad, 'tier');
+                limit = parseInt((_window$location$sear = window.location.search) === null || _window$location$sear === void 0 ? void 0 : _window$location$sear.substring(1), 10) || 0;
+                _iterator = _createForOfIteratorHelper(tiers);
+
+                try {
+                  for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                    tier = _step.value;
+                    condition = void 0;
+                    level = void 0; // defaults to greater than or equal to
+
+                    if (typeof tier.config.tier === 'number' || tier.config.tier instanceof Number) {
+                      level = tier.config.tier;
+                      condition = 'lte';
+                    } else {
+                      condition = tier.config.tier[0];
+                      level = tier.config.tier[1];
+                    } // check conditions
+
+
+                    show = condition === 'lte' && limit >= level ? true : condition === 'only' && limit === level ? true : false; // not usable
+
+                    if (!show) {
+                      tier.visible = false;
+                      (_tier$controller = tier.controller) === null || _tier$controller === void 0 ? void 0 : (_tier$controller$stop = _tier$controller.stopEmitters) === null || _tier$controller$stop === void 0 ? void 0 : _tier$controller$stop.call(_tier$controller);
+                    }
+                  } // save the doodad instance
+
+                } catch (err) {
+                  _iterator.e(err);
+                } finally {
+                  _iterator.f();
+                }
+
+                this.parts = doodad.children.slice();
+                this.addChild(doodad);
+
+              case 15:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function _initDoodad() {
+        return _initDoodad2.apply(this, arguments);
+      }
+
+      return _initDoodad;
+    }()
+    /** is a valid Doodad instance */
+
+  }, {
+    key: "stop",
+
+    /** deactivates the doodad */
+    value: function stop() {
+      this.doodad.controller.stopEmitters();
+    }
+  }, {
+    key: "dispose",
+    value: function dispose() {
+      this.stop();
+      (0, _ntAnimator.removeDisplayObject)(this);
+    }
+  }, {
+    key: "isOverCar",
+    get: function get() {
+      var _this$config;
+
+      return /(over|above)_car/i.test((_this$config = this.config) === null || _this$config === void 0 ? void 0 : _this$config.layer);
+    }
+  }, {
+    key: "isValid",
+    get: function get() {
+      return this.parts && this.parts.length > 0;
+    }
+  }], [{
+    key: "setLayer",
+    value: function setLayer(doodad) {
+      var _doodad$config;
+
+      var target = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
+        zIndex: 0
+      };
+
+      if (doodad === null || doodad === void 0 ? void 0 : (_doodad$config = doodad.config) === null || _doodad$config === void 0 ? void 0 : _doodad$config.layer) {
+        if (doodad.isOverCar) {
+          doodad.zIndex = target.zIndex + 1;
+        } else if ((0, _utils.isNumber)(doodad.config.layer)) {
+          doodad.zIndex = doodad.config.layer;
+        }
+      } else {
+        doodad.zIndex = _layers.LAYER_TRAIL;
+      }
+    }
+    /** handles creating the new doodad instance */
+
+  }, {
+    key: "create",
+    value: function () {
+      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(options) {
+        var type, view, path, config, instance;
+        return _regenerator.default.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                type = options.type, view = options.view; // resolve the doodad
+
+                path = "doodads/".concat(type);
+                _context2.next = 4;
+                return view.animator.importManifest(path);
+
+              case 4:
+                config = view.animator.lookup(path); // if this doesn't exist, don't try and create
+
+                if (config) {
+                  _context2.next = 7;
+                  break;
+                }
+
+                return _context2.abrupt("return");
+
+              case 7:
+                // determine the type to create
+                instance = new Doodad();
+                (0, _utils.merge)(instance, {
+                  options: options,
+                  view: view,
+                  path: path,
+                  config: config
+                }); // initialize all car parts
+
+                _context2.next = 11;
+                return instance._initDoodad();
+
+              case 11:
+                if (instance.isValid) {
+                  _context2.next = 13;
+                  break;
+                }
+
+                return _context2.abrupt("return");
+
+              case 13:
+                return _context2.abrupt("return", instance);
+
+              case 14:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2);
+      }));
+
+      function create(_x) {
+        return _create.apply(this, arguments);
+      }
+
+      return create;
+    }()
+  }]);
+  return Doodad;
+}(_ntAnimator.PIXI.Container);
+
+exports.default = Doodad;
 },{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","../../views/track/layers":"views/track/layers.js"}],"utils/color.js":[function(require,module,exports) {
 "use strict";
 
@@ -91465,6 +91730,8 @@ var _car = _interopRequireDefault(require("../../components/car"));
 
 var _trail = _interopRequireDefault(require("../../components/trail"));
 
+var _doodad = _interopRequireDefault(require("../../components/doodad"));
+
 var _namecard = _interopRequireDefault(require("../../components/namecard"));
 
 var _nitro = _interopRequireDefault(require("../../components/nitro"));
@@ -91633,21 +91900,21 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
       }
 
       return _initTrail;
-    }() // handles creating a nitro trail
+    }() // handles creating a doodad
 
   }, {
-    key: "_initNitro",
+    key: "_initDoodad",
     value: function () {
-      var _initNitro2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
-        var options, mods, view;
+      var _initDoodad2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
+        var options, mods, view, tweaks;
         return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
                 options = this.options, mods = this.mods;
-                view = options.view; // no nitro was equiped
+                view = options.view, tweaks = options.tweaks; // make sure this car has a doodad
 
-                if (mods.nitro) {
+                if (!(tweaks === null || tweaks === void 0 ? void 0 : tweaks.noDoodad)) {
                   _context3.next = 4;
                   break;
                 }
@@ -91655,7 +91922,56 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                 return _context3.abrupt("return");
 
               case 4:
-                return _context3.abrupt("return", _nitro.default.create({
+                if (mods.doodad) {
+                  _context3.next = 6;
+                  break;
+                }
+
+                return _context3.abrupt("return");
+
+              case 6:
+                return _context3.abrupt("return", _doodad.default.create({
+                  view: view,
+                  baseHeight: _scaling.SCALED_CAR_HEIGHT,
+                  type: mods.doodad
+                }));
+
+              case 7:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function _initDoodad() {
+        return _initDoodad2.apply(this, arguments);
+      }
+
+      return _initDoodad;
+    }() // handles creating a nitro trail
+
+  }, {
+    key: "_initNitro",
+    value: function () {
+      var _initNitro2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+        var options, mods, view;
+        return _regenerator.default.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                options = this.options, mods = this.mods;
+                view = options.view; // no nitro was equiped
+
+                if (mods.nitro) {
+                  _context4.next = 4;
+                  break;
+                }
+
+                return _context4.abrupt("return");
+
+              case 4:
+                return _context4.abrupt("return", _nitro.default.create({
                   view: view,
                   baseHeight: _scaling.SCALED_CAR_HEIGHT,
                   type: mods.nitro,
@@ -91664,10 +91980,10 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
 
               case 5:
               case "end":
-                return _context3.stop();
+                return _context4.stop();
             }
           }
-        }, _callee3, this);
+        }, _callee4, this);
       }));
 
       function _initNitro() {
@@ -91680,12 +91996,12 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
   }, {
     key: "_initNameCard",
     value: function () {
-      var _initNameCard2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+      var _initNameCard2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
         var options, mods, view, playerName, playerTeam, teamColor, isGold, isChampion, isFriend, playerRank, isAdmin, _mods$card, card, staticCardURL;
 
-        return _regenerator.default.wrap(function _callee4$(_context4) {
+        return _regenerator.default.wrap(function _callee5$(_context5) {
           while (1) {
-            switch (_context4.prev = _context4.next) {
+            switch (_context5.prev = _context5.next) {
               case 0:
                 options = this.options, mods = this.mods;
                 view = options.view;
@@ -91698,7 +92014,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                 } // load a trail, if any
 
 
-                return _context4.abrupt("return", _namecard.default.create({
+                return _context5.abrupt("return", _namecard.default.create({
                   view: view,
                   baseHeight: _scaling.SCALED_NAMECARD_HEIGHT,
                   type: card,
@@ -91716,10 +92032,10 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
 
               case 6:
               case "end":
-                return _context4.stop();
+                return _context5.stop();
             }
           }
-        }, _callee4, this);
+        }, _callee5, this);
       }));
 
       function _initNameCard() {
@@ -91731,20 +92047,20 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
   }, {
     key: "_initPlayerIndicator",
     value: function () {
-      var _initPlayerIndicator2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
+      var _initPlayerIndicator2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
         var _view$options;
 
         var options, view;
-        return _regenerator.default.wrap(function _callee5$(_context5) {
+        return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context6.prev = _context6.next) {
               case 0:
                 if (this.options.isPlayer) {
-                  _context5.next = 2;
+                  _context6.next = 2;
                   break;
                 }
 
-                return _context5.abrupt("return");
+                return _context6.abrupt("return");
 
               case 2:
                 // create the instance
@@ -91752,21 +92068,21 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                 view = options.view;
 
                 if (!((_view$options = view.options) === null || _view$options === void 0 ? void 0 : _view$options.isQualifyingRace)) {
-                  _context5.next = 6;
+                  _context6.next = 6;
                   break;
                 }
 
-                return _context5.abrupt("return");
+                return _context6.abrupt("return");
 
               case 6:
-                return _context5.abrupt("return", view.animator.create('extras/player_indicator'));
+                return _context6.abrupt("return", view.animator.create('extras/player_indicator'));
 
               case 7:
               case "end":
-                return _context5.stop();
+                return _context6.stop();
             }
           }
-        }, _callee5, this);
+        }, _callee6, this);
       }));
 
       function _initPlayerIndicator() {
@@ -91779,12 +92095,12 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
   }, {
     key: "_assemble",
     value: function () {
-      var _assemble2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(car, trail, nitro, namecard, playerIndicator) {
+      var _assemble2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(car, trail, nitro, namecard, doodad, playerIndicator) {
         var layers, scale, _findDisplayObjectsOf, _findDisplayObjectsOf2, indicatorLabel, _findDisplayObjectsOf3, _findDisplayObjectsOf4, indicatorRoot, _indicatorRoot$childr, indicatorContainer, startingX;
 
-        return _regenerator.default.wrap(function _callee6$(_context6) {
+        return _regenerator.default.wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
                 layers = this.layers, scale = this.scale; // if this is a player, we show a special lane indicator
                 // TODO: consider making this a separate file
@@ -91831,7 +92147,8 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
 
                 car.attachMods({
                   trail: trail,
-                  nitro: nitro
+                  nitro: nitro,
+                  doodad: doodad
                 }); // create debugging text
 
                 if (DEBUG_PLAYER_PROGRESS) {
@@ -91857,6 +92174,26 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
 
                   trail.x = car.positions.back;
                   trail.scale.x = trail.scale.y = scale.x * _config.TRAIL_SCALE;
+                } // include the trail, if any
+
+
+                if (doodad) {
+                  layers.doodad = doodad; // add to the player view
+
+                  this.addChild(doodad); // find a layer to use
+
+                  _doodad.default.setLayer(doodad, car);
+
+                  if (doodad.config.origin === 'front') {
+                    doodad.x = car.positions.front;
+                  } else if (doodad.config.origin === 'center') {
+                    doodad.x = car.positions.back >> 1;
+                  } // by default, the back
+                  else {
+                      doodad.x = car.positions.back;
+                    }
+
+                  doodad.scale.x = doodad.scale.y = scale.x * _config.TRAIL_SCALE;
                 } // include the nitro, if any
 
 
@@ -91887,15 +92224,15 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
 
                 this.sortChildren();
 
-              case 11:
+              case 12:
               case "end":
-                return _context6.stop();
+                return _context7.stop();
             }
           }
-        }, _callee6, this);
+        }, _callee7, this);
       }));
 
-      function _assemble(_x, _x2, _x3, _x4, _x5) {
+      function _assemble(_x, _x2, _x3, _x4, _x5, _x6) {
         return _assemble2.apply(this, arguments);
       }
 
@@ -91932,23 +92269,23 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
   }, {
     key: "repaintCar",
     value: function () {
-      var _repaintCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(hue) {
-        return _regenerator.default.wrap(function _callee7$(_context7) {
+      var _repaintCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(hue) {
+        return _regenerator.default.wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
-                _context7.next = 2;
+                _context8.next = 2;
                 return this.car.repaintCar(hue);
 
               case 2:
               case "end":
-                return _context7.stop();
+                return _context8.stop();
             }
           }
-        }, _callee7, this);
+        }, _callee8, this);
       }));
 
-      function repaintCar(_x6) {
+      function repaintCar(_x7) {
         return _repaintCar.apply(this, arguments);
       }
 
@@ -92099,11 +92436,11 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
   }], [{
     key: "create",
     value: function () {
-      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(options, track) {
-        var instance, car, trail, nitro, namecard, playerIndicator, resolved;
-        return _regenerator.default.wrap(function _callee8$(_context8) {
+      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9(options, track) {
+        var instance, car, trail, doodad, nitro, namecard, playerIndicator, resolved;
+        return _regenerator.default.wrap(function _callee9$(_context9) {
           while (1) {
-            switch (_context8.prev = _context8.next) {
+            switch (_context9.prev = _context9.next) {
               case 0:
                 instance = new Player();
                 instance.track = track;
@@ -92112,20 +92449,22 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                 instance.mods = options.mods || {}; // initialize all layers
 
                 car = instance._initCar();
-                trail = instance._initTrail();
+                trail = instance._initTrail(); // const doodad = instance._initDoodad();
+
+                doodad = null;
                 nitro = instance._initNitro();
                 namecard = instance._initNameCard();
                 playerIndicator = instance._initPlayerIndicator(); // wait for the result
 
-                _context8.next = 12;
-                return Promise.all([car, trail, nitro, namecard, playerIndicator]);
+                _context9.next = 13;
+                return Promise.all([car, trail, nitro, namecard, doodad, playerIndicator]);
 
-              case 12:
-                resolved = _context8.sent;
-                _context8.next = 15;
+              case 13:
+                resolved = _context9.sent;
+                _context9.next = 16;
                 return instance._assemble.apply(instance, (0, _toConsumableArray2.default)(resolved));
 
-              case 15:
+              case 16:
                 // after the instance is created, find all toggles
                 instance._assignToggles(); // used for individual variables
 
@@ -92143,17 +92482,17 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
 
 
                 instance.id = options.id || "player_".concat(+new Date());
-                return _context8.abrupt("return", instance);
+                return _context9.abrupt("return", instance);
 
-              case 24:
+              case 25:
               case "end":
-                return _context8.stop();
+                return _context9.stop();
             }
           }
-        }, _callee8);
+        }, _callee9);
       }));
 
-      function create(_x7, _x8) {
+      function create(_x8, _x9) {
         return _create.apply(this, arguments);
       }
 
@@ -92164,7 +92503,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
 }(_ntAnimator.PIXI.ResponsiveContainer);
 
 exports.default = Player;
-},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","./scaling":"views/track/scaling.js","../../config":"config.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","../../components/namecard":"components/namecard/index.js","../../components/nitro":"components/nitro/index.js"}],"../node_modules/json-stringify-safe/stringify.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","./scaling":"views/track/scaling.js","../../config":"config.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","../../components/doodad":"components/doodad/index.js","../../components/namecard":"components/namecard/index.js","../../components/nitro":"components/nitro/index.js"}],"../node_modules/json-stringify-safe/stringify.js":[function(require,module,exports) {
 exports = module.exports = stringify
 exports.getSerialize = serializer
 
@@ -112186,7 +112525,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '3.1.2';
+  window.NTTRACK = '3.1.5';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

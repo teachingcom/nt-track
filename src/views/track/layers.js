@@ -4,6 +4,7 @@ export const LAYER_NITRO_BLUR = 30;
 export const LAYER_NAMECARD_OVERLAY = 81;
 export const LAYER_NAMECARD = 80;
 export const LAYER_CAR = 0;
+export const LAYER_DOODAD = -35;
 export const LAYER_NITRO = -48;
 export const LAYER_TRAIL = -49;
 export const LAYER_SHADOW = -50;

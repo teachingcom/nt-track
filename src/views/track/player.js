@@ -6,6 +6,7 @@ import { NITRO_SCALE, NITRO_OFFSET_Y, TRAIL_SCALE, NAMECARD_TETHER_DISTANCE } fr
 
 import Car from '../../components/car';
 import Trail from '../../components/trail';
+import Doodad from '../../components/doodad';
 import NameCard from '../../components/namecard';
 import Nitro from '../../components/nitro';
 
@@ -64,12 +65,14 @@ export default class Player extends PIXI.ResponsiveContainer {
 		// initialize all layers
 		const car = instance._initCar();
 		const trail = instance._initTrail();
+		// const doodad = instance._initDoodad();
+		const doodad = null;
 		const nitro = instance._initNitro();
 		const namecard = instance._initNameCard();
 		const playerIndicator = instance._initPlayerIndicator();
 
 		// wait for the result
-		const resolved = await Promise.all([ car, trail, nitro, namecard, playerIndicator ]);
+		const resolved = await Promise.all([ car, trail, nitro, namecard, doodad, playerIndicator ]);
 		await instance._assemble(...resolved);
 
 		// after the instance is created, find all toggles
@@ -127,6 +130,25 @@ export default class Player extends PIXI.ResponsiveContainer {
 			view,
 			baseHeight: SCALED_CAR_HEIGHT,
 			type: mods.trail
+		});
+	}
+
+	// handles creating a doodad
+	async _initDoodad() {
+		const { options, mods } = this;
+		const { view, tweaks } = options;
+
+		// make sure this car has a doodad
+		if (tweaks?.noDoodad) return;
+
+		// prepare to create loot items
+		if (!mods.doodad) return;
+		
+		// load a doodad, if any
+		return Doodad.create({
+			view,
+			baseHeight: SCALED_CAR_HEIGHT,
+			type: mods.doodad
 		});
 	}
 
@@ -195,7 +217,7 @@ export default class Player extends PIXI.ResponsiveContainer {
 	}
  
 	// handles assembling the player
-	async _assemble(car, trail, nitro, namecard, playerIndicator) {
+	async _assemble(car, trail, nitro, namecard, doodad, playerIndicator) {
 		const { layers, scale } = this;
 
 		// if this is a player, we show a special lane indicator
@@ -240,7 +262,7 @@ export default class Player extends PIXI.ResponsiveContainer {
 		car.attachTo(this);
 
 		// include extra components
-		car.attachMods({ trail, nitro });
+		car.attachMods({ trail, nitro, doodad });
 
 		// create debugging text
 		if (DEBUG_PLAYER_PROGRESS) {
@@ -262,6 +284,30 @@ export default class Player extends PIXI.ResponsiveContainer {
 			
 			trail.x = car.positions.back;
 			trail.scale.x = trail.scale.y = scale.x * TRAIL_SCALE;
+		}
+		
+		// include the trail, if any
+		if (doodad) {
+			layers.doodad = doodad;
+
+			// add to the player view
+			this.addChild(doodad);
+
+			// find a layer to use
+			Doodad.setLayer(doodad, car);
+			
+			if (doodad.config.origin === 'front') {
+				doodad.x = car.positions.front;
+			}
+			else if (doodad.config.origin === 'center') {
+				doodad.x = car.positions.back >> 1;
+			}
+			// by default, the back
+			else {
+				doodad.x = car.positions.back;
+			}
+			
+			doodad.scale.x = doodad.scale.y = scale.x * TRAIL_SCALE;
 		}
 
 		// include the nitro, if any

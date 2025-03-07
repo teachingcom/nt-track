@@ -514,16 +514,18 @@ export default class Car extends PIXI.Container {
 	}
 
 	/** associates mods with a specific car */
-	attachMods({ trail, nitro }) {
+	attachMods({ trail, nitro, doodad }) {
 		this.trail = trail;
 		this.nitro = nitro;
+		this.doodad = doodad;
 		this.hasTrail = !!trail;
 		this.hasNitro = !!nitro;
+		this.hasDoodad = !!doodad;
 	}
 
 	/** handles activating the car nitros */
 	activateNitro = () => {
-		const { car, nitro, trail, shadow, nitroBlur, state } = this;
+		const { car, nitro, trail, shadow, nitroBlur, doodad, state } = this;
 
 		// no nitro to activate
 		if (!nitro) return;
@@ -531,7 +533,7 @@ export default class Car extends PIXI.Container {
 		// perform the animation
 		const { offset } = state;
 		this.nitroAnimation = new ActivateNitroAnimation({
-			car, nitro, trail, shadow, nitroBlur
+			car, nitro, trail, doodad, shadow, nitroBlur
 		});
 
 		// start the animation
