@@ -2,10 +2,58 @@ import { PIXI, removeDisplayObject } from 'nt-animator';
 import { isNumber, merge } from '../../utils';
 import * as audio from '../../audio';
 import { VOLUME_NITRO } from '../../audio/volume';
-import { NITRO_OFFSET_Y } from '../../config';
+import { NITRO_OFFSET_Y, NITRO_SCALE } from '../../config';
 import { LAYER_NITRO } from '../../views/track/layers';
 
 export default class Nitro extends PIXI.Container {
+
+	static createCycler(options, car, { delay = 5000, scale = 1, immediate } = { }) {
+		const container = new PIXI.Container()
+		car.addChild(container)
+
+		// set position
+		Nitro.setLayer(container, car)
+		Nitro.alignToCar(container, car, 1)
+		car.sortChildren()
+
+		let nitro
+
+		// handle cycling nitro animations
+		async function animate() {
+			if (nitro) {
+				nitro.dispose()
+			}
+
+			// create the new nitro
+			nitro = await Nitro.create(options)
+			
+	
+			// add to the view
+			container.addChild(nitro)
+			car.nitro = nitro
+
+			// set the scaling
+			nitro.scale.x = nitro.scale.y = scale
+
+			// activate
+			nitro.sound = null
+			nitro.activate()
+		}
+
+		// play on an inverval
+		const interval = setInterval(animate, delay)
+
+		if (immediate) {
+			animate();
+		}
+
+		// give back a clear function
+		const dispose = () => clearInterval(interval)
+		return {
+			dispose,
+			nitro: container
+		}
+	}
 
 	static setLayer(nitro, target = { zIndex: 0 }) {
 		if (nitro?.config?.layer) {
@@ -109,7 +157,6 @@ export default class Nitro extends PIXI.Container {
 			// if this uses a standard library sound
 			// let sound;
 			// if (sfx) {
-			// console.log('will load', sfx)
 			let sound = audio.create('sfx', sfx)
 			// }
 			// use sound name convention

@@ -82350,7 +82350,6 @@ function disposeAllThrottledUpdaters() {
   throttled.updates = [];
   throttled.frame = 0;
   throttled.elapsed = Date.now();
-  console.log('has', throttled);
 } // resolve optional args
 
 
@@ -85069,6 +85068,8 @@ var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"))
 
 var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
 
+var _typeof2 = _interopRequireDefault(require("@babel/runtime/helpers/typeof"));
+
 var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
 
 var _lib = require("../../pixi/lib");
@@ -85130,7 +85131,12 @@ function _createInstance() {
             path = path.replace(/^\/*/, ''); // unpack all data
 
             instance = (0, _fastCopy.default)(data);
-            if (data && 'base' in data) (0, _utils.inheritFrom)(animator, data, instance, 'base'); // create the instance container
+            if (data && 'base' in data) (0, _utils.inheritFrom)(animator, data, instance, 'base'); // apply params to this instance
+
+            if (instance.params) {
+              applyParameters(instance);
+            } // create the instance container
+
 
             container = new _lib.PIXI.Container();
             container.update = _utils2.noop;
@@ -85141,9 +85147,9 @@ function _createInstance() {
 
             i = instance.compose.length;
 
-          case 8:
+          case 9:
             if (!(i-- > 0)) {
-              _context.next = 18;
+              _context.next = 19;
               break;
             }
 
@@ -85152,13 +85158,13 @@ function _createInstance() {
             delete layer.base; // check if hidden
 
             if (!(layer.hide || layer.hidden)) {
-              _context.next = 14;
+              _context.next = 15;
               break;
             }
 
-            return _context.abrupt("continue", 16);
+            return _context.abrupt("continue", 17);
 
-          case 14:
+          case 15:
             // sprite layers
             type = layer.type;
 
@@ -85200,15 +85206,15 @@ function _createInstance() {
                           }
                       }
 
-          case 16:
-            _context.next = 8;
+          case 17:
+            _context.next = 9;
             break;
 
-          case 18:
-            _context.next = 20;
+          case 19:
+            _context.next = 21;
             return Promise.all(pending);
 
-          case 20:
+          case 21:
             composite = _context.sent;
             layers = (0, _collection.flatten)(composite); // append each layer
 
@@ -85252,7 +85258,7 @@ function _createInstance() {
 
             return _context.abrupt("return", container);
 
-          case 28:
+          case 29:
           case "end":
             return _context.stop();
         }
@@ -85261,7 +85267,30 @@ function _createInstance() {
   }));
   return _createInstance.apply(this, arguments);
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","../../pixi/lib":"pixi/lib.js","fast-copy":"../node_modules/fast-copy/dist/fast-copy.js","../utils":"animation/utils.js","../../utils":"utils/index.js","./sprite":"animation/generators/sprite.js","./emitter":"animation/generators/emitter/index.js","./group":"animation/generators/group.js","./mask":"animation/generators/mask.js","../../utils/collection":"utils/collection.js","./repeater":"animation/generators/repeater.js","../expressions":"animation/expressions.js","../variables":"animation/variables.js","../../pixi/utils/find-objects-of-role":"pixi/utils/find-objects-of-role.js"}],"animation/importManifest.js":[function(require,module,exports) {
+
+function hasChildren(obj) {
+  return (0, _typeof2.default)(obj) === 'object' || typeof obj === 'array' || obj instanceof Array || obj instanceof Object;
+}
+
+function applyParameters(instance) {
+  var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : instance.params;
+
+  for (var id in instance) {
+    var _instance$id;
+
+    if (((_instance$id = instance[id]) === null || _instance$id === void 0 ? void 0 : _instance$id[0]) === ':param') {
+      var _instance$id2;
+
+      instance[id] = params[(_instance$id2 = instance[id]) === null || _instance$id2 === void 0 ? void 0 : _instance$id2[1]];
+    } // check children
+
+
+    if (hasChildren(instance[id])) {
+      applyParameters(instance[id], params);
+    }
+  }
+}
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","@babel/runtime/helpers/typeof":"../node_modules/@babel/runtime/helpers/typeof.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","../../pixi/lib":"pixi/lib.js","fast-copy":"../node_modules/fast-copy/dist/fast-copy.js","../utils":"animation/utils.js","../../utils":"utils/index.js","./sprite":"animation/generators/sprite.js","./emitter":"animation/generators/emitter/index.js","./group":"animation/generators/group.js","./mask":"animation/generators/mask.js","../../utils/collection":"utils/collection.js","./repeater":"animation/generators/repeater.js","../expressions":"animation/expressions.js","../variables":"animation/variables.js","../../pixi/utils/find-objects-of-role":"pixi/utils/find-objects-of-role.js"}],"animation/importManifest.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -90424,13 +90453,29 @@ var Trail = /*#__PURE__*/function (_PIXI$Container) {
 }(_ntAnimator.PIXI.Container);
 
 exports.default = Trail;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","../../views/track/layers":"views/track/layers.js"}],"components/doodad/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","../../views/track/layers":"views/track/layers.js"}],"../node_modules/@babel/runtime/helpers/toArray.js":[function(require,module,exports) {
+var arrayWithHoles = require("./arrayWithHoles");
+
+var iterableToArray = require("./iterableToArray");
+
+var unsupportedIterableToArray = require("./unsupportedIterableToArray");
+
+var nonIterableRest = require("./nonIterableRest");
+
+function _toArray(arr) {
+  return arrayWithHoles(arr) || iterableToArray(arr) || unsupportedIterableToArray(arr) || nonIterableRest();
+}
+
+module.exports = _toArray;
+},{"./arrayWithHoles":"../node_modules/@babel/runtime/helpers/arrayWithHoles.js","./iterableToArray":"../node_modules/@babel/runtime/helpers/iterableToArray.js","./unsupportedIterableToArray":"../node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js","./nonIterableRest":"../node_modules/@babel/runtime/helpers/nonIterableRest.js"}],"components/doodad/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = void 0;
+
+var _toArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toArray"));
 
 var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
 
@@ -90445,6 +90490,8 @@ var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits
 var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
 
 var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/getPrototypeOf"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
 
 var _ntAnimator = require("nt-animator");
 
@@ -90488,10 +90535,7 @@ var Doodad = /*#__PURE__*/function (_PIXI$Container) {
     key: "_initDoodad",
     value: function () {
       var _initDoodad2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
-        var _window$location$sear;
-
-        var view, options, type, path, doodad, tiers, limit, _iterator, _step, tier, condition, level, show, _tier$controller, _tier$controller$stop;
-
+        var view, options, type, path, doodad;
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
@@ -90515,44 +90559,11 @@ var Doodad = /*#__PURE__*/function (_PIXI$Container) {
                 return _context.abrupt("return");
 
               case 9:
-                // toggle visibility
-                tiers = (0, _ntAnimator.findDisplayObjectsOfRole)(doodad, 'tier');
-                limit = parseInt((_window$location$sear = window.location.search) === null || _window$location$sear === void 0 ? void 0 : _window$location$sear.substring(1), 10) || 0;
-                _iterator = _createForOfIteratorHelper(tiers);
-
-                try {
-                  for (_iterator.s(); !(_step = _iterator.n()).done;) {
-                    tier = _step.value;
-                    condition = void 0;
-                    level = void 0; // defaults to greater than or equal to
-
-                    if (typeof tier.config.tier === 'number' || tier.config.tier instanceof Number) {
-                      level = tier.config.tier;
-                      condition = 'lte';
-                    } else {
-                      condition = tier.config.tier[0];
-                      level = tier.config.tier[1];
-                    } // check conditions
-
-
-                    show = condition === 'lte' && limit >= level ? true : condition === 'only' && limit === level ? true : false; // not usable
-
-                    if (!show) {
-                      tier.visible = false;
-                      (_tier$controller = tier.controller) === null || _tier$controller === void 0 ? void 0 : (_tier$controller$stop = _tier$controller.stopEmitters) === null || _tier$controller$stop === void 0 ? void 0 : _tier$controller$stop.call(_tier$controller);
-                    }
-                  } // save the doodad instance
-
-                } catch (err) {
-                  _iterator.e(err);
-                } finally {
-                  _iterator.f();
-                }
-
+                // save the doodad instance
                 this.parts = doodad.children.slice();
                 this.addChild(doodad);
 
-              case 15:
+              case 11:
               case "end":
                 return _context.stop();
             }
@@ -90611,6 +90622,53 @@ var Doodad = /*#__PURE__*/function (_PIXI$Container) {
       } else {
         doodad.zIndex = _layers.LAYER_TRAIL;
       }
+    } // toggle layers depending on conditions
+
+  }, {
+    key: "evaluateConditions",
+    value: function evaluateConditions(level, nodes) {
+      var remove = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
+
+      var _iterator = _createForOfIteratorHelper(nodes),
+          _step;
+
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var _node$config, _node$children;
+
+          var node = _step.value;
+
+          // has doodad config
+          if ((_node$config = node.config) === null || _node$config === void 0 ? void 0 : _node$config.doodad) {
+            (function () {
+              var _node$config$doodad = (0, _toArray2.default)(node.config.doodad),
+                  type = _node$config$doodad[0],
+                  rest = _node$config$doodad.slice(1);
+
+              var compare = Doodad.COMPARISONS[type];
+              node.visible = !!(compare && rest.find(function (v) {
+                return compare(level, v);
+              }));
+            })();
+          } // we don't need to evaluate this now
+
+
+          if (!node.visible) {
+            remove.push(node);
+          } // check child nodes, if any
+
+
+          if (node.visible && ((_node$children = node.children) === null || _node$children === void 0 ? void 0 : _node$children.length)) {
+            Doodad.evaluateConditions(level, node.children, remove);
+          }
+        }
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
+
+      return remove;
     }
     /** handles creating the new doodad instance */
 
@@ -90618,12 +90676,13 @@ var Doodad = /*#__PURE__*/function (_PIXI$Container) {
     key: "create",
     value: function () {
       var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(options) {
-        var type, view, path, config, instance;
+        var type, level, view, path, config, instance, remove, _iterator2, _step2, node;
+
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                type = options.type, view = options.view; // resolve the doodad
+                type = options.type, level = options.level, view = options.view; // resolve the doodad
 
                 path = "doodads/".concat(type);
                 _context2.next = 4;
@@ -90661,9 +90720,25 @@ var Doodad = /*#__PURE__*/function (_PIXI$Container) {
                 return _context2.abrupt("return");
 
               case 13:
+                // finally, we need to activate all doodad layers depending on rules
+                remove = Doodad.evaluateConditions(level, [instance]);
+                _iterator2 = _createForOfIteratorHelper(remove);
+
+                try {
+                  for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+                    node = _step2.value;
+                    (0, _ntAnimator.removeDisplayObject)(node);
+                  } // give back the instance
+
+                } catch (err) {
+                  _iterator2.e(err);
+                } finally {
+                  _iterator2.f();
+                }
+
                 return _context2.abrupt("return", instance);
 
-              case 14:
+              case 17:
               case "end":
                 return _context2.stop();
             }
@@ -90682,7 +90757,33 @@ var Doodad = /*#__PURE__*/function (_PIXI$Container) {
 }(_ntAnimator.PIXI.Container);
 
 exports.default = Doodad;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","../../views/track/layers":"views/track/layers.js"}],"utils/color.js":[function(require,module,exports) {
+(0, _defineProperty2.default)(Doodad, "COMPARISONS", {
+  ':eq': function eq(a, b) {
+    return a === b;
+  },
+  ':gte': function gte(a, b) {
+    return a >= b;
+  },
+  ':gt': function gt(a, b) {
+    return a > b;
+  },
+  ':lte': function lte(a, b) {
+    return a <= b;
+  },
+  ':lt': function lt(a, b) {
+    return a < b;
+  },
+  ':mod': function mod(a, b) {
+    return a % b === 0;
+  },
+  ':even': function even(a) {
+    return a % 2 === 0;
+  },
+  ':odd': function odd(a) {
+    return a % 2 !== 0;
+  }
+});
+},{"@babel/runtime/helpers/toArray":"../node_modules/@babel/runtime/helpers/toArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","../../views/track/layers":"views/track/layers.js"}],"utils/color.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -91086,7 +91187,6 @@ var NameCard = /*#__PURE__*/function (_PIXI$Container) {
       var hasPlayerRank = !!playerRankIcon; // debug
       // options.name = '|||||.|||||.|||||.|||||.|||||';
       // options.team = ' TALK ';
-      // console.log('is usong', options, this)
       // create the full name
 
       var name = clean(options.name);
@@ -91484,7 +91584,6 @@ var Nitro = /*#__PURE__*/function (_PIXI$Container) {
                 type = options.type; // if this uses a standard library sound
                 // let sound;
                 // if (sfx) {
-                // console.log('will load', sfx)
 
                 sound = audio.create('sfx', sfx); // }
                 // use sound name convention
@@ -91562,6 +91661,80 @@ var Nitro = /*#__PURE__*/function (_PIXI$Container) {
       return true; // return !!(this.children?.length > 0);
     }
   }], [{
+    key: "createCycler",
+    value: function createCycler(options, car) {
+      var _ref2 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+          _ref2$delay = _ref2.delay,
+          delay = _ref2$delay === void 0 ? 5000 : _ref2$delay,
+          _ref2$scale = _ref2.scale,
+          scale = _ref2$scale === void 0 ? 1 : _ref2$scale,
+          immediate = _ref2.immediate;
+
+      var container = new _ntAnimator.PIXI.Container();
+      car.addChild(container); // set position
+
+      Nitro.setLayer(container, car);
+      Nitro.alignToCar(container, car, 1);
+      car.sortChildren();
+      var nitro; // handle cycling nitro animations
+
+      function animate() {
+        return _animate.apply(this, arguments);
+      } // play on an inverval
+
+
+      function _animate() {
+        _animate = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
+          return _regenerator.default.wrap(function _callee3$(_context3) {
+            while (1) {
+              switch (_context3.prev = _context3.next) {
+                case 0:
+                  if (nitro) {
+                    nitro.dispose();
+                  } // create the new nitro
+
+
+                  _context3.next = 3;
+                  return Nitro.create(options);
+
+                case 3:
+                  nitro = _context3.sent;
+                  // add to the view
+                  container.addChild(nitro);
+                  car.nitro = nitro; // set the scaling
+
+                  nitro.scale.x = nitro.scale.y = scale; // activate
+
+                  nitro.sound = null;
+                  nitro.activate();
+
+                case 9:
+                case "end":
+                  return _context3.stop();
+              }
+            }
+          }, _callee3);
+        }));
+        return _animate.apply(this, arguments);
+      }
+
+      var interval = setInterval(animate, delay);
+
+      if (immediate) {
+        animate();
+      } // give back a clear function
+
+
+      var dispose = function dispose() {
+        return clearInterval(interval);
+      };
+
+      return {
+        dispose: dispose,
+        nitro: container
+      };
+    }
+  }, {
     key: "setLayer",
     value: function setLayer(nitro) {
       var _nitro$config;
@@ -91592,22 +91765,22 @@ var Nitro = /*#__PURE__*/function (_PIXI$Container) {
   }, {
     key: "create",
     value: function () {
-      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(options) {
+      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(options) {
         var type, view, path, config, instance;
-        return _regenerator.default.wrap(function _callee3$(_context3) {
+        return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
-            switch (_context3.prev = _context3.next) {
+            switch (_context4.prev = _context4.next) {
               case 0:
                 type = options.type, view = options.view;
                 path = "nitros/".concat(type);
                 config = view.animator.lookup(path); // not loaded, check to import this
 
                 if (config) {
-                  _context3.next = 7;
+                  _context4.next = 7;
                   break;
                 }
 
-                _context3.next = 6;
+                _context4.next = 6;
                 return view.animator.importManifest(path);
 
               case 6:
@@ -91621,12 +91794,12 @@ var Nitro = /*#__PURE__*/function (_PIXI$Container) {
 
 
                 if (config) {
-                  _context3.next = 11;
+                  _context4.next = 11;
                   break;
                 }
 
                 console.error("Failed to find nitro effect: ".concat(path));
-                return _context3.abrupt("return");
+                return _context4.abrupt("return");
 
               case 11:
                 // determine the type to create
@@ -91638,7 +91811,7 @@ var Nitro = /*#__PURE__*/function (_PIXI$Container) {
                   config: config
                 }); // initialize all car parts
 
-                _context3.next = 15;
+                _context4.next = 15;
                 return instance._initNitro();
 
               case 15:
@@ -91654,11 +91827,11 @@ var Nitro = /*#__PURE__*/function (_PIXI$Container) {
 
 
                 if (instance.isValid) {
-                  _context3.next = 19;
+                  _context4.next = 19;
                   break;
                 }
 
-                return _context3.abrupt("return");
+                return _context4.abrupt("return");
 
               case 19:
                 // check for visibility
@@ -91667,14 +91840,14 @@ var Nitro = /*#__PURE__*/function (_PIXI$Container) {
                 } // give back the instance
 
 
-                return _context3.abrupt("return", instance);
+                return _context4.abrupt("return", instance);
 
               case 21:
               case "end":
-                return _context3.stop();
+                return _context4.stop();
             }
           }
-        }, _callee3, this);
+        }, _callee4, this);
       }));
 
       function create(_x) {
@@ -91933,7 +92106,8 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                 return _context3.abrupt("return", _doodad.default.create({
                   view: view,
                   baseHeight: _scaling.SCALED_CAR_HEIGHT,
-                  type: mods.doodad
+                  type: mods.doodad.key,
+                  level: mods.doodad.level
                 }));
 
               case 7:
@@ -92449,9 +92623,8 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                 instance.mods = options.mods || {}; // initialize all layers
 
                 car = instance._initCar();
-                trail = instance._initTrail(); // const doodad = instance._initDoodad();
-
-                doodad = null;
+                trail = instance._initTrail();
+                doodad = instance._initDoodad();
                 nitro = instance._initNitro();
                 namecard = instance._initNameCard();
                 playerIndicator = instance._initPlayerIndicator(); // wait for the result
@@ -107468,27 +107641,26 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                 totalPlayers = state.totalPlayers;
 
                 if (!(_this.lanes[player.options.lane] !== player.id)) {
-                  _context3.next = 6;
+                  _context3.next = 5;
                   break;
                 }
 
-                console.log('was changed!');
                 player.dispose(false);
                 return _context3.abrupt("return");
 
-              case 6:
+              case 5:
                 // add the player to the list
                 players.push(player); // if needed
 
                 progress = (_this$startingRacerPr = _this.startingRacerProgress) === null || _this$startingRacerPr === void 0 ? void 0 : _this$startingRacerPr[player.id];
 
                 if (isNaN(progress)) {
-                  _context3.next = 22;
+                  _context3.next = 21;
                   break;
                 }
 
                 if (!player.isPlayer) {
-                  _context3.next = 15;
+                  _context3.next = 14;
                   break;
                 }
 
@@ -107497,28 +107669,28 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
                 _this.waitForPlayerReady.release(player);
 
-                _context3.next = 22;
+                _context3.next = 21;
                 break;
 
-              case 15:
-                _context3.next = 17;
+              case 14:
+                _context3.next = 16;
                 return _this.waitForPlayerReady.wait();
 
-              case 17:
+              case 16:
                 activePlayer = _context3.sent;
                 relativeProgress = (_this$startingRacerPr2 = _this.startingRacerProgress) === null || _this$startingRacerPr2 === void 0 ? void 0 : _this$startingRacerPr2[activePlayer.id];
                 diff = _this.raceProgressAnimation.calculateRelativeProgress(progress / 100, relativeProgress / 100);
                 player.raceProgressModifier = diff;
                 player.relativeX = player.preferredX = (activePlayer.preferredX || activePlayer.relativeX) + diff;
 
-              case 22:
+              case 21:
                 // game is ready to play
                 // TODO: this might change depending on how players are loaded
                 if (players.length === totalPlayers) {
                   _this.emit('ready');
                 }
 
-              case 23:
+              case 22:
               case "end":
                 return _context3.stop();
             }
@@ -108501,8 +108673,6 @@ var _getPrototypeOf2 = _interopRequireDefault(require("@babel/runtime/helpers/ge
 
 var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
 
-var _car = _interopRequireDefault(require("../../components/car"));
-
 var _ntAnimator = require("nt-animator");
 
 var _base = require("../base");
@@ -108511,11 +108681,13 @@ var _utils = require("../../utils");
 
 var _activity = _interopRequireDefault(require("../../components/activity"));
 
+var _car = _interopRequireDefault(require("../../components/car"));
+
 var _trail = _interopRequireDefault(require("../../components/trail"));
 
-var _color = require("../../utils/color");
+var _doodad = _interopRequireDefault(require("../../components/doodad"));
 
-var _config = require("../../config");
+var _nitro = _interopRequireDefault(require("../../components/nitro"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -108534,7 +108706,6 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
 var DEFAULT_MAX_HEIGHT = 250;
-var EFFECTS_PADDING_SCALING = 0.7;
 var TRANSITION_TIME = 350;
 var TARGET_X_WITHOUT_TRAIL = 0.5;
 var TARGET_X_WITH_TRAIL = TARGET_X_WITHOUT_TRAIL + 0.075;
@@ -108767,7 +108938,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
     }());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "createCar", /*#__PURE__*/function () {
       var _ref4 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(config) {
-        var view, tweaks, player, container, car, display, scale, configScale, trail, inner, _iterator, _step, child;
+        var view, tweaks, player, container, car, display, scale, configScale, trail, perk, _tweaks$offsetX, _Nitro$createCycler, nitro, inner, _iterator, _step, child;
 
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
@@ -108845,7 +109016,44 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 container.hasTrail = true;
 
               case 27:
-                // set the inner container
+                if (!(config.perk && config.perkLevel)) {
+                  _context4.next = 34;
+                  break;
+                }
+
+                _context4.next = 30;
+                return _doodad.default.create(_objectSpread(_objectSpread({
+                  view: view
+                }, config), {}, {
+                  baseHeight: DEFAULT_MAX_HEIGHT,
+                  type: config.perk,
+                  level: config.perkLevel
+                }));
+
+              case 30:
+                perk = _context4.sent;
+                // slightly larger on this view
+                perk.scale.x = perk.scale.y = 1.3;
+                player.addChild(perk);
+
+                _doodad.default.setLayer(perk, car);
+
+              case 34:
+                // animate the nitro, if any
+                if (config.nitro) {
+                  _Nitro$createCycler = _nitro.default.createCycler(_objectSpread(_objectSpread({
+                    view: view
+                  }, config), {}, {
+                    baseHeight: DEFAULT_MAX_HEIGHT,
+                    type: config.nitro
+                  }), car, {
+                    delay: 5000,
+                    scale: 1.2
+                  }), nitro = _Nitro$createCycler.nitro;
+                  nitro.x += 200 + ((_tweaks$offsetX = tweaks === null || tweaks === void 0 ? void 0 : tweaks.offsetX) !== null && _tweaks$offsetX !== void 0 ? _tweaks$offsetX : 0);
+                } // set the inner container
+
+
                 player.x = config.offsetX || 0;
                 player.y = config.offsetY || 0; // setup the container
 
@@ -108888,7 +109096,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
                 return _context4.abrupt("return", container);
 
-              case 37:
+              case 45:
               case "end":
                 return _context4.stop();
             }
@@ -109110,7 +109318,7 @@ function createBackdrop(display) {
   sprite.width *= 2;
   return sprite;
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../components/car":"components/car/index.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../utils":"utils/index.js","../../components/activity":"components/activity.js","../../components/trail":"components/trail/index.js","../../utils/color":"utils/color.js","../../config":"config.js"}],"components/treadmill.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../base":"views/base.js","../../utils":"utils/index.js","../../components/activity":"components/activity.js","../../components/car":"components/car/index.js","../../components/trail":"components/trail/index.js","../../components/doodad":"components/doodad/index.js","../../components/nitro":"components/nitro/index.js"}],"components/treadmill.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -109422,8 +109630,6 @@ var CruiseView = /*#__PURE__*/function (_BaseView) {
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "activateNitro", function () {
       var _this$carInstance, _this$carInstance$act;
 
-      console.log('try nitro');
-      console.log(_this.carInstance);
       (_this$carInstance = _this.carInstance) === null || _this$carInstance === void 0 ? void 0 : (_this$carInstance$act = _this$carInstance.activateNitro) === null || _this$carInstance$act === void 0 ? void 0 : _this$carInstance$act.call(_this$carInstance);
       _this.__activateNitro = setTimeout(_this.activateNitro, NITRO_ACTIVATION_INTERVAL);
     });
@@ -112525,7 +112731,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '3.1.5';
+  window.NTTRACK = '4.0.0';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

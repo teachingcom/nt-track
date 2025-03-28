@@ -4,6 +4,17 @@ import { LAYER_TRAIL } from '../../views/track/layers';
 
 export default class Doodad extends PIXI.Container {
 
+  static COMPARISONS = {
+    ':eq': (a, b) => a === b,
+    ':gte': (a, b) => a >= b,
+    ':gt': (a, b) => a > b,
+    ':lte': (a, b) => a <= b,
+    ':lt': (a, b) => a < b,
+    ':mod': (a, b) => a % b === 0,
+    ':even': (a) => a % 2 === 0,
+    ':odd': (a) => a % 2 !== 0,
+  }
+
   static setLayer(doodad, target = { zIndex: 0 }) {
     if (doodad?.config?.layer) {
       if (doodad.isOverCar) {
@@ -18,9 +29,34 @@ export default class Doodad extends PIXI.Container {
     }
   }
 
+  // toggle layers depending on conditions
+  static evaluateConditions(level, nodes, remove = [ ]) {
+    for (const node of nodes) {
+
+      // has doodad config
+      if (node.config?.doodad) {
+        const [type, ...rest] = node.config.doodad
+        const compare = Doodad.COMPARISONS[type]
+        node.visible = !!(compare && rest.find(v => compare(level, v)))
+      }
+
+      // we don't need to evaluate this now
+      if (!node.visible) {
+        remove.push(node)
+      }
+
+      // check child nodes, if any
+      if (node.visible && node.children?.length) {
+        Doodad.evaluateConditions(level, node.children, remove)
+      }
+    }
+
+    return remove
+  }
+
   /** handles creating the new doodad instance */
   static async create (options) {
-    const { type, view } = options
+    const { type, level, view } = options
 
     // resolve the doodad
     const path = `doodads/${type}`
@@ -39,6 +75,12 @@ export default class Doodad extends PIXI.Container {
 
     // if this didn't load for some reason
     if (!instance.isValid) return
+
+    // finally, we need to activate all doodad layers depending on rules
+    const remove = Doodad.evaluateConditions(level, [ instance ])
+    for (const node of remove) {
+      removeDisplayObject(node)
+    }
 
     // give back the instance
     return instance
@@ -68,35 +110,6 @@ export default class Doodad extends PIXI.Container {
     if (!doodad) {
       console.error(`Unable to create doodad "${path}"`)
       return
-    }
-
-    // toggle visibility
-    const tiers = findDisplayObjectsOfRole(doodad, 'tier')
-    const limit = parseInt(window.location.search?.substring(1), 10) || 0
-    for (const tier of tiers) {
-      let condition
-      let level
-
-      // defaults to greater than or equal to
-      if (typeof tier.config.tier === 'number' || tier.config.tier instanceof Number) {
-        level = tier.config.tier
-        condition = 'lte'
-      }
-      else {
-        condition = tier.config.tier[0]
-        level = tier.config.tier[1]
-      }
-
-      // check conditions
-      const show = condition === 'lte' && limit >= level ? true
-        : condition === 'only' && limit === level ? true
-        : false
-
-      // not usable
-      if (!show) {
-        tier.visible = false
-        tier.controller?.stopEmitters?.()
-      }
     }
 
     // save the doodad instance

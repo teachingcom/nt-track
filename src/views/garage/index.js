@@ -1,14 +1,13 @@
-import Car from "../../components/car";
-import { animate, createContext, findDisplayObjectsOfRole, getBoundsForRole, PIXI } from 'nt-animator';
+import { animate, createContext, PIXI } from 'nt-animator';
 import { BaseView } from '../base';
 import { isNumber, wait } from '../../utils';
 import createActivityIndicator from '../../components/activity';
+import Car from "../../components/car";
 import Trail from "../../components/trail";
-import { toRGB } from "../../utils/color";
-import { TRAIL_SCALE } from "../../config";
+import Doodad from "../../components/doodad";
+import Nitro from "../../components/nitro";
 
 const DEFAULT_MAX_HEIGHT = 250;
-const EFFECTS_PADDING_SCALING = 0.7;
 const TRANSITION_TIME = 350;
 const TARGET_X_WITHOUT_TRAIL = 0.5
 const TARGET_X_WITH_TRAIL = TARGET_X_WITHOUT_TRAIL + 0.075
@@ -245,6 +244,40 @@ export default class GarageView extends BaseView {
 			// mark so it knows to make
 			// additional room for the trail
 			container.hasTrail = true
+		}
+
+		// animate the perk, if any
+		if (config.perk && config.perkLevel) {
+			const perk = await Doodad.create({
+				view,
+				...config,
+				baseHeight: DEFAULT_MAX_HEIGHT,
+				type: config.perk,
+				level: config.perkLevel
+			})
+
+
+			// slightly larger on this view
+			perk.scale.x = perk.scale.y = 1.3
+
+			player.addChild(perk)
+			Doodad.setLayer(perk, car)
+		}
+
+		// animate the nitro, if any
+		if (config.nitro) {
+			const { nitro } = Nitro.createCycler({
+				view,
+				...config,
+				baseHeight: DEFAULT_MAX_HEIGHT,
+				type: config.nitro
+			}, car, {
+				delay: 5000,
+				scale: 1.2
+			})
+
+			nitro.x += 200 + (tweaks?.offsetX ?? 0)
+
 		}
 
 		// set the inner container

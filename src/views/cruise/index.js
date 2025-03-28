@@ -226,8 +226,6 @@ export default class CruiseView extends BaseView {
   }
 
   activateNitro = () => {
-    console.log('try nitro')
-    console.log(this.carInstance)
     this.carInstance?.activateNitro?.()
     this.__activateNitro = setTimeout(this.activateNitro, NITRO_ACTIVATION_INTERVAL)
   }

@@ -65,8 +65,7 @@ export default class Player extends PIXI.ResponsiveContainer {
 		// initialize all layers
 		const car = instance._initCar();
 		const trail = instance._initTrail();
-		// const doodad = instance._initDoodad();
-		const doodad = null;
+		const doodad = instance._initDoodad();
 		const nitro = instance._initNitro();
 		const namecard = instance._initNameCard();
 		const playerIndicator = instance._initPlayerIndicator();
@@ -148,7 +147,8 @@ export default class Player extends PIXI.ResponsiveContainer {
 		return Doodad.create({
 			view,
 			baseHeight: SCALED_CAR_HEIGHT,
-			type: mods.doodad
+			type: mods.doodad.key,
+			level: mods.doodad.level
 		});
 	}
 
@@ -289,7 +289,7 @@ export default class Player extends PIXI.ResponsiveContainer {
 		// include the trail, if any
 		if (doodad) {
 			layers.doodad = doodad;
-
+			
 			// add to the player view
 			this.addChild(doodad);
 

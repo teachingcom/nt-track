@@ -330,7 +330,6 @@ export default class NameCard extends PIXI.Container {
 		// options.name = '|||||.|||||.|||||.|||||.|||||';
 		// options.team = ' TALK ';
 
-		// console.log('is usong', options, this)
 		// create the full name
 		const name = clean(options.name);
 		const team = clean(options.team);

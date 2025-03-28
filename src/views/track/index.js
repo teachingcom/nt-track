@@ -504,7 +504,6 @@ export default class TrackView extends BaseView {
 		const { totalPlayers } = state;
 
 		if (this.lanes[player.options.lane] !== player.id) {
-			console.log('was changed!')
 			player.dispose(false)
 			return
 		}
