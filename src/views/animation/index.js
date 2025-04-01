@@ -49,6 +49,7 @@ export default class AnimationView extends BaseView {
 
 			// load a generic animation
 			default:
+				console.log('default', options, options.mode)
     		await this._initResource()
 		}
 		

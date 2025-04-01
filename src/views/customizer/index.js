@@ -9,6 +9,7 @@ import { DEVELOPMENT, TRAIL_SCALE_IN_PREVIEW } from '../../config'
 import { LAYER_TRAIL } from '../track/layers'
 import { waitForCondition } from '../../utils/wait'
 import Nitro from '../../components/nitro'
+import Doodad from '../../components/doodad'
 
 const DEFAULT_MAX_HEIGHT = 250
 const OTHER_DRIVER_OFFSCREEN_DISTANCE = -1600
@@ -121,11 +122,6 @@ export default class CustomizerView extends BaseView {
     );
   }
 
-  activateNitro = () => {
-    this.car?.activateNitro()
-    this.__nextNitro = setTimeout(this.activateNitro, 5000)
-  }
-
   // changes the paint for a car
   async setPaint (hue) {
     await this.waitForActivity('paint');
@@ -149,36 +145,46 @@ export default class CustomizerView extends BaseView {
   }
 
   async setNitro(type, waitForReady = true) {
-    // wait for the customizer to be ready for changes, if needed
-    if (waitForReady) {
-      await this.waitForActivity('nitro');
+    this.selectedNitro = type
+
+    // on the nitro view
+    if (this.zone === 'nitro') {
+      this.activateNitro()
     }
+  }
 
-    // clear the prior nitro, if needed
-    this.nitro?.dispose?.()
-    if (this.nitro) {
-      removeDisplayObject(this.nitro)
+  async deactivateNitro() {
+    this.__disposeNitro?.()
+  }
+
+  // start the zone cycler
+  async activateNitro() {
+    const { container, car, selectedNitro: type } = this
+    this.__disposeNitro?.()
+
+    // TODO: why is this not ready sometimes?
+    if (!car) {
+      return
     }
-    delete this.nitro
-
-    // create the new nitro effect
-    const nitro = await Nitro.create({
-      view: this,
-      baseHeight: 100,
-			type
-    })
-
-    // configure the nitro
-    this.nitro = nitro
-
-    // add to the view
-    const { container, car } = this
-    container.addChild(nitro)
+    
     car.nitro = nitro
 
-    // set position
-    Nitro.setLayer(nitro, car)
-    Nitro.alignToCar(nitro, car, 1)
+    const { nitro, dispose } = Nitro.createCycler({
+        view: this,
+        baseHeight: 100,
+      	type
+      }, car, {
+        interval: 5000,
+        immediate: true,
+        onActivate: () => {
+          car.activateNitro()
+        }
+      })
+
+    this.__disposeNitro = dispose
+
+    // add to the view
+    container.addChild(nitro)
     container.sortChildren()
     
     // prepare the nitro
@@ -261,7 +267,7 @@ export default class CustomizerView extends BaseView {
   }
 
   // replaces the active car
-  async setCar ({ type, carID, hue, isAnimated, trail, tweaks, nametag, nitro }) {
+  async setCar ({ type, carID, hue, isAnimated, trail, tweaks, nametag, nitro, eventPerk, eventPerkLevel }) {
     this.isReady = false
 
     // clear the existing data
@@ -318,10 +324,30 @@ export default class CustomizerView extends BaseView {
       await this.setNitro(nitro, false)
       car.attachMods({ nitro: this.nitro, trail: this.trail })
     }
+
+    // create a doodad, if neede
+    if (eventPerk) {
+      this.setDoodad(eventPerk, eventPerkLevel)
+    }
     
     // animate the new car into view
     this.isReady = true
     return this._animatePlayerCarIntoView(this.container)
+  }
+
+  async setDoodad(type, level) {
+    this.doodad = await Doodad.create({
+      view: this,
+      baseHeight: 150,
+      type,
+      level
+    })
+
+    // adjust for this view
+    this.doodad.scale.x = this.doodad.scale.y = 0.7
+
+    this.car.addChild(this.doodad)
+    Doodad.setLayer(this.doodad, this.car)
   }
 
   async setTrail(type, waitForReady = true) {
@@ -428,6 +454,11 @@ export default class CustomizerView extends BaseView {
   // removes all existing cars on the view
   _removeExistingCars() {
 
+    // clear doodads, if needed
+    if (this.doodad) {
+      removeDisplayObject(this.doodad)
+    }
+
     // fade out assets
     animate({
       loop: false,
@@ -469,23 +500,12 @@ export default class CustomizerView extends BaseView {
     }
   }
 
-  clearNitroInterval = () => {
-    clearTimeout(this.__nextNitro)
-    clearInterval(this.__nextNitro)
-  }
-
-  startNitroInterval = () => {
-    this.__nextNitro = setTimeout(this.activateNitro, 1000)
-  }
-  
-
   // NOT IMPLEMENTED YET
   // setSpeedTrail () { }
   // setCelebration () { }
 
   getFocusForZone(zone) {
     const center = 150
-    this.clearNitroInterval()
     
     // NOTE: after adding nitros, the car width changes since the
     // particle effect animations may have updated the size. probably
@@ -498,7 +518,6 @@ export default class CustomizerView extends BaseView {
       }
 
       case 'nitro': {
-        this.startNitroInterval()
         return { x: CONTENT_X + 250 + center, y: 0 }
       }
 
@@ -515,6 +534,14 @@ export default class CustomizerView extends BaseView {
   setFocus (zone) {
     // cancel prior animations
     this.__panViewport?.stop()
+    this.zone = zone
+
+    if (zone === 'nitro') {
+      this.activateNitro()
+    }
+    else {
+      this.deactivateNitro()
+    }
 
     // animate the next view
     const { x, y } = this.getFocusForZone(zone)

@@ -7,7 +7,7 @@ import { LAYER_NITRO } from '../../views/track/layers';
 
 export default class Nitro extends PIXI.Container {
 
-	static createCycler(options, car, { delay = 5000, scale = 1, immediate } = { }) {
+	static createCycler(options, car, { interval = 5000, scale = 1, immediate, onActivate } = { }) {
 		const container = new PIXI.Container()
 		car.addChild(container)
 
@@ -27,7 +27,6 @@ export default class Nitro extends PIXI.Container {
 			// create the new nitro
 			nitro = await Nitro.create(options)
 			
-	
 			// add to the view
 			container.addChild(nitro)
 			car.nitro = nitro
@@ -38,17 +37,22 @@ export default class Nitro extends PIXI.Container {
 			// activate
 			nitro.sound = null
 			nitro.activate()
+			onActivate?.()
 		}
 
 		// play on an inverval
-		const interval = setInterval(animate, delay)
+		const animationInterval = setInterval(animate, interval)
 
 		if (immediate) {
 			animate();
 		}
 
 		// give back a clear function
-		const dispose = () => clearInterval(interval)
+		const dispose = () => {
+			clearInterval(animationInterval)
+			nitro?.dispose()
+		}
+
 		return {
 			dispose,
 			nitro: container
