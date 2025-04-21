@@ -82,9 +82,22 @@ export default class Car extends PIXI.Container {
 		// car: the container for the car instance
 		// height: the identified height of the sprite to use
 		// imageSource: used to identify the actual image for a car
-		const { car, height, imageSource, bounds } = config
-			? await this._createEnhancedCar(path)
-			: await this._createStaticCar(type, tweaks);
+		let result
+		if (config) {
+			try {
+				result = await this._createEnhancedCar(path)
+			}
+			catch (ex) {
+				result = null
+			}
+		}
+
+		// is a static car, or failed to make the enhanced car
+		if (!result || !config) {
+			result = await this._createStaticCar(type, tweaks);
+		}
+
+		const { car, height, imageSource, bounds } = result
 
 		// update for compatibility
 		view.makeWebGLCompatible(car)
@@ -239,7 +252,9 @@ export default class Car extends PIXI.Container {
 		}
 		catch (ex) {
 			console.error(`Failed to create ${path}`);
-			car = await view.animator.create(path);
+			return null
+			// car = await view.animator.create(path);
+			// car = await this._createStaticCar(path)
 		}
 
 		// find the base layer for the car - if there's
@@ -324,6 +339,7 @@ export default class Car extends PIXI.Container {
 	async _initFilters() {
 		const { options } = this;
 		const { hue = 0 } = options;
+		console.log('will yse yse', hue)
 
 		// no shifting was required
 		if (!hue) return;

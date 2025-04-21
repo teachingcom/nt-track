@@ -82,7 +82,7 @@ export default class Nitro extends PIXI.Container {
 	static async create(options) {
 		const { type, view } = options;
 		
-		let path = `nitros/${type}`;
+		let path = `nitros/${type ?? 'nitro_default'}`;
 		let config = view.animator.lookup(path);
 
 		// not loaded, check to import this
@@ -123,8 +123,8 @@ export default class Nitro extends PIXI.Container {
 		if (!instance.isValid) return;
 
 		// check for visibility
-		if (this.shouldFadeIn) {
-			this.alpha = 0
+		if (instance.shouldFadeIn) {
+			instance.alpha = 0
 		}
 		
 		// give back the instance

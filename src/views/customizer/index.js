@@ -145,6 +145,11 @@ export default class CustomizerView extends BaseView {
   }
 
   async setNitro(type, waitForReady = true) {
+    if ([-1, '-1', undefined, 'undefined'].includes(type)) {
+      type = 'nitro_default'
+    }
+
+    // save the nitro to use
     this.selectedNitro = type
 
     // on the nitro view

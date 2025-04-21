@@ -167,6 +167,7 @@ export function findTextures (target, collection = { }) {
 
 // adds a texture to the search collection
 function addTexture (collection, target, index) {
+	console.log('trying to add', target)
   const source = !isNaN(index) ? target[index] : target.texture
   const { cacheId } = source.baseTexture
 
@@ -181,6 +182,7 @@ function addTexture (collection, target, index) {
 
   // append the texture target
   group.targets.push([target, index])
+	console.log('final', target, index)
 }
 
 // quickly creates a rendering surface
