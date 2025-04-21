@@ -86697,7 +86697,6 @@ function findTextures(target) {
 
 
 function addTexture(collection, target, index) {
-  console.log('trying to add', target);
   var source = !isNaN(index) ? target[index] : target.texture;
   var cacheId = source.baseTexture.cacheId; // make sure the group is ready
 
@@ -86712,7 +86711,6 @@ function addTexture(collection, target, index) {
 
 
   group.targets.push([target, index]);
-  console.log('final', target, index);
 } // quickly creates a rendering surface
 
 
@@ -90156,36 +90154,35 @@ var Car = /*#__PURE__*/function (_PIXI$Container) {
             switch (_context6.prev = _context6.next) {
               case 0:
                 options = this.options;
-                _options$hue = options.hue, hue = _options$hue === void 0 ? 0 : _options$hue;
-                console.log('will yse yse', hue); // no shifting was required
+                _options$hue = options.hue, hue = _options$hue === void 0 ? 0 : _options$hue; // no shifting was required
 
                 if (hue) {
-                  _context6.next = 5;
+                  _context6.next = 4;
                   break;
                 }
 
                 return _context6.abrupt("return");
 
-              case 5:
-                _context6.prev = 5;
-                _context6.next = 8;
+              case 4:
+                _context6.prev = 4;
+                _context6.next = 7;
                 return this.repaintCar(hue);
 
-              case 8:
-                _context6.next = 13;
+              case 7:
+                _context6.next = 12;
                 break;
 
-              case 10:
-                _context6.prev = 10;
-                _context6.t0 = _context6["catch"](5);
+              case 9:
+                _context6.prev = 9;
+                _context6.t0 = _context6["catch"](4);
                 console.warn('failed', _context6.t0);
 
-              case 13:
+              case 12:
               case "end":
                 return _context6.stop();
             }
           }
-        }, _callee6, this, [[5, 10]]);
+        }, _callee6, this, [[4, 9]]);
       }));
 
       function _initFilters() {
@@ -112975,7 +112972,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '4.0.4';
+  window.NTTRACK = '4.0.5';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

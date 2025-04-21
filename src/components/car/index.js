@@ -339,7 +339,6 @@ export default class Car extends PIXI.Container {
 	async _initFilters() {
 		const { options } = this;
 		const { hue = 0 } = options;
-		console.log('will yse yse', hue)
 
 		// no shifting was required
 		if (!hue) return;
