@@ -91638,6 +91638,12 @@ var Nitro = /*#__PURE__*/function (_PIXI$Container) {
       if (sound) {
         sound.volume(_volume.VOLUME_NITRO);
         sound.play();
+      } // in case this isn't visible by default
+
+
+      if (_this.shouldFadeIn) {
+        instance.alpha = 1;
+        _this.alpha = 1;
       } // show particle emitters
 
 
@@ -112219,11 +112225,7 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
                   (_options$onNitroReady = options.onNitroReady) === null || _options$onNitroReady === void 0 ? void 0 : _options$onNitroReady.call(options);
                 }
 
-                if (this.options.autoPlayNitroAnimations) {
-                  this.setupNitroAutoPlay();
-                }
-
-              case 25:
+              case 24:
               case "end":
                 return _context.stop();
             }
@@ -112236,18 +112238,7 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
       }
 
       return init;
-    }()
-  }, {
-    key: "setupNitroAutoPlay",
-    value: function setupNitroAutoPlay() {
-      var _this2 = this;
-
-      this.__activateNitroInit = setTimeout(function () {
-        _this2.activateNitro();
-
-        _this2.__activateNitroInterval = setInterval(_this2.activateNitro, NITRO_INTERVAL);
-      }, NITRO_DELAY);
-    } // creates the rolling track
+    }() // creates the rolling track
 
   }, {
     key: "_initResource",

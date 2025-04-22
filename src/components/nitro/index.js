@@ -207,6 +207,12 @@ export default class Nitro extends PIXI.Container {
 			sound.play();
 		}
 
+		// in case this isn't visible by default
+		if (this.shouldFadeIn) {
+			instance.alpha = 1
+			this.alpha = 1
+		}
+
 		// show particle emitters
 		instance.controller.activateEmitters();
 	}

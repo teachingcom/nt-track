@@ -60,18 +60,7 @@ export default class AnimationView extends BaseView {
 		if (options.mode === 'nitro-preview') {		
 			options.onNitroReady?.()
 		}
-
-		if (this.options.autoPlayNitroAnimations) {
-			this.setupNitroAutoPlay()
-		}
   }
-
-	setupNitroAutoPlay() {
-		this.__activateNitroInit = setTimeout(() => {
-			this.activateNitro()
-			this.__activateNitroInterval = setInterval(this.activateNitro, NITRO_INTERVAL)
-		}, NITRO_DELAY)
-	}
 
   // creates the rolling track
   async _initResource() {
@@ -268,8 +257,8 @@ export default class AnimationView extends BaseView {
 		Nitro.setLayer(nitro)
 		contain.addChild(nitro)
 		contain.sortChildren()
-
 		
+
 		this.container.addChild(contain);
 	}
 
