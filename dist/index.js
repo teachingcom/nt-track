@@ -76236,66 +76236,7 @@ function RecursiveLimitExceededException() {}
 function InvalidTextureRequestException() {}
 
 function InvalidMaskBoundsException() {}
-},{}],"../node_modules/@babel/runtime/helpers/arrayLikeToArray.js":[function(require,module,exports) {
-function _arrayLikeToArray(arr, len) {
-  if (len == null || len > arr.length) len = arr.length;
-
-  for (var i = 0, arr2 = new Array(len); i < len; i++) {
-    arr2[i] = arr[i];
-  }
-
-  return arr2;
-}
-
-module.exports = _arrayLikeToArray;
-},{}],"../node_modules/@babel/runtime/helpers/arrayWithoutHoles.js":[function(require,module,exports) {
-var arrayLikeToArray = require("./arrayLikeToArray");
-
-function _arrayWithoutHoles(arr) {
-  if (Array.isArray(arr)) return arrayLikeToArray(arr);
-}
-
-module.exports = _arrayWithoutHoles;
-},{"./arrayLikeToArray":"../node_modules/@babel/runtime/helpers/arrayLikeToArray.js"}],"../node_modules/@babel/runtime/helpers/iterableToArray.js":[function(require,module,exports) {
-function _iterableToArray(iter) {
-  if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter);
-}
-
-module.exports = _iterableToArray;
-},{}],"../node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js":[function(require,module,exports) {
-var arrayLikeToArray = require("./arrayLikeToArray");
-
-function _unsupportedIterableToArray(o, minLen) {
-  if (!o) return;
-  if (typeof o === "string") return arrayLikeToArray(o, minLen);
-  var n = Object.prototype.toString.call(o).slice(8, -1);
-  if (n === "Object" && o.constructor) n = o.constructor.name;
-  if (n === "Map" || n === "Set") return Array.from(o);
-  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return arrayLikeToArray(o, minLen);
-}
-
-module.exports = _unsupportedIterableToArray;
-},{"./arrayLikeToArray":"../node_modules/@babel/runtime/helpers/arrayLikeToArray.js"}],"../node_modules/@babel/runtime/helpers/nonIterableSpread.js":[function(require,module,exports) {
-function _nonIterableSpread() {
-  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-}
-
-module.exports = _nonIterableSpread;
-},{}],"../node_modules/@babel/runtime/helpers/toConsumableArray.js":[function(require,module,exports) {
-var arrayWithoutHoles = require("./arrayWithoutHoles");
-
-var iterableToArray = require("./iterableToArray");
-
-var unsupportedIterableToArray = require("./unsupportedIterableToArray");
-
-var nonIterableSpread = require("./nonIterableSpread");
-
-function _toConsumableArray(arr) {
-  return arrayWithoutHoles(arr) || iterableToArray(arr) || unsupportedIterableToArray(arr) || nonIterableSpread();
-}
-
-module.exports = _toConsumableArray;
-},{"./arrayWithoutHoles":"../node_modules/@babel/runtime/helpers/arrayWithoutHoles.js","./iterableToArray":"../node_modules/@babel/runtime/helpers/iterableToArray.js","./unsupportedIterableToArray":"../node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js","./nonIterableSpread":"../node_modules/@babel/runtime/helpers/nonIterableSpread.js"}],"../node_modules/@babel/runtime/helpers/arrayWithHoles.js":[function(require,module,exports) {
+},{}],"../node_modules/@babel/runtime/helpers/arrayWithHoles.js":[function(require,module,exports) {
 function _arrayWithHoles(arr) {
   if (Array.isArray(arr)) return arr;
 }
@@ -76330,7 +76271,32 @@ function _iterableToArrayLimit(arr, i) {
 }
 
 module.exports = _iterableToArrayLimit;
-},{}],"../node_modules/@babel/runtime/helpers/nonIterableRest.js":[function(require,module,exports) {
+},{}],"../node_modules/@babel/runtime/helpers/arrayLikeToArray.js":[function(require,module,exports) {
+function _arrayLikeToArray(arr, len) {
+  if (len == null || len > arr.length) len = arr.length;
+
+  for (var i = 0, arr2 = new Array(len); i < len; i++) {
+    arr2[i] = arr[i];
+  }
+
+  return arr2;
+}
+
+module.exports = _arrayLikeToArray;
+},{}],"../node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js":[function(require,module,exports) {
+var arrayLikeToArray = require("./arrayLikeToArray");
+
+function _unsupportedIterableToArray(o, minLen) {
+  if (!o) return;
+  if (typeof o === "string") return arrayLikeToArray(o, minLen);
+  var n = Object.prototype.toString.call(o).slice(8, -1);
+  if (n === "Object" && o.constructor) n = o.constructor.name;
+  if (n === "Map" || n === "Set") return Array.from(o);
+  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return arrayLikeToArray(o, minLen);
+}
+
+module.exports = _unsupportedIterableToArray;
+},{"./arrayLikeToArray":"../node_modules/@babel/runtime/helpers/arrayLikeToArray.js"}],"../node_modules/@babel/runtime/helpers/nonIterableRest.js":[function(require,module,exports) {
 function _nonIterableRest() {
   throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
 }
@@ -76350,7 +76316,41 @@ function _slicedToArray(arr, i) {
 }
 
 module.exports = _slicedToArray;
-},{"./arrayWithHoles":"../node_modules/@babel/runtime/helpers/arrayWithHoles.js","./iterableToArrayLimit":"../node_modules/@babel/runtime/helpers/iterableToArrayLimit.js","./unsupportedIterableToArray":"../node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js","./nonIterableRest":"../node_modules/@babel/runtime/helpers/nonIterableRest.js"}],"randomizer.js":[function(require,module,exports) {
+},{"./arrayWithHoles":"../node_modules/@babel/runtime/helpers/arrayWithHoles.js","./iterableToArrayLimit":"../node_modules/@babel/runtime/helpers/iterableToArrayLimit.js","./unsupportedIterableToArray":"../node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js","./nonIterableRest":"../node_modules/@babel/runtime/helpers/nonIterableRest.js"}],"../node_modules/@babel/runtime/helpers/arrayWithoutHoles.js":[function(require,module,exports) {
+var arrayLikeToArray = require("./arrayLikeToArray");
+
+function _arrayWithoutHoles(arr) {
+  if (Array.isArray(arr)) return arrayLikeToArray(arr);
+}
+
+module.exports = _arrayWithoutHoles;
+},{"./arrayLikeToArray":"../node_modules/@babel/runtime/helpers/arrayLikeToArray.js"}],"../node_modules/@babel/runtime/helpers/iterableToArray.js":[function(require,module,exports) {
+function _iterableToArray(iter) {
+  if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter);
+}
+
+module.exports = _iterableToArray;
+},{}],"../node_modules/@babel/runtime/helpers/nonIterableSpread.js":[function(require,module,exports) {
+function _nonIterableSpread() {
+  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+}
+
+module.exports = _nonIterableSpread;
+},{}],"../node_modules/@babel/runtime/helpers/toConsumableArray.js":[function(require,module,exports) {
+var arrayWithoutHoles = require("./arrayWithoutHoles");
+
+var iterableToArray = require("./iterableToArray");
+
+var unsupportedIterableToArray = require("./unsupportedIterableToArray");
+
+var nonIterableSpread = require("./nonIterableSpread");
+
+function _toConsumableArray(arr) {
+  return arrayWithoutHoles(arr) || iterableToArray(arr) || unsupportedIterableToArray(arr) || nonIterableSpread();
+}
+
+module.exports = _toConsumableArray;
+},{"./arrayWithoutHoles":"../node_modules/@babel/runtime/helpers/arrayWithoutHoles.js","./iterableToArray":"../node_modules/@babel/runtime/helpers/iterableToArray.js","./unsupportedIterableToArray":"../node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js","./nonIterableSpread":"../node_modules/@babel/runtime/helpers/nonIterableSpread.js"}],"randomizer.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -80698,9 +80698,9 @@ exports.isDynamic = isDynamic;
 exports.evaluateExpression = evaluateExpression;
 exports.createDynamicExpression = createDynamicExpression;
 
-var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
-
 var _slicedToArray2 = _interopRequireDefault(require("@babel/runtime/helpers/slicedToArray"));
+
+var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
 
 var _typeof2 = _interopRequireDefault(require("@babel/runtime/helpers/typeof"));
 
@@ -80786,6 +80786,9 @@ var EXPRESSIONS = {
   },
   ':var': {
     func: getVariable
+  },
+  ':random': {
+    func: getRandom
   }
 };
 var DYNAMICS = {
@@ -80841,6 +80844,16 @@ var DYNAMICS = {
     instance: _relativeExpressions.RelativeToY
   }
 };
+
+function getRandom(min, max, asInt) {
+  var val = (max - min) * Math.random() + min;
+
+  if (asInt) {
+    val = 0 | val;
+  }
+
+  return val;
+}
 
 function getVariable(name) {
   return variables.pull(name);
@@ -80959,8 +80972,9 @@ function expression() {
   var val = args[0];
 
   for (var i = 1; i < args.length; i += 2) {
-    var action = EXPRESSIONS[args[i]];
-    val = action(val, args[i + 1]);
+    var action = EXPRESSIONS[args[i]]; // val = action(val, args[i + 1]);
+
+    val = action.apply(void 0, [val].concat((0, _toConsumableArray2.default)(args.slice(1))));
   }
 
   return isNaN(val) ? 0 : val;
@@ -81096,7 +81110,7 @@ function shuffle(items) {
 
   items.push.apply(items, shuffled);
 }
-},{"@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/helpers/typeof":"../node_modules/@babel/runtime/helpers/typeof.js","../utils":"utils/index.js","../randomizer":"randomizer.js","./variables":"animation/variables.js","./dynamic-expressions/get-random":"animation/dynamic-expressions/get-random.js","./dynamic-expressions/mod-expression":"animation/dynamic-expressions/mod-expression.js","./dynamic-expressions/sine-expressions":"animation/dynamic-expressions/sine-expressions.js","./dynamic-expressions/relative-expressions":"animation/dynamic-expressions/relative-expressions.js","./dynamic-expressions/bezier-expression":"animation/dynamic-expressions/bezier-expression.js","./dynamic-expressions/range-expression":"animation/dynamic-expressions/range-expression.js","./dynamic-expressions/average-expression":"animation/dynamic-expressions/average-expression.js","./dynamic-expressions/sum-expression":"animation/dynamic-expressions/sum-expression.js","./dynamic-expressions/cycle-expression":"animation/dynamic-expressions/cycle-expression.js","./dynamic-expressions/between-expression":"animation/dynamic-expressions/between-expression.js","./dynamic-expressions/JitterExpression":"animation/dynamic-expressions/JitterExpression.js","./dynamic-expressions/tween-expression":"animation/dynamic-expressions/tween-expression.js","./dynamic-expressions/source-expression":"animation/dynamic-expressions/source-expression.js","./dynamic-expressions/step-expression":"animation/dynamic-expressions/step-expression.js","./dynamic-expressions/increment-expression":"animation/dynamic-expressions/increment-expression.js"}],"animation/utils.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/slicedToArray":"../node_modules/@babel/runtime/helpers/slicedToArray.js","@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/helpers/typeof":"../node_modules/@babel/runtime/helpers/typeof.js","../utils":"utils/index.js","../randomizer":"randomizer.js","./variables":"animation/variables.js","./dynamic-expressions/get-random":"animation/dynamic-expressions/get-random.js","./dynamic-expressions/mod-expression":"animation/dynamic-expressions/mod-expression.js","./dynamic-expressions/sine-expressions":"animation/dynamic-expressions/sine-expressions.js","./dynamic-expressions/relative-expressions":"animation/dynamic-expressions/relative-expressions.js","./dynamic-expressions/bezier-expression":"animation/dynamic-expressions/bezier-expression.js","./dynamic-expressions/range-expression":"animation/dynamic-expressions/range-expression.js","./dynamic-expressions/average-expression":"animation/dynamic-expressions/average-expression.js","./dynamic-expressions/sum-expression":"animation/dynamic-expressions/sum-expression.js","./dynamic-expressions/cycle-expression":"animation/dynamic-expressions/cycle-expression.js","./dynamic-expressions/between-expression":"animation/dynamic-expressions/between-expression.js","./dynamic-expressions/JitterExpression":"animation/dynamic-expressions/JitterExpression.js","./dynamic-expressions/tween-expression":"animation/dynamic-expressions/tween-expression.js","./dynamic-expressions/source-expression":"animation/dynamic-expressions/source-expression.js","./dynamic-expressions/step-expression":"animation/dynamic-expressions/step-expression.js","./dynamic-expressions/increment-expression":"animation/dynamic-expressions/increment-expression.js"}],"animation/utils.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -85195,7 +85209,149 @@ function findPivot(container) {
 
   return pivot;
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","../../pixi/lib":"pixi/lib.js","./animation":"animation/generators/animation.js","../assign":"animation/assign.js","../../utils":"utils/index.js","../../pixi/utils/get-bounds-of-role":"pixi/utils/get-bounds-of-role.js",".":"animation/generators/index.js","../expressions":"animation/expressions.js","../normalize":"animation/normalize.js","../utils":"animation/utils.js"}],"animation/generators/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","../../pixi/lib":"pixi/lib.js","./animation":"animation/generators/animation.js","../assign":"animation/assign.js","../../utils":"utils/index.js","../../pixi/utils/get-bounds-of-role":"pixi/utils/get-bounds-of-role.js",".":"animation/generators/index.js","../expressions":"animation/expressions.js","../normalize":"animation/normalize.js","../utils":"animation/utils.js"}],"variables.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = applyVariables;
+exports.evaluateVariable = evaluateVariable;
+
+var _typeof2 = _interopRequireDefault(require("@babel/runtime/helpers/typeof"));
+
+var _toConsumableArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toConsumableArray"));
+
+var _toArray2 = _interopRequireDefault(require("@babel/runtime/helpers/toArray"));
+
+var _utils = require("./utils");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+// variable evaluators
+// it would be nice to use the other evaluators eventually
+var add = function add(a, b) {
+  return a + b;
+};
+
+var subtract = function subtract(a, b) {
+  return a - b;
+};
+
+var multiply = function multiply(a, b) {
+  return a * b;
+};
+
+var divide = function divide(a, b) {
+  return a / b;
+};
+
+var pow = function pow(a, b) {
+  return a ^ b;
+};
+
+var cos = function cos(a) {
+  var b = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+  return Math.cos(a) * b;
+};
+
+var sin = function sin(a) {
+  var b = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+  return Math.cos(a) * b;
+};
+
+var pick = function pick() {
+  for (var _len = arguments.length, all = new Array(_len), _key = 0; _key < _len; _key++) {
+    all[_key] = arguments[_key];
+  }
+
+  return all[Math.floor(Math.random() * all.length)];
+};
+
+var random = function random(a, b, toInt) {
+  var value = a + (b - a) * Math.random();
+  return toInt ? 0 | value : value;
+}; // currently supported expressions
+
+
+var EXPRESSIONS = {
+  ':+': add,
+  ':add': add,
+  ':sum': add,
+  ':-': subtract,
+  ':sub': subtract,
+  ':subtract': subtract,
+  ':choose': pick,
+  ':pick': pick,
+  ':rnd': random,
+  ':random': random,
+  ':*': multiply,
+  ':multiply': multiply,
+  ':/': divide,
+  ':divide': divide,
+  ':^': pow,
+  ':pow': pow,
+  ':cos': cos,
+  ':sin': sin
+};
+
+function applyVariables(instance) {
+  var _instance$variables;
+
+  var map = {};
+  (_instance$variables = instance.variables) === null || _instance$variables === void 0 ? void 0 : _instance$variables.forEach(function (obj) {
+    var key = Object.keys(obj)[0];
+    var args = obj[key];
+
+    if ((0, _utils.isArray)(args)) {
+      var _args = (0, _toArray2.default)(args),
+          type = _args[0],
+          rest = _args.slice(1);
+
+      var evaluator = EXPRESSIONS[type];
+      map["$".concat(key)] = evaluator.apply(void 0, (0, _toConsumableArray2.default)(rest.map(function (a) {
+        return evaluateVariable(a, map);
+      })));
+    } else {
+      map["$".concat(key)] = args;
+    }
+  }); // now, recursively search to replace variables
+
+  findAndApply(instance, map);
+}
+
+function hasChildren(obj) {
+  return (0, _typeof2.default)(obj) === 'object' || typeof obj === 'array' || obj instanceof Array || obj instanceof Object;
+}
+
+function findAndApply(instance, vars) {
+  if ((0, _utils.isArray)(instance)) {
+    for (var i = 0; i < instance.length; i++) {
+      if (hasChildren(instance[i])) {
+        findAndApply(instance[i], vars);
+      } else {
+        instance[i] = evaluateVariable(instance[i], vars);
+      }
+    }
+  } else if ((0, _utils.isObject)(instance)) {
+    Object.keys(instance !== null && instance !== void 0 ? instance : {}).forEach(function (key) {
+      var target = instance[key];
+
+      if (hasChildren(target)) {
+        findAndApply(target, vars);
+      } else {
+        instance[key] = evaluateVariable(instance[key], vars);
+      }
+    });
+  }
+}
+
+function evaluateVariable(val, vars) {
+  var _vars$val;
+
+  return (_vars$val = vars === null || vars === void 0 ? void 0 : vars[val]) !== null && _vars$val !== void 0 ? _vars$val : val;
+}
+},{"@babel/runtime/helpers/typeof":"../node_modules/@babel/runtime/helpers/typeof.js","@babel/runtime/helpers/toConsumableArray":"../node_modules/@babel/runtime/helpers/toConsumableArray.js","@babel/runtime/helpers/toArray":"../node_modules/@babel/runtime/helpers/toArray.js","./utils":"utils/index.js"}],"animation/generators/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -85239,6 +85395,8 @@ var _findObjectsOfRole = require("../../pixi/utils/find-objects-of-role");
 
 var _pixi = require("pixi.js");
 
+var _variables2 = _interopRequireDefault(require("../../variables"));
+
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
@@ -85276,6 +85434,11 @@ function _createInstance() {
 
             if (instance.params) {
               applyParameters(instance);
+            } // check for variables
+
+
+            if (instance.variables) {
+              (0, _variables2.default)(instance);
             } // create the instance container
 
 
@@ -85288,9 +85451,9 @@ function _createInstance() {
 
             i = instance.compose.length;
 
-          case 9:
+          case 10:
             if (!(i-- > 0)) {
-              _context.next = 19;
+              _context.next = 20;
               break;
             }
 
@@ -85299,13 +85462,13 @@ function _createInstance() {
             delete layer.base; // check if hidden
 
             if (!(layer.hide || layer.hidden)) {
-              _context.next = 15;
+              _context.next = 16;
               break;
             }
 
-            return _context.abrupt("continue", 17);
+            return _context.abrupt("continue", 18);
 
-          case 15:
+          case 16:
             // sprite layers
             type = layer.type;
 
@@ -85347,15 +85510,15 @@ function _createInstance() {
                           }
                       }
 
-          case 17:
-            _context.next = 9;
+          case 18:
+            _context.next = 10;
             break;
 
-          case 19:
-            _context.next = 21;
+          case 20:
+            _context.next = 22;
             return Promise.all(pending);
 
-          case 21:
+          case 22:
             composite = _context.sent;
             layers = (0, _collection.flatten)(composite); // append each layer
 
@@ -85400,7 +85563,7 @@ function _createInstance() {
 
             return _context.abrupt("return", container);
 
-          case 29:
+          case 30:
           case "end":
             return _context.stop();
         }
@@ -85432,7 +85595,7 @@ function applyParameters(instance) {
     }
   }
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","@babel/runtime/helpers/typeof":"../node_modules/@babel/runtime/helpers/typeof.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","../../pixi/lib":"pixi/lib.js","fast-copy":"../node_modules/fast-copy/dist/fast-copy.js","../utils":"animation/utils.js","../../utils":"utils/index.js","./sprite":"animation/generators/sprite.js","./emitter":"animation/generators/emitter/index.js","./group":"animation/generators/group.js","./mask":"animation/generators/mask.js","../../utils/collection":"utils/collection.js","./repeater":"animation/generators/repeater.js","../expressions":"animation/expressions.js","../variables":"animation/variables.js","../../pixi/utils/find-objects-of-role":"pixi/utils/find-objects-of-role.js","pixi.js":"../node_modules/pixi.js/lib/pixi.es.js"}],"animation/importManifest.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","@babel/runtime/helpers/typeof":"../node_modules/@babel/runtime/helpers/typeof.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","../../pixi/lib":"pixi/lib.js","fast-copy":"../node_modules/fast-copy/dist/fast-copy.js","../utils":"animation/utils.js","../../utils":"utils/index.js","./sprite":"animation/generators/sprite.js","./emitter":"animation/generators/emitter/index.js","./group":"animation/generators/group.js","./mask":"animation/generators/mask.js","../../utils/collection":"utils/collection.js","./repeater":"animation/generators/repeater.js","../expressions":"animation/expressions.js","../variables":"animation/variables.js","../../pixi/utils/find-objects-of-role":"pixi/utils/find-objects-of-role.js","pixi.js":"../node_modules/pixi.js/lib/pixi.es.js","../../variables":"variables.js"}],"animation/importManifest.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -112963,7 +113126,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '4.0.5';
+  window.NTTRACK = '4.0.7';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
