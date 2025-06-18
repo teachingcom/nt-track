@@ -31,12 +31,13 @@ export default class Nitro extends PIXI.Container {
 			container.addChild(nitro)
 			car.nitro = nitro
 
+			
 			// set the scaling
 			nitro.scale.x = nitro.scale.y = scale
-
+			
 			// activate
 			nitro.sound = null
-			nitro.activate()
+			car.activateNitro()
 			onActivate?.()
 		}
 
@@ -199,7 +200,7 @@ export default class Nitro extends PIXI.Container {
 
 	/** activates the sound for this */
 	activate = () => {
-		const { sound, instance } = this;
+		const { sound, instance, config } = this;
 
 		// check for a sound to play
 		if (sound) {
@@ -209,12 +210,34 @@ export default class Nitro extends PIXI.Container {
 
 		// in case this isn't visible by default
 		if (this.shouldFadeIn) {
-			instance.alpha = 1
+			this.alpha = 0.01
+			this.fadeDirection = 'in'
+		}
+		else {
 			this.alpha = 1
 		}
 
 		// show particle emitters
 		instance.controller.activateEmitters();
+
+		// when animating, make sure to fade out, if needed
+		if (this.shouldFadeOut) {
+			clearTimeout(this.__animateNitro)
+			this.__animateNitro = setTimeout(() => {
+				this.fadeDirection = 'out'
+			}, config.duration ?? 1500)
+		}
+	}
+
+	updateTransform() {
+		super.updateTransform()
+
+		if (this.fadeDirection === 'out') {
+			this.alpha *= 0.915
+		}
+		else if (this.fadeDirection === 'in') {
+			this.alpha = Math.min(1, this.alpha + 0.025)
+		}
 	}
 
 	reset = (positionX, offsetY = NITRO_OFFSET_Y) => {

@@ -91738,6 +91738,8 @@ var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/creat
 
 var _assertThisInitialized2 = _interopRequireDefault(require("@babel/runtime/helpers/assertThisInitialized"));
 
+var _get2 = _interopRequireDefault(require("@babel/runtime/helpers/get"));
+
 var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
 
 var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
@@ -91795,7 +91797,8 @@ var Nitro = /*#__PURE__*/function (_PIXI$Container) {
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "activate", function () {
       var _assertThisInitialize2 = (0, _assertThisInitialized2.default)(_this),
           sound = _assertThisInitialize2.sound,
-          instance = _assertThisInitialize2.instance; // check for a sound to play
+          instance = _assertThisInitialize2.instance,
+          config = _assertThisInitialize2.config; // check for a sound to play
 
 
       if (sound) {
@@ -91805,12 +91808,23 @@ var Nitro = /*#__PURE__*/function (_PIXI$Container) {
 
 
       if (_this.shouldFadeIn) {
-        instance.alpha = 1;
+        _this.alpha = 0.01;
+        _this.fadeDirection = 'in';
+      } else {
         _this.alpha = 1;
       } // show particle emitters
 
 
-      instance.controller.activateEmitters();
+      instance.controller.activateEmitters(); // when animating, make sure to fade out, if needed
+
+      if (_this.shouldFadeOut) {
+        var _config$duration;
+
+        clearTimeout(_this.__animateNitro);
+        _this.__animateNitro = setTimeout(function () {
+          _this.fadeDirection = 'out';
+        }, (_config$duration = config.duration) !== null && _config$duration !== void 0 ? _config$duration : 1500);
+      }
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "reset", function (positionX) {
       var offsetY = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _config.NITRO_OFFSET_Y;
@@ -91946,6 +91960,17 @@ var Nitro = /*#__PURE__*/function (_PIXI$Container) {
     }() // apply special config values
 
   }, {
+    key: "updateTransform",
+    value: function updateTransform() {
+      (0, _get2.default)((0, _getPrototypeOf2.default)(Nitro.prototype), "updateTransform", this).call(this);
+
+      if (this.fadeDirection === 'out') {
+        this.alpha *= 0.915;
+      } else if (this.fadeDirection === 'in') {
+        this.alpha = Math.min(1, this.alpha + 0.025);
+      }
+    }
+  }, {
     key: "attachToCar",
     value: function attachToCar(_ref) {
       var _car$positions, _car$attachMods;
@@ -92021,7 +92046,7 @@ var Nitro = /*#__PURE__*/function (_PIXI$Container) {
                   nitro.scale.x = nitro.scale.y = scale; // activate
 
                   nitro.sound = null;
-                  nitro.activate();
+                  car.activateNitro();
                   onActivate === null || onActivate === void 0 ? void 0 : onActivate();
 
                 case 10:
@@ -92180,7 +92205,7 @@ var Nitro = /*#__PURE__*/function (_PIXI$Container) {
 }(_ntAnimator.PIXI.Container);
 
 exports.default = Nitro;
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","../../audio":"audio/index.js","../../audio/volume":"audio/volume.js","../../config":"config.js","../../views/track/layers":"views/track/layers.js"}],"views/track/player.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","../../audio":"audio/index.js","../../audio/volume":"audio/volume.js","../../config":"config.js","../../views/track/layers":"views/track/layers.js"}],"views/track/player.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -109367,9 +109392,9 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                     type: config.nitro
                   }), car, {
                     delay: 5000,
-                    scale: 1.2
+                    scale: 1.5
                   }), nitro = _Nitro$createCycler.nitro;
-                  nitro.x += 200 + ((_tweaks$offsetX = tweaks === null || tweaks === void 0 ? void 0 : tweaks.offsetX) !== null && _tweaks$offsetX !== void 0 ? _tweaks$offsetX : 0);
+                  nitro.x += 275 + ((_tweaks$offsetX = tweaks === null || tweaks === void 0 ? void 0 : tweaks.offsetX) !== null && _tweaks$offsetX !== void 0 ? _tweaks$offsetX : 0);
                 } // set the inner container
 
 
@@ -113126,7 +113151,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '4.0.7';
+  window.NTTRACK = '4.0.9';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

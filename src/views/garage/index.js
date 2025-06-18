@@ -273,10 +273,10 @@ export default class GarageView extends BaseView {
 				type: config.nitro
 			}, car, {
 				delay: 5000,
-				scale: 1.2
+				scale: 1.5
 			})
 
-			nitro.x += 200 + (tweaks?.offsetX ?? 0)
+			nitro.x += 275 + (tweaks?.offsetX ?? 0)
 
 		}
 
