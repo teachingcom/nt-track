@@ -349,10 +349,11 @@ export default class CustomizerView extends BaseView {
     })
 
     // adjust for this view
-    this.doodad.scale.x = this.doodad.scale.y = 0.7
+    this.doodad.scale.x = this.doodad.scale.y = 1
 
     this.car.addChild(this.doodad)
     Doodad.setLayer(this.doodad, this.car)
+    this.car.sortChildren()
   }
 
   async setTrail(type, waitForReady = true) {

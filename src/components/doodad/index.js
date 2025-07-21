@@ -16,6 +16,7 @@ export default class Doodad extends PIXI.Container {
   }
 
   static setLayer(doodad, target = { zIndex: 0 }) {
+    console.log(doodad)
     if (doodad?.config?.layer) {
       if (doodad.isOverCar) {
         doodad.zIndex = target.zIndex + 1;

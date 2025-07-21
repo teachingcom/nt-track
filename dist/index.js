@@ -90920,6 +90920,7 @@ var Doodad = /*#__PURE__*/function (_PIXI$Container) {
       var target = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
         zIndex: 0
       };
+      console.log(doodad);
 
       if (doodad === null || doodad === void 0 ? void 0 : (_doodad$config = doodad.config) === null || _doodad$config === void 0 ? void 0 : _doodad$config.layer) {
         if (doodad.isOverCar) {
@@ -109361,7 +109362,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
               case 27:
                 if (!(config.perk && config.perkLevel)) {
-                  _context4.next = 34;
+                  _context4.next = 35;
                   break;
                 }
 
@@ -109377,12 +109378,14 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
               case 30:
                 perk = _context4.sent;
                 // slightly larger on this view
-                perk.scale.x = perk.scale.y = 1.3;
+                perk.scale.x = perk.scale.y = 2;
                 player.addChild(perk);
 
                 _doodad.default.setLayer(perk, car);
 
-              case 34:
+                player.sortChildren();
+
+              case 35:
                 // animate the nitro, if any
                 if (config.nitro) {
                   _Nitro$createCycler = _nitro.default.createCycler(_objectSpread(_objectSpread({
@@ -109440,7 +109443,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
                 return _context4.abrupt("return", container);
 
-              case 45:
+              case 46:
               case "end":
                 return _context4.stop();
             }
@@ -111867,12 +111870,14 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
               case 2:
                 this.doodad = _context13.sent;
                 // adjust for this view
-                this.doodad.scale.x = this.doodad.scale.y = 0.7;
+                this.doodad.scale.x = this.doodad.scale.y = 1;
                 this.car.addChild(this.doodad);
 
                 _doodad.default.setLayer(this.doodad, this.car);
 
-              case 6:
+                this.car.sortChildren();
+
+              case 7:
               case "end":
                 return _context13.stop();
             }
@@ -113151,7 +113156,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '4.0.9';
+  window.NTTRACK = '4.1.0';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

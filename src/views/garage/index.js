@@ -258,10 +258,11 @@ export default class GarageView extends BaseView {
 
 
 			// slightly larger on this view
-			perk.scale.x = perk.scale.y = 1.3
+			perk.scale.x = perk.scale.y = 2
 
 			player.addChild(perk)
 			Doodad.setLayer(perk, car)
+			player.sortChildren()
 		}
 
 		// animate the nitro, if any
