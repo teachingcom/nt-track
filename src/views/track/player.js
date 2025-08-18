@@ -289,12 +289,14 @@ export default class Player extends PIXI.ResponsiveContainer {
 		// include the trail, if any
 		if (doodad) {
 			layers.doodad = doodad;
+			const container = new PIXI.Container()
 			
 			// add to the player view
-			this.addChild(doodad);
+			this.addChild(container);
 
 			// find a layer to use
-			Doodad.setLayer(doodad, car);
+			container.addChild(doodad)
+			Doodad.setLayer(container, car);
 			
 			if (doodad.config.origin === 'front') {
 				doodad.x = car.positions.front;
@@ -308,6 +310,7 @@ export default class Player extends PIXI.ResponsiveContainer {
 			}
 			
 			doodad.scale.x = doodad.scale.y = scale.x * TRAIL_SCALE;
+			this.doodad = container
 		}
 
 		// include the nitro, if any

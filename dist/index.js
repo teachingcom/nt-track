@@ -92614,7 +92614,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
     key: "_assemble",
     value: function () {
       var _assemble2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(car, trail, nitro, namecard, doodad, playerIndicator) {
-        var layers, scale, _findDisplayObjectsOf, _findDisplayObjectsOf2, indicatorLabel, _findDisplayObjectsOf3, _findDisplayObjectsOf4, indicatorRoot, _indicatorRoot$childr, indicatorContainer, startingX;
+        var layers, scale, _findDisplayObjectsOf, _findDisplayObjectsOf2, indicatorLabel, _findDisplayObjectsOf3, _findDisplayObjectsOf4, indicatorRoot, _indicatorRoot$childr, indicatorContainer, startingX, container;
 
         return _regenerator.default.wrap(function _callee7$(_context7) {
           while (1) {
@@ -92696,11 +92696,14 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
 
 
                 if (doodad) {
-                  layers.doodad = doodad; // add to the player view
+                  layers.doodad = doodad;
+                  container = new _ntAnimator.PIXI.Container(); // add to the player view
 
-                  this.addChild(doodad); // find a layer to use
+                  this.addChild(container); // find a layer to use
 
-                  _doodad.default.setLayer(doodad, car);
+                  container.addChild(doodad);
+
+                  _doodad.default.setLayer(container, car);
 
                   if (doodad.config.origin === 'front') {
                     doodad.x = car.positions.front;
@@ -92712,6 +92715,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                     }
 
                   doodad.scale.x = doodad.scale.y = scale.x * _config.TRAIL_SCALE;
+                  this.doodad = container;
                 } // include the nitro, if any
 
 
@@ -103053,9 +103057,12 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
-var REACTION_DISTANCE = 600;
-var SCALE_UP = 0.1;
-var SCALE_DOWN = 0.05;
+var REACTION_DISTANCE = 500;
+var JUMP_DURATION = 22;
+var JUMP_POWER = 0.04;
+var JUMP_GRAVITY = 0.02;
+var JUMP_BOUNCE = 4;
+var JUMP_BOUNCE_COUNT = 3;
 
 var Airtime = /*#__PURE__*/function (_GameScript) {
   (0, _inherits2.default)(Airtime, _GameScript);
@@ -103108,38 +103115,65 @@ var Airtime = /*#__PURE__*/function (_GameScript) {
       try {
         for (_iterator.s(); !(_step = _iterator.n()).done;) {
           var player = _step.value;
-          var car = player.car;
-          car.getGlobalPosition(compareTo, true); // race is over, fix all scaling
+          var car = player.car,
+              doodad = player.doodad; // already updated this frame
+
+          if (car.__airtime_last_update__ === this.track.frame) {
+            continue;
+          } // race is over, fix all scaling
+
 
           if (this.track.state.isFinished) {
             this.isFinished = true;
-            car.scale.x = car.scale.y = 1;
+            resetJump(car);
+            resetJump(doodad);
+            continue;
+          } // always update positions
+
+
+          car.getGlobalPosition(compareTo, true);
+          var x = compareTo.x - (source.x - REACTION_DISTANCE);
+          var activate = Math.abs(x) < REACTION_DISTANCE; // activate the jump
+
+          if (!car.__airtime_perform_jump__ && activate) {
+            car.__airtime_perform_jump__ = true;
+            car.__airtime_jump__ = JUMP_DURATION;
+            car.__airtime_velocity__ = 0;
+            car.__airtime_bounce__ = JUMP_BOUNCE_COUNT;
+          } // save the position
+
+
+          car.__airtime_prior_x__ = x; // if this is in a jump, do the animation
+
+          if (car.__airtime_perform_jump__) {
+            car.__airtime_last_update__ = this.track.frame; // apply the jump
+
+            if (--car.__airtime_jump__ > 0) {
+              car.__airtime_velocity__ += JUMP_POWER;
+              car.__airtime_velocity__ *= 0.95;
+            } // apply gravity
+            else {
+                car.__airtime_velocity__ -= JUMP_GRAVITY;
+              } // ensure the range
+
+
+            var scale = 1 + car.__airtime_velocity__;
+
+            if (scale < 1) {
+              scale = 1; // perform a bounce instead
+
+              if (--car.__airtime_bounce__ > 0) {
+                car.__airtime_jump__ = JUMP_BOUNCE * car.__airtime_bounce__;
+              } else {
+                car.__airtime_perform_jump__ = false;
+              }
+            } // apply the jump value
+
+
+            applyJump(car, scale);
+            applyJump(doodad, scale);
             continue;
           }
-
-          var x = compareTo.x - source.x;
-          var diff = x / reactionDistance; // adjust scaling
-
-          if (Math.abs(diff) < 1) {
-            // if (diff < 0) {
-            //   diff += (1 - diff) * SCALE_UP
-            // }
-            // else if (diff > 0) {
-            //   diff -= (1 - diff) * SCALE_DOWN
-            // }
-            car.__airtimeScriptUpdate__ = this.track.frame;
-            var reduce = 0.4;
-
-            var _x = Math.abs(diff);
-
-            var scale = ease((diff + 1) / 2);
-            var shift = (1 - _x) * scale * reduce; // car.scale.x = car.scale.y = 1 + Math.sin((1 - Math.abs(diff)) * 0.5)
-
-            car.scale.x = car.scale.y = 1 + shift;
-          } // someone else didn't update
-          else if (car.__airtimeScriptUpdate__ !== this.track.frame) {
-              car.scale.x = car.scale.y = 1;
-            }
         }
       } catch (err) {
         _iterator.e(err);
@@ -103153,10 +103187,14 @@ var Airtime = /*#__PURE__*/function (_GameScript) {
 
 exports.default = Airtime;
 
-function ease(x) {
-  // return 1 - Math.pow(1 - x, 4);
-  return 1 - Math.pow(1 - x, 5); // return x < 0.5 ? 8 * x * x * x * x : 1 - Math.pow(-2 * x + 2, 4) / 2;
-  // return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+function resetJump(target) {
+  applyJump(target, 1);
+}
+
+function applyJump(target, value) {
+  if (target) {
+    target.scale.x = target.scale.y = value;
+  }
 }
 },{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","nt-animator":"../node_modules/nt-animator/dist/index.js","./base":"scripts/base.js"}],"scripts/reactive_gull.js":[function(require,module,exports) {
 "use strict";
@@ -113155,7 +113193,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '4.1.4';
+  window.NTTRACK = '4.1.5';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
