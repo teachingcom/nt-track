@@ -90920,7 +90920,6 @@ var Doodad = /*#__PURE__*/function (_PIXI$Container) {
       var target = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
         zIndex: 0
       };
-      console.log(doodad);
 
       if (doodad === null || doodad === void 0 ? void 0 : (_doodad$config = doodad.config) === null || _doodad$config === void 0 ? void 0 : _doodad$config.layer) {
         if (doodad.isOverCar) {
@@ -113156,7 +113155,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '4.1.0';
+  window.NTTRACK = '4.1.4';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
