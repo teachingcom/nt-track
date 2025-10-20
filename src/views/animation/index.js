@@ -1,9 +1,11 @@
 import { createContext, loadImage, PIXI, removeDisplayObject } from 'nt-animator'
+import Car from '../../components/car'
 import NameCard from '../../components/namecard'
 import Trail from '../../components/trail'
 import { BaseView } from '../base'
 import { LAYER_TRAIL } from '../track/layers'
 import Nitro from '../../components/nitro'
+import Doodad from '../../components/doodad'
 
 // config
 const DEFAULT_MAX_HEIGHT = 250
@@ -31,6 +33,11 @@ export default class AnimationView extends BaseView {
 
 		// check for special modes
 		switch (options.mode) {
+			// create a trail preview 
+			case 'perk-preview':
+				await this._initPerkPreview()
+				break
+
 			// create a trail preview 
 			case 'trail-preview':
 				await this._initTrailPreview()
@@ -72,6 +79,67 @@ export default class AnimationView extends BaseView {
 
 		animation.scale.x = animation.scale.y = scale || 1
 		this.container.addChild(animation)
+  }
+
+  // creates the perk preview
+  async _initPerkPreview() {
+		const {
+			path: perkType,
+			level,
+			carHueAngle: hue,
+			playerCar: {
+				isAnimated,
+				assetKey: carAssetKey
+			}
+		} = this.defaultOptions
+
+		const car = await Car.create({
+			view: this,
+			type: carAssetKey,
+			isAnimated: isAnimated,
+			hue,
+			baseHeight: DEFAULT_MAX_HEIGHT
+		})
+
+
+		// fix the container
+		const cx = -(car.positions.back + car.positions.front) * 0.5
+		car.x = cx
+
+		// no levels for the perk
+		if (!level) {
+			this.container.addChild(car)
+			return
+		}
+
+		const perk = await Doodad.create({
+			view: this,
+			baseHeight: DEFAULT_MAX_HEIGHT,
+			type: perkType,
+			level
+		})
+
+		// add to the view as needed
+		this.container.addChild(perk, car)
+		if (perk.config.layer === 'over_car') {
+			this.container.addChild(perk)
+		}
+
+		// fix origins
+		if (perk.config.origin === 'center') {
+			perk.x = car.bounds.x
+		}
+
+		// adjust scaling
+		// TODO: make this more consistent
+		perk.scale.x = perk.scale.y = 1.6
+
+		// adjust the perk
+		perk.x = car.x
+		if (perk.config.origin === 'center') {
+			perk.x += car.bounds.x
+		}
+
   }
 
 	async _initCarBumper() {

@@ -93,15 +93,12 @@ export default class Airtime extends GameScript {
       }
 
 		}
-
 	}
-
 }
 
 function resetJump(target) {
   applyJump(target, 1)
 }
-
 
 function applyJump(target, value) {
   if (target) {

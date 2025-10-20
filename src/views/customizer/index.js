@@ -341,6 +341,10 @@ export default class CustomizerView extends BaseView {
   }
 
   async setDoodad(type, level) {
+    if (!level) {
+      return
+    }
+
     this.doodad = await Doodad.create({
       view: this,
       baseHeight: 150,

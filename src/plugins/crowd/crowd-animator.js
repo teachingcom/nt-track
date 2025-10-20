@@ -1,4 +1,3 @@
-import { keyframes, easing } from 'popmotion';
 import { animate } from 'nt-animator';
 
 // handles creating a shared animator for crowd keyframe animations

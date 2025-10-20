@@ -137,6 +137,11 @@ export default class Player extends PIXI.ResponsiveContainer {
 		const { options, mods } = this;
 		const { view, tweaks } = options;
 
+		// needs a level
+		if (!mods?.doodad?.level) {
+			return
+		}
+
 		// make sure this car has a doodad
 		if (tweaks?.noDoodad) return;
 
