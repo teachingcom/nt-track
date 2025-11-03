@@ -23,6 +23,9 @@ export default class Doodad extends PIXI.Container {
       else if (isNumber(doodad.config.layer)) {
         doodad.zIndex = doodad.config.layer;
       }
+      else {
+        doodad.zIndex = target.zIndex - 1;
+      }
     }
     else {
       doodad.zIndex = LAYER_TRAIL;

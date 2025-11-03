@@ -256,6 +256,10 @@ export default class GarageView extends BaseView {
 				level: config.perkLevel
 			})
 
+			// align to the front
+			// TODO: this should be fixed
+			perk.x = car.positions.back * -0.5
+
 
 			// slightly larger on this view
 			perk.scale.x = perk.scale.y = 2
