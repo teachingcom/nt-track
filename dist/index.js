@@ -4352,11 +4352,44 @@ var baseUrl = '/sounds'; // mute by default
 
 _sound.Sound.volume = 0;
 _sound.Sound.sfxEnabled = false;
-_sound.Sound.musicEnabled = false; // try to disable sound by default
+_sound.Sound.musicEnabled = false; // Initialize volume from window.top if available
 
-try {
-  _howler.Howler.volume(0);
-} catch (ex) {} // incase of failed audio attempts
+function initializeVolume() {
+  try {
+    var _window$top$__NT_VOLU, _window$top;
+
+    var volume = (_window$top$__NT_VOLU = (_window$top = window.top) === null || _window$top === void 0 ? void 0 : _window$top.__NT_VOLUME_SFX__) !== null && _window$top$__NT_VOLU !== void 0 ? _window$top$__NT_VOLU : 1;
+    _sound.Sound.volume = Math.min(Math.max(0, volume), 1);
+
+    _howler.Howler.volume(_sound.Sound.volume);
+  } catch (ex) {
+    // If window.top is not accessible (cross-origin), default to 0
+    try {
+      _howler.Howler.volume(1);
+    } catch (e) {}
+  }
+} // Initialize volume on load
+
+
+initializeVolume(); // Listen for window message events to update SFX volume
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('message', function (event) {
+    try {
+      var _ref = event.data || {},
+          data = _ref.data,
+          type = _ref.type;
+
+      if (type === 'set-volume' && (data === null || data === void 0 ? void 0 : data.type) === 'sfx' && typeof (data === null || data === void 0 ? void 0 : data.volume) === 'number') {
+        var volume = Math.min(Math.max(0, data.volume), 1);
+        _sound.Sound.volume = volume;
+
+        _howler.Howler.volume(volume);
+      }
+    } catch (ex) {// Silently handle errors in message handler
+    }
+  });
+} // incase of failed audio attempts
 // just use a fake object to prevent crashes
 
 
@@ -109147,7 +109180,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '4.2.7';
+  window.NTTRACK = '4.2.9';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

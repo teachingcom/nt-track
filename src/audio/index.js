@@ -15,11 +15,38 @@ Sound.volume = 0
 Sound.sfxEnabled = false
 Sound.musicEnabled = false
 
-// try to disable sound by default
-try { 
-  Howler.volume(0);
+// Initialize volume from window.top if available
+function initializeVolume() {
+  try {
+    const volume = window.top?.__NT_VOLUME_SFX__ ?? 1
+    Sound.volume = Math.min(Math.max(0, volume), 1)
+    Howler.volume(Sound.volume)
+  } catch (ex) {
+    // If window.top is not accessible (cross-origin), default to 0
+    try {
+      Howler.volume(1)
+    } catch (e) { }
+  }
 }
-catch (ex) { }
+
+// Initialize volume on load
+initializeVolume()
+
+// Listen for window message events to update SFX volume
+if (typeof window !== 'undefined') {
+  window.addEventListener('message', (event) => {
+    try {
+      const { data, type } = event.data || { }
+      if (type === 'set-volume' && data?.type === 'sfx' && typeof data?.volume === 'number') {
+        const volume = Math.min(Math.max(0, data.volume), 1)
+        Sound.volume = volume
+        Howler.volume(volume)
+      }
+    } catch (ex) {
+      // Silently handle errors in message handler
+    }
+  })
+}
 
 // incase of failed audio attempts
 // just use a fake object to prevent crashes
