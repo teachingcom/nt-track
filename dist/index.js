@@ -108436,20 +108436,27 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
 
               case 3:
                 car = _context3.sent;
-                // fix the container
-                cx = -(car.positions.back + car.positions.front) * 0.5;
-                car.x = cx; // no levels for the perk
+
+                // if a manual offset is provided
+                if (this.options.offsetX) {
+                  this.view.x += this.options.offsetX;
+                } // center aligned
+                else {
+                    cx = -(car.positions.back + car.positions.front) * 0.5;
+                    car.x = cx;
+                  } // no levels for the perk
+
 
                 if (level) {
-                  _context3.next = 9;
+                  _context3.next = 8;
                   break;
                 }
 
                 this.container.addChild(car);
                 return _context3.abrupt("return");
 
-              case 9:
-                _context3.next = 11;
+              case 8:
+                _context3.next = 10;
                 return _doodad.default.create({
                   view: this,
                   baseHeight: DEFAULT_MAX_HEIGHT,
@@ -108457,7 +108464,7 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
                   level: level
                 });
 
-              case 11:
+              case 10:
                 perk = _context3.sent;
                 // add to the view as needed
                 this.container.addChild(perk, car);
@@ -108481,7 +108488,7 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
                   perk.x += car.bounds.x;
                 }
 
-              case 18:
+              case 17:
               case "end":
                 return _context3.stop();
             }
@@ -108691,6 +108698,17 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
                   bumper.scale.x = bumper.scale.y = 1.85;
                   bumper.x += namecard.x * 0.5;
                   namecard.x = namecard.width * -0.075;
+                } // optional offsets
+
+
+                if (this.options.offsetX) {
+                  namecard.x += this.options.offsetX;
+                } // optional scaling
+
+
+                if (this.options.scale) {
+                  namecard.scale.x *= this.options.scale;
+                  namecard.scale.y *= this.options.scale;
                 } // since we're using the trail class for the trail
                 // we need a shared container to help make sure
                 // the trail lines up correctly using the 
@@ -108710,7 +108728,7 @@ var AnimationView = /*#__PURE__*/function (_BaseView) {
                 namecard.visible = true;
                 this.container.addChild(contain);
 
-              case 15:
+              case 17:
               case "end":
                 return _context6.stop();
             }
@@ -109180,7 +109198,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '4.2.9';
+  window.NTTRACK = '4.3.0';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

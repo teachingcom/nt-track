@@ -101,10 +101,16 @@ export default class AnimationView extends BaseView {
 			baseHeight: DEFAULT_MAX_HEIGHT
 		})
 
+		// if a manual offset is provided
+		if (this.options.offsetX) {
+			this.view.x += this.options.offsetX
+		}
+		// center aligned
+		else {
+			const cx = -(car.positions.back + car.positions.front) * 0.5
+			car.x = cx
+		}
 
-		// fix the container
-		const cx = -(car.positions.back + car.positions.front) * 0.5
-		car.x = cx
 
 		// no levels for the perk
 		if (!level) {
@@ -260,6 +266,17 @@ export default class AnimationView extends BaseView {
 			bumper.scale.x = bumper.scale.y = 1.85
 			bumper.x += (namecard.x * 0.5)
 			namecard.x = namecard.width * -0.075
+		}
+
+		// optional offsets
+		if (this.options.offsetX) {
+			namecard.x += this.options.offsetX
+		}
+
+		// optional scaling
+		if (this.options.scale) {
+			namecard.scale.x *= this.options.scale
+			namecard.scale.y *= this.options.scale
 		}
 
 		// since we're using the trail class for the trail
