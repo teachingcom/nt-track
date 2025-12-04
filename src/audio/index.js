@@ -11,16 +11,17 @@ const SFX = []
 let baseUrl = '/sounds'
 
 // mute by default
+Sound.siteVolume = 1
 Sound.volume = 0
 Sound.sfxEnabled = false
 Sound.musicEnabled = false
 
 // Initialize volume from window.top if available
-function initializeVolume() {
+export function initializeVolume() {
   try {
     const volume = window.top?.__NT_VOLUME_SFX__ ?? 1
-    Sound.volume = Math.min(Math.max(0, volume), 1)
-    Howler.volume(Sound.volume)
+    Sound.siteVolume = Math.min(Math.max(0, volume), 1)
+    Howler.volume(Sound.siteVolume)
   } catch (ex) {
     // If window.top is not accessible (cross-origin), default to 0
     try {
@@ -29,9 +30,6 @@ function initializeVolume() {
   }
 }
 
-// Initialize volume on load
-initializeVolume()
-
 // Listen for window message events to update SFX volume
 if (typeof window !== 'undefined') {
   window.addEventListener('message', (event) => {
@@ -39,8 +37,8 @@ if (typeof window !== 'undefined') {
       const { data, type } = event.data || { }
       if (type === 'set-volume' && data?.type === 'sfx' && typeof data?.volume === 'number') {
         const volume = Math.min(Math.max(0, data.volume), 1)
-        Sound.volume = volume
-        Howler.volume(volume)
+        Sound.siteVolume = volume
+        Howler.volume(Sound.volume * Sound.siteVolume)
       }
     } catch (ex) {
       // Silently handle errors in message handler
@@ -176,7 +174,7 @@ function cancelFade() {
 // replaces the global volume level
 export function setVolume(amount) {
   Sound.volume = Math.min(Math.max(0, amount), 1)
-  Howler.volume(Sound.volume);
+  Howler.volume(Sound.volume * Sound.siteVolume);
 }
 
 // creates a new sound instance

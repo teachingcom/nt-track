@@ -4317,6 +4317,7 @@ exports.Sound = Sound;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.initializeVolume = initializeVolume;
 exports.configureSFX = configureSFX;
 exports.configureMusic = configureMusic;
 exports.setBaseUrl = setBaseUrl;
@@ -4350,6 +4351,7 @@ var SFX = []; // default url to load sounds from
 
 var baseUrl = '/sounds'; // mute by default
 
+_sound.Sound.siteVolume = 1;
 _sound.Sound.volume = 0;
 _sound.Sound.sfxEnabled = false;
 _sound.Sound.musicEnabled = false; // Initialize volume from window.top if available
@@ -4359,19 +4361,17 @@ function initializeVolume() {
     var _window$top$__NT_VOLU, _window$top;
 
     var volume = (_window$top$__NT_VOLU = (_window$top = window.top) === null || _window$top === void 0 ? void 0 : _window$top.__NT_VOLUME_SFX__) !== null && _window$top$__NT_VOLU !== void 0 ? _window$top$__NT_VOLU : 1;
-    _sound.Sound.volume = Math.min(Math.max(0, volume), 1);
+    _sound.Sound.siteVolume = Math.min(Math.max(0, volume), 1);
 
-    _howler.Howler.volume(_sound.Sound.volume);
+    _howler.Howler.volume(_sound.Sound.siteVolume);
   } catch (ex) {
     // If window.top is not accessible (cross-origin), default to 0
     try {
       _howler.Howler.volume(1);
     } catch (e) {}
   }
-} // Initialize volume on load
+} // Listen for window message events to update SFX volume
 
-
-initializeVolume(); // Listen for window message events to update SFX volume
 
 if (typeof window !== 'undefined') {
   window.addEventListener('message', function (event) {
@@ -4382,9 +4382,9 @@ if (typeof window !== 'undefined') {
 
       if (type === 'set-volume' && (data === null || data === void 0 ? void 0 : data.type) === 'sfx' && typeof (data === null || data === void 0 ? void 0 : data.volume) === 'number') {
         var volume = Math.min(Math.max(0, data.volume), 1);
-        _sound.Sound.volume = volume;
+        _sound.Sound.siteVolume = volume;
 
-        _howler.Howler.volume(volume);
+        _howler.Howler.volume(_sound.Sound.volume * _sound.Sound.siteVolume);
       }
     } catch (ex) {// Silently handle errors in message handler
     }
@@ -4557,7 +4557,7 @@ function cancelFade() {
 function setVolume(amount) {
   _sound.Sound.volume = Math.min(Math.max(0, amount), 1);
 
-  _howler.Howler.volume(_sound.Sound.volume);
+  _howler.Howler.volume(_sound.Sound.volume * _sound.Sound.siteVolume);
 } // creates a new sound instance
 
 
@@ -88071,6 +88071,8 @@ var _fps = _interopRequireDefault(require("../fps"));
 
 var _perf = _interopRequireDefault(require("../perf"));
 
+var _audio = require("../audio");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
@@ -88397,9 +88399,12 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
                     delay: options.dynamicPerformanceMonitoringDelay || _config.DEFAULT_PERFORMANCE_MONITORING_DELAY,
                     fps: this.fps
                   });
-                }
+                } // get initial volume settings
 
-              case 37:
+
+                (0, _audio.initializeVolume)();
+
+              case 38:
               case "end":
                 return _context.stop();
             }
@@ -88585,7 +88590,7 @@ function createCanvasRenderer(instance, cacheId) {
     view: renderer.view
   };
 }
-},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../utils/view":"utils/view.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../utils":"utils/index.js","../config":"config.js","../fps":"fps.js","../perf":"perf.js"}],"../node_modules/@babel/runtime/helpers/arrayLikeToArray.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/assertThisInitialized":"../node_modules/@babel/runtime/helpers/assertThisInitialized.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../utils/view":"utils/view.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../utils":"utils/index.js","../config":"config.js","../fps":"fps.js","../perf":"perf.js","../audio":"audio/index.js"}],"../node_modules/@babel/runtime/helpers/arrayLikeToArray.js":[function(require,module,exports) {
 function _arrayLikeToArray(arr, len) {
   if (len == null || len > arr.length) len = arr.length;
 
@@ -109198,7 +109203,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '4.3.0';
+  window.NTTRACK = '4.3.2';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
