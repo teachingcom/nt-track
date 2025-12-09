@@ -63,6 +63,9 @@ export default class TrackView extends BaseView {
 		if (DEVELOPMENT) {
 			window.TRACK = this
 		}
+
+		// get initial volume settings
+		audio.initializeVolume()
 	}
 
 	// global effect filter

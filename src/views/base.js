@@ -7,7 +7,6 @@ import { DEFAULT_PERFORMANCE_MONITORING_DELAY, PERFORMANCE_LEVEL } from '../conf
 // dynamic management of performance
 import FpsMonitor from '../fps';
 import DynamicPerformanceController from '../perf';
-import { initializeVolume } from '../audio';
 
 /** creates a track instance */
 export class BaseView extends EventEmitter {
@@ -150,9 +149,6 @@ export class BaseView extends EventEmitter {
 				fps: this.fps,
 			});
 		}
-
-		// get initial volume settings
-		initializeVolume()
 	}
 
 	/** keeping track of progress */
