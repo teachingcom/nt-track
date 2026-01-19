@@ -315,6 +315,10 @@ export default class Player extends PIXI.ResponsiveContainer {
 			}
 			
 			doodad.scale.x = doodad.scale.y = scale.x * TRAIL_SCALE;
+			
+			// set visibility based on disablePerk
+			container.visible = !this.options.disablePerk;
+			
 			this.doodad = container
 		}
 

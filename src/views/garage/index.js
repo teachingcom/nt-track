@@ -39,6 +39,11 @@ export default class GarageView extends BaseView {
 			this.setupInspectionMode(options)
 		}
 
+		// check for disablePerk and update doodad visibility if car exists
+		if (options.disablePerk && this.car?.doodad) {
+			this.car.doodad.visible = false;
+		}
+
 		// automatically render
 		this.startAutoRender();
 	}
@@ -108,6 +113,11 @@ export default class GarageView extends BaseView {
 		// repaint the view
 		else if (previous?.hue !== config.hue) {
 			await this.repaintCar(config);
+		}
+
+		// update doodad visibility based on disablePerk
+		if (this.car?.doodad) {
+			this.car.doodad.visible = !config.disablePerk;
 		}
 	}
 
@@ -264,9 +274,15 @@ export default class GarageView extends BaseView {
 			// slightly larger on this view
 			perk.scale.x = perk.scale.y = 2
 
+			// set visibility based on disablePerk
+			perk.visible = !config.disablePerk;
+
 			player.addChild(perk)
 			Doodad.setLayer(perk, car)
 			player.sortChildren()
+
+			// store reference to doodad for later updates
+			container.doodad = perk;
 		}
 
 		// animate the nitro, if any

@@ -92984,7 +92984,9 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                       doodad.x = car.positions.back;
                     }
 
-                  doodad.scale.x = doodad.scale.y = scale.x * _config.TRAIL_SCALE;
+                  doodad.scale.x = doodad.scale.y = scale.x * _config.TRAIL_SCALE; // set visibility based on disablePerk
+
+                  container.visible = !this.options.disablePerk;
                   this.doodad = container;
                 } // include the nitro, if any
 
@@ -105046,6 +105048,8 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "updateCar", /*#__PURE__*/function () {
       var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(config) {
+        var _this$car2;
+
         var previous;
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
@@ -105074,6 +105078,12 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 return _this.repaintCar(config);
 
               case 9:
+                // update doodad visibility based on disablePerk
+                if ((_this$car2 = _this.car) === null || _this$car2 === void 0 ? void 0 : _this$car2.doodad) {
+                  _this.car.doodad.visible = !config.disablePerk;
+                }
+
+              case 10:
               case "end":
                 return _context.stop();
             }
@@ -105284,7 +105294,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
               case 27:
                 if (!(config.perk && config.perkLevel)) {
-                  _context4.next = 36;
+                  _context4.next = 38;
                   break;
                 }
 
@@ -105303,14 +105313,18 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 // TODO: this should be fixed
                 perk.x = car.positions.back * -0.5; // slightly larger on this view
 
-                perk.scale.x = perk.scale.y = 2;
+                perk.scale.x = perk.scale.y = 2; // set visibility based on disablePerk
+
+                perk.visible = !config.disablePerk;
                 player.addChild(perk);
 
                 _doodad.default.setLayer(perk, car);
 
-                player.sortChildren();
+                player.sortChildren(); // store reference to doodad for later updates
 
-              case 36:
+                container.doodad = perk;
+
+              case 38:
                 // animate the nitro, if any
                 if (config.nitro) {
                   _Nitro$createCycler = _nitro.default.createCycler(_objectSpread(_objectSpread({
@@ -105368,7 +105382,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
                 return _context4.abrupt("return", container);
 
-              case 47:
+              case 49:
               case "end":
                 return _context4.stop();
             }
@@ -105387,6 +105401,8 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
     key: "init",
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(options) {
+        var _this$car3;
+
         return _regenerator.default.wrap(function _callee5$(_context5) {
           while (1) {
             switch (_context5.prev = _context5.next) {
@@ -105409,12 +105425,17 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
                 if (this.isInspectMode) {
                   this.setupInspectionMode(options);
+                } // check for disablePerk and update doodad visibility if car exists
+
+
+                if (options.disablePerk && ((_this$car3 = this.car) === null || _this$car3 === void 0 ? void 0 : _this$car3.doodad)) {
+                  this.car.doodad.visible = false;
                 } // automatically render
 
 
                 this.startAutoRender();
 
-              case 7:
+              case 8:
               case "end":
                 return _context5.stop();
             }
