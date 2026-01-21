@@ -273,6 +273,7 @@ export default class GarageView extends BaseView {
 
 			// slightly larger on this view
 			perk.scale.x = perk.scale.y = 2
+			perk.y = 15
 
 			// set visibility based on disablePerk
 			perk.visible = !config.disablePerk;
