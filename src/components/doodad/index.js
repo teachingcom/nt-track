@@ -2,6 +2,10 @@ import { findDisplayObjectsOfRole, PIXI, removeDisplayObject } from 'nt-animator
 import { isNumber, merge, noop } from '../../utils';
 import { LAYER_TRAIL } from '../../views/track/layers';
 
+const OFFSETS = {
+  'banners': 150,
+}
+
 export default class Doodad extends PIXI.Container {
 
   static COMPARISONS = {
@@ -100,6 +104,12 @@ export default class Doodad extends PIXI.Container {
 
   alignTo(car, position) {
     this.x = car.positions[position] * car.pivot.x;
+
+    // include offset, if any
+    const offset = OFFSETS[this.config?.type]
+    if (offset) {
+      this.x += offset
+    }
   }
 
   // start creating loot

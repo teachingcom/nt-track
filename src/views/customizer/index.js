@@ -272,7 +272,7 @@ export default class CustomizerView extends BaseView {
   }
 
   // replaces the active car
-  async setCar ({ type, carID, hue, isAnimated, trail, tweaks, nametag, nitro, eventPerk, eventPerkLevel }) {
+  async setCar ({ type, carID, hue, isAnimated, trail, tweaks, nametag, nitro, seasonPerk, seasonPerkLevel, disablePerk }) {
     this.isReady = false
 
     // clear the existing data
@@ -331,8 +331,8 @@ export default class CustomizerView extends BaseView {
     }
 
     // create a doodad, if neede
-    if (eventPerk) {
-      this.setDoodad(eventPerk, eventPerkLevel)
+    if (seasonPerk && !disablePerk) {
+      this.setDoodad(seasonPerk, seasonPerkLevel)
     }
     
     // animate the new car into view
@@ -352,12 +352,18 @@ export default class CustomizerView extends BaseView {
       level
     })
 
-    // adjust for this view
-    this.doodad.scale.x = this.doodad.scale.y = 1
+    // align to the front
+    // TODO: this should be fixed
+    // this.doodad.x = this.car.positions.back * -0.5
 
-    this.car.addChild(this.doodad)
+    // slightly larger on this view
+    // this.doodad.scale.x = this.doodad.scale.y = 2
+    // this.doodad.y = 15
+
+    this.container.addChild(this.doodad)
     Doodad.setLayer(this.doodad, this.car)
-    this.car.sortChildren()
+    this.container.sortChildren()
+
   }
 
   async setTrail(type, waitForReady = true) {

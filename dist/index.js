@@ -91077,6 +91077,10 @@ function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflec
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
+var OFFSETS = {
+  'banners': 150
+};
+
 var Doodad = /*#__PURE__*/function (_PIXI$Container) {
   (0, _inherits2.default)(Doodad, _PIXI$Container);
 
@@ -91094,7 +91098,15 @@ var Doodad = /*#__PURE__*/function (_PIXI$Container) {
   }, {
     key: "alignTo",
     value: function alignTo(car, position) {
-      this.x = car.positions[position] * car.pivot.x;
+      var _this$config;
+
+      this.x = car.positions[position] * car.pivot.x; // include offset, if any
+
+      var offset = OFFSETS[(_this$config = this.config) === null || _this$config === void 0 ? void 0 : _this$config.type];
+
+      if (offset) {
+        this.x += offset;
+      }
     } // start creating loot
 
   }, {
@@ -91161,9 +91173,9 @@ var Doodad = /*#__PURE__*/function (_PIXI$Container) {
   }, {
     key: "isOverCar",
     get: function get() {
-      var _this$config;
+      var _this$config2;
 
-      return /(over|above)_car/i.test((_this$config = this.config) === null || _this$config === void 0 ? void 0 : _this$config.layer);
+      return /(over|above)_car/i.test((_this$config2 = this.config) === null || _this$config2 === void 0 ? void 0 : _this$config2.layer);
     }
   }, {
     key: "isValid",
@@ -93231,7 +93243,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
     key: "create",
     value: function () {
       var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9(options, track) {
-        var instance, car, trail, doodad, nitro, namecard, playerIndicator, resolved;
+        var instance, car, namecard, trail, nitro, doodad, playerIndicator, resolved;
         return _regenerator.default.wrap(function _callee9$(_context9) {
           while (1) {
             switch (_context9.prev = _context9.next) {
@@ -93241,13 +93253,27 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                 instance.options = options;
                 instance.isPlayerRoot = true;
                 instance.mods = options.mods || {}; // initialize all layers
+                // critical assets: car and namecard must load
 
                 car = instance._initCar();
-                trail = instance._initTrail();
-                doodad = instance._initDoodad();
-                nitro = instance._initNitro();
-                namecard = instance._initNameCard();
-                playerIndicator = instance._initPlayerIndicator(); // wait for the result
+                namecard = instance._initNameCard(); // non-critical assets: trail, nitro, doodad can fail without blocking
+
+                trail = instance._initTrail().catch(function (ex) {
+                  console.warn('Failed to load trail asset, continuing without it', ex);
+                  return null;
+                });
+                nitro = instance._initNitro().catch(function (ex) {
+                  console.warn('Failed to load nitro asset, continuing without it', ex);
+                  return null;
+                });
+                doodad = instance._initDoodad().catch(function (ex) {
+                  console.warn('Failed to load doodad (loot) asset, continuing without it', ex);
+                  return null;
+                });
+                playerIndicator = instance._initPlayerIndicator().catch(function (ex) {
+                  console.warn('Failed to load player indicator, continuing without it', ex);
+                  return null;
+                }); // wait for the result - only car and namecard are critical
 
                 _context9.next = 13;
                 return Promise.all([car, trail, nitro, namecard, doodad, playerIndicator]);
@@ -105048,8 +105074,6 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
     });
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "updateCar", /*#__PURE__*/function () {
       var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(config) {
-        var _this$car2;
-
         var previous;
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
@@ -105078,12 +105102,6 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 return _this.repaintCar(config);
 
               case 9:
-                // update doodad visibility based on disablePerk
-                if ((_this$car2 = _this.car) === null || _this$car2 === void 0 ? void 0 : _this$car2.doodad) {
-                  _this.car.doodad.visible = !config.disablePerk;
-                }
-
-              case 10:
               case "end":
                 return _context.stop();
             }
@@ -105293,8 +105311,8 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 container.hasTrail = true;
 
               case 27:
-                if (!(config.perk && config.perkLevel)) {
-                  _context4.next = 39;
+                if (!(config.perk && config.perkLevel && !config.disablePerk)) {
+                  _context4.next = 40;
                   break;
                 }
 
@@ -105311,7 +105329,8 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 perk = _context4.sent;
                 // align to the front
                 // TODO: this should be fixed
-                perk.x = car.positions.back * -0.5; // slightly larger on this view
+                perk.x = car.positions.back * -0.5;
+                _this.perk = perk; // slightly larger on this view
 
                 perk.scale.x = perk.scale.y = 2;
                 perk.y = 15; // set visibility based on disablePerk
@@ -105325,7 +105344,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
                 container.doodad = perk;
 
-              case 39:
+              case 40:
                 // animate the nitro, if any
                 if (config.nitro) {
                   _Nitro$createCycler = _nitro.default.createCycler(_objectSpread(_objectSpread({
@@ -105383,7 +105402,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
 
                 return _context4.abrupt("return", container);
 
-              case 50:
+              case 51:
               case "end":
                 return _context4.stop();
             }
@@ -105402,7 +105421,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
     key: "init",
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(options) {
-        var _this$car3;
+        var _this$car2;
 
         return _regenerator.default.wrap(function _callee5$(_context5) {
           while (1) {
@@ -105429,7 +105448,7 @@ var GarageView = /*#__PURE__*/function (_BaseView) {
                 } // check for disablePerk and update doodad visibility if car exists
 
 
-                if (options.disablePerk && ((_this$car3 = this.car) === null || _this$car3 === void 0 ? void 0 : _this$car3.doodad)) {
+                if (options.disablePerk && ((_this$car2 = this.car) === null || _this$car2 === void 0 ? void 0 : _this$car2.doodad)) {
                   this.car.doodad.visible = false;
                 } // automatically render
 
@@ -107683,12 +107702,12 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
     key: "setCar",
     value: function () {
       var _setCar = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee12(_ref) {
-        var type, carID, hue, isAnimated, trail, tweaks, nametag, nitro, eventPerk, eventPerkLevel, car, container;
+        var type, carID, hue, isAnimated, trail, tweaks, nametag, nitro, seasonPerk, seasonPerkLevel, disablePerk, car, container;
         return _regenerator.default.wrap(function _callee12$(_context12) {
           while (1) {
             switch (_context12.prev = _context12.next) {
               case 0:
-                type = _ref.type, carID = _ref.carID, hue = _ref.hue, isAnimated = _ref.isAnimated, trail = _ref.trail, tweaks = _ref.tweaks, nametag = _ref.nametag, nitro = _ref.nitro, eventPerk = _ref.eventPerk, eventPerkLevel = _ref.eventPerkLevel;
+                type = _ref.type, carID = _ref.carID, hue = _ref.hue, isAnimated = _ref.isAnimated, trail = _ref.trail, tweaks = _ref.tweaks, nametag = _ref.nametag, nitro = _ref.nitro, seasonPerk = _ref.seasonPerk, seasonPerkLevel = _ref.seasonPerkLevel, disablePerk = _ref.disablePerk;
                 this.isReady = false; // clear the existing data
 
                 this._removeExistingCars(); // create the new car instance
@@ -107776,8 +107795,8 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
 
               case 32:
                 // create a doodad, if neede
-                if (eventPerk) {
-                  this.setDoodad(eventPerk, eventPerkLevel);
+                if (seasonPerk && !disablePerk) {
+                  this.setDoodad(seasonPerk, seasonPerkLevel);
                 } // animate the new car into view
 
 
@@ -107824,15 +107843,19 @@ var CustomizerView = /*#__PURE__*/function (_BaseView) {
 
               case 4:
                 this.doodad = _context13.sent;
-                // adjust for this view
-                this.doodad.scale.x = this.doodad.scale.y = 1;
-                this.car.addChild(this.doodad);
+                // align to the front
+                // TODO: this should be fixed
+                // this.doodad.x = this.car.positions.back * -0.5
+                // slightly larger on this view
+                // this.doodad.scale.x = this.doodad.scale.y = 2
+                // this.doodad.y = 15
+                this.container.addChild(this.doodad);
 
                 _doodad.default.setLayer(this.doodad, this.car);
 
-                this.car.sortChildren();
+                this.container.sortChildren();
 
-              case 9:
+              case 8:
               case "end":
                 return _context13.stop();
             }

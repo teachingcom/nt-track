@@ -114,11 +114,6 @@ export default class GarageView extends BaseView {
 		else if (previous?.hue !== config.hue) {
 			await this.repaintCar(config);
 		}
-
-		// update doodad visibility based on disablePerk
-		if (this.car?.doodad) {
-			this.car.doodad.visible = !config.disablePerk;
-		}
 	}
 
 	// repaints a car
@@ -257,7 +252,7 @@ export default class GarageView extends BaseView {
 		}
 
 		// animate the perk, if any
-		if (config.perk && config.perkLevel) {
+		if (config.perk && config.perkLevel && !config.disablePerk) {
 			const perk = await Doodad.create({
 				view,
 				...config,
@@ -269,6 +264,7 @@ export default class GarageView extends BaseView {
 			// align to the front
 			// TODO: this should be fixed
 			perk.x = car.positions.back * -0.5
+			this.perk = perk;
 
 
 			// slightly larger on this view

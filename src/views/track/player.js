@@ -63,14 +63,29 @@ export default class Player extends PIXI.ResponsiveContainer {
 		instance.mods = options.mods || { };
 
 		// initialize all layers
+		// critical assets: car and namecard must load
 		const car = instance._initCar();
-		const trail = instance._initTrail();
-		const doodad = instance._initDoodad();
-		const nitro = instance._initNitro();
 		const namecard = instance._initNameCard();
-		const playerIndicator = instance._initPlayerIndicator();
+		
+		// non-critical assets: trail, nitro, doodad can fail without blocking
+		const trail = instance._initTrail().catch(ex => {
+			console.warn('Failed to load trail asset, continuing without it', ex);
+			return null;
+		});
+		const nitro = instance._initNitro().catch(ex => {
+			console.warn('Failed to load nitro asset, continuing without it', ex);
+			return null;
+		});
+		const doodad = instance._initDoodad().catch(ex => {
+			console.warn('Failed to load doodad (loot) asset, continuing without it', ex);
+			return null;
+		});
+		const playerIndicator = instance._initPlayerIndicator().catch(ex => {
+			console.warn('Failed to load player indicator, continuing without it', ex);
+			return null;
+		});
 
-		// wait for the result
+		// wait for the result - only car and namecard are critical
 		const resolved = await Promise.all([ car, trail, nitro, namecard, doodad, playerIndicator ]);
 		await instance._assemble(...resolved);
 
