@@ -11,4 +11,4 @@ export { default as NameCard } from './views/namecard'
 export const Audio = AudioController
 
 
-try { window.NTTRACK = '4.4.0' } catch (ex) { }
+try { window.NTTRACK = '4.4.1' } catch (ex) { }
