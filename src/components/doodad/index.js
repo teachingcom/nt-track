@@ -1,6 +1,7 @@
 import { findDisplayObjectsOfRole, PIXI, removeDisplayObject } from 'nt-animator';
 import { isNumber, merge, noop } from '../../utils';
 import { LAYER_TRAIL } from '../../views/track/layers';
+import SpaceBattle from './SpaceBattle';
 
 const OFFSETS = {
   'banners': 150,
@@ -89,6 +90,11 @@ export default class Doodad extends PIXI.Container {
       removeDisplayObject(node)
     }
 
+    // scripts
+    if (type === 'doodad_spacebattle') {
+      instance.__spacebattle = new SpaceBattle(instance)
+    }
+
     // give back the instance
     return instance
   }
@@ -128,6 +134,13 @@ export default class Doodad extends PIXI.Container {
     // save the doodad instance
     this.parts = doodad.children.slice()
     this.addChild(doodad)
+  }
+
+  updateTransform() {
+    super.updateTransform()
+    if (this.__spacebattle) {
+      this.__spacebattle.update()
+    }
   }
 
   /** is a valid Doodad instance */

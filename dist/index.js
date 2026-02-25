@@ -81773,6 +81773,10 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
+var _regenerator = _interopRequireDefault(require("@babel/runtime/regenerator"));
+
+var _asyncToGenerator2 = _interopRequireDefault(require("@babel/runtime/helpers/asyncToGenerator"));
+
 var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
 
 var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
@@ -81829,27 +81833,52 @@ var Controller = /*#__PURE__*/function () {
         _iterator2.f();
       }
     });
-    (0, _defineProperty2.default)(this, "activateEmitters", function () {
-      var emitters = _this.emitters;
+    (0, _defineProperty2.default)(this, "activateEmitters", /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+      var emitters, _iterator3, _step3, _loop;
 
-      var _iterator3 = _createForOfIteratorHelper(emitters),
-          _step3;
+      return _regenerator.default.wrap(function _callee$(_context) {
+        while (1) {
+          switch (_context.prev = _context.next) {
+            case 0:
+              emitters = _this.emitters;
+              _iterator3 = _createForOfIteratorHelper(emitters);
 
-      try {
-        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
-          var instance = _step3.value;
-          var emitter = instance.emitter;
-          var config = emitter.config;
-          emitter.autoUpdate = true;
-          emitter.lifetime = (0, _utils.isNumber)(config.duration) ? config.duration / 1000 : undefined;
-          emitter.emit = true;
+              try {
+                _loop = function _loop() {
+                  var instance = _step3.value;
+                  var emitter = instance.emitter;
+                  var config = emitter.config;
+
+                  var activate = function activate() {
+                    emitter.autoUpdate = true;
+                    emitter.lifetime = (0, _utils.isNumber)(config.duration) ? config.duration / 1000 : undefined;
+                    emitter.emit = true;
+                  };
+
+                  if (config.delay) {
+                    setTimeout(activate, config.delay);
+                  } else {
+                    activate();
+                  } // check for a delay
+
+                };
+
+                for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+                  _loop();
+                }
+              } catch (err) {
+                _iterator3.e(err);
+              } finally {
+                _iterator3.f();
+              }
+
+            case 3:
+            case "end":
+              return _context.stop();
+          }
         }
-      } catch (err) {
-        _iterator3.e(err);
-      } finally {
-        _iterator3.f();
-      }
-    });
+      }, _callee);
+    })));
     (0, _defineProperty2.default)(this, "dispose", function () {
       var objects = _this.objects;
 
@@ -81895,7 +81924,7 @@ var Controller = /*#__PURE__*/function () {
 }();
 
 exports.default = Controller;
-},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../utils":"utils/index.js"}],"../node_modules/deep-get-set/index.js":[function(require,module,exports) {
+},{"@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","../../utils":"utils/index.js"}],"../node_modules/deep-get-set/index.js":[function(require,module,exports) {
 var hasOwnProp = Object.prototype.hasOwnProperty;
 
 module.exports = deep;
@@ -83854,12 +83883,18 @@ function applyParticleOverride(target) {
     var now = Date.now(); // perform normal updateialzation
 
     var x = this.x;
+    var y = this.y;
 
     for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];
     }
 
-    var result = update.apply(this, args); // customs scripts
+    var result = update.apply(this, args);
+
+    if (this.__wave) {
+      this.y = this.__wave.y + this.__wave.func((now + this.__wave.offset) * this.__wave.freq * 0.001) * this.__wave.amp;
+    } // customs scripts
+
 
     if (this.__leaf) {
       var _this$__leaf = this.__leaf,
@@ -83917,7 +83952,7 @@ function applyParticleOverride(target) {
   };
 
   target.prototype.init = function () {
-    var _this$emitter$config$;
+    var _this$emitter$config$, _this$emitter$config$6;
 
     var now = Date.now(); // perform normal updateialzation
 
@@ -83925,13 +83960,26 @@ function applyParticleOverride(target) {
       args[_key2] = arguments[_key2];
     }
 
-    init.apply(this, args); // Ideally we'd use behaviors, but that's not in this version of PIXI particles
+    init.apply(this, args); // has a wave effect
+
+    if (!!((_this$emitter$config$ = this.emitter.config.custom) === null || _this$emitter$config$ === void 0 ? void 0 : _this$emitter$config$.wave)) {
+      var _this$emitter$config$2, _this$emitter$config$3, _this$emitter$config$4, _this$emitter$config$5;
+
+      this.__wave = {
+        y: this.y,
+        amp: (_this$emitter$config$2 = this.emitter.config.custom) === null || _this$emitter$config$2 === void 0 ? void 0 : _this$emitter$config$2.wave.amp,
+        freq: (_this$emitter$config$3 = this.emitter.config.custom) === null || _this$emitter$config$3 === void 0 ? void 0 : _this$emitter$config$3.wave.freq,
+        func: ((_this$emitter$config$4 = this.emitter.config.custom) === null || _this$emitter$config$4 === void 0 ? void 0 : _this$emitter$config$4.wave.func) === 'sin' ? Math.sin : Math.cos,
+        offset: Math.random() * (((_this$emitter$config$5 = this.emitter.config.custom) === null || _this$emitter$config$5 === void 0 ? void 0 : _this$emitter$config$5.wave.offset) || 1000)
+      };
+    } // Ideally we'd use behaviors, but that's not in this version of PIXI particles
     // include custom leaf behaviors
 
-    if (!!((_this$emitter$config$ = this.emitter.config.custom) === null || _this$emitter$config$ === void 0 ? void 0 : _this$emitter$config$.leaf)) {
-      var _this$emitter$config$2, _this$emitter$config$3;
 
-      var _ref = (_this$emitter$config$2 = (_this$emitter$config$3 = this.emitter.config.custom) === null || _this$emitter$config$3 === void 0 ? void 0 : _this$emitter$config$3.leaf) !== null && _this$emitter$config$2 !== void 0 ? _this$emitter$config$2 : {},
+    if (!!((_this$emitter$config$6 = this.emitter.config.custom) === null || _this$emitter$config$6 === void 0 ? void 0 : _this$emitter$config$6.leaf)) {
+      var _this$emitter$config$7, _this$emitter$config$8;
+
+      var _ref = (_this$emitter$config$7 = (_this$emitter$config$8 = this.emitter.config.custom) === null || _this$emitter$config$8 === void 0 ? void 0 : _this$emitter$config$8.leaf) !== null && _this$emitter$config$7 !== void 0 ? _this$emitter$config$7 : {},
           _ref$x = _ref.x,
           x = _ref$x === void 0 ? [3, 5] : _ref$x,
           _ref$rx = _ref.rx,
@@ -84146,7 +84194,7 @@ function createEmitter(_x, _x2, _x3, _x4, _x5) {
 
 function _createEmitter() {
   _createEmitter = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(animator, controller, path, composition, layer) {
-    var container, generator, update, dispose, phase, textures, _layer$emit, emit, auto, config, _loop, prop, _ret, manualStart, sequences, source, _iterator, _step, sequence, frames, _iterator2, _step2, _loop2, emitter, create;
+    var container, generator, update, dispose, phase, textures, _layer$emit, emit, auto, config, _loop, prop, _ret, manualStart, sequences, source, _iterator, _step, sequence, frames, _iterator2, _step2, _loop2, emitter, create, hasDelay, createFn;
 
     return _regenerator.default.wrap(function _callee$(_context) {
       while (1) {
@@ -84450,15 +84498,25 @@ function _createEmitter() {
               emitter.emit = false; // create activation function
 
               emitter.activate = create;
+            }
+
+            hasDelay = !isNaN(config.delay) && config.delay > 0; // if manual start, but includes a delay
+
+            if (manualStart && hasDelay) {
+              createFn = create;
+
+              create = function create() {
+                return setTimeout(createFn, config.delay);
+              };
+
+              emitter.activate = create;
             } // delayed start
-
-
-            if (!manualStart && !isNaN(config.delay) && config.delay > 0) {
-              setTimeout(create, config.delay);
-            } // create immediately
-            else if (!manualStart) {
-                create();
-              } // create dynamically rendered properties
+            else if (!manualStart && hasDelay) {
+                setTimeout(create, config.delay);
+              } // create immediately
+              else if (!manualStart) {
+                  create();
+                } // create dynamically rendered properties
 
 
             phase = 'creating dynamic properties';
@@ -84482,18 +84540,18 @@ function _createEmitter() {
               dispose: dispose
             }]);
 
-          case 77:
-            _context.prev = 77;
+          case 78:
+            _context.prev = 78;
             _context.t2 = _context["catch"](7);
             console.error("Failed to create emitter ".concat(path, " while ").concat(phase));
             throw _context.t2;
 
-          case 81:
+          case 82:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee, null, [[7, 77]]);
+    }, _callee, null, [[7, 78]]);
   }));
   return _createEmitter.apply(this, arguments);
 }
@@ -91033,7 +91091,185 @@ function _toArray(arr) {
 }
 
 module.exports = _toArray;
-},{"./arrayWithHoles":"../node_modules/@babel/runtime/helpers/arrayWithHoles.js","./iterableToArray":"../node_modules/@babel/runtime/helpers/iterableToArray.js","./unsupportedIterableToArray":"../node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js","./nonIterableRest":"../node_modules/@babel/runtime/helpers/nonIterableRest.js"}],"components/doodad/index.js":[function(require,module,exports) {
+},{"./arrayWithHoles":"../node_modules/@babel/runtime/helpers/arrayWithHoles.js","./iterableToArray":"../node_modules/@babel/runtime/helpers/iterableToArray.js","./unsupportedIterableToArray":"../node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js","./nonIterableRest":"../node_modules/@babel/runtime/helpers/nonIterableRest.js"}],"components/doodad/SpaceBattle.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/classCallCheck"));
+
+var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
+
+var _defineProperty2 = _interopRequireDefault(require("@babel/runtime/helpers/defineProperty"));
+
+var _ntAnimator = require("nt-animator");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+var SpaceBattle = /*#__PURE__*/function () {
+  function SpaceBattle(instance) {
+    (0, _classCallCheck2.default)(this, SpaceBattle);
+    (0, _defineProperty2.default)(this, "explodeIndex", 0);
+    this.projectiles = (0, _ntAnimator.findDisplayObjectsOfRole)(instance.doodad, 'projectiles');
+    this.enemies = (0, _ntAnimator.findDisplayObjectsOfRole)(instance.doodad, 'enemy');
+    this.explodes = (0, _ntAnimator.findDisplayObjectsOfRole)(instance.doodad, 'explode');
+
+    var _iterator = _createForOfIteratorHelper(this.explodes),
+        _step;
+
+    try {
+      var _loop = function _loop() {
+        var explode = _step.value;
+
+        explode.onFrameChange = function () {
+          if (explode.currentFrame === explode.totalFrames - 1) {
+            explode.alpha = 0;
+          }
+        };
+      };
+
+      for (_iterator.s(); !(_step = _iterator.n()).done;) {
+        _loop();
+      }
+    } catch (err) {
+      _iterator.e(err);
+    } finally {
+      _iterator.f();
+    }
+  }
+  /**
+   * Gets the particles container from an emitter
+   * @param {Object} emitter - The emitter object
+   * @returns {Object} Object with children property representing particles
+   */
+
+
+  (0, _createClass2.default)(SpaceBattle, [{
+    key: "getParticlesContainer",
+    value: function getParticlesContainer(emitter) {
+      return emitter.children[0];
+    }
+    /**
+     * Checks if two bounds rectangles overlap
+     * @param {PIXI.Rectangle} bounds1 - First bounds
+     * @param {PIXI.Rectangle} bounds2 - Second bounds
+     * @returns {boolean} True if bounds overlap
+     */
+
+  }, {
+    key: "boundsOverlap",
+    value: function boundsOverlap(bounds1, bounds2) {
+      return !(bounds1.x + bounds1.width < bounds2.x || bounds2.x + bounds2.width < bounds1.x || bounds1.y + bounds1.height < bounds2.y || bounds2.y + bounds2.height < bounds1.y);
+    }
+    /**
+     * Called when an enemy particle is destroyed
+     * @param {Object} enemyParticle - The enemy particle being destroyed
+     */
+
+  }, {
+    key: "destroyAt",
+    value: function destroyAt(enemyParticle) {
+      var explode = this.explodes[++this.explodeIndex % this.explodes.length];
+      explode.x = enemyParticle.x;
+      explode.y = enemyParticle.y;
+      explode.alpha = 1;
+      explode.gotoAndPlay(0);
+      explode.loop = false;
+    }
+  }, {
+    key: "update",
+    value: function update() {
+      // Iterate through all projectile emitters
+      var _iterator2 = _createForOfIteratorHelper(this.projectiles),
+          _step2;
+
+      try {
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+          var projectileEmitter = _step2.value;
+          var projectileContainer = this.getParticlesContainer(projectileEmitter);
+          if (!projectileContainer || !projectileContainer.children) continue; // Check each projectile particle
+
+          for (var i = projectileContainer.children.length - 1; i >= 0; i--) {
+            var projectileParticle = projectileContainer.children[i];
+            if (!projectileParticle) continue;
+            var projectileBounds = projectileParticle.getBounds(); // Check against all enemy emitters
+
+            var collisionFound = false;
+
+            var _iterator3 = _createForOfIteratorHelper(this.enemies),
+                _step3;
+
+            try {
+              for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+                var enemyEmitter = _step3.value;
+                if (collisionFound) break;
+                var enemyContainer = this.getParticlesContainer(enemyEmitter);
+                if (!enemyContainer || !enemyContainer.children) continue; // Check each enemy particle
+
+                for (var j = enemyContainer.children.length - 1; j >= 0; j--) {
+                  var enemyParticle = enemyContainer.children[j];
+                  if (!enemyParticle) continue; // Only check collision if enemy alpha is at 1
+
+                  if (enemyParticle.alpha !== 1) continue; // Remove enemy if x position is less than
+
+                  if (enemyParticle.x < -enemyContainer.x) {
+                    this.destroyAt(enemyParticle);
+                    (0, _ntAnimator.removeDisplayObject)(enemyParticle);
+                    continue;
+                  }
+
+                  var enemyBounds = enemyParticle.getBounds(); // Check for overlap and distance
+
+                  if (this.boundsOverlap(projectileBounds, enemyBounds)) {
+                    // Calculate distance between particle centers
+                    var size = Math.max(40, Math.max(projectileBounds.width, projectileBounds.height) * 0.5);
+                    var projectileCenterX = projectileBounds.x + projectileBounds.width / 2;
+                    var projectileCenterY = projectileBounds.y + projectileBounds.height / 2;
+                    var enemyCenterX = enemyBounds.x + enemyBounds.width / 2;
+                    var enemyCenterY = enemyBounds.y + enemyBounds.height / 2;
+                    var dx = enemyCenterX - projectileCenterX;
+                    var dy = enemyCenterY - projectileCenterY;
+                    var distance = Math.hypot(dx, dy); // Only consider it a hit if distance is less than 15
+
+                    if (distance < size) {
+                      // Remove both particles immediately
+                      this.destroyAt(enemyParticle);
+                      (0, _ntAnimator.removeDisplayObject)(projectileParticle);
+                      (0, _ntAnimator.removeDisplayObject)(enemyParticle);
+                      collisionFound = true;
+                      break;
+                    }
+                  }
+                }
+              }
+            } catch (err) {
+              _iterator3.e(err);
+            } finally {
+              _iterator3.f();
+            }
+          }
+        }
+      } catch (err) {
+        _iterator2.e(err);
+      } finally {
+        _iterator2.f();
+      }
+    }
+  }]);
+  return SpaceBattle;
+}();
+
+exports.default = SpaceBattle;
+},{"@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js"}],"components/doodad/index.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -91051,6 +91287,8 @@ var _classCallCheck2 = _interopRequireDefault(require("@babel/runtime/helpers/cl
 
 var _createClass2 = _interopRequireDefault(require("@babel/runtime/helpers/createClass"));
 
+var _get2 = _interopRequireDefault(require("@babel/runtime/helpers/get"));
+
 var _inherits2 = _interopRequireDefault(require("@babel/runtime/helpers/inherits"));
 
 var _possibleConstructorReturn2 = _interopRequireDefault(require("@babel/runtime/helpers/possibleConstructorReturn"));
@@ -91064,6 +91302,8 @@ var _ntAnimator = require("nt-animator");
 var _utils = require("../../utils");
 
 var _layers = require("../../views/track/layers");
+
+var _SpaceBattle = _interopRequireDefault(require("./SpaceBattle"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -91155,6 +91395,15 @@ var Doodad = /*#__PURE__*/function (_PIXI$Container) {
 
       return _initDoodad;
     }()
+  }, {
+    key: "updateTransform",
+    value: function updateTransform() {
+      (0, _get2.default)((0, _getPrototypeOf2.default)(Doodad.prototype), "updateTransform", this).call(this);
+
+      if (this.__spacebattle) {
+        this.__spacebattle.update();
+      }
+    }
     /** is a valid Doodad instance */
 
   }, {
@@ -91308,7 +91557,7 @@ var Doodad = /*#__PURE__*/function (_PIXI$Container) {
                   for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
                     node = _step2.value;
                     (0, _ntAnimator.removeDisplayObject)(node);
-                  } // give back the instance
+                  } // scripts
 
                 } catch (err) {
                   _iterator2.e(err);
@@ -91316,9 +91565,14 @@ var Doodad = /*#__PURE__*/function (_PIXI$Container) {
                   _iterator2.f();
                 }
 
+                if (type === 'doodad_spacebattle') {
+                  instance.__spacebattle = new _SpaceBattle.default(instance);
+                } // give back the instance
+
+
                 return _context2.abrupt("return", instance);
 
-              case 17:
+              case 18:
               case "end":
                 return _context2.stop();
             }
@@ -91363,7 +91617,7 @@ exports.default = Doodad;
     return a % 2 !== 0;
   }
 });
-},{"@babel/runtime/helpers/toArray":"../node_modules/@babel/runtime/helpers/toArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","../../views/track/layers":"views/track/layers.js"}],"utils/color.js":[function(require,module,exports) {
+},{"@babel/runtime/helpers/toArray":"../node_modules/@babel/runtime/helpers/toArray.js","@babel/runtime/regenerator":"../node_modules/@babel/runtime/regenerator/index.js","@babel/runtime/helpers/asyncToGenerator":"../node_modules/@babel/runtime/helpers/asyncToGenerator.js","@babel/runtime/helpers/classCallCheck":"../node_modules/@babel/runtime/helpers/classCallCheck.js","@babel/runtime/helpers/createClass":"../node_modules/@babel/runtime/helpers/createClass.js","@babel/runtime/helpers/get":"../node_modules/@babel/runtime/helpers/get.js","@babel/runtime/helpers/inherits":"../node_modules/@babel/runtime/helpers/inherits.js","@babel/runtime/helpers/possibleConstructorReturn":"../node_modules/@babel/runtime/helpers/possibleConstructorReturn.js","@babel/runtime/helpers/getPrototypeOf":"../node_modules/@babel/runtime/helpers/getPrototypeOf.js","@babel/runtime/helpers/defineProperty":"../node_modules/@babel/runtime/helpers/defineProperty.js","nt-animator":"../node_modules/nt-animator/dist/index.js","../../utils":"utils/index.js","../../views/track/layers":"views/track/layers.js","./SpaceBattle":"components/doodad/SpaceBattle.js"}],"utils/color.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -109245,7 +109499,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '4.4.1';
+  window.NTTRACK = '4.4.4';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
