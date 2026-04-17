@@ -20,13 +20,16 @@ export default class Doodad extends PIXI.Container {
     ':odd': (a) => a % 2 !== 0,
   }
 
-  static setLayer(doodad, target = { zIndex: 0 }) {
-    if (doodad?.config?.layer) {
-      if (doodad.isOverCar) {
-        doodad.zIndex = target.zIndex + 1;
+  static setLayer(doodad, target = { zIndex: 0 }, config = doodad?.config || { }) {
+    if (config?.layer) {
+      if (doodad.isOverCar || config?.layer === 'over_car') {
+        doodad.zIndex = 100;
       }
-      else if (isNumber(doodad.config.layer)) {
-        doodad.zIndex = doodad.config.layer;
+      else if (doodad.isUnderCar || config?.layer === 'under_car') {
+        doodad.zIndex = -100;
+      }
+      else if (isNumber(config?.layer)) {
+        doodad.zIndex = config?.layer;
       }
       else {
         doodad.zIndex = target.zIndex - 1;
@@ -35,6 +38,7 @@ export default class Doodad extends PIXI.Container {
     else {
       doodad.zIndex = LAYER_TRAIL;
     }
+
   }
 
   // toggle layers depending on conditions

@@ -316,7 +316,7 @@ export default class Player extends PIXI.ResponsiveContainer {
 
 			// find a layer to use
 			container.addChild(doodad)
-			Doodad.setLayer(container, car);
+			Doodad.setLayer(container, car, doodad.config);
 			
 			if (doodad.config.origin === 'front') {
 				doodad.x = car.positions.front;
@@ -334,6 +334,8 @@ export default class Player extends PIXI.ResponsiveContainer {
 			// set visibility based on disablePerk
 			container.visible = !this.options.disablePerk;
 			
+			this.sortableChildren = true
+			this.sortChildren();
 			this.doodad = container
 		}
 

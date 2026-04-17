@@ -91434,17 +91434,18 @@ var Doodad = /*#__PURE__*/function (_PIXI$Container) {
   }], [{
     key: "setLayer",
     value: function setLayer(doodad) {
-      var _doodad$config;
-
       var target = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
         zIndex: 0
       };
+      var config = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : (doodad === null || doodad === void 0 ? void 0 : doodad.config) || {};
 
-      if (doodad === null || doodad === void 0 ? void 0 : (_doodad$config = doodad.config) === null || _doodad$config === void 0 ? void 0 : _doodad$config.layer) {
-        if (doodad.isOverCar) {
-          doodad.zIndex = target.zIndex + 1;
-        } else if ((0, _utils.isNumber)(doodad.config.layer)) {
-          doodad.zIndex = doodad.config.layer;
+      if (config === null || config === void 0 ? void 0 : config.layer) {
+        if (doodad.isOverCar || (config === null || config === void 0 ? void 0 : config.layer) === 'over_car') {
+          doodad.zIndex = 100;
+        } else if (doodad.isUnderCar || (config === null || config === void 0 ? void 0 : config.layer) === 'under_car') {
+          doodad.zIndex = -100;
+        } else if ((0, _utils.isNumber)(config === null || config === void 0 ? void 0 : config.layer)) {
+          doodad.zIndex = config === null || config === void 0 ? void 0 : config.layer;
         } else {
           doodad.zIndex = target.zIndex - 1;
         }
@@ -93239,7 +93240,7 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
 
                   container.addChild(doodad);
 
-                  _doodad.default.setLayer(container, car);
+                  _doodad.default.setLayer(container, car, doodad.config);
 
                   if (doodad.config.origin === 'front') {
                     doodad.x = car.positions.front;
@@ -93253,6 +93254,8 @@ var Player = /*#__PURE__*/function (_PIXI$ResponsiveConta) {
                   doodad.scale.x = doodad.scale.y = scale.x * _config.TRAIL_SCALE; // set visibility based on disablePerk
 
                   container.visible = !this.options.disablePerk;
+                  this.sortableChildren = true;
+                  this.sortChildren();
                   this.doodad = container;
                 } // include the nitro, if any
 
@@ -109499,7 +109502,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '4.4.4';
+  window.NTTRACK = '4.4.9';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map
