@@ -88545,6 +88545,7 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
                 DEFAULT_BACKGROUND_COLOR = 0x282d3f;
                 transparent = !!options.transparent;
                 hasBackgroundColor = 'backgroundColor' in options;
+                console.log(options);
                 clearBeforeRender = transparent || hasBackgroundColor;
                 backgroundColor = hasBackgroundColor ? options.backgroundColor : DEFAULT_BACKGROUND_COLOR;
                 this.config = {
@@ -88637,7 +88638,7 @@ var BaseView = /*#__PURE__*/function (_EventEmitter) {
                   });
                 }
 
-              case 37:
+              case 38:
               case "end":
                 return _context.stop();
             }
@@ -100594,43 +100595,70 @@ var Track = /*#__PURE__*/function () {
 
       _this._cycleTrack(distance);
     });
-    (0, _defineProperty2.default)(this, "showFinishLine", function () {
-      var finishLine = _this.finishLine,
-          overlay = _this.overlay,
-          ground = _this.ground,
-          view = _this.view; // move the effect over, if needed
+    (0, _defineProperty2.default)(this, "showFinishLine", /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+      var finishLine, overlay, ground, view;
+      return _regenerator.default.wrap(function _callee$(_context) {
+        while (1) {
+          switch (_context.prev = _context.next) {
+            case 0:
+              if (_this.finishLine) {
+                _context.next = 3;
+                break;
+              }
 
-      if (_this.effect) {
-        _this.effect.parent.removeChild(_this.effect);
-      } // just in case (in testing)
+              _context.next = 3;
+              return _this._createFinishLine();
 
+            case 3:
+              finishLine = _this.finishLine, overlay = _this.overlay, ground = _this.ground, view = _this.view;
 
-      _this.removeStartingLine(); // reset all
+              if (finishLine) {
+                _context.next = 6;
+                break;
+              }
 
+              return _context.abrupt("return");
 
-      _this._updateSegmentPositions(); // TODO: calculate this value
-
-
-      _this._cycleTrack(-2500); // fit the starting block to the middle of the screen
-
-
-      _this._fitBlockToTrackPosition(finishLine, 0); // shift to the start of the area
-
-
-      _this._cycleToSegmentLine(null, view.width * 0.5); // add the overlay section
-      // remove everything
-
-
-      overlay.removeChildren();
-      ground.removeChildren();
-      overlay.addChild(finishLine.top);
-      ground.addChild(finishLine.bottom); // restore the effects, if any
-
-      _this.applyEffect(); // show the finish
+            case 6:
+              // move the effect over, if needed
+              if (_this.effect) {
+                _this.effect.parent.removeChild(_this.effect);
+              } // just in case (in testing)
 
 
-      finishLine.visible = true;
-    });
+              _this.removeStartingLine(); // reset all
+
+
+              _this._updateSegmentPositions(); // TODO: calculate this value
+
+
+              _this._cycleTrack(-2500); // fit the starting block to the middle of the screen
+
+
+              _this._fitBlockToTrackPosition(finishLine, 0); // shift to the start of the area
+
+
+              _this._cycleToSegmentLine(null, view.width * 0.5); // add the overlay section
+              // remove everything
+
+
+              overlay.removeChildren();
+              ground.removeChildren();
+              overlay.addChild(finishLine.top);
+              ground.addChild(finishLine.bottom); // restore the effects, if any
+
+              _this.applyEffect(); // show the finish
+
+
+              finishLine.visible = true;
+
+            case 18:
+            case "end":
+              return _context.stop();
+          }
+        }
+      }, _callee);
+    })));
     (0, _defineProperty2.default)(this, "removeStartingLine", function () {
       var startingLine = _this.startingLine;
       if (!startingLine) return; // clean up
@@ -100655,12 +100683,12 @@ var Track = /*#__PURE__*/function () {
 
       _this._cycleTrack(-shift);
     });
-    (0, _defineProperty2.default)(this, "_updateSegmentPositions", /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+    (0, _defineProperty2.default)(this, "_updateSegmentPositions", /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
       var segments, cache, offscreen, counts, right, totalSegments, i, _block, segment, index, block;
 
-      return _regenerator.default.wrap(function _callee$(_context) {
+      return _regenerator.default.wrap(function _callee2$(_context2) {
         while (1) {
-          switch (_context.prev = _context.next) {
+          switch (_context2.prev = _context2.next) {
             case 0:
               segments = _this.segments, cache = _this.segmentCache, offscreen = _this.offscreen; // keeping track of how many segments are active
 
@@ -100673,7 +100701,7 @@ var Track = /*#__PURE__*/function () {
 
             case 5:
               if (!(i < totalSegments)) {
-                _context.next = 25;
+                _context2.next = 25;
                 break;
               }
 
@@ -100684,32 +100712,32 @@ var Track = /*#__PURE__*/function () {
               (_block = block) === null || _block === void 0 ? void 0 : _block.setVisibility(false); // check if this part is on screen
 
               if (!(segment.x > right)) {
-                _context.next = 12;
+                _context2.next = 12;
                 break;
               }
 
-              return _context.abrupt("continue", 22);
+              return _context2.abrupt("continue", 22);
 
             case 12:
               if (block) {
-                _context.next = 17;
+                _context2.next = 17;
                 break;
               }
 
-              _context.next = 15;
+              _context2.next = 15;
               return _this._createSegment(segment.id);
 
             case 15:
-              block = _context.sent;
+              block = _context2.sent;
               console.log('JIT Segment: ', segment.id, 'is at', cache[segment.id].length);
 
             case 17:
               if (block) {
-                _context.next = 19;
+                _context2.next = 19;
                 break;
               }
 
-              return _context.abrupt("continue", 22);
+              return _context2.abrupt("continue", 22);
 
             case 19:
               // move to correct position and show
@@ -100720,15 +100748,15 @@ var Track = /*#__PURE__*/function () {
 
             case 22:
               i++;
-              _context.next = 5;
+              _context2.next = 5;
               break;
 
             case 25:
             case "end":
-              return _context.stop();
+              return _context2.stop();
           }
         }
-      }, _callee);
+      }, _callee2);
     })));
     (0, _defineProperty2.default)(this, "distance", 0);
   }
@@ -100776,11 +100804,11 @@ var Track = /*#__PURE__*/function () {
   }, {
     key: "_preloadResources",
     value: function () {
-      var _preloadResources2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+      var _preloadResources2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
         var view, options, trackId, manifest, animator, onLoadTrackAssets, sfx, preloader, trackAssetsUrl;
-        return _regenerator.default.wrap(function _callee2$(_context2) {
+        return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
-            switch (_context2.prev = _context2.next) {
+            switch (_context3.prev = _context3.next) {
               case 0:
                 view = this.view, options = this.options, trackId = this.trackId, manifest = this.manifest;
                 animator = view.animator;
@@ -100789,10 +100817,10 @@ var Track = /*#__PURE__*/function () {
                 sfx = manifest.sfx || trackId; // try to load external resources
 
                 preloader = new _preload.default(this);
-                _context2.prev = 5;
+                _context3.prev = 5;
                 // create a list of resources to preload
                 trackAssetsUrl = this.path;
-                _context2.next = 9;
+                _context3.next = 9;
                 return preloader.preload([// preselected crowd image
                 {
                   type: 'image',
@@ -100832,22 +100860,22 @@ var Track = /*#__PURE__*/function () {
               case 9:
                 // assets have loaded
                 onLoadTrackAssets();
-                _context2.next = 17;
+                _context3.next = 17;
                 break;
 
               case 12:
-                _context2.prev = 12;
-                _context2.t0 = _context2["catch"](5);
+                _context3.prev = 12;
+                _context3.t0 = _context3["catch"](5);
                 view.setLoadingStatus('assets', preloader.status);
                 console.error("failed to preload track resources");
-                throw _context2.t0;
+                throw _context3.t0;
 
               case 17:
               case "end":
-                return _context2.stop();
+                return _context3.stop();
             }
           }
-        }, _callee2, this, [[5, 12]]);
+        }, _callee3, this, [[5, 12]]);
       }));
 
       function _preloadResources() {
@@ -100860,21 +100888,21 @@ var Track = /*#__PURE__*/function () {
   }, {
     key: "_createAmbience",
     value: function () {
-      var _createAmbience2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
+      var _createAmbience2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
         var ambience, _i, _arr, type, sounds;
 
-        return _regenerator.default.wrap(function _callee3$(_context3) {
+        return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
-            switch (_context3.prev = _context3.next) {
+            switch (_context4.prev = _context4.next) {
               case 0:
                 ambience = this.manifest.ambience;
 
                 if (ambience) {
-                  _context3.next = 3;
+                  _context4.next = 3;
                   break;
                 }
 
-                return _context3.abrupt("return");
+                return _context4.abrupt("return");
 
               case 3:
                 // create the ambient noise
@@ -100900,10 +100928,10 @@ var Track = /*#__PURE__*/function () {
 
               case 4:
               case "end":
-                return _context3.stop();
+                return _context4.stop();
             }
           }
-        }, _callee3, this);
+        }, _callee4, this);
       }));
 
       function _createAmbience() {
@@ -100915,22 +100943,22 @@ var Track = /*#__PURE__*/function () {
   }, {
     key: "_createSegment",
     value: function () {
-      var _createSegment2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(id, placeholder) {
+      var _createSegment2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(id, placeholder) {
         var view, manifest, path, overlay, ground, cache, counts, _manifest$track, repeating, order, template, comp, segment;
 
-        return _regenerator.default.wrap(function _callee4$(_context4) {
+        return _regenerator.default.wrap(function _callee5$(_context5) {
           while (1) {
-            switch (_context4.prev = _context4.next) {
+            switch (_context5.prev = _context5.next) {
               case 0:
                 view = this.view, manifest = this.manifest, path = this.path, overlay = this.overlay, ground = this.ground, cache = this.segmentCache, counts = this.segmentCounts;
                 _manifest$track = manifest.track, repeating = _manifest$track.repeating, order = _manifest$track.order; // create the road segment
 
                 template = repeating[id];
-                _context4.next = 5;
+                _context5.next = 5;
                 return view.animator.compose(template, path, manifest);
 
               case 5:
-                comp = _context4.sent;
+                comp = _context5.sent;
                 segment = new _segment.default(this, comp); // create the entry for this segment
 
                 if (!cache[id]) {
@@ -100946,14 +100974,14 @@ var Track = /*#__PURE__*/function () {
                 ground.addChild(segment.bottom); // hidden to start
 
                 segment.setVisibility(false);
-                return _context4.abrupt("return", segment);
+                return _context5.abrupt("return", segment);
 
               case 14:
               case "end":
-                return _context4.stop();
+                return _context5.stop();
             }
           }
-        }, _callee4, this);
+        }, _callee5, this);
       }));
 
       function _createSegment(_x, _x2) {
@@ -100966,12 +100994,12 @@ var Track = /*#__PURE__*/function () {
   }, {
     key: "_createRoad",
     value: function () {
-      var _createRoad2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
+      var _createRoad2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
         var view, rng, segments, manifest, path, overlay, ground, cache, counts, _manifest$track2, repeating, order, total, randomize, sequence, _iterator2, _step2, _cache$id, id, previous, bounded;
 
-        return _regenerator.default.wrap(function _callee5$(_context5) {
+        return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context6.prev = _context6.next) {
               case 0:
                 view = this.view, rng = this.rng, segments = this.segments, manifest = this.manifest, path = this.path, overlay = this.overlay, ground = this.ground, cache = this.segmentCache, counts = this.segmentCounts;
                 _manifest$track2 = manifest.track, repeating = _manifest$track2.repeating, order = _manifest$track2.order;
@@ -100982,13 +101010,13 @@ var Track = /*#__PURE__*/function () {
                 sequence = (0, _utils.isArray)(order) ? order : null; // create each segment
 
                 _iterator2 = _createForOfIteratorHelper(sequence);
-                _context5.prev = 6;
+                _context6.prev = 6;
 
                 _iterator2.s();
 
               case 8:
                 if ((_step2 = _iterator2.n()).done) {
-                  _context5.next = 19;
+                  _context6.next = 19;
                   break;
                 }
 
@@ -100998,15 +101026,15 @@ var Track = /*#__PURE__*/function () {
                 bounded = (_cache$id = cache[id]) === null || _cache$id === void 0 ? void 0 : _cache$id[0];
 
                 if (bounded) {
-                  _context5.next = 16;
+                  _context6.next = 16;
                   break;
                 }
 
-                _context5.next = 15;
+                _context6.next = 15;
                 return this._createSegment(id);
 
               case 15:
-                bounded = _context5.sent;
+                bounded = _context6.sent;
 
               case 16:
                 // add to the view
@@ -101017,25 +101045,25 @@ var Track = /*#__PURE__*/function () {
                 });
 
               case 17:
-                _context5.next = 8;
+                _context6.next = 8;
                 break;
 
               case 19:
-                _context5.next = 24;
+                _context6.next = 24;
                 break;
 
               case 21:
-                _context5.prev = 21;
-                _context5.t0 = _context5["catch"](6);
+                _context6.prev = 21;
+                _context6.t0 = _context6["catch"](6);
 
-                _iterator2.e(_context5.t0);
+                _iterator2.e(_context6.t0);
 
               case 24:
-                _context5.prev = 24;
+                _context6.prev = 24;
 
                 _iterator2.f();
 
-                return _context5.finish(24);
+                return _context6.finish(24);
 
               case 27:
                 // set the default positions for each tile
@@ -101043,10 +101071,10 @@ var Track = /*#__PURE__*/function () {
 
               case 28:
               case "end":
-                return _context5.stop();
+                return _context6.stop();
             }
           }
-        }, _callee5, this, [[6, 21, 24, 27]]);
+        }, _callee6, this, [[6, 21, 24, 27]]);
       }));
 
       function _createRoad() {
@@ -101059,32 +101087,32 @@ var Track = /*#__PURE__*/function () {
   }, {
     key: "_createStartingLine",
     value: function () {
-      var _createStartingLine2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
+      var _createStartingLine2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7() {
         var view, overlay, ground, manifest, path, start, comp, segment, bounds, _iterator3, _step3, seg, shiftBy;
 
-        return _regenerator.default.wrap(function _callee6$(_context6) {
+        return _regenerator.default.wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
                 view = this.view, overlay = this.overlay, ground = this.ground, manifest = this.manifest, path = this.path;
                 start = manifest.track.start; // if missing
 
                 if (start) {
-                  _context6.next = 5;
+                  _context7.next = 5;
                   break;
                 }
 
                 console.warn("No starting block defined for ".concat(path));
-                return _context6.abrupt("return");
+                return _context7.abrupt("return");
 
               case 5:
-                _context6.next = 7;
+                _context7.next = 7;
                 return view.animator.compose({
                   compose: start
                 }, path, manifest);
 
               case 7:
-                comp = _context6.sent;
+                comp = _context7.sent;
                 segment = this.startingLine = new _segment.default(this, comp); // save the width?
 
                 bounds = (0, _ntAnimator.getBoundsForRole)(segment.bottom, 'base');
@@ -101128,10 +101156,10 @@ var Track = /*#__PURE__*/function () {
 
               case 17:
               case "end":
-                return _context6.stop();
+                return _context7.stop();
             }
           }
-        }, _callee6, this);
+        }, _callee7, this);
       }));
 
       function _createStartingLine() {
@@ -101144,39 +101172,39 @@ var Track = /*#__PURE__*/function () {
   }, {
     key: "_createFinishLine",
     value: function () {
-      var _createFinishLine2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7() {
+      var _createFinishLine2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8() {
         var view, manifest, path, finish, comp;
-        return _regenerator.default.wrap(function _callee7$(_context7) {
+        return _regenerator.default.wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
                 view = this.view, manifest = this.manifest, path = this.path;
                 finish = manifest.track.finish; // if missing
 
                 if (finish) {
-                  _context7.next = 5;
+                  _context8.next = 5;
                   break;
                 }
 
                 console.warn("No finishing block defined for ".concat(path));
-                return _context7.abrupt("return");
+                return _context8.abrupt("return");
 
               case 5:
-                _context7.next = 7;
+                _context8.next = 7;
                 return view.animator.compose({
                   compose: finish
                 }, path, manifest);
 
               case 7:
-                comp = _context7.sent;
+                comp = _context8.sent;
                 this.finishLine = new _segment.default(this, comp);
 
               case 9:
               case "end":
-                return _context7.stop();
+                return _context8.stop();
             }
           }
-        }, _callee7, this);
+        }, _callee8, this);
       }));
 
       function _createFinishLine() {
@@ -101188,28 +101216,28 @@ var Track = /*#__PURE__*/function () {
   }, {
     key: "_createSpectatorWatermark",
     value: function () {
-      var _createSpectatorWatermark2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(options) {
+      var _createSpectatorWatermark2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9(options) {
         var view, _yield$Promise$all, _yield$Promise$all2, watermarkAsset, followAsset, watermark;
 
-        return _regenerator.default.wrap(function _callee8$(_context8) {
+        return _regenerator.default.wrap(function _callee9$(_context9) {
           while (1) {
-            switch (_context8.prev = _context8.next) {
+            switch (_context9.prev = _context9.next) {
               case 0:
                 if (options.spectator) {
-                  _context8.next = 2;
+                  _context9.next = 2;
                   break;
                 }
 
-                return _context8.abrupt("return");
+                return _context9.abrupt("return");
 
               case 2:
                 view = this.view; // request the assets
 
-                _context8.next = 5;
+                _context9.next = 5;
                 return Promise.all([view.animator.create('extras/spectator_watermark'), view.animator.create('extras/spectator_follow')]);
 
               case 5:
-                _yield$Promise$all = _context8.sent;
+                _yield$Promise$all = _context9.sent;
                 _yield$Promise$all2 = (0, _slicedToArray2.default)(_yield$Promise$all, 2);
                 watermarkAsset = _yield$Promise$all2[0];
                 followAsset = _yield$Promise$all2[1];
@@ -101226,10 +101254,10 @@ var Track = /*#__PURE__*/function () {
 
               case 12:
               case "end":
-                return _context8.stop();
+                return _context9.stop();
             }
           }
-        }, _callee8, this);
+        }, _callee9, this);
       }));
 
       function _createSpectatorWatermark(_x3) {
@@ -101242,21 +101270,21 @@ var Track = /*#__PURE__*/function () {
   }, {
     key: "_createEffect",
     value: function () {
-      var _createEffect2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9() {
+      var _createEffect2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10() {
         var view, manifest, path, effect, Handler, handler;
-        return _regenerator.default.wrap(function _callee9$(_context9) {
+        return _regenerator.default.wrap(function _callee10$(_context10) {
           while (1) {
-            switch (_context9.prev = _context9.next) {
+            switch (_context10.prev = _context10.next) {
               case 0:
                 view = this.view, manifest = this.manifest, path = this.path;
                 effect = manifest.effect; // check if present
 
                 if (effect) {
-                  _context9.next = 4;
+                  _context10.next = 4;
                   break;
                 }
 
-                return _context9.abrupt("return");
+                return _context10.abrupt("return");
 
               case 4:
                 // check for any scripts that need to run
@@ -101265,42 +101293,42 @@ var Track = /*#__PURE__*/function () {
                 handler = Handler ? new Handler(view, this, view.animator) : null; // initialization
 
                 if (!handler) {
-                  _context9.next = 9;
+                  _context10.next = 9;
                   break;
                 }
 
-                _context9.next = 9;
+                _context10.next = 9;
                 return handler.init(view, this, view.animator);
 
               case 9:
                 if (!(0, _utils.isArray)(effect.compose)) {
-                  _context9.next = 15;
+                  _context10.next = 15;
                   break;
                 }
 
-                _context9.next = 12;
+                _context10.next = 12;
                 return view.animator.compose(effect, path, manifest);
 
               case 12:
-                this.effect = _context9.sent;
+                this.effect = _context10.sent;
                 this.effect.zIndex = effect.z || 0;
                 this.applyEffect();
 
               case 15:
                 if (!handler) {
-                  _context9.next = 18;
+                  _context10.next = 18;
                   break;
                 }
 
-                _context9.next = 18;
+                _context10.next = 18;
                 return handler.setup(view, this, view.animator);
 
               case 18:
               case "end":
-                return _context9.stop();
+                return _context10.stop();
             }
           }
-        }, _callee9, this);
+        }, _callee10, this);
       }));
 
       function _createEffect() {
@@ -101313,45 +101341,45 @@ var Track = /*#__PURE__*/function () {
   }, {
     key: "_createBackground",
     value: function () {
-      var _createBackground2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10() {
+      var _createBackground2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee11() {
         var view, manifest, background;
-        return _regenerator.default.wrap(function _callee10$(_context10) {
+        return _regenerator.default.wrap(function _callee11$(_context11) {
           while (1) {
-            switch (_context10.prev = _context10.next) {
+            switch (_context11.prev = _context11.next) {
               case 0:
                 view = this.view, manifest = this.manifest;
                 background = manifest.background; // check if present
 
                 if (background) {
-                  _context10.next = 4;
+                  _context11.next = 4;
                   break;
                 }
 
-                return _context10.abrupt("return");
+                return _context11.abrupt("return");
 
               case 4:
                 // check for a background color
                 if ((0, _utils.isNumber)(background.color)) view.renderer.backgroundColor = background.color; // check for a composition
 
                 if (!(0, _utils.isArray)(background.compose)) {
-                  _context10.next = 11;
+                  _context11.next = 11;
                   break;
                 }
 
-                _context10.next = 8;
+                _context11.next = 8;
                 return view.animator.compose(background, this.path);
 
               case 8:
-                this.background = _context10.sent;
+                this.background = _context11.sent;
                 this.background.zIndex = -1;
                 this.container.addChild(this.background);
 
               case 11:
               case "end":
-                return _context10.stop();
+                return _context11.stop();
             }
           }
-        }, _callee10, this);
+        }, _callee11, this);
       }));
 
       function _createBackground() {
@@ -101364,33 +101392,33 @@ var Track = /*#__PURE__*/function () {
   }, {
     key: "_createForeground",
     value: function () {
-      var _createForeground2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee11() {
+      var _createForeground2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee12() {
         var view, manifest, foreground, layer;
-        return _regenerator.default.wrap(function _callee11$(_context11) {
+        return _regenerator.default.wrap(function _callee12$(_context12) {
           while (1) {
-            switch (_context11.prev = _context11.next) {
+            switch (_context12.prev = _context12.next) {
               case 0:
                 view = this.view, manifest = this.manifest;
                 foreground = manifest.foreground; // check if present
 
                 if (foreground) {
-                  _context11.next = 4;
+                  _context12.next = 4;
                   break;
                 }
 
-                return _context11.abrupt("return");
+                return _context12.abrupt("return");
 
               case 4:
                 if (!(0, _utils.isArray)(foreground.compose)) {
-                  _context11.next = 12;
+                  _context12.next = 12;
                   break;
                 }
 
-                _context11.next = 7;
+                _context12.next = 7;
                 return view.animator.compose(foreground, this.path);
 
               case 7:
-                layer = _context11.sent;
+                layer = _context12.sent;
                 // create a a separate view - this will
                 // be placed over the cars layer
                 this.foreground = new _ntAnimator.PIXI.ResponsiveContainer();
@@ -101400,10 +101428,10 @@ var Track = /*#__PURE__*/function () {
 
               case 12:
               case "end":
-                return _context11.stop();
+                return _context12.stop();
             }
           }
-        }, _callee11, this);
+        }, _callee12, this);
       }));
 
       function _createForeground() {
@@ -101416,12 +101444,12 @@ var Track = /*#__PURE__*/function () {
   }, {
     key: "applyScripts",
     value: function () {
-      var _applyScripts = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee12() {
+      var _applyScripts = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee13() {
         var _i2, _arr2, container, objs, _iterator4, _step4, _obj$config, obj, _parseScriptArgs, _parseScriptArgs2, name, args, handler;
 
-        return _regenerator.default.wrap(function _callee12$(_context12) {
+        return _regenerator.default.wrap(function _callee13$(_context13) {
           while (1) {
-            switch (_context12.prev = _context12.next) {
+            switch (_context13.prev = _context13.next) {
               case 0:
                 _i2 = 0, _arr2 = [this.overlay, this.ground
                 /*, this.foreground, this.background */
@@ -101429,67 +101457,67 @@ var Track = /*#__PURE__*/function () {
 
               case 1:
                 if (!(_i2 < _arr2.length)) {
-                  _context12.next = 27;
+                  _context13.next = 27;
                   break;
                 }
 
                 container = _arr2[_i2];
                 objs = (0, _ntAnimator.findDisplayObjectsOfRole)(container, 'script');
                 _iterator4 = _createForOfIteratorHelper(objs);
-                _context12.prev = 5;
+                _context13.prev = 5;
 
                 _iterator4.s();
 
               case 7:
                 if ((_step4 = _iterator4.n()).done) {
-                  _context12.next = 16;
+                  _context13.next = 16;
                   break;
                 }
 
                 obj = _step4.value;
                 _parseScriptArgs = (0, _scripts.parseScriptArgs)((_obj$config = obj.config) === null || _obj$config === void 0 ? void 0 : _obj$config.script), _parseScriptArgs2 = (0, _slicedToArray2.default)(_parseScriptArgs, 2), name = _parseScriptArgs2[0], args = _parseScriptArgs2[1];
-                _context12.next = 12;
+                _context13.next = 12;
                 return (0, _scripts.loadScript)(name, args, obj, this.view, this.view.animator);
 
               case 12:
-                handler = _context12.sent;
+                handler = _context13.sent;
 
                 if (handler) {
                   this.scripts.push(handler);
                 }
 
               case 14:
-                _context12.next = 7;
+                _context13.next = 7;
                 break;
 
               case 16:
-                _context12.next = 21;
+                _context13.next = 21;
                 break;
 
               case 18:
-                _context12.prev = 18;
-                _context12.t0 = _context12["catch"](5);
+                _context13.prev = 18;
+                _context13.t0 = _context13["catch"](5);
 
-                _iterator4.e(_context12.t0);
+                _iterator4.e(_context13.t0);
 
               case 21:
-                _context12.prev = 21;
+                _context13.prev = 21;
 
                 _iterator4.f();
 
-                return _context12.finish(21);
+                return _context13.finish(21);
 
               case 24:
                 _i2++;
-                _context12.next = 1;
+                _context13.next = 1;
                 break;
 
               case 27:
               case "end":
-                return _context12.stop();
+                return _context13.stop();
             }
           }
-        }, _callee12, this, [[5, 18, 21, 24]]);
+        }, _callee13, this, [[5, 18, 21, 24]]);
       }));
 
       function applyScripts() {
@@ -101721,16 +101749,16 @@ var Track = /*#__PURE__*/function () {
 
     /** creates a new track instance */
     value: function () {
-      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee13(options) {
+      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee14(options) {
         var view, seed, activity, instance, y;
-        return _regenerator.default.wrap(function _callee13$(_context13) {
+        return _regenerator.default.wrap(function _callee14$(_context14) {
           while (1) {
-            switch (_context13.prev = _context13.next) {
+            switch (_context14.prev = _context14.next) {
               case 0:
                 view = options.view, seed = options.seed;
                 // create the new track
                 instance = new Track();
-                _context13.prev = 2;
+                _context14.prev = 2;
                 instance.options = options;
                 instance.view = view;
                 instance.container = new _ntAnimator.PIXI.Container(); // include special plugins
@@ -101754,40 +101782,33 @@ var Track = /*#__PURE__*/function () {
 
                 activity = 'preloading resources';
                 view.setLoadingStatus('assets', 'preloading resources');
-                _context13.next = 21;
+                _context14.next = 21;
                 return instance._preloadResources();
 
               case 21:
                 // setup each part
                 activity = 'assembling repeating road';
                 view.setLoadingStatus('init', 'creating road');
-                _context13.next = 25;
+                _context14.next = 25;
                 return instance._createRoad();
 
               case 25:
                 activity = 'assembling starting line';
                 view.setLoadingStatus('init', 'creating starting line');
-                _context13.next = 29;
+                _context14.next = 29;
                 return instance._createStartingLine();
 
               case 29:
-                // todo? create when needed?
-                activity = 'assembling finish line';
-                view.setLoadingStatus('init', 'creating finish line');
-                _context13.next = 33;
-                return instance._createFinishLine();
-
-              case 33:
                 // create spectator watermark
                 activity = 'assembling spectator mode';
                 view.setLoadingStatus('init', 'creating spectator mode'); // await instance._createSpectatorWatermark(options);
                 // apply scripts, if any
 
                 activity = 'loading doodad scripts';
-                _context13.next = 38;
+                _context14.next = 34;
                 return instance.applyScripts();
 
-              case 38:
+              case 34:
                 // ambience is nice, but not worth stalling over
                 activity = 'loading ambient sound';
                 view.setLoadingStatus('init', 'creating ambient sound');
@@ -101795,10 +101816,10 @@ var Track = /*#__PURE__*/function () {
                 instance._createAmbience(); // other extras
 
 
-                _context13.next = 43;
+                _context14.next = 39;
                 return instance._createEffect();
 
-              case 43:
+              case 39:
                 // await instance._createForeground();
                 // await instance._createBackground();
                 // set the y position
@@ -101809,24 +101830,24 @@ var Track = /*#__PURE__*/function () {
                 instance.ground.relativeY = y; // can render
 
                 instance.ready = true;
-                _context13.next = 55;
+                _context14.next = 51;
                 break;
 
-              case 51:
-                _context13.prev = 51;
-                _context13.t0 = _context13["catch"](2);
-                console.error('Error in track component:', activity, _context13.t0);
+              case 47:
+                _context14.prev = 47;
+                _context14.t0 = _context14["catch"](2);
+                console.error('Error in track component:', activity, _context14.t0);
                 throw new Error(activity);
 
-              case 55:
-                return _context13.abrupt("return", instance);
+              case 51:
+                return _context14.abrupt("return", instance);
 
-              case 56:
+              case 52:
               case "end":
-                return _context13.stop();
+                return _context14.stop();
             }
           }
-        }, _callee13, null, [[2, 51]]);
+        }, _callee14, null, [[2, 47]]);
       }));
 
       function create(_x4) {
@@ -104611,54 +104632,74 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
       raceCompletedAnimation.play({});
     });
-    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "finishRace", function () {
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "finishRace", /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
       var _track$spectator, _track$spectator2;
 
-      _this.finalizePerformanceTracking(); // the race has been marked as finished, show the completion
-      // until the player is marked ready
+      var _assertThisInitialize9, players, track, raceCompletedAnimation, state, options, victory;
+
+      return _regenerator.default.wrap(function _callee5$(_context5) {
+        while (1) {
+          switch (_context5.prev = _context5.next) {
+            case 0:
+              _this.finalizePerformanceTracking(); // the race has been marked as finished, show the completion
+              // until the player is marked ready
 
 
-      var _assertThisInitialize9 = (0, _assertThisInitialized2.default)(_this),
-          players = _assertThisInitialize9.players,
-          track = _assertThisInitialize9.track,
-          raceCompletedAnimation = _assertThisInitialize9.raceCompletedAnimation,
-          state = _assertThisInitialize9.state,
-          options = _assertThisInitialize9.options; // already playing (this shouldn't happen)
+              _assertThisInitialize9 = (0, _assertThisInitialized2.default)(_this), players = _assertThisInitialize9.players, track = _assertThisInitialize9.track, raceCompletedAnimation = _assertThisInitialize9.raceCompletedAnimation, state = _assertThisInitialize9.state, options = _assertThisInitialize9.options; // already playing (this shouldn't happen)
+
+              if (!raceCompletedAnimation) {
+                _context5.next = 4;
+                break;
+              }
+
+              return _context5.abrupt("return");
+
+            case 4:
+              // show the specator watermark
+              if ((_track$spectator = track.spectator) === null || _track$spectator === void 0 ? void 0 : _track$spectator.watermark) {
+                track.spectator.watermark.relativeX = _config.SPECTATOR_WATERMARK_FINISH_POSITION;
+              } // shift the spectator mode logo, if needed
 
 
-      if (raceCompletedAnimation) return; // show the specator watermark
-
-      if ((_track$spectator = track.spectator) === null || _track$spectator === void 0 ? void 0 : _track$spectator.watermark) {
-        track.spectator.watermark.relativeX = _config.SPECTATOR_WATERMARK_FINISH_POSITION;
-      } // shift the spectator mode logo, if needed
+              if ((_track$spectator2 = track.spectator) === null || _track$spectator2 === void 0 ? void 0 : _track$spectator2.follow) {
+                track.spectator.follow.alpha = 0;
+              } // stop the track
 
 
-      if ((_track$spectator2 = track.spectator) === null || _track$spectator2 === void 0 ? void 0 : _track$spectator2.follow) {
-        track.spectator.follow.alpha = 0;
-      } // stop the track
+              state.animateTrackMovement = false;
+              state.speed = 0;
+              state.shake = _config.CAR_DEFAULT_SHAKE_LEVEL;
+              state.isFinished = true; // update the track
+
+              if (!track) {
+                _context5.next = 17;
+                break;
+              }
+
+              // play the correct background noise
+              victory = players.length === 1;
+              track.setAmbience(victory ? 'victory' : 'finish'); // display the ending
+
+              _context5.next = 15;
+              return track.showFinishLine();
+
+            case 15:
+              // stop animating progress
+              _this.raceProgressAnimation.stop(); // play the final animation
 
 
-      state.animateTrackMovement = false;
-      state.speed = 0;
-      state.shake = _config.CAR_DEFAULT_SHAKE_LEVEL;
-      state.isFinished = true; // update the track
+              _this.raceCompletedAnimation = new _raceCompleted.default({
+                track: (0, _assertThisInitialized2.default)(_this),
+                players: players
+              });
 
-      if (track) {
-        // play the correct background noise
-        var victory = players.length === 1;
-        track.setAmbience(victory ? 'victory' : 'finish'); // display the ending
-
-        track.showFinishLine(); // stop animating progress
-
-        _this.raceProgressAnimation.stop(); // play the final animation
-
-
-        _this.raceCompletedAnimation = new _raceCompleted.default({
-          track: (0, _assertThisInitialized2.default)(_this),
-          players: players
-        });
-      }
-    });
+            case 17:
+            case "end":
+              return _context5.stop();
+          }
+        }
+      }, _callee5);
+    })));
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "lastUpdate", +new Date());
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "removeShadows", function () {
       var shadows = (0, _ntAnimator.findDisplayObjectsOfRole)(_this.view, 'shadow');
@@ -104705,12 +104746,12 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
     key: "init",
     // handle remaining setup
     value: function () {
-      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(options) {
+      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(options) {
         var _options, isQualifyingRace;
 
-        return _regenerator.default.wrap(function _callee5$(_context5) {
+        return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context6.prev = _context6.next) {
               case 0:
                 options = (0, _utils.merge)({
                   scale: {
@@ -104720,7 +104761,7 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
                   preserveBuffer: true
                 }, options); // base class init
 
-                _context5.next = 3;
+                _context6.next = 3;
                 return (0, _get2.default)((0, _getPrototypeOf2.default)(TrackView.prototype), "init", this).call(this, options);
 
               case 3:
@@ -104746,10 +104787,10 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
               case 11:
               case "end":
-                return _context5.stop();
+                return _context6.stop();
             }
           }
-        }, _callee5, this);
+        }, _callee6, this);
       }));
 
       function init(_x5) {
@@ -104787,31 +104828,31 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
   }, {
     key: "getTrackInstance",
     value: function () {
-      var _getTrackInstance = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
+      var _getTrackInstance = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7() {
         var _this2 = this;
 
-        return _regenerator.default.wrap(function _callee6$(_context6) {
+        return _regenerator.default.wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
                 if (!this.isTrackReady) {
-                  _context6.next = 2;
+                  _context7.next = 2;
                   break;
                 }
 
-                return _context6.abrupt("return", this.track);
+                return _context7.abrupt("return", this.track);
 
               case 2:
-                return _context6.abrupt("return", new Promise(function (resolve) {
+                return _context7.abrupt("return", new Promise(function (resolve) {
                   _this2._waitingForTrack.push(resolve);
                 }));
 
               case 3:
               case "end":
-                return _context6.stop();
+                return _context7.stop();
             }
           }
-        }, _callee6, this);
+        }, _callee7, this);
       }));
 
       function getTrackInstance() {
@@ -104877,15 +104918,38 @@ var TrackView = /*#__PURE__*/function (_BaseView) {
 
   }, {
     key: "simulateFinish",
-    value: function simulateFinish() {
-      this.state.isFinished = true;
-      this.track.showFinishLine();
-      var complete = new _raceCompleted.default({
-        track: this,
-        players: this.players
-      });
-      complete.play({});
-    }
+    value: function () {
+      var _simulateFinish = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8() {
+        var complete;
+        return _regenerator.default.wrap(function _callee8$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                this.state.isFinished = true;
+                _context8.next = 3;
+                return this.track.showFinishLine();
+
+              case 3:
+                complete = new _raceCompleted.default({
+                  track: this,
+                  players: this.players
+                });
+                complete.play({});
+
+              case 5:
+              case "end":
+                return _context8.stop();
+            }
+          }
+        }, _callee8, this);
+      }));
+
+      function simulateFinish() {
+        return _simulateFinish.apply(this, arguments);
+      }
+
+      return simulateFinish;
+    }()
     /** activates the finished race state */
 
   }, {
@@ -109682,7 +109746,7 @@ var Audio = AudioController;
 exports.Audio = Audio;
 
 try {
-  window.NTTRACK = '5.0.1';
+  window.NTTRACK = '6.0.0';
 } catch (ex) {}
 },{"./audio":"audio/index.js","./views/track":"views/track/index.js","./views/composer":"views/composer.js","./views/garage":"views/garage/index.js","./views/preview":"../node_modules/parcel-bundler/src/builtins/_empty.js","./views/cruise":"views/cruise/index.js","./views/bundle":"views/bundle/index.js","./views/customizer":"views/customizer/index.js","./views/animation":"views/animation/index.js","./views/namecard":"views/namecard/index.js"}]},{},["index.js"], null)
 //# sourceMappingURL=/index.js.map

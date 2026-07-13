@@ -47,6 +47,7 @@ export class BaseView extends EventEmitter {
 		const DEFAULT_BACKGROUND_COLOR = 0x282d3f;
 		const transparent = !!options.transparent;
 		const hasBackgroundColor = 'backgroundColor' in options;
+		console.log(options)
 		const clearBeforeRender = transparent || hasBackgroundColor;
 		const backgroundColor = hasBackgroundColor ? options.backgroundColor : DEFAULT_BACKGROUND_COLOR;
 
