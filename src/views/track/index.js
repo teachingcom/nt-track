@@ -712,15 +712,15 @@ export default class TrackView extends BaseView {
 		raceCompletedAnimation.play({ });
 	}
 
-	simulateFinish() { 
+	async simulateFinish() { 
 		this.state.isFinished = true;
-		this.track.showFinishLine();
+		await this.track.showFinishLine();
 		const complete = new RaceCompletedAnimation({ track: this, players: this.players });	
 		complete.play({ })
 	}
 
 	/** activates the finished race state */
-	finishRace = () => {
+	finishRace = async () => {
 		this.finalizePerformanceTracking();
 
 		// the race has been marked as finished, show the completion
@@ -753,7 +753,7 @@ export default class TrackView extends BaseView {
 			track.setAmbience(victory ? 'victory' : 'finish');
 
 			// display the ending
-			track.showFinishLine();
+			await track.showFinishLine();
 			
 			// stop animating progress
 			this.raceProgressAnimation.stop();

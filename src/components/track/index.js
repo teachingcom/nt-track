@@ -67,11 +67,6 @@ export default class Track {
 			view.setLoadingStatus('init', 'creating starting line');
 			await instance._createStartingLine();
 			
-			// todo? create when needed?
-			activity = 'assembling finish line';
-			view.setLoadingStatus('init', 'creating finish line');
-			await instance._createFinishLine();
-			
 			// create spectator watermark
 			activity = 'assembling spectator mode';
 			view.setLoadingStatus('init', 'creating spectator mode');
@@ -549,8 +544,13 @@ export default class Track {
 	}
 
 	/** activates the finish line view */
-	showFinishLine = () => {
+	showFinishLine = async () => {
+		if (!this.finishLine) {
+			await this._createFinishLine();
+		}
+
 		const { finishLine, overlay, ground, view } = this;
+		if (!finishLine) return;
 
 		// move the effect over, if needed
 		if (this.effect) {
