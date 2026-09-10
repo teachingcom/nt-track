@@ -2,11 +2,11 @@
 import { isViewActive, onViewActiveStateChanged } from '../utils/view';
 import { Animator, EventEmitter, PIXI, findDisplayObjectsOfRole } from 'nt-animator';
 import { noop } from '../utils';
-import { DEFAULT_PERFORMANCE_MONITORING_DELAY, PERFORMANCE_LEVEL } from '../config';
+import { DEFAULT_PERFORMANCE_MONITORING_DELAY } from '../config';
 
 // dynamic management of performance
 import FpsMonitor from '../fps';
-import DynamicPerformanceController from '../perf';
+import DynamicPerformanceController, { PERFORMANCE_LEVEL } from '../perf';
 
 /** creates a track instance */
 export class BaseView extends EventEmitter {

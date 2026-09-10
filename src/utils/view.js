@@ -1,5 +1,3 @@
-import { Emitter } from "nt-animator";
-
 // state change listeners
 const listeners = [ ];
 

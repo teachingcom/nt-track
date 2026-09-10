@@ -2,29 +2,32 @@
   "name": "nt-track",
   "version": "5.0.1",
   "description": "",
+  "source": "src/index.js",
   "main": "dist/index.js",
+  "packageManager": "yarn@1.22.22",
+  "engines": {
+    "node": ">=22 <25"
+  },
+  "targets": {
+    "main": {
+      "context": "browser",
+      "includeNodeModules": true,
+      "optimize": true,
+      "sourceMap": false
+    }
+  },
   "scripts": {
-    "dev": "yarn parcel watch --no-hmr --no-cache ./src/index.js",
-    "build": "yarn parcel build --no-cache --no-source-maps ./src/index.js"
+    "dev": "parcel watch --target main --no-hmr --no-cache",
+    "build": "parcel build --target main --no-cache"
   },
   "author": "Teaching.com",
   "license": "GPL-3.0-or-later",
-  "peerDependencies": {
-    "nt-animator": "ssh://git@github.com:/teachingcom/nt-animator",
-    "pixi-particles": "^4.2.0"
-  },
-  "dependencies": {
-    "nt-assets": "ssh://git@github.com:/teachingcom/nt-assets"
-  },
   "devDependencies": {
-    "@babel/core": "^7.9.0",
-    "@babel/plugin-proposal-class-properties": "^7.8.3",
-    "@babel/plugin-transform-runtime": "^7.9.0",
-    "babel-preset-env": "^1.7.0",
     "deep-defaults": "^1.0.5",
     "deep-get-set": "^1.1.0",
     "howler": "^2.2.0",
-    "parcel-bundler": "^1.12.4",
+    "nt-animator": "https://github.com/teachingcom/nt-animator",
+    "parcel": "^2.16.4",
     "promise.allsettled": "^1.0.5",
     "random-seed": "^0.3.0"
   }
