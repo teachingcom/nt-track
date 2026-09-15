@@ -28,7 +28,11 @@
   },
   "scripts": {
     "dev": "parcel watch --target bundle --no-hmr --no-cache",
-    "build": "parcel build --target bundle --no-cache && node scripts/version-parcel-runtime.js dist/index.js"
+    "build": "parcel build --target bundle --no-cache && node scripts/version-parcel-runtime.js dist/index.js",
+    "release": "npm version",
+    "preversion": "node scripts/check-release.js",
+    "version": "yarn build && git add dist/index.js",
+    "postversion": "git push origin HEAD --follow-tags"
   },
   "author": "Teaching.com",
   "license": "GPL-3.0-or-later",
