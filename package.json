@@ -1,34 +1,44 @@
 {
   "name": "nt-track",
-  "version": "6.0.0",
+  "version": "7.0.0",
   "description": "",
   "source": "src/index.js",
   "main": "dist/index.js",
-  "packageManager": "yarn@1.22.22",
-  "engines": {
-    "node": ">=22 <25"
-  },
+  "bundle": "dist/index.js",
+  "files": [
+    "dist"
+  ],
   "targets": {
-    "main": {
+    "main": false,
+    "bundle": {
       "context": "browser",
+      "engines": {
+        "browsers": [
+          "> 0.25%",
+          "not dead",
+          "IE 11"
+        ]
+      },
       "includeNodeModules": true,
       "optimize": true,
+      "outputFormat": "commonjs",
+      "scopeHoist": false,
       "sourceMap": false
     }
   },
   "scripts": {
-    "dev": "parcel watch --target main --no-hmr --no-cache",
-    "build": "parcel build --target main --no-cache"
+    "dev": "parcel watch --target bundle --no-hmr --no-cache",
+    "build": "parcel build --target bundle --no-cache && node scripts/version-parcel-runtime.js dist/index.js"
   },
   "author": "Teaching.com",
   "license": "GPL-3.0-or-later",
   "devDependencies": {
-    "deep-defaults": "^1.0.5",
     "deep-get-set": "^1.1.0",
     "howler": "^2.2.0",
     "nt-animator": "https://github.com/teachingcom/nt-animator",
     "parcel": "^2.16.4",
     "promise.allsettled": "^1.0.5",
-    "random-seed": "^0.3.0"
+    "random-seed": "^0.3.0",
+    "url": "^0.11.4"
   }
 }

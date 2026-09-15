@@ -133,7 +133,8 @@ export default class AnimationView extends BaseView {
 
 		// fix origins
 		if (perk.config.origin === 'center') {
-			perk.x = car.bounds.x
+			perk.x = 0
+			// perk.x = car.bounds.x
 		}
 
 		// adjust scaling
@@ -141,10 +142,10 @@ export default class AnimationView extends BaseView {
 		perk.scale.x = perk.scale.y = 1.6
 
 		// adjust the perk
-		perk.x = car.x
-		if (perk.config.origin === 'center') {
-			perk.x += car.bounds.x
-		}
+		// perk.x = car.x
+		// if (perk.config.origin === 'center') {
+		// 	perk.x += car.bounds.x
+		// }
 
   }
 
