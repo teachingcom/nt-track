@@ -360,7 +360,7 @@ export default class CustomizerView extends BaseView {
     // this.doodad.scale.x = this.doodad.scale.y = 2
     // this.doodad.y = 15
 
-    this.doodad.x = -(this.car.bounds.width >> 1)
+    this.doodad.x = -this.car.width >> 1
 
     this.container.addChild(this.doodad)
     Doodad.setLayer(this.doodad, this.car)
