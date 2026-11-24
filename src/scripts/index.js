@@ -1,10 +1,12 @@
 import Airtime from './airtime';
+import Ognitro from './ognitro';
 import ReactiveGull from './reactive_gull';
 
 // loads a script as required
 export async function loadScript(name, config, obj, track, animator) {
 	const Type = name === 'reactive_gull' ? ReactiveGull
 		: name === 'airtime' ? Airtime
+		: name === 'ognitro' ? Ognitro
 		: null;
 
 	// load if possible
@@ -25,18 +27,18 @@ export async function loadScript(name, config, obj, track, animator) {
 
 // parses script arguments
 export function parseScriptArgs(args) {
-	const name = args.shift();
+	const [ name, ...values ] = args || [ ];
 	const config = { };
 
 	// parse each arg
-	for (const arg of args) {
+	for (const arg of values) {
 		if (typeof arg === 'object') {
 			for (const key of Object.keys(arg)) {
 				config[key] = arg[key]
 			}
 		}
 		else if (typeof arg === 'string') {
-			config[key] = true;
+			config[arg] = true;
 		}
 	}
 

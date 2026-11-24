@@ -25,6 +25,7 @@ import ActivateNitroAnimation from '../../animations/activate-nitro';
 import generateTextures from './texture-generator';
 import hueShift, { shiftRgbColor } from './hue-shift';
 import { getCarPlugin } from '../../car-mappings';
+import { loadScript, parseScriptArgs } from '../../scripts';
 
 export default class Car extends PIXI.Container {
 
@@ -57,10 +58,32 @@ export default class Car extends PIXI.Container {
 		
 		// initialize the car
 		await instance._initCar();
+		await instance._initScripts();
 		await instance._initFilters();
 
 		// return the created car
 		return instance;
+	}
+
+	// initialize custom behavior declared by role: script layers
+	async _initScripts() {
+		this.scripts = [ ];
+
+		for (const obj of findDisplayObjectsOfRole(this.car, 'script')) {
+			const [ name, args ] = parseScriptArgs(obj.config?.script);
+			const handler = await loadScript(name, args, obj, this.view, this.view.animator);
+			if (handler) {
+				this.scripts.push(handler);
+			}
+		}
+	}
+
+	updateTransform(...args) {
+		for (const script of this.scripts || [ ]) {
+			script.update({ car: this });
+		}
+
+		super.updateTransform(...args);
 	}
 	
 	// creates the car instance
